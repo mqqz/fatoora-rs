@@ -1,7 +1,8 @@
 [workspace]
+resolver = "3"
+
 members = [
     "fatoora-derive",
     "fatoora-rs",
     "fatoora-rs-cli",
 ]
-resolver = "3"

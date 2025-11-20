@@ -21,7 +21,7 @@ sha2 = "0.10.9"
 thiserror = "2.0.17"
 time = "0.3.44"
 tls_codec = "0.4.2"
-fatoora-derive = { path = "./fatoora-derive" }
+fatoora-derive = { path = "../fatoora-derive" }
 
 [build-dependencies]
 cbindgen = "0.26"
