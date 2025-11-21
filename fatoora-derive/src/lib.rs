@@ -1,172 +1,124 @@
 use proc_macro::TokenStream;
+use proc_macro2::TokenStream as TokenStream2;
 use quote::{quote, ToTokens};
 use syn::{
-    parse_macro_input, Data, DeriveInput, Fields, Meta, NestedMeta,
+    parse_macro_input, Attribute, Data, DeriveInput, Fields, Type
 };
-use std::collections::HashMap;
-use std::sync::RwLock;
 
-// ===========================================================
-// RULE REGISTRY
-// ===========================================================
-//
-// RULES: HashMap<rule_name, HashMap<type_name, RuleFn>>
-//
-// RuleFn takes (field_ident) as a TokenStream and returns TokenStream
-//
-// ===========================================================
+mod rules;
 
-type RuleFn = fn(proc_macro2::TokenStream) -> proc_macro2::TokenStream;
-
-pub static RULES: RwLock<HashMap<&'static str, HashMap<&'static str, RuleFn>>> =
-    RwLock::new(HashMap::new());
-
-// ===========================================================
-// DEFINE RULE MACRO
-// ===========================================================
-//
-// Usage:
-//
-// define_rule! {
-//     non_empty for String => |value| {
-//         quote! {
-//             if #value.trim().is_empty() {
-//                 return Err(format!("{} must be non-empty", stringify!(#value)));
-//             }
-//         }
-//     }
-// }
-//
-// ===========================================================
-
-#[macro_export]
-macro_rules! define_rule {
-    ($name:ident for $ty:ident => $gen:expr) => {
-        #[ctor::ctor]
-        fn register_rule() {
-            let mut rules = $crate::RULES.write().unwrap();
-            rules
-                .entry(stringify!($name))
-                .or_insert_with(std::collections::HashMap::new)
-                .insert(stringify!($ty), $gen);
+fn extract_error_type(attrs: &[Attribute]) -> TokenStream2 {
+    for attr in attrs.iter().filter(|a| a.path().is_ident("validate_error")) {
+        let mut ty = None;
+        attr.parse_nested_meta(|meta| {
+            ty = Some(meta.path.to_token_stream());
+            Ok(())
+        }).unwrap();
+        if let Some(t) = ty {
+            return t;
         }
-    };
+    }
+    quote! { String }
 }
 
-// ===========================================================
-// DERIVE MACRO: #[derive(Validate)]
-// ===========================================================
+fn extract_rules(attrs: &[Attribute]) -> Vec<String> {
+    let mut out = vec![];
+    for attr in attrs.iter().filter(|a| a.path().is_ident("validate")) {
+        attr.parse_nested_meta(|meta| {
+            if let Some(id) = meta.path.get_ident() {
+                out.push(id.to_string());
+            }
+            Ok(())
+        }).unwrap();
+    }
+    out
+}
 
-#[proc_macro_derive(Validate, attributes(validate))]
+/// Only allow rules on String for now.
+fn is_string_type(ty: &Type) -> bool {
+    match ty {
+        Type::Path(p) => p.path.segments.last().map(|s| s.ident == "String").unwrap_or(false),
+        Type::Reference(r) => {
+            if let Type::Path(p) = &*r.elem {
+                p.path.segments.last().map(|s| s.ident == "String").unwrap_or(false)
+            } else { false }
+        }
+        _ => false,
+    }
+}
+
+#[proc_macro_derive(Validate, attributes(validate, validate_error))]
 pub fn derive_validate(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
-    let struct_name = ast.ident.clone();
+    let struct_name = ast.ident;
+    let error_type = extract_error_type(&ast.attrs);
+    let struct_rules = extract_rules(&ast.attrs);
 
-    // --------------------------
-    // Extract struct-level rules
-    // --------------------------
-    let mut struct_rules = Vec::<String>::new();
+    let mut ctor_params = vec![];
+    let mut ctor_assigns = vec![];
+    let mut validations = vec![];
 
-    for attr in &ast.attrs {
-        if attr.path().is_ident("validate") {
-            let meta = attr.parse_args_with(
-                syn::punctuated::Punctuated::<NestedMeta, syn::Token![,]>::parse_terminated,
-            ).unwrap();
+    let fields = match ast.data {
+        Data::Struct(s) => match s.fields {
+            Fields::Named(n) => n.named,
+            _ => return quote! { compile_error!("Validate supports named structs only"); }.into(),
+        },
+        _ => return quote! { compile_error!("Validate can only be used on structs"); }.into(),
+    };
 
-            for rule in meta {
-                if let NestedMeta::Meta(Meta::Path(path)) = rule {
-                    struct_rules.push(path.get_ident().unwrap().to_string());
+    for field in fields {
+        let ident = field.ident.unwrap();
+        let ty = field.ty;
+
+        ctor_params.push(quote! { #ident: #ty });
+        ctor_assigns.push(quote! { #ident });
+
+        let mut field_rules = extract_rules(&field.attrs);
+        if field_rules.iter().any(|r| r == "skip") {
+            continue;
+        }
+        if field_rules.is_empty() {
+            field_rules = struct_rules.clone();
+        }
+        if field_rules.is_empty() {
+            continue;
+        }
+
+        if !is_string_type(&ty) {
+            let msg = format!("Validation rules can only be applied to String fields: {}", ident);
+            return quote! { compile_error!(#msg); }.into();
+        }
+
+        for rule in field_rules {
+            let ts = match rules::dispatch(&rule, &ident) {
+                Some(ts) => ts,
+                None => {
+                    let msg = format!("Unknown rule `{}`", rule);
+                    return quote! { compile_error!(#msg); }.into();
                 }
-            }
+            };
+            validations.push(ts);
         }
     }
 
-    // --------------------------
-    // Walk fields and collect validations
-    // --------------------------
-    let mut ctor_params = Vec::new();
-    let mut ctor_assign = Vec::new();
-    let mut validations = Vec::new();
-
-    if let Data::Struct(data_struct) = ast.data {
-        if let Fields::Named(fields) = data_struct.fields {
-            for field in fields.named {
-                let name = field.ident.unwrap();
-                let ty = field.ty.clone();
-                let ty_string = ty.into_token_stream().to_string();
-
-                ctor_params.push(quote! { #name: #ty });
-                ctor_assign.push(quote! { #name });
-
-                // Field-level rules
-                let mut field_rules = Vec::<String>::new();
-
-                for attr in &field.attrs {
-                    if attr.path().is_ident("validate") {
-                        let meta = attr.parse_args_with(
-                            syn::punctuated::Punctuated::<NestedMeta, syn::Token![,]>::parse_terminated,
-                        ).unwrap();
-
-                        for rule in meta {
-                            if let NestedMeta::Meta(Meta::Path(path)) = rule {
-                                field_rules.push(path.get_ident().unwrap().to_string());
-                            }
-                        }
-                    }
-                }
-
-                // Skip field
-                if field_rules.contains(&"skip".to_string()) {
-                    continue;
-                }
-
-                // final list of rules
-                let applied_rules = if field_rules.is_empty() {
-                    struct_rules.clone()
-                } else {
-                    field_rules.clone()
-                };
-
-                // apply rules by type lookup
-                for rule_name in applied_rules {
-                    let rules = RULES.read().unwrap();
-
-                    let type_map = rules
-                        .get(rule_name.as_str())
-                        .unwrap_or_else(|| panic!("Unknown validation rule `{}`", rule_name));
-
-                    let validator = type_map
-                        .get(ty_string.as_str())
-                        .unwrap_or_else(|| {
-                            panic!(
-                                "Rule `{}` does not support type `{}`",
-                                rule_name, ty_string
-                            )
-                        });
-
-                    let field_token = quote! { #name };
-                    let expanded = validator(field_token);
-                    validations.push(expanded);
-                }
-            }
-        }
-    }
-
-    // --------------------------
-    // Generate constructor
-    // --------------------------
-    let expanded = quote! {
+    let out = quote! {
         impl #struct_name {
-            pub fn new( #(#ctor_params),* ) -> Result<Self, String> {
+            pub fn new(
+                #(#ctor_params),*
+            ) -> Result<Self, #error_type> {
 
-                #(#validations)*
+                type E = #error_type;
+
+                #(
+                    #validations
+                )*
 
                 Ok(Self {
-                    #(#ctor_assign),*
+                    #(#ctor_assigns),*
                 })
             }
         }
     };
 
-    TokenStream::from(expanded)
+    out.into()
 }

@@ -52,8 +52,7 @@ fn main() -> Result<()> {
 
     match cli.command {
         Commands::Csr { csr_config, private_key, generated_csr, pem } => {
-            let csr = fatoora_rs::csr::generate_csr_from_file(&csr_config)?;
-            println!("{}", csr);
+            todo!("Implement CSR generation");
         }
         Commands::Sign { invoice, signed_invoice } => {
             let signed = fatoora_rs::sign::sign_invoice(&invoice)?;
@@ -64,7 +63,7 @@ fn main() -> Result<()> {
             println!("{:#?}", result);
         }
         Commands::Qr { invoice } => {
-            let qr = fatoora_rs::qr::generate_invoice_qr(&invoice)?;
+            let qr = fatoora_rs::qr::generate(&invoice)?;
             println!("{}", qr);
         }
         Commands::GenerateHash { invoice } => {
