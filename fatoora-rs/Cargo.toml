@@ -21,9 +21,20 @@ time = "0.3.44"
 tls_codec = "0.4.2"
 fatoora-derive = { path = "../fatoora-derive" }
 x509-cert = { version = "0.3.0-rc.2", features = ["builder", "pem"] }
-k256 = { version = "0.14.0-rc.1", features = ["ecdsa", "ecdsa-core", "getrandom"] }
+k256 = { version = "0.14.0-rc.1", features = [
+    "ecdsa",
+    "ecdsa-core",
+    "getrandom",
+] }
 const-oid = { version = "0.10.1", features = ["db"] }
-ecdsa = { version = "0.17.0-rc.9", features = ["algorithm", "alloc", "digest", "hazmat", "pkcs8", "sha2"] }
+ecdsa = { version = "0.17.0-rc.9", features = [
+    "algorithm",
+    "alloc",
+    "digest",
+    "hazmat",
+    "pkcs8",
+    "sha2",
+] }
 base64ct = "1.8.0"
 libxml = "0.3.8"
 
