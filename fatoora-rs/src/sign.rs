@@ -6,15 +6,15 @@ pub enum SigningError {
     SigningError(String),
 }
 
-pub fn generate_hash(xml: &str) -> Result<String, SigningError> {
+pub fn generate_hash(_xml: &str) -> Result<String, SigningError> {
     // TODO: canonicalization
     // TODO: SHA-256 over invoice contents
-    Ok("HASH_PLACEHOLDER".into())
+    todo!()
 }
 
-pub fn sign_invoice(path: &str) -> Result<String, SigningError> {
+pub fn sign_invoice(_path: &str) -> Result<String, SigningError> {
     // TODO: load private key + cert
     // TODO: canonicalize invoice
     // TODO: sign using ECDSA P-256K1
-    Ok("<SignedInvoice/>".into())
+    todo!()
 }

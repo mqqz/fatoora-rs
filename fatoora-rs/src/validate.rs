@@ -6,12 +6,9 @@ pub struct ValidationResult {
     pub errors: Vec<String>,
 }
 
-pub fn validate_xml(path: &str) -> Result<ValidationResult> {
+pub fn validate_xml(_path: &str) -> Result<ValidationResult> {
     // TODO: schema validation
     // TODO: signature check
     // TODO: business rule checks
-    Ok(ValidationResult {
-        is_valid: true,
-        errors: vec![],
-    })
+    todo!()
 }

@@ -1,8 +1,6 @@
-use crate::FATOORA_VERSION;
 use ffi_support::{FfiStr, rust_string_to_c};
 
 use std::os::raw::c_char;
-
 
 #[unsafe(no_mangle)]
 pub extern "C" fn fatoora_generate_invoice_hash(xml: FfiStr) -> *mut c_char {
