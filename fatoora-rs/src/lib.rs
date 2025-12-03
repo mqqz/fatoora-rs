@@ -1,9 +1,10 @@
 pub mod abi;
 pub mod api_request;
+pub mod config;
 pub mod csr;
 pub mod qr;
 pub mod sign;
-pub mod validate; // C ABI layer
+pub mod validate;
 
 // Central SDK version
 pub const FATOORA_VERSION: &str = "0.1.0";
