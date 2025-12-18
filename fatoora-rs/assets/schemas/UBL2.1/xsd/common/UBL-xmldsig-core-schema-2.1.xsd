@@ -205,14 +205,20 @@
     </choice>
   </sequence>
 </complexType>
+<!--- PATCH START -->
+<simpleType name="X509SerialNumberString">
+  <restriction base="string">
+    <pattern value="[0-9]+"/>
+  </restriction>
+</simpleType>
 
-<complexType name="X509IssuerSerialType"> 
-  <sequence> 
-    <element name="X509IssuerName" type="string"/> 
-    <element name="X509SerialNumber" type="integer"/> 
+<complexType name="X509IssuerSerialType">
+  <sequence>
+    <element name="X509IssuerName" type="string"/>
+    <element name="X509SerialNumber" type="ds:X509SerialNumberString"/>
   </sequence>
 </complexType>
-
+<!--- PATCH END -->
 <!-- End X509Data -->
 
 <!-- Begin PGPData -->

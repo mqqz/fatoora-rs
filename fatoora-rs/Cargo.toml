@@ -37,6 +37,9 @@ ecdsa = { version = "0.17.0-rc.9", features = [
 ] }
 base64ct = "1.8.0"
 libxml = "0.3.8"
+isocountry = "0.3.2"
+chrono = "0.4.42"
+iso_currency = "0.5.3"
 
 [build-dependencies]
 cbindgen = "0.29.2"
