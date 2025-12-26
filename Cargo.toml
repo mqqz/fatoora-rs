@@ -3,6 +3,6 @@ resolver = "3"
 
 members = [
     "fatoora-derive",
-    "fatoora-rs",
+    "fatoora-core",
     "fatoora-rs-cli",
 ]

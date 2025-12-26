@@ -63,26 +63,24 @@ fn main() -> Result<()> {
             invoice,
             signed_invoice,
         } => {
-            let signed = fatoora_rs::sign::sign_invoice(&invoice)?;
+            let signed = fatoora_core::sign::sign_invoice(&invoice)?;
             println!("{}", signed);
         }
         Commands::Validate { invoice } => {
             todo!()
         }
         Commands::Qr { invoice } => {
-            let qr = fatoora_rs::qr::generate(&invoice)?;
-            println!("{}", qr);
+            todo!()
         }
         Commands::GenerateHash { invoice } => {
-            let hash = fatoora_rs::sign::generate_hash(&invoice)?;
+            let hash = fatoora_core::sign::generate_hash(&invoice)?;
             println!("{}", hash);
         }
         Commands::InvoiceRequest {
             invoice,
             api_request,
         } => {
-            let json = fatoora_rs::api_request::generate(&invoice)?;
-            println!("{}", json);
+            todo!()
         }
     }
 
