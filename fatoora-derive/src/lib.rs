@@ -1,9 +1,7 @@
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
-use quote::{quote, ToTokens};
-use syn::{
-    parse_macro_input, Attribute, Data, DeriveInput, Fields, Type
-};
+use quote::{ToTokens, quote};
+use syn::{Attribute, Data, DeriveInput, Fields, Type, parse_macro_input};
 
 mod rules;
 
@@ -13,7 +11,8 @@ fn extract_error_type(attrs: &[Attribute]) -> TokenStream2 {
         attr.parse_nested_meta(|meta| {
             ty = Some(meta.path.to_token_stream());
             Ok(())
-        }).unwrap();
+        })
+        .unwrap();
         if let Some(t) = ty {
             return t;
         }
@@ -29,7 +28,8 @@ fn extract_rules(attrs: &[Attribute]) -> Vec<String> {
                 out.push(id.to_string());
             }
             Ok(())
-        }).unwrap();
+        })
+        .unwrap();
     }
     out
 }
@@ -37,11 +37,22 @@ fn extract_rules(attrs: &[Attribute]) -> Vec<String> {
 /// Only allow rules on String for now.
 fn is_string_type(ty: &Type) -> bool {
     match ty {
-        Type::Path(p) => p.path.segments.last().map(|s| s.ident == "String").unwrap_or(false),
+        Type::Path(p) => p
+            .path
+            .segments
+            .last()
+            .map(|s| s.ident == "String")
+            .unwrap_or(false),
         Type::Reference(r) => {
             if let Type::Path(p) = &*r.elem {
-                p.path.segments.last().map(|s| s.ident == "String").unwrap_or(false)
-            } else { false }
+                p.path
+                    .segments
+                    .last()
+                    .map(|s| s.ident == "String")
+                    .unwrap_or(false)
+            } else {
+                false
+            }
         }
         _ => false,
     }
@@ -85,7 +96,10 @@ pub fn derive_validate(input: TokenStream) -> TokenStream {
         }
 
         if !is_string_type(&ty) {
-            let msg = format!("Validation rules can only be applied to String fields: {}", ident);
+            let msg = format!(
+                "Validation rules can only be applied to String fields: {}",
+                ident
+            );
             return quote! { compile_error!(#msg); }.into();
         }
 
@@ -103,6 +117,7 @@ pub fn derive_validate(input: TokenStream) -> TokenStream {
 
     let out = quote! {
         impl #struct_name {
+            #[allow(clippy::too_many_arguments)]
             pub fn new(
                 #(#ctor_params),*
             ) -> Result<Self, #error_type> {

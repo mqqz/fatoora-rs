@@ -19,6 +19,28 @@ impl FromStr for EnvironmentType {
     }
 }
 
+impl EnvironmentType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            EnvironmentType::NonProduction => "non_production",
+            EnvironmentType::Simulation => "simulation",
+            EnvironmentType::Production => "production",
+        }
+    }
+
+    pub fn get_endpoint_url(&self) -> &'static str {
+        match self {
+            EnvironmentType::NonProduction => {
+                "https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal/"
+            }
+            EnvironmentType::Simulation => {
+                "https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation/"
+            }
+            EnvironmentType::Production => "https://gw-fatoora.zatca.gov.sa/e-invoicing/core/",
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Config {
     pub env: EnvironmentType,

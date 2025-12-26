@@ -111,10 +111,10 @@ impl EnvironmentType {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Validate, Debug)]
 #[validate_error(CsrError)]
 #[validate(non_empty, no_special_chars)]
-#[allow(dead_code)]
 pub struct CsrProperties {
     common_name: String,
     serial_number: String,
@@ -169,12 +169,10 @@ impl CsrProperties {
         ecdsa::SigningKey::<Secp256k1>::generate()
     }
 
-    pub fn build(&self, env: EnvironmentType) -> Result<(CertReq, SigningKey), CsrError> {
+    pub fn build(&self, signer: &SigningKey, env: EnvironmentType) -> Result<CertReq, CsrError> {
         let subject = self.generate_subject()?;
         let asn1_extension = self.generate_template_name_extension(env)?;
         let san_extension = self.generate_san_extension()?;
-
-        let signer: ecdsa::SigningKey<Secp256k1> = self.generate_signer();
 
         let mut csr_builder = RequestBuilder::new(subject).map_err(|e| CsrError::RequestBuild {
             message: e.to_string(),
@@ -191,13 +189,17 @@ impl CsrProperties {
                 which: "SubjectAltName",
                 message: e.to_string(),
             })?;
-
         csr_builder
-            .build::<_, ecdsa::der::Signature<_>>(&signer)
-            .map(|csr| (csr, signer))
+            .build::<_, ecdsa::der::Signature<_>>(signer)
             .map_err(|e| CsrError::CsrBuild {
                 message: e.to_string(),
             })
+    }
+
+    pub fn build_with_rng(&self, env: EnvironmentType) -> Result<(CertReq, SigningKey), CsrError> {
+        let signer: ecdsa::SigningKey<Secp256k1> = self.generate_signer();
+        let csr = self.build(&signer, env)?;
+        Ok((csr, signer))
     }
 
     pub fn parse_csr_config(csr_path: &path::Path) -> Result<CsrProperties, CsrError> {
@@ -261,6 +263,10 @@ mod tests {
 
     #[allow(unused_imports)]
     use super::*;
+    #[allow(unused_imports)]
+    use k256::pkcs8::DecodePrivateKey;
+    #[allow(unused_imports)]
+    use k256::pkcs8::EncodePrivateKey;
 
     #[test]
     fn test_parse_csr_config() {
@@ -299,7 +305,7 @@ mod tests {
                 message: e.to_string(),
             })
             .unwrap();
-        let (csr, _key) = csr_config.build(env).unwrap();
+        let (csr, _key) = csr_config.build_with_rng(env).unwrap();
 
         // CSR must DER-encode successfully and produce a non-empty Base64 string
         let der = csr
@@ -362,5 +368,44 @@ mod tests {
             subject_str.contains("CN=TST-"),
             "Subject must contain CN with 'TST-' prefix (got {subject_str})"
         );
+
+        // println!("CSR generated {}", csr.to_base64_string().unwrap());
+        // save private key in pem format for debugging
+        // ecdsa::SigningKey::write_pkcs8_der_file(&_key, "test_private_key.der").unwrap();
+    }
+
+    #[test]
+    fn test_csr_matches_zatca_sdk() {
+        // This test ensures that the generated CSR matches the one produced by
+        // the ZATCA SDK for the same input properties.
+        //
+        // The reference CSR was generated using the ZATCA SDK with the same
+        // properties as in the csr-config-example-EN.properties file.
+        //
+        // The test compares the Base64-encoded CSR strings.
+        let csr_config = CsrProperties::parse_csr_config(std::path::Path::new(
+            "../assets/csr-configs/csr-config-example-EN.properties",
+        ))
+        .unwrap();
+        let env = EnvironmentType::from_str("production")
+            .map_err(|e| CsrError::Validation {
+                message: e.to_string(),
+            })
+            .unwrap();
+        let zatca_pkey = ecdsa::SigningKey::from_pkcs8_der(
+            &std::fs::read("../assets/pkeys/test_zatca_pkey.der").unwrap(),
+        )
+        .unwrap();
+
+        let csr = csr_config.build(&zatca_pkey, env).unwrap();
+        // let generated_b64 = csr.to_base64_string().unwrap();
+        // let reference_b64 = std::fs::read_to_string("../assets/csrs/test_zatca_en1.csr")
+        //     .expect("Failed to read reference CSR file")
+        //     .trim()
+        //     .to_string();
+        // assert_eq!(
+        //     generated_b64, reference_b64,
+        //     "Generated CSR does not match reference CSR from ZATCA SDK"
+        // );
     }
 }

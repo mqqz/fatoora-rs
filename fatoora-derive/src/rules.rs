@@ -44,9 +44,7 @@ pub fn is_country_code(field: &Ident) -> TokenStream {
             )));
         }
     }
-    
 }
-
 
 /// --- Dispatch Table --------------------------------------------------------
 

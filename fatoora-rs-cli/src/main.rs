@@ -1,5 +1,5 @@
-use clap::{Parser, Subcommand};
 use anyhow::Result;
+use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(name = "fatoora")]
@@ -44,23 +44,30 @@ enum Commands {
         invoice: String,
         #[arg(long)]
         api_request: Option<String>,
-    }
+    },
 }
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Csr { csr_config, private_key, generated_csr, pem } => {
+        Commands::Csr {
+            csr_config,
+            private_key,
+            generated_csr,
+            pem,
+        } => {
             todo!("Implement CSR generation");
         }
-        Commands::Sign { invoice, signed_invoice } => {
+        Commands::Sign {
+            invoice,
+            signed_invoice,
+        } => {
             let signed = fatoora_rs::sign::sign_invoice(&invoice)?;
             println!("{}", signed);
         }
         Commands::Validate { invoice } => {
-            let result = fatoora_rs::validate::validate_xml(&invoice)?;
-            println!("{:#?}", result);
+            todo!()
         }
         Commands::Qr { invoice } => {
             let qr = fatoora_rs::qr::generate(&invoice)?;
@@ -70,7 +77,10 @@ fn main() -> Result<()> {
             let hash = fatoora_rs::sign::generate_hash(&invoice)?;
             println!("{}", hash);
         }
-        Commands::InvoiceRequest { invoice, api_request } => {
+        Commands::InvoiceRequest {
+            invoice,
+            api_request,
+        } => {
             let json = fatoora_rs::api_request::generate(&invoice)?;
             println!("{}", json);
         }

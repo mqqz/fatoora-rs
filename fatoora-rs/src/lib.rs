@@ -1,9 +1,9 @@
 pub mod abi;
-pub mod api_request;
+pub mod api;
 pub mod config;
 pub mod csr;
 pub mod invoice;
-pub mod qr;
+pub mod pcsid;
 pub mod sign;
 
 // Central SDK version
