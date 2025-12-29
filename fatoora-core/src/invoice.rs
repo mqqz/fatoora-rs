@@ -1,5 +1,7 @@
+pub mod sign;
 pub mod validation;
 pub mod xml;
+
 use base64ct::{Base64, Encoding};
 use chrono::{DateTime, TimeZone, Utc};
 use iso_currency::Currency;
@@ -389,7 +391,7 @@ pub fn dummy_invoice() -> Invoice {
     )
     .expect("valid seller");
 
-    Invoice {
+    let mut invoice = Invoice {
         invoice_type: InvoiceType::Tax(InvoiceSubType::Simplified),
 
         id: "SME00010".into(),
@@ -406,7 +408,7 @@ pub fn dummy_invoice() -> Invoice {
         currency: Currency::SAR,
         previous_invoice_hash: "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==".into(),
         invoice_counter: Some("10".into()),
-        qr_code: Some("AW/YtNix2YPYqSDYqtmI2LHZitivINin2YTYqtmD2YbZiNmE2YjYrNmK2Kcg2KjYo9mC2LXZiSDYs9ix2LnYqSDYp9mE2YXYrdiv2YjYr9ipIHwgTWF4aW11bSBTcGVlZCBUZWNoIFN1cHBseSBMVEQCDzM5OTk5OTk5OTkwMDAwMwMTMjAyMi0wOC0xN1QxNzo0MTowOAQGMjMxLjE1BQUzMC4xNQYsejVGOXFzUzZvV3lEaGVoRDh1OFMwRGF4VisyQ1VpVXo5WStVc1I2MUpnUT0HYE1FWUNJUUNZb3ZwL0d4ZC94MnFaY0RaWmYrNFRkdGZaalUvMS9melMzRVFqbVpHaGxRSWhBTlRjMHJsQXMzZmZRZ3JLaThWNDllWFYzMmQyMDBYSXV0Z0N0aTRpR0FqQghYMFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEoWCKa0Sa9FIErTOv0uAkC1VIKXxU9nPpx2vlf4yhMejy8c02XJblDq7tPydo8mq0ahOMmNo8gwni7Xt1KT9UeAlHMEUCIQCxP4nIZp1lwlClG3Gt8nIvKKsGi7xXR1Y0K73iPbqgGwIgPYQuDPI4DAQAz0s5ndrojyQOoCkdyxNN1O+Xqmwv61w=".into()),
+        qr_code: None,
         note: Some(InvoiceNote {
             language: "ar".into(),
             text: "ABC".into(),
@@ -430,7 +432,14 @@ pub fn dummy_invoice() -> Invoice {
         invoice_level_charge: 0.0,
         invoice_level_discount: 0.0,
         allowance_reason: Some("discount".into()),
-    }
+    };
+
+    invoice.qr_code = Some(
+        invoice
+            .generate_qr_code(QrOptions::default())
+            .expect("generate dummy invoice QR"),
+    );
+    invoice
 }
 
 #[cfg(test)]

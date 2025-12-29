@@ -87,7 +87,8 @@ mod tests {
         let xml_invoice = dummy_invoice()
             .to_xml()
             .expect("failed to serialize dummy invoice");
-
+        // save to file for debugging
+        // std::fs::write("debug-invoice.xml", &xml_invoice).expect("failed to write debug invoice");
         let result = validate_xml_invoice_from_str(&xml_invoice, &config);
         match result {
             Ok(_) => (),

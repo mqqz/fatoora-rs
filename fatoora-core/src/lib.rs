@@ -3,8 +3,6 @@ pub mod api;
 pub mod config;
 pub mod csr;
 pub mod invoice;
-pub mod pcsid;
-pub mod sign;
 
 // Central SDK version
 pub const FATOORA_VERSION: &str = "0.1.0";

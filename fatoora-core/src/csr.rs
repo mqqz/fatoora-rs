@@ -14,7 +14,10 @@ use std::{
 use thiserror::Error;
 use x509_cert::{
     builder::{Builder, RequestBuilder},
-    der::{Encode, Error as DerError, Length, Result as DerResult, Writer, asn1},
+    der::{
+        Encode, EncodePem, Error as DerError, Length, Result as DerResult, Writer, asn1,
+        pem::LineEnding,
+    },
     ext::{
         AsExtension, Extension,
         pkix::{SubjectAltName, name::GeneralName},
@@ -247,6 +250,7 @@ impl From<String> for CsrError {
 
 pub trait ToBase64String {
     fn to_base64_string(&self) -> Result<String, CsrError>;
+    fn to_pem_base64_string(&self) -> Result<String, CsrError>;
 }
 
 impl ToBase64String for CertReq {
@@ -256,6 +260,16 @@ impl ToBase64String for CertReq {
             source: e,
         })?;
         Ok(Base64::encode_string(&der_bytes))
+    }
+
+    fn to_pem_base64_string(&self) -> Result<String, CsrError> {
+        let pem = self
+            .to_pem(LineEnding::LF)
+            .map_err(|e| CsrError::DerEncode {
+                context: "certificate request (PEM)",
+                source: e,
+            })?;
+        Ok(Base64::encode_string(pem.as_bytes()))
     }
 }
 
