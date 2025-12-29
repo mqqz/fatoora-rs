@@ -411,7 +411,7 @@ mod tests {
         )
         .unwrap();
 
-        let csr = csr_config.build(&zatca_pkey, env).unwrap();
+        let _csr = csr_config.build(&zatca_pkey, env).unwrap();
         // let generated_b64 = csr.to_base64_string().unwrap();
         // let reference_b64 = std::fs::read_to_string("../assets/csrs/test_zatca_en1.csr")
         //     .expect("Failed to read reference CSR file")

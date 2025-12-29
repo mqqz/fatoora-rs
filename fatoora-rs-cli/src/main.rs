@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -63,7 +63,7 @@ fn main() -> Result<()> {
             invoice,
             signed_invoice,
         } => {
-            let signed = fatoora_core::sign::sign_invoice(&invoice)?;
+            let signed = fatoora_core::invoice::sign::sign_invoice(&invoice)?;
             println!("{}", signed);
         }
         Commands::Validate { invoice } => {
@@ -73,7 +73,9 @@ fn main() -> Result<()> {
             todo!()
         }
         Commands::GenerateHash { invoice } => {
-            let hash = fatoora_core::sign::generate_hash(&invoice)?;
+            let xml = std::fs::read_to_string(&invoice)
+                .with_context(|| format!("failed to read invoice file {invoice}"))?;
+            let hash = fatoora_core::invoice::sign::generate_hash_from_str(&xml)?;
             println!("{}", hash);
         }
         Commands::InvoiceRequest {

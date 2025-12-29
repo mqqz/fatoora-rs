@@ -1,8 +1,12 @@
 pub mod sign;
 pub mod validation;
 pub mod xml;
+mod builder;
+pub use builder::{
+    DraftInvoice, FinalizedInvoice, InvoiceBuilder, InvoiceView, SignedInvoice,
+    SigningArtifacts,
+};
 
-use base64ct::{Base64, Encoding};
 use chrono::{DateTime, TimeZone, Utc};
 use iso_currency::Currency;
 use isocountry::{CountryCode, CountryCodeParseErr};
@@ -21,6 +25,8 @@ pub enum InvoiceError {
     MissingBuyerId,
     #[error("Invalid VAT ID format")]
     InvalidVatFormat,
+    #[error("Invoice must have at least one line item")]
+    MissingLineItems,
 }
 
 #[derive(Debug, Error)]
@@ -188,8 +194,8 @@ pub enum InvoiceSubType {
 pub enum InvoiceType {
     Tax(InvoiceSubType),
     Prepayment(InvoiceSubType),
-    CreditNote(InvoiceSubType, Rc<Invoice>, String), // original invoice and reason
-    DebitNote(InvoiceSubType, Rc<Invoice>, String),  // original invoice and reason
+    CreditNote(InvoiceSubType, Rc<InvoiceData>, String), // original invoice and reason
+    DebitNote(InvoiceSubType, Rc<InvoiceData>, String),  // original invoice and reason
 }
 
 #[derive(Debug)]
@@ -214,7 +220,7 @@ pub struct LineItem {
 pub type LineItems = Vec<LineItem>;
 
 #[derive(Debug)]
-pub struct Invoice {
+pub struct InvoiceData {
     pub invoice_type: InvoiceType,
     pub id: String,
     pub uuid: String,
@@ -222,7 +228,6 @@ pub struct Invoice {
     pub currency: Currency, // currently no separate tax/invoice currency
     pub previous_invoice_hash: String,
     pub invoice_counter: Option<String>,
-    pub qr_code: Option<String>,
     pub note: Option<InvoiceNote>,
     pub seller: Seller,
     pub buyer: Option<Buyer>,
@@ -242,100 +247,80 @@ pub struct Invoice {
     pub allowance_reason: Option<String>,
 }
 
-impl Invoice {
-    fn qr_taxable_amount(&self) -> f64 {
-        let line_extension: f64 = self.line_items.iter().map(|li| li.total_amount).sum();
-        line_extension - self.invoice_level_discount + self.invoice_level_charge
-    }
-
-    fn qr_vat_total(&self) -> f64 {
-        self.line_items.iter().map(|li| li.vat_amount).sum()
-    }
-
-    fn qr_invoice_total(&self) -> f64 {
-        self.qr_taxable_amount() + self.qr_vat_total()
-    }
-
-    fn format_amount(amount: f64) -> String {
-        format!("{:.2}", amount)
-    }
-
-    /// Build the ZATCA-compliant TLV payload in Base64 suitable for QR codes.
-    pub fn generate_qr_code(&self, options: QrOptions<'_>) -> QrResult<String> {
-        struct TlvBuilder {
-            bytes: Vec<u8>,
-        }
-
-        impl TlvBuilder {
-            fn new() -> Self {
-                Self { bytes: Vec::new() }
-            }
-
-            fn push_str(&mut self, tag: u8, value: &str) -> QrResult<()> {
-                self.push_bytes(tag, value.as_bytes())
-            }
-
-            fn push_bytes(&mut self, tag: u8, value: &[u8]) -> QrResult<()> {
-                if value.len() > u8::MAX as usize {
-                    return Err(QrCodeError::ValueTooLong {
-                        tag,
-                        len: value.len(),
-                    });
-                }
-                self.bytes.push(tag);
-                self.bytes.push(value.len() as u8);
-                self.bytes.extend_from_slice(value);
-                Ok(())
-            }
-
-            fn finish(self) -> QrResult<String> {
-                let encoded = Base64::encode_string(&self.bytes);
-                if encoded.len() > 700 {
-                    return Err(QrCodeError::EncodedTooLong { len: encoded.len() });
-                }
-                Ok(encoded)
-            }
-        }
-
-        let seller_name = self.seller.name.trim();
-        if seller_name.is_empty() {
+impl InvoiceData {
+    pub(crate) fn seller_name(&self) -> QrResult<&str> {
+        let name = self.seller.name.trim();
+        if name.is_empty() {
             return Err(QrCodeError::MissingSellerName);
         }
+        Ok(name)
+    }
 
-        let seller_vat = self
+    pub(crate) fn seller_vat(&self) -> QrResult<&str> {
+        let vat = self
             .seller
             .vat_id
             .as_ref()
             .ok_or(QrCodeError::MissingSellerVat)?
             .as_str()
             .trim();
-        if seller_vat.is_empty() {
+        if vat.is_empty() {
             return Err(QrCodeError::MissingSellerVat);
         }
+        Ok(vat)
+    }
 
-        let mut tlv = TlvBuilder::new();
-        tlv.push_str(1, seller_name)?;
-        tlv.push_str(2, seller_vat)?;
+    pub(crate) fn timestamp_string(&self) -> String {
+        self.issue_datetime.format("%Y-%m-%dT%H:%M:%SZ").to_string()
+    }
 
-        let timestamp = self.issue_datetime.format("%Y-%m-%dT%H:%M:%SZ").to_string();
-        tlv.push_str(3, &timestamp)?;
-        tlv.push_str(4, &Self::format_amount(self.qr_invoice_total()))?;
-        tlv.push_str(5, &Self::format_amount(self.qr_vat_total()))?;
+    pub(crate) fn format_amount(amount: f64) -> String {
+        format!("{:.2}", amount)
+    }
+}
+#[derive(Debug, Clone, Copy)]
+pub struct InvoiceTotalsData {
+    line_extension: f64,
+    tax_amount: f64,
+    allowance_total: f64,
+    charge_total: f64,
+}
 
-        if let Some(hash) = options.invoice_hash {
-            tlv.push_bytes(6, hash.as_bytes())?;
-        }
-        if let Some(sig) = options.ecdsa_signature {
-            tlv.push_bytes(7, sig.as_bytes())?;
-        }
-        if let Some(pk) = options.ecdsa_public_key {
-            tlv.push_bytes(8, pk.as_bytes())?;
-        }
-        if let Some(stamp_sig) = options.public_key_signature {
-            tlv.push_bytes(9, stamp_sig.as_bytes())?;
-        }
+impl InvoiceTotalsData {
+    pub(crate) fn from_data(data: &InvoiceData) -> Self {
+        let line_extension: f64 = data.line_items.iter().map(|li| li.total_amount).sum();
+        let tax_amount: f64 = data.line_items.iter().map(|li| li.vat_amount).sum();
 
-        tlv.finish()
+        Self {
+            line_extension,
+            tax_amount,
+            allowance_total: data.invoice_level_discount,
+            charge_total: data.invoice_level_charge,
+        }
+    }
+
+    pub fn line_extension(&self) -> f64 {
+        self.line_extension
+    }
+
+    pub fn tax_amount(&self) -> f64 {
+        self.tax_amount
+    }
+
+    pub fn allowance_total(&self) -> f64 {
+        self.allowance_total
+    }
+
+    pub fn charge_total(&self) -> f64 {
+        self.charge_total
+    }
+
+    pub fn taxable_amount(&self) -> f64 {
+        self.line_extension - self.allowance_total + self.charge_total
+    }
+
+    pub fn tax_inclusive_amount(&self) -> f64 {
+        self.taxable_amount() + self.tax_amount
     }
 }
 
@@ -382,7 +367,7 @@ fn dummy_line_items() -> LineItems {
 
 // ---- Dummy Invoice ----
 
-pub fn dummy_invoice() -> Invoice {
+pub fn dummy_invoice() -> SignedInvoice {
     let seller = Party::<SellerRole>::new(
         "LTD".into(),
         dummy_seller_address(),
@@ -391,63 +376,46 @@ pub fn dummy_invoice() -> Invoice {
     )
     .expect("valid seller");
 
-    let mut invoice = Invoice {
-        invoice_type: InvoiceType::Tax(InvoiceSubType::Simplified),
-
-        id: "SME00010".into(),
-        uuid: "8e6000cf-1a98-4174-b3e7-b5d5954bc10d".into(),
-
-        issue_datetime: {
-            let naive = chrono::NaiveDate::from_ymd_opt(2022, 8, 17)
-                .unwrap()
-                .and_hms_opt(17, 41, 8)
-                .unwrap();
-            Utc.from_utc_datetime(&naive)
-        },
-
-        currency: Currency::SAR,
-        previous_invoice_hash: "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==".into(),
-        invoice_counter: Some("10".into()),
-        qr_code: None,
-        note: Some(InvoiceNote {
-            language: "ar".into(),
-            text: "ABC".into(),
-        }),
-
-        seller,
-        buyer: None,
-
-        line_items: dummy_line_items(),
-
-        payment_means_code: "10".into(), // cash (ZATCA common)
-
-        vat_category: VatCategory::Standard,
-
-        is_third_party: false,
-        is_nominal: false,
-        is_export: false,
-        is_summary: false,
-        is_self_billed: false,
-
-        invoice_level_charge: 0.0,
-        invoice_level_discount: 0.0,
-        allowance_reason: Some("discount".into()),
+    let issue_datetime = {
+        let naive = chrono::NaiveDate::from_ymd_opt(2022, 8, 17)
+            .unwrap()
+            .and_hms_opt(17, 41, 8)
+            .unwrap();
+        Utc.from_utc_datetime(&naive)
     };
 
-    invoice.qr_code = Some(
-        invoice
-            .generate_qr_code(QrOptions::default())
-            .expect("generate dummy invoice QR"),
-    );
-    invoice
+    let draft = InvoiceBuilder::new(
+        InvoiceType::Tax(InvoiceSubType::Simplified),
+        "SME00010",
+        "8e6000cf-1a98-4174-b3e7-b5d5954bc10d",
+        issue_datetime,
+        Currency::SAR,
+        "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
+        seller,
+        dummy_line_items(),
+        "10", // cash (ZATCA common)
+        VatCategory::Standard,
+    )
+    .invoice_counter("10")
+    .note(InvoiceNote {
+        language: "ar".into(),
+        text: "ABC".into(),
+    })
+    .allowance_reason("discount")
+    .build();
+
+    let finalized = draft.finalize().expect("finalize dummy invoice");
+    finalized
+        .sign(SigningArtifacts::default())
+        .expect("sign dummy invoice")
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use base64ct::Base64;
+    use base64ct::{Base64, Encoding};
 
-    fn sample_invoice() -> Invoice {
+    fn sample_invoice() -> FinalizedInvoice {
         let seller = Party::<SellerRole>::new(
             "Acme Inc".into(),
             dummy_seller_address(),
@@ -472,30 +440,21 @@ mod tests {
             .and_hms_opt(12, 30, 0)
             .unwrap();
 
-        Invoice {
-            invoice_type: InvoiceType::Tax(InvoiceSubType::Simplified),
-            id: "INV-1".into(),
-            uuid: "uuid-123".into(),
-            issue_datetime: Utc.from_utc_datetime(&issue_datetime),
-            currency: Currency::SAR,
-            previous_invoice_hash: String::new(),
-            invoice_counter: None,
-            qr_code: None,
-            note: None,
+        InvoiceBuilder::new(
+            InvoiceType::Tax(InvoiceSubType::Simplified),
+            "INV-1",
+            "uuid-123",
+            Utc.from_utc_datetime(&issue_datetime),
+            Currency::SAR,
+            "",
             seller,
-            buyer: None,
-            line_items: vec![line_item],
-            payment_means_code: "10".into(),
-            vat_category: VatCategory::Standard,
-            is_third_party: false,
-            is_nominal: false,
-            is_export: false,
-            is_summary: false,
-            is_self_billed: false,
-            invoice_level_charge: 0.0,
-            invoice_level_discount: 0.0,
-            allowance_reason: None,
-        }
+            vec![line_item],
+            "10",
+            VatCategory::Standard,
+        )
+        .build()
+        .finalize()
+        .expect("finalize sample invoice")
     }
 
     fn decode_tlv(bytes: &[u8]) -> Vec<(u8, String)> {
@@ -516,14 +475,18 @@ mod tests {
     #[test]
     fn qr_code_contains_all_required_tags() {
         let invoice = sample_invoice();
-        let options = QrOptions {
-            invoice_hash: Some("hash=="),
-            ecdsa_signature: Some("signature=="),
-            ecdsa_public_key: Some("public=="),
-            public_key_signature: Some("stamp=="),
+        let signing = SigningArtifacts {
+            invoice_hash: Some("hash==".into()),
+            ecdsa_signature: Some("signature==".into()),
+            ecdsa_public_key: Some("public==".into()),
+            public_key_signature: Some("stamp==".into()),
         };
 
-        let qr = invoice.generate_qr_code(options).expect("qr generated");
+        let qr = invoice
+            .sign(signing)
+            .expect("sign invoice")
+            .qr_code()
+            .to_string();
         assert!(qr.len() < 700);
 
         let raw = Base64::decode_vec(&qr).expect("base64 decode");
@@ -546,12 +509,12 @@ mod tests {
     fn qr_code_errors_on_large_field() {
         let invoice = sample_invoice();
         let oversized = "a".repeat(300);
-        let options = QrOptions {
-            invoice_hash: Some(&oversized),
-            ..QrOptions::default()
+        let signing = SigningArtifacts {
+            invoice_hash: Some(oversized),
+            ..SigningArtifacts::default()
         };
 
-        match invoice.generate_qr_code(options) {
+        match invoice.sign(signing) {
             Err(QrCodeError::ValueTooLong { tag, .. }) => assert_eq!(tag, 6),
             other => panic!("expected ValueTooLong error, got {:?}", other),
         }
@@ -561,14 +524,14 @@ mod tests {
     fn qr_code_errors_when_payload_too_long() {
         let invoice = sample_invoice();
         let long_value = "a".repeat(255);
-        let options = QrOptions {
-            invoice_hash: Some(&long_value),
-            ecdsa_signature: Some(&long_value),
-            ecdsa_public_key: Some(&long_value),
-            public_key_signature: Some(&long_value),
+        let signing = SigningArtifacts {
+            invoice_hash: Some(long_value.clone()),
+            ecdsa_signature: Some(long_value.clone()),
+            ecdsa_public_key: Some(long_value.clone()),
+            public_key_signature: Some(long_value),
         };
 
-        match invoice.generate_qr_code(options) {
+        match invoice.sign(signing) {
             Err(QrCodeError::EncodedTooLong { .. }) => {}
             other => panic!("expected EncodedTooLong error, got {:?}", other),
         }

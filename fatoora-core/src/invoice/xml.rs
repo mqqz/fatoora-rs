@@ -1,6 +1,6 @@
 use super::{
-    Address, Buyer, Invoice, InvoiceNote, InvoiceType, LineItem, OtherId, Party, PartyRole, Seller,
-    VatCategory, VatId,
+    Address, Buyer, FinalizedInvoice, InvoiceData, InvoiceNote, InvoiceType, InvoiceView, LineItem,
+    OtherId, Party, PartyRole, Seller, SignedInvoice, VatCategory, VatId,
 };
 
 use helpers::{
@@ -11,7 +11,7 @@ use quick_xml::se::{SeError, Serializer as QuickXmlSerializer};
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 use thiserror::Error;
 
-pub struct InvoiceXml<'a>(pub &'a Invoice);
+pub struct InvoiceXml<'a, T: InvoiceView + ?Sized>(pub &'a T);
 
 #[derive(Debug, Error)]
 pub enum InvoiceXmlError {
@@ -200,32 +200,25 @@ mod helpers {
 
 struct InvoiceTotals<'a> {
     currency: &'a str,
-    line_extension: f64,
-    tax_amount: f64,
-    allowance_total: f64,
-    charge_total: f64,
     vat_percent: f64,
     vat_category: &'a VatCategory,
+    totals: &'a super::InvoiceTotalsData,
 }
 
 impl<'a> InvoiceTotals<'a> {
-    fn new(inv: &'a Invoice) -> Self {
-        let line_extension = inv.line_items.iter().map(|li| li.total_amount).sum();
-        let tax_amount = inv.line_items.iter().map(|li| li.vat_amount).sum();
-        let vat_percent = inv
+    fn new<T: InvoiceView + ?Sized>(inv: &'a T) -> Self {
+        let data = inv.data();
+        let vat_percent = data
             .line_items
             .first()
             .map(|li| li.vat_rate)
             .unwrap_or_default();
 
         Self {
-            currency: inv.currency.code(),
-            line_extension,
-            tax_amount,
-            allowance_total: inv.invoice_level_discount,
-            charge_total: inv.invoice_level_charge,
+            currency: data.currency.code(),
             vat_percent,
-            vat_category: &inv.vat_category,
+            vat_category: &data.vat_category,
+            totals: inv.totals(),
         }
     }
 
@@ -234,27 +227,27 @@ impl<'a> InvoiceTotals<'a> {
     }
 
     fn taxable_amount(&self) -> f64 {
-        self.line_extension - self.allowance_total + self.charge_total
+        self.totals.taxable_amount()
     }
 
     fn tax_inclusive_amount(&self) -> f64 {
-        self.taxable_amount() + self.tax_amount
+        self.totals.tax_inclusive_amount()
     }
 
     fn line_extension(&self) -> f64 {
-        self.line_extension
+        self.totals.line_extension()
     }
 
     fn tax_amount(&self) -> f64 {
-        self.tax_amount
+        self.totals.tax_amount()
     }
 
     fn allowance_total(&self) -> f64 {
-        self.allowance_total
+        self.totals.allowance_total()
     }
 
     fn charge_total(&self) -> f64 {
-        self.charge_total
+        self.totals.charge_total()
     }
 
     fn vat_percent(&self) -> f64 {
@@ -903,14 +896,14 @@ impl<'a> Serialize for CountryXml<'a> {
     }
 }
 
-struct InvoiceLineXml<'a>(usize, &'a LineItem, &'a Invoice);
+struct InvoiceLineXml<'a>(usize, &'a LineItem, &'a InvoiceData);
 
 impl<'a> Serialize for InvoiceLineXml<'a> {
     fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        let (idx, li, inv) = (self.0, self.1, self.2);
+        let (idx, li, invoice) = (self.0, self.1, self.2);
 
         let mut st = s.serialize_struct("cac:InvoiceLine", 0)?;
 
@@ -924,14 +917,14 @@ impl<'a> Serialize for InvoiceLineXml<'a> {
             "cbc:LineExtensionAmount",
             &currency_amount(
                 "cbc:LineExtensionAmount",
-                inv.currency.code(),
+                invoice.currency.code(),
                 li.total_amount,
             ),
         )?;
         st.serialize_field(
             "cac:TaxTotal",
             &invoice_line_tax_total(
-                inv.currency.code(),
+                invoice.currency.code(),
                 li.vat_amount,
                 li.total_amount + li.vat_amount,
             ),
@@ -942,7 +935,7 @@ impl<'a> Serialize for InvoiceLineXml<'a> {
         )?;
         st.serialize_field(
             "cac:Price",
-            &invoice_line_price(inv.currency.code(), li.unit_price),
+            &invoice_line_price(invoice.currency.code(), li.unit_price),
         )?;
 
         st.end()
@@ -963,35 +956,50 @@ pub trait ToXml {
         })
     }
 }
-impl ToXml for Invoice {
+
+impl ToXml for FinalizedInvoice {
     fn to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError> {
-        let mut buffer = String::with_capacity(4096);
-        buffer.push_str(r#"<?xml version="1.0" encoding="UTF-8"?>"#);
-        buffer.push('\n');
-
-        {
-            let mut serializer = QuickXmlSerializer::new(&mut buffer);
-            if let XmlFormat::Pretty {
-                indent_char,
-                indent_size,
-            } = format
-            {
-                serializer.indent(indent_char, indent_size);
-            }
-            InvoiceXml(self).serialize(serializer)?;
-        }
-
-        Ok(buffer)
+        to_xml_with_format(self, format)
     }
 }
 
-impl<'a> Serialize for InvoiceXml<'a> {
+impl ToXml for SignedInvoice {
+    fn to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError> {
+        to_xml_with_format(self, format)
+    }
+}
+
+fn to_xml_with_format<T: InvoiceView + ?Sized>(
+    invoice: &T,
+    format: XmlFormat,
+) -> Result<String, InvoiceXmlError> {
+    let mut buffer = String::with_capacity(4096);
+    buffer.push_str(r#"<?xml version="1.0" encoding="UTF-8"?>"#);
+    buffer.push('\n');
+
+    {
+        let mut serializer = QuickXmlSerializer::new(&mut buffer);
+        if let XmlFormat::Pretty {
+            indent_char,
+            indent_size,
+        } = format
+        {
+            serializer.indent(indent_char, indent_size);
+        }
+        InvoiceXml(invoice).serialize(serializer)?;
+    }
+
+    Ok(buffer)
+}
+
+impl<'a, T: InvoiceView + ?Sized> Serialize for InvoiceXml<'a, T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        let inv = self.0;
-        let totals = InvoiceTotals::new(inv);
+        let view = self.0;
+        let data = view.data();
+        let totals = InvoiceTotals::new(view);
         let currency_code = totals.currency();
 
         let mut root = serializer.serialize_struct("Invoice", 0)?;
@@ -1016,27 +1024,27 @@ impl<'a> Serialize for InvoiceXml<'a> {
 
         // ---- identifiers & issue info ----
         root.serialize_field("cbc:ProfileID", "reporting:1.0")?;
-        root.serialize_field("cbc:ID", &inv.id)?;
-        root.serialize_field("cbc:UUID", &inv.uuid)?;
+        root.serialize_field("cbc:ID", &data.id)?;
+        root.serialize_field("cbc:UUID", &data.uuid)?;
         root.serialize_field(
             "cbc:IssueDate",
-            &inv.issue_datetime.date_naive().to_string(),
+            &data.issue_datetime.date_naive().to_string(),
         )?;
         root.serialize_field(
             "cbc:IssueTime",
-            &inv.issue_datetime.time().format("%H:%M:%S").to_string(),
+            &data.issue_datetime.time().format("%H:%M:%S").to_string(),
         )?;
 
         // ---- invoice type ----
-        root.serialize_field("cbc:InvoiceTypeCode", &InvoiceTypeView(&inv.invoice_type))?;
-        if let Some(note) = &inv.note {
+        root.serialize_field("cbc:InvoiceTypeCode", &InvoiceTypeView(&data.invoice_type))?;
+        if let Some(note) = &data.note {
             root.serialize_field("cbc:Note", &NoteXml(note))?;
         }
         root.serialize_field("cbc:DocumentCurrencyCode", currency_code)?;
         root.serialize_field("cbc:TaxCurrencyCode", currency_code)?;
 
         // ---- supporting references ----
-        if let Some(counter) = &inv.invoice_counter {
+        if let Some(counter) = &data.invoice_counter {
             root.serialize_field(
                 "cac:AdditionalDocumentReference",
                 &AdditionalDocumentReferenceXml::InvoiceCounter(counter),
@@ -1044,9 +1052,9 @@ impl<'a> Serialize for InvoiceXml<'a> {
         }
         root.serialize_field(
             "cac:AdditionalDocumentReference",
-            &AdditionalDocumentReferenceXml::PreviousInvoiceHash(&inv.previous_invoice_hash),
+            &AdditionalDocumentReferenceXml::PreviousInvoiceHash(&data.previous_invoice_hash),
         )?;
-        if let Some(qr) = &inv.qr_code {
+        if let Some(qr) = view.qr_code() {
             root.serialize_field(
                 "cac:AdditionalDocumentReference",
                 &AdditionalDocumentReferenceXml::QrCode(qr),
@@ -1056,25 +1064,25 @@ impl<'a> Serialize for InvoiceXml<'a> {
         // ---- parties ----
         root.serialize_field(
             "cac:AccountingSupplierParty",
-            &AccountingSupplierPartyXml(&inv.seller),
+            &AccountingSupplierPartyXml(&data.seller),
         )?;
         root.serialize_field(
             "cac:AccountingCustomerParty",
-            &AccountingCustomerPartyXml(inv.buyer.as_ref()),
+            &AccountingCustomerPartyXml(data.buyer.as_ref()),
         )?;
 
         // ---- payment ----
-        root.serialize_field("cac:PaymentMeans", &payment_means(&inv.payment_means_code))?;
+        root.serialize_field("cac:PaymentMeans", &payment_means(&data.payment_means_code))?;
 
         // ---- allowance / charges ----
-        if totals.allowance_total() > 0.0 || inv.allowance_reason.is_some() {
+        if totals.allowance_total() > 0.0 || data.allowance_reason.is_some() {
             root.serialize_field(
                 "cac:AllowanceCharge",
                 &allowance_charge(
                     false,
                     totals.allowance_total(),
                     currency_code,
-                    inv.allowance_reason.as_deref().unwrap_or("discount"),
+                    data.allowance_reason.as_deref().unwrap_or("discount"),
                     totals.vat_category(),
                     totals.vat_percent(),
                 ),
@@ -1087,7 +1095,7 @@ impl<'a> Serialize for InvoiceXml<'a> {
                     true,
                     totals.charge_total(),
                     currency_code,
-                    inv.allowance_reason.as_deref().unwrap_or("charge"),
+                    data.allowance_reason.as_deref().unwrap_or("charge"),
                     totals.vat_category(),
                     totals.vat_percent(),
                 ),
@@ -1126,8 +1134,8 @@ impl<'a> Serialize for InvoiceXml<'a> {
         )?;
 
         // ---- lines ----
-        for (i, line) in inv.line_items.iter().enumerate() {
-            root.serialize_field("cac:InvoiceLine", &InvoiceLineXml(i + 1, line, inv))?;
+        for (i, line) in data.line_items.iter().enumerate() {
+            root.serialize_field("cac:InvoiceLine", &InvoiceLineXml(i + 1, line, data))?;
         }
 
         root.end()

@@ -1,14 +1,13 @@
 use std::marker::PhantomData;
 
 use anyhow::Result;
-use base64ct::{Base64, Encoding};
 use reqwest::Client;
 use serde::Deserialize;
 use serde_json::Value;
 use thiserror::Error;
 use x509_cert::request::CertReq;
 
-use crate::{config::Config, csr::ToBase64String, invoice::Invoice};
+use crate::{config::Config, csr::ToBase64String, invoice::SignedInvoice};
 
 #[derive(Error, Debug)]
 pub enum ZatcaError {
@@ -61,15 +60,15 @@ impl ZatcaClient {
         })
     }
 
-    pub fn report_simplified_invoice(&self, _invoice: &Invoice) -> Result<(), ZatcaError> {
+    pub fn report_simplified_invoice(&self, _invoice: &SignedInvoice) -> Result<(), ZatcaError> {
         todo!()
     }
 
-    pub fn clear_standard_invoice(&self, _invoice: &Invoice) -> Result<(), ZatcaError> {
+    pub fn clear_standard_invoice(&self, _invoice: &SignedInvoice) -> Result<(), ZatcaError> {
         todo!()
     }
 
-    pub fn check_invoice_compliance(&self, _invoice: &Invoice) -> Result<(), ZatcaError> {
+    pub fn check_invoice_compliance(&self, _invoice: &SignedInvoice) -> Result<(), ZatcaError> {
         todo!()
     }
 
@@ -147,7 +146,7 @@ impl ZatcaClient {
 
     pub fn renew_csid(
         &self,
-        pcsid: &CsidResponse<Compliance>,
+        _pcsid: &CsidResponse<Compliance>,
     ) -> Result<CsidResponse<Production>, ZatcaError> {
         todo!()
     }
@@ -155,7 +154,7 @@ impl ZatcaClient {
 
 // Private API
 impl ZatcaClient {
-    fn prepare_invoice_payload(&self, _invoice: &Invoice) -> Result<Value, ZatcaError> {
+    fn prepare_invoice_payload(&self, _invoice: &SignedInvoice) -> Result<Value, ZatcaError> {
         // TODO: transform the internal invoice model to the JSON payload required by ZATCA
         todo!()
     }
@@ -177,6 +176,7 @@ mod tests {
     use x509_cert::der::Decode;
 
     #[tokio::test]
+    #[ignore]
     async fn post_compliance_csid_sandbox() {
         let otp = "123345";
         let csr_path = Path::new("../assets/csrs/test_zatca_en1.csr");
@@ -204,6 +204,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore]
     async fn post_production_csid_sandbox() {
         let otp = "123345";
         let csr_path = Path::new("../assets/csrs/test_zatca_en1.csr");
