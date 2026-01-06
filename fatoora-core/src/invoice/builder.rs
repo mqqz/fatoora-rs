@@ -1,8 +1,8 @@
 use super::{
     Buyer, InvoiceData, InvoiceError, InvoiceNote, InvoiceTotalsData, InvoiceType, LineItems,
-    QrCodeError, QrOptions, QrResult, Seller, VatCategory,
+    QrPayload, QrResult, Seller, VatCategory,
 };
-use base64ct::{Base64, Encoding};
+use crate::invoice::sign::SignedProperties;
 use chrono::{DateTime, Utc};
 use iso_currency::Currency;
 
@@ -20,47 +20,13 @@ pub struct FinalizedInvoice {
 #[derive(Debug)]
 pub struct SignedInvoice {
     finalized: FinalizedInvoice,
-    signing: SigningArtifacts,
+    signature_bundle: SignedProperties,
     qr_code: String,
+    signed_xml: String,
 }
 
 pub struct InvoiceBuilder {
     invoice: InvoiceData,
-}
-
-struct TlvBuilder {
-    bytes: Vec<u8>,
-}
-
-impl TlvBuilder {
-    fn new() -> Self {
-        Self { bytes: Vec::new() }
-    }
-
-    fn push_str(&mut self, tag: u8, value: &str) -> QrResult<()> {
-        self.push_bytes(tag, value.as_bytes())
-    }
-
-    fn push_bytes(&mut self, tag: u8, value: &[u8]) -> QrResult<()> {
-        if value.len() > u8::MAX as usize {
-            return Err(QrCodeError::ValueTooLong {
-                tag,
-                len: value.len(),
-            });
-        }
-        self.bytes.push(tag);
-        self.bytes.push(value.len() as u8);
-        self.bytes.extend_from_slice(value);
-        Ok(())
-    }
-
-    fn finish(self) -> QrResult<String> {
-        let encoded = Base64::encode_string(&self.bytes);
-        if encoded.len() > 700 {
-            return Err(QrCodeError::EncodedTooLong { len: encoded.len() });
-        }
-        Ok(encoded)
-    }
 }
 
 impl InvoiceBuilder {
@@ -180,24 +146,25 @@ impl FinalizedInvoice {
         &self.totals
     }
 
-    pub fn sign(self, artifacts: SigningArtifacts) -> QrResult<SignedInvoice> {
-        let qr_code = build_qr_code(&self.data, &self.totals, artifacts.as_qr_options())?;
+    pub fn sign(
+        self,
+        signature_bundle: SignedProperties,
+        signed_xml: String,
+    ) -> QrResult<SignedInvoice> {
+        let qr_code = QrPayload::from_invoice(&self.data, &self.totals)?
+            .with_signing_parts(
+                Some(signature_bundle.invoice_hash()),
+                Some(signature_bundle.signature()),
+                Some(signature_bundle.public_key()),
+                signature_bundle.public_key_signature(),
+            )
+            .encode()?;
         Ok(SignedInvoice {
             finalized: self,
-            signing: artifacts,
+            signature_bundle,
             qr_code,
+            signed_xml,
         })
-    }
-}
-
-impl SigningArtifacts {
-    fn as_qr_options(&self) -> QrOptions<'_> {
-        QrOptions {
-            invoice_hash: self.invoice_hash.as_deref(),
-            ecdsa_signature: self.ecdsa_signature.as_deref(),
-            ecdsa_public_key: self.ecdsa_public_key.as_deref(),
-            public_key_signature: self.public_key_signature.as_deref(),
-        }
     }
 }
 
@@ -210,12 +177,21 @@ impl SignedInvoice {
         self.finalized.totals()
     }
 
-    pub fn signing(&self) -> &SigningArtifacts {
-        &self.signing
+    pub fn signature_bundle(&self) -> &SignedProperties {
+        &self.signature_bundle
     }
 
     pub fn qr_code(&self) -> &str {
         &self.qr_code
+    }
+
+    pub fn xml(&self) -> &str {
+        &self.signed_xml
+    }
+
+    pub(crate) fn with_xml(mut self, signed_xml: String) -> Self {
+        self.signed_xml = signed_xml;
+        self
     }
 }
 
@@ -251,43 +227,4 @@ impl InvoiceView for SignedInvoice {
     fn qr_code(&self) -> Option<&str> {
         Some(self.qr_code())
     }
-}
-
-fn build_qr_code(
-    invoice: &InvoiceData,
-    totals: &InvoiceTotalsData,
-    options: QrOptions<'_>,
-) -> QrResult<String> {
-    let seller_name = invoice.seller_name()?;
-    let seller_vat = invoice.seller_vat()?;
-
-    let mut tlv = TlvBuilder::new();
-    tlv.push_str(1, seller_name)?;
-    tlv.push_str(2, seller_vat)?;
-
-    tlv.push_str(3, &invoice.timestamp_string())?;
-    tlv.push_str(4, &InvoiceData::format_amount(totals.tax_inclusive_amount()))?;
-    tlv.push_str(5, &InvoiceData::format_amount(totals.tax_amount()))?;
-
-    if let Some(hash) = options.invoice_hash {
-        tlv.push_bytes(6, hash.as_bytes())?;
-    }
-    if let Some(sig) = options.ecdsa_signature {
-        tlv.push_bytes(7, sig.as_bytes())?;
-    }
-    if let Some(pk) = options.ecdsa_public_key {
-        tlv.push_bytes(8, pk.as_bytes())?;
-    }
-    if let Some(stamp_sig) = options.public_key_signature {
-        tlv.push_bytes(9, stamp_sig.as_bytes())?;
-    }
-
-    tlv.finish()
-}
-#[derive(Debug, Default, Clone)]
-pub struct SigningArtifacts {
-    pub invoice_hash: Option<String>,
-    pub ecdsa_signature: Option<String>,
-    pub ecdsa_public_key: Option<String>,
-    pub public_key_signature: Option<String>,
 }

@@ -7,3 +7,6 @@ edition = "2024"
 anyhow = "1.0.100"
 clap = { version = "4.5.53", features = ["derive"] }
 fatoora-core = { path = "../fatoora-core" }
+base64ct = "1.8.0"
+k256 = { version = "0.14.0-rc.1", features = ["pkcs8", "pem"] }
+x509-cert = { version = "0.3.0-rc.2", features = ["pem"] }

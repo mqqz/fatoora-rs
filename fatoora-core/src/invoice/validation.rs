@@ -61,7 +61,7 @@ pub fn validate_xml_invoice(path: &Path, config: &Config) -> ValidationResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::invoice::{dummy_invoice, xml::ToXml};
+    use crate::invoice::{dummy_finalized_invoice, xml::ToXml};
 
     #[test]
     fn test_validate_xml_invoice() {
@@ -84,11 +84,9 @@ mod tests {
     #[test]
     fn test_our_invoices_can_be_validated() {
         let config: Config = Default::default();
-        let xml_invoice = dummy_invoice()
+        let xml_invoice = dummy_finalized_invoice()
             .to_xml()
             .expect("failed to serialize dummy invoice");
-        // save to file for debugging
-        // std::fs::write("debug-invoice.xml", &xml_invoice).expect("failed to write debug invoice");
         let result = validate_xml_invoice_from_str(&xml_invoice, &config);
         match result {
             Ok(_) => (),

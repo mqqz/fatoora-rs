@@ -1,12 +1,12 @@
+mod builder;
+mod qr;
 pub mod sign;
 pub mod validation;
 pub mod xml;
-mod builder;
-pub use builder::{
-    DraftInvoice, FinalizedInvoice, InvoiceBuilder, InvoiceView, SignedInvoice,
-    SigningArtifacts,
-};
+pub use builder::{DraftInvoice, FinalizedInvoice, InvoiceBuilder, InvoiceView, SignedInvoice};
+pub use qr::{QrCodeError, QrPayload, QrResult};
 
+#[allow(unused_imports)]
 use chrono::{DateTime, TimeZone, Utc};
 use iso_currency::Currency;
 use isocountry::{CountryCode, CountryCodeParseErr};
@@ -27,32 +27,6 @@ pub enum InvoiceError {
     InvalidVatFormat,
     #[error("Invoice must have at least one line item")]
     MissingLineItems,
-}
-
-#[derive(Debug, Error)]
-pub enum QrCodeError {
-    #[error("seller legal name is missing")]
-    MissingSellerName,
-    #[error("seller VAT ID is missing")]
-    MissingSellerVat,
-    #[error("TLV field {tag} exceeds 255 bytes (len={len})")]
-    ValueTooLong { tag: u8, len: usize },
-    #[error("QR code payload exceeds 700 characters once base64 encoded (len={len})")]
-    EncodedTooLong { len: usize },
-}
-
-pub type QrResult<T> = std::result::Result<T, QrCodeError>;
-
-#[derive(Debug, Clone, Copy, Default)]
-pub struct QrOptions<'a> {
-    /// Base64 encoded hash of the XML invoice (Tag 6).
-    pub invoice_hash: Option<&'a str>,
-    /// Base64 encoded ECDSA signature (Tag 7).
-    pub ecdsa_signature: Option<&'a str>,
-    /// Base64 encoded ECDSA public key (Tag 8).
-    pub ecdsa_public_key: Option<&'a str>,
-    /// Base64 encoded signature of the cryptographic stamp public key (Tag 9).
-    pub public_key_signature: Option<&'a str>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -324,6 +298,7 @@ impl InvoiceTotalsData {
     }
 }
 
+#[cfg(test)]
 fn dummy_seller_address() -> Address {
     Address {
         country_code: CountryCode::SAU,
@@ -340,6 +315,7 @@ fn dummy_seller_address() -> Address {
 
 // ---- Dummy Line Items ----
 
+#[cfg(test)]
 fn dummy_line_items() -> LineItems {
     vec![
         LineItem {
@@ -366,8 +342,8 @@ fn dummy_line_items() -> LineItems {
 }
 
 // ---- Dummy Invoice ----
-
-pub fn dummy_invoice() -> SignedInvoice {
+#[cfg(test)]
+pub fn dummy_draft_invoice() -> DraftInvoice {
     let seller = Party::<SellerRole>::new(
         "LTD".into(),
         dummy_seller_address(),
@@ -384,7 +360,7 @@ pub fn dummy_invoice() -> SignedInvoice {
         Utc.from_utc_datetime(&naive)
     };
 
-    let draft = InvoiceBuilder::new(
+    InvoiceBuilder::new(
         InvoiceType::Tax(InvoiceSubType::Simplified),
         "SME00010",
         "8e6000cf-1a98-4174-b3e7-b5d5954bc10d",
@@ -402,17 +378,41 @@ pub fn dummy_invoice() -> SignedInvoice {
         text: "ABC".into(),
     })
     .allowance_reason("discount")
-    .build();
+    .build()
+}
 
-    let finalized = draft.finalize().expect("finalize dummy invoice");
+#[cfg(test)]
+pub fn dummy_finalized_invoice() -> FinalizedInvoice {
+    dummy_draft_invoice()
+        .finalize()
+        .expect("finalize dummy invoice")
+}
+
+#[cfg(test)]
+pub fn dummy_signed_invoice() -> SignedInvoice {
+    use crate::invoice::sign::SignedProperties;
+    use crate::invoice::xml::ToXml;
+
+    let finalized = dummy_finalized_invoice();
+    let signed_xml = finalized.to_xml().expect("serialize dummy invoice");
     finalized
-        .sign(SigningArtifacts::default())
+        .sign(
+            SignedProperties::from_qr_parts("hash==", "signature==", "public==", None),
+            signed_xml,
+        )
         .expect("sign dummy invoice")
+}
+
+#[cfg(test)]
+pub fn dummy_invoice() -> SignedInvoice {
+    dummy_signed_invoice()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::invoice::sign::SignedProperties;
+    use crate::invoice::xml::ToXml;
     use base64ct::{Base64, Encoding};
 
     fn sample_invoice() -> FinalizedInvoice {
@@ -475,15 +475,12 @@ mod tests {
     #[test]
     fn qr_code_contains_all_required_tags() {
         let invoice = sample_invoice();
-        let signing = SigningArtifacts {
-            invoice_hash: Some("hash==".into()),
-            ecdsa_signature: Some("signature==".into()),
-            ecdsa_public_key: Some("public==".into()),
-            public_key_signature: Some("stamp==".into()),
-        };
+        let signing =
+            SignedProperties::from_qr_parts("hash==", "signature==", "public==", Some("stamp=="));
 
+        let signed_xml = invoice.to_xml().expect("serialize invoice");
         let qr = invoice
-            .sign(signing)
+            .sign(signing, signed_xml)
             .expect("sign invoice")
             .qr_code()
             .to_string();
@@ -509,12 +506,10 @@ mod tests {
     fn qr_code_errors_on_large_field() {
         let invoice = sample_invoice();
         let oversized = "a".repeat(300);
-        let signing = SigningArtifacts {
-            invoice_hash: Some(oversized),
-            ..SigningArtifacts::default()
-        };
+        let signing = SignedProperties::from_qr_parts(&oversized, "sig", "pk", None);
 
-        match invoice.sign(signing) {
+        let signed_xml = invoice.to_xml().expect("serialize invoice");
+        match invoice.sign(signing, signed_xml) {
             Err(QrCodeError::ValueTooLong { tag, .. }) => assert_eq!(tag, 6),
             other => panic!("expected ValueTooLong error, got {:?}", other),
         }
@@ -524,14 +519,15 @@ mod tests {
     fn qr_code_errors_when_payload_too_long() {
         let invoice = sample_invoice();
         let long_value = "a".repeat(255);
-        let signing = SigningArtifacts {
-            invoice_hash: Some(long_value.clone()),
-            ecdsa_signature: Some(long_value.clone()),
-            ecdsa_public_key: Some(long_value.clone()),
-            public_key_signature: Some(long_value),
-        };
+        let signing = SignedProperties::from_qr_parts(
+            &long_value,
+            &long_value,
+            &long_value,
+            Some(&long_value),
+        );
 
-        match invoice.sign(signing) {
+        let signed_xml = invoice.to_xml().expect("serialize invoice");
+        match invoice.sign(signing, signed_xml) {
             Err(QrCodeError::EncodedTooLong { .. }) => {}
             other => panic!("expected EncodedTooLong error, got {:?}", other),
         }

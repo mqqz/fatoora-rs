@@ -957,6 +957,40 @@ pub trait ToXml {
     }
 }
 
+pub(crate) fn signed_properties_xml_string(
+    signing_time: &str,
+    digest_value: &str,
+    x509_issuer_name: &str,
+    x509_serial_number: &str,
+) -> String {
+    format!(
+        concat!(
+            r#"<xades:SignedProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Id="xadesSignedProperties">"#,
+            "\n{indent:>36}<xades:SignedSignatureProperties>",
+            "\n{indent:>36}    <xades:SigningTime>{signing_time}</xades:SigningTime>",
+            "\n{indent:>36}    <xades:SigningCertificate>",
+            "\n{indent:>36}        <xades:Cert>",
+            "\n{indent:>36}            <xades:CertDigest>",
+            "\n{indent:>36}                <ds:DigestMethod xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\" Algorithm=\"http://www.w3.org/2001/04/xmlenc#sha256\"/>",
+            "\n{indent:>36}                <ds:DigestValue xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{digest_value}</ds:DigestValue>",
+            "\n{indent:>36}            </xades:CertDigest>",
+            "\n{indent:>36}            <xades:IssuerSerial>",
+            "\n{indent:>36}                <ds:X509IssuerName xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{x509_issuer_name}</ds:X509IssuerName>",
+            "\n{indent:>36}                <ds:X509SerialNumber xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{x509_serial_number}</ds:X509SerialNumber>",
+            "\n{indent:>36}            </xades:IssuerSerial>",
+            "\n{indent:>36}        </xades:Cert>",
+            "\n{indent:>36}    </xades:SigningCertificate>",
+            "\n{indent:>36}</xades:SignedSignatureProperties>",
+            "\n{indent:>32}</xades:SignedProperties>",
+        ),
+        indent = "",
+        signing_time = signing_time,
+        digest_value = digest_value,
+        x509_issuer_name = x509_issuer_name,
+        x509_serial_number = x509_serial_number,
+    )
+}
+
 impl ToXml for FinalizedInvoice {
     fn to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError> {
         to_xml_with_format(self, format)
@@ -965,7 +999,9 @@ impl ToXml for FinalizedInvoice {
 
 impl ToXml for SignedInvoice {
     fn to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError> {
-        to_xml_with_format(self, format)
+        // FIXME: sort this out properly
+        let _ = format;
+        Ok(self.xml().to_string())
     }
 }
 

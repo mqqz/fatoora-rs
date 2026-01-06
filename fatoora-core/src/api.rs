@@ -3,7 +3,6 @@ use std::marker::PhantomData;
 use anyhow::Result;
 use reqwest::Client;
 use serde::Deserialize;
-use serde_json::Value;
 use thiserror::Error;
 use x509_cert::request::CertReq;
 
@@ -80,6 +79,7 @@ impl ZatcaClient {
         let encoded_csr = csr
             .to_pem_base64_string()
             .map_err(|e| ZatcaError::InvalidResponse(e.to_string()))?;
+        // println!("Encoded CSR: {}", csr.to_base64_string().unwrap());
         let csr_payload = serde_json::json!({ "csr": encoded_csr });
         let url = self.build_endpoint("compliance");
         let response = self
@@ -154,11 +154,6 @@ impl ZatcaClient {
 
 // Private API
 impl ZatcaClient {
-    fn prepare_invoice_payload(&self, _invoice: &SignedInvoice) -> Result<Value, ZatcaError> {
-        // TODO: transform the internal invoice model to the JSON payload required by ZATCA
-        todo!()
-    }
-
     fn build_endpoint(&self, path: &str) -> String {
         format!(
             "{}{}",

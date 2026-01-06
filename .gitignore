@@ -1,4 +1,6 @@
 target
 
+debug-invoice.xml
+
 # Helpful to have in root
 zatca-einvoicing-sdk*

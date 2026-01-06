@@ -24,7 +24,10 @@ x509-cert = { version = "0.3.0-rc.2", features = ["builder", "pem"] }
 k256 = { version = "0.14.0-rc.1", features = [
     "ecdsa",
     "ecdsa-core",
+    "sha256",
     "getrandom",
+    "pkcs8",
+    "pem",
 ] }
 const-oid = { version = "0.10.1", features = ["db"] }
 ecdsa = { version = "0.17.0-rc.9", features = [
@@ -40,7 +43,7 @@ libxml = "0.3.8"
 isocountry = "0.3.2"
 chrono = "0.4.42"
 iso_currency = "0.5.3"
-reqwest = { version = "0.12.27", features = ["json"] }
+reqwest = { version = "0.13.0", features = ["json"] }
 
 [dev-dependencies]
 tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread"] }
