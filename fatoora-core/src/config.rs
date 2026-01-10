@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
 use std::{path::Path, str::FromStr};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum EnvironmentType {
     NonProduction,
     Simulation,
@@ -14,7 +15,8 @@ impl FromStr for EnvironmentType {
             "non_production" => Ok(EnvironmentType::NonProduction),
             "simulation" => Ok(EnvironmentType::Simulation),
             "production" => Ok(EnvironmentType::Production),
-            _ => Err(anyhow::anyhow!("Invalid environment type")),
+            _ => Err(anyhow::anyhow!("Invalid environment type")), // TODO standardise error
+                                                                   // handling
         }
     }
 }

@@ -2,14 +2,9 @@ use super::{
     Buyer, InvoiceData, InvoiceError, InvoiceNote, InvoiceTotalsData, InvoiceType, LineItems,
     QrPayload, QrResult, Seller, VatCategory,
 };
-use crate::invoice::sign::SignedProperties;
+use crate::invoice::sign::{InvoiceSigner, SignedProperties, SigningError};
 use chrono::{DateTime, Utc};
 use iso_currency::Currency;
-
-#[derive(Debug)]
-pub struct DraftInvoice {
-    data: InvoiceData,
-}
 
 #[derive(Debug)]
 pub struct FinalizedInvoice {
@@ -17,10 +12,11 @@ pub struct FinalizedInvoice {
     totals: InvoiceTotalsData,
 }
 
+// TODO maybe traits?
 #[derive(Debug)]
 pub struct SignedInvoice {
     finalized: FinalizedInvoice,
-    signature_bundle: SignedProperties,
+    signed_properties: SignedProperties,
     qr_code: String,
     signed_xml: String,
 }
@@ -29,6 +25,7 @@ pub struct InvoiceBuilder {
     invoice: InvoiceData,
 }
 
+// TODO remove unneccessary constructor parameters
 impl InvoiceBuilder {
     pub fn new(
         invoice_type: InvoiceType,
@@ -98,7 +95,7 @@ impl InvoiceBuilder {
         self.invoice.allowance_reason = Some(reason.into());
         self
     }
-
+    // todo these should be in a bitflag
     pub fn flags(
         mut self,
         is_third_party: bool,
@@ -115,24 +112,14 @@ impl InvoiceBuilder {
         self
     }
 
-    pub fn build(self) -> DraftInvoice {
-        DraftInvoice { data: self.invoice }
-    }
-}
-
-impl DraftInvoice {
-    pub fn data(&self) -> &InvoiceData {
-        &self.data
-    }
-
-    pub fn finalize(self) -> Result<FinalizedInvoice, InvoiceError> {
-        if self.data.line_items.is_empty() {
+    pub fn build(self) -> Result<FinalizedInvoice, InvoiceError> {
+        if self.invoice.line_items.is_empty() {
             return Err(InvoiceError::MissingLineItems);
         }
 
         Ok(FinalizedInvoice {
-            totals: InvoiceTotalsData::from_data(&self.data),
-            data: self.data,
+            totals: InvoiceTotalsData::from_data(&self.invoice),
+            data: self.invoice,
         })
     }
 }
@@ -146,22 +133,26 @@ impl FinalizedInvoice {
         &self.totals
     }
 
-    pub fn sign(
+    pub fn sign(self, signer: &InvoiceSigner) -> Result<SignedInvoice, SigningError> {
+        signer.sign(self)
+    }
+
+    pub(crate) fn sign_with_bundle(
         self,
-        signature_bundle: SignedProperties,
+        signed_properties: SignedProperties,
         signed_xml: String,
     ) -> QrResult<SignedInvoice> {
         let qr_code = QrPayload::from_invoice(&self.data, &self.totals)?
             .with_signing_parts(
-                Some(signature_bundle.invoice_hash()),
-                Some(signature_bundle.signature()),
-                Some(signature_bundle.public_key()),
-                signature_bundle.public_key_signature(),
+                Some(signed_properties.invoice_hash()),
+                Some(signed_properties.signature()),
+                Some(signed_properties.public_key()),
+                signed_properties.zatca_key_signature(),
             )
             .encode()?;
         Ok(SignedInvoice {
             finalized: self,
-            signature_bundle,
+            signed_properties,
             qr_code,
             signed_xml,
         })
@@ -177,8 +168,8 @@ impl SignedInvoice {
         self.finalized.totals()
     }
 
-    pub fn signature_bundle(&self) -> &SignedProperties {
-        &self.signature_bundle
+    pub fn signed_properties(&self) -> &SignedProperties {
+        &self.signed_properties
     }
 
     pub fn qr_code(&self) -> &str {
@@ -187,6 +178,31 @@ impl SignedInvoice {
 
     pub fn xml(&self) -> &str {
         &self.signed_xml
+    }
+
+    pub fn uuid(&self) -> &str {
+        self.finalized.data().uuid.as_str()
+    }
+
+    pub fn invoice_hash(&self) -> &str {
+        self.signed_properties.invoice_hash()
+    }
+
+    pub fn signature(&self) -> &str {
+        self.signed_properties.signature()
+    }
+
+    pub fn public_key(&self) -> &str {
+        self.signed_properties.public_key()
+    }
+
+    pub fn zatca_key_signature(&self) -> Option<&str> {
+        self.signed_properties.zatca_key_signature()
+    }
+
+    pub fn xml_base64(&self) -> String {
+        use base64ct::{Base64, Encoding};
+        Base64::encode_string(self.signed_xml.as_bytes())
     }
 
     pub(crate) fn with_xml(mut self, signed_xml: String) -> Self {

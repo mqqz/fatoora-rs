@@ -3,14 +3,14 @@ mod qr;
 pub mod sign;
 pub mod validation;
 pub mod xml;
-pub use builder::{DraftInvoice, FinalizedInvoice, InvoiceBuilder, InvoiceView, SignedInvoice};
+pub use builder::{FinalizedInvoice, InvoiceBuilder, InvoiceView, SignedInvoice};
 pub use qr::{QrCodeError, QrPayload, QrResult};
 
 #[allow(unused_imports)]
 use chrono::{DateTime, TimeZone, Utc};
 use iso_currency::Currency;
 use isocountry::{CountryCode, CountryCodeParseErr};
-use std::{marker::PhantomData, rc::Rc};
+use std::marker::PhantomData;
 use thiserror::Error;
 
 type Result<T> = std::result::Result<T, InvoiceError>;
@@ -158,18 +158,87 @@ impl Party<BuyerRole> {
     }
 }
 
+impl<R: PartyRole> Party<R> {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn address(&self) -> &Address {
+        &self.address
+    }
+
+    pub fn vat_id(&self) -> Option<&VatId> {
+        self.vat_id.as_ref()
+    }
+
+    pub fn other_id(&self) -> Option<&OtherId> {
+        self.other_id.as_ref()
+    }
+}
+
 #[derive(Debug)]
 pub enum InvoiceSubType {
     Simplified,
     Standard,
 }
 
+#[derive(Debug, Clone)]
+pub struct OriginalInvoiceRef {
+    id: String,
+    uuid: Option<String>,
+    issue_date: Option<chrono::NaiveDate>,
+}
+
+impl OriginalInvoiceRef {
+    pub fn new(id: impl Into<String>) -> Self {
+        Self {
+            id: id.into(),
+            uuid: None,
+            issue_date: None,
+        }
+    }
+
+    pub fn with_uuid(mut self, uuid: impl Into<String>) -> Self {
+        self.uuid = Some(uuid.into());
+        self
+    }
+
+    pub fn with_issue_date(mut self, issue_date: chrono::NaiveDate) -> Self {
+        self.issue_date = Some(issue_date);
+        self
+    }
+
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn uuid(&self) -> Option<&str> {
+        self.uuid.as_deref()
+    }
+
+    pub fn issue_date(&self) -> Option<chrono::NaiveDate> {
+        self.issue_date
+    }
+}
+
 #[derive(Debug)]
 pub enum InvoiceType {
     Tax(InvoiceSubType),
     Prepayment(InvoiceSubType),
-    CreditNote(InvoiceSubType, Rc<InvoiceData>, String), // original invoice and reason
-    DebitNote(InvoiceSubType, Rc<InvoiceData>, String),  // original invoice and reason
+    CreditNote(InvoiceSubType, OriginalInvoiceRef, String), // original invoice ref + reason
+    DebitNote(InvoiceSubType, OriginalInvoiceRef, String),  // original invoice ref + reason
+}
+
+impl InvoiceType {
+    pub fn is_simplified(&self) -> bool {
+        matches!(
+            self,
+            InvoiceType::Tax(InvoiceSubType::Simplified)
+                | InvoiceType::Prepayment(InvoiceSubType::Simplified)
+                | InvoiceType::CreditNote(InvoiceSubType::Simplified, ..)
+                | InvoiceType::DebitNote(InvoiceSubType::Simplified, ..)
+        )
+    }
 }
 
 #[derive(Debug)]
@@ -244,8 +313,12 @@ impl InvoiceData {
         Ok(vat)
     }
 
-    pub(crate) fn timestamp_string(&self) -> String {
-        self.issue_datetime.format("%Y-%m-%dT%H:%M:%SZ").to_string()
+    pub(crate) fn issue_date_string(&self) -> String {
+        self.issue_datetime.date_naive().to_string()
+    }
+
+    pub(crate) fn issue_time_string(&self) -> String {
+        self.issue_datetime.time().format("%H:%M:%S").to_string()
     }
 
     pub(crate) fn format_amount(amount: f64) -> String {
@@ -295,241 +368,5 @@ impl InvoiceTotalsData {
 
     pub fn tax_inclusive_amount(&self) -> f64 {
         self.taxable_amount() + self.tax_amount
-    }
-}
-
-#[cfg(test)]
-fn dummy_seller_address() -> Address {
-    Address {
-        country_code: CountryCode::SAU,
-        city: "الرياض | Riyadh".into(),
-        street: "الامير سلطان | Prince Sultan".into(),
-        additional_street: None,
-        building_number: "2322".into(),
-        additional_number: None,
-        postal_code: "23333".into(),
-        subdivision: Some("المربع | Al-Murabba".into()),
-        district: None,
-    }
-}
-
-// ---- Dummy Line Items ----
-
-#[cfg(test)]
-fn dummy_line_items() -> LineItems {
-    vec![
-        LineItem {
-            description: "كتاب".into(),
-            quantity: 33.0,
-            unit_code: "PCE".into(),
-            unit_price: 3.0,
-            total_amount: 99.0,
-            vat_rate: 15.0,
-            vat_amount: 14.85,
-            vat_category: VatCategory::Standard,
-        },
-        LineItem {
-            description: "قلم".into(),
-            quantity: 3.0,
-            unit_code: "PCE".into(),
-            unit_price: 34.0,
-            total_amount: 102.0,
-            vat_rate: 15.0,
-            vat_amount: 15.30,
-            vat_category: VatCategory::Standard,
-        },
-    ]
-}
-
-// ---- Dummy Invoice ----
-#[cfg(test)]
-pub fn dummy_draft_invoice() -> DraftInvoice {
-    let seller = Party::<SellerRole>::new(
-        "LTD".into(),
-        dummy_seller_address(),
-        "399999999900003",                               // fake VAT
-        Some(OtherId::with_scheme("1010010000", "CRN")), // CRN
-    )
-    .expect("valid seller");
-
-    let issue_datetime = {
-        let naive = chrono::NaiveDate::from_ymd_opt(2022, 8, 17)
-            .unwrap()
-            .and_hms_opt(17, 41, 8)
-            .unwrap();
-        Utc.from_utc_datetime(&naive)
-    };
-
-    InvoiceBuilder::new(
-        InvoiceType::Tax(InvoiceSubType::Simplified),
-        "SME00010",
-        "8e6000cf-1a98-4174-b3e7-b5d5954bc10d",
-        issue_datetime,
-        Currency::SAR,
-        "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
-        seller,
-        dummy_line_items(),
-        "10", // cash (ZATCA common)
-        VatCategory::Standard,
-    )
-    .invoice_counter("10")
-    .note(InvoiceNote {
-        language: "ar".into(),
-        text: "ABC".into(),
-    })
-    .allowance_reason("discount")
-    .build()
-}
-
-#[cfg(test)]
-pub fn dummy_finalized_invoice() -> FinalizedInvoice {
-    dummy_draft_invoice()
-        .finalize()
-        .expect("finalize dummy invoice")
-}
-
-#[cfg(test)]
-pub fn dummy_signed_invoice() -> SignedInvoice {
-    use crate::invoice::sign::SignedProperties;
-    use crate::invoice::xml::ToXml;
-
-    let finalized = dummy_finalized_invoice();
-    let signed_xml = finalized.to_xml().expect("serialize dummy invoice");
-    finalized
-        .sign(
-            SignedProperties::from_qr_parts("hash==", "signature==", "public==", None),
-            signed_xml,
-        )
-        .expect("sign dummy invoice")
-}
-
-#[cfg(test)]
-pub fn dummy_invoice() -> SignedInvoice {
-    dummy_signed_invoice()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::invoice::sign::SignedProperties;
-    use crate::invoice::xml::ToXml;
-    use base64ct::{Base64, Encoding};
-
-    fn sample_invoice() -> FinalizedInvoice {
-        let seller = Party::<SellerRole>::new(
-            "Acme Inc".into(),
-            dummy_seller_address(),
-            "301121971500003",
-            None,
-        )
-        .expect("valid seller");
-
-        let line_item = LineItem {
-            description: "Item".into(),
-            quantity: 1.0,
-            unit_code: "PCE".into(),
-            unit_price: 100.0,
-            total_amount: 100.0,
-            vat_rate: 15.0,
-            vat_amount: 15.0,
-            vat_category: VatCategory::Standard,
-        };
-
-        let issue_datetime = chrono::NaiveDate::from_ymd_opt(2024, 1, 1)
-            .unwrap()
-            .and_hms_opt(12, 30, 0)
-            .unwrap();
-
-        InvoiceBuilder::new(
-            InvoiceType::Tax(InvoiceSubType::Simplified),
-            "INV-1",
-            "uuid-123",
-            Utc.from_utc_datetime(&issue_datetime),
-            Currency::SAR,
-            "",
-            seller,
-            vec![line_item],
-            "10",
-            VatCategory::Standard,
-        )
-        .build()
-        .finalize()
-        .expect("finalize sample invoice")
-    }
-
-    fn decode_tlv(bytes: &[u8]) -> Vec<(u8, String)> {
-        let mut entries = Vec::new();
-        let mut idx = 0;
-        while idx < bytes.len() {
-            let tag = bytes[idx];
-            let len = bytes[idx + 1] as usize;
-            let start = idx + 2;
-            let end = start + len;
-            let value = std::str::from_utf8(&bytes[start..end]).expect("utf8 value");
-            entries.push((tag, value.to_string()));
-            idx = end;
-        }
-        entries
-    }
-
-    #[test]
-    fn qr_code_contains_all_required_tags() {
-        let invoice = sample_invoice();
-        let signing =
-            SignedProperties::from_qr_parts("hash==", "signature==", "public==", Some("stamp=="));
-
-        let signed_xml = invoice.to_xml().expect("serialize invoice");
-        let qr = invoice
-            .sign(signing, signed_xml)
-            .expect("sign invoice")
-            .qr_code()
-            .to_string();
-        assert!(qr.len() < 700);
-
-        let raw = Base64::decode_vec(&qr).expect("base64 decode");
-        let entries = decode_tlv(&raw);
-        let expected = vec![
-            (1, "Acme Inc".to_string()),
-            (2, "301121971500003".to_string()),
-            (3, "2024-01-01T12:30:00Z".to_string()),
-            (4, "115.00".to_string()),
-            (5, "15.00".to_string()),
-            (6, "hash==".to_string()),
-            (7, "signature==".to_string()),
-            (8, "public==".to_string()),
-            (9, "stamp==".to_string()),
-        ];
-        assert_eq!(entries, expected);
-    }
-
-    #[test]
-    fn qr_code_errors_on_large_field() {
-        let invoice = sample_invoice();
-        let oversized = "a".repeat(300);
-        let signing = SignedProperties::from_qr_parts(&oversized, "sig", "pk", None);
-
-        let signed_xml = invoice.to_xml().expect("serialize invoice");
-        match invoice.sign(signing, signed_xml) {
-            Err(QrCodeError::ValueTooLong { tag, .. }) => assert_eq!(tag, 6),
-            other => panic!("expected ValueTooLong error, got {:?}", other),
-        }
-    }
-
-    #[test]
-    fn qr_code_errors_when_payload_too_long() {
-        let invoice = sample_invoice();
-        let long_value = "a".repeat(255);
-        let signing = SignedProperties::from_qr_parts(
-            &long_value,
-            &long_value,
-            &long_value,
-            Some(&long_value),
-        );
-
-        let signed_xml = invoice.to_xml().expect("serialize invoice");
-        match invoice.sign(signing, signed_xml) {
-            Err(QrCodeError::EncodedTooLong { .. }) => {}
-            other => panic!("expected EncodedTooLong error, got {:?}", other),
-        }
     }
 }

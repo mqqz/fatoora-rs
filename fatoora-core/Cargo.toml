@@ -48,5 +48,8 @@ reqwest = { version = "0.13.0", features = ["json"] }
 [dev-dependencies]
 tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread"] }
 
+[features]
+disable-network = []
+
 [build-dependencies]
 cbindgen = "0.29.2"

@@ -198,6 +198,9 @@ mod helpers {
     }
 }
 
+pub(crate) mod constants;
+pub mod parse;
+
 struct InvoiceTotals<'a> {
     currency: &'a str,
     vat_percent: f64,
@@ -439,6 +442,53 @@ enum AdditionalDocumentReferenceXml<'a> {
     QrCode(&'a str),
 }
 
+struct BillingReferenceXml<'a>(&'a super::OriginalInvoiceRef);
+
+struct InvoiceDocumentReferenceXml<'a>(&'a super::OriginalInvoiceRef);
+
+impl<'a> Serialize for InvoiceDocumentReferenceXml<'a> {
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut st = s.serialize_struct("cac:InvoiceDocumentReference", 0)?;
+        st.serialize_field("cbc:ID", self.0.id())?;
+        if let Some(uuid) = self.0.uuid() {
+            st.serialize_field("cbc:UUID", uuid)?;
+        }
+        if let Some(issue_date) = self.0.issue_date() {
+            st.serialize_field("cbc:IssueDate", &issue_date.to_string())?;
+        }
+        st.end()
+    }
+}
+
+impl<'a> Serialize for BillingReferenceXml<'a> {
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut st = s.serialize_struct("cac:BillingReference", 0)?;
+        st.serialize_field(
+            "cac:InvoiceDocumentReference",
+            &InvoiceDocumentReferenceXml(self.0),
+        )?;
+        st.end()
+    }
+}
+
+struct DiscrepancyResponseXml<'a>(&'a str);
+
+impl<'a> Serialize for DiscrepancyResponseXml<'a> {
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut st = s.serialize_struct("cac:DiscrepancyResponse", 1)?;
+        st.serialize_field("cbc:Description", self.0)?;
+        st.end()
+    }
+}
 impl<'a> Serialize for AdditionalDocumentReferenceXml<'a> {
     fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
     where
@@ -946,13 +996,16 @@ pub trait ToXml {
     fn to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError>;
 
     fn to_xml(&self) -> Result<String, InvoiceXmlError> {
-        self.to_xml_with_format(XmlFormat::Compact)
+        self.to_xml_with_format(XmlFormat::Pretty {
+            indent_char: ' ',
+            indent_size: 2,
+        })
     }
 
     fn to_xml_pretty(&self) -> Result<String, InvoiceXmlError> {
         self.to_xml_with_format(XmlFormat::Pretty {
             indent_char: ' ',
-            indent_size: 4,
+            indent_size: 2,
         })
     }
 }
@@ -963,25 +1016,25 @@ pub(crate) fn signed_properties_xml_string(
     x509_issuer_name: &str,
     x509_serial_number: &str,
 ) -> String {
-    format!(
+    let s = format!(
         concat!(
             r#"<xades:SignedProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Id="xadesSignedProperties">"#,
-            "\n{indent:>36}<xades:SignedSignatureProperties>",
-            "\n{indent:>36}    <xades:SigningTime>{signing_time}</xades:SigningTime>",
-            "\n{indent:>36}    <xades:SigningCertificate>",
-            "\n{indent:>36}        <xades:Cert>",
-            "\n{indent:>36}            <xades:CertDigest>",
-            "\n{indent:>36}                <ds:DigestMethod xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\" Algorithm=\"http://www.w3.org/2001/04/xmlenc#sha256\"/>",
-            "\n{indent:>36}                <ds:DigestValue xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{digest_value}</ds:DigestValue>",
-            "\n{indent:>36}            </xades:CertDigest>",
-            "\n{indent:>36}            <xades:IssuerSerial>",
-            "\n{indent:>36}                <ds:X509IssuerName xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{x509_issuer_name}</ds:X509IssuerName>",
-            "\n{indent:>36}                <ds:X509SerialNumber xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{x509_serial_number}</ds:X509SerialNumber>",
-            "\n{indent:>36}            </xades:IssuerSerial>",
-            "\n{indent:>36}        </xades:Cert>",
-            "\n{indent:>36}    </xades:SigningCertificate>",
-            "\n{indent:>36}</xades:SignedSignatureProperties>",
-            "\n{indent:>32}</xades:SignedProperties>",
+            "\n{indent:>18}<xades:SignedSignatureProperties>",
+            "\n{indent:>20}<xades:SigningTime>{signing_time}</xades:SigningTime>",
+            "\n{indent:>20}<xades:SigningCertificate>",
+            "\n{indent:>22}<xades:Cert>",
+            "\n{indent:>24}<xades:CertDigest>",
+            "\n{indent:>26}<ds:DigestMethod xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\" Algorithm=\"http://www.w3.org/2001/04/xmlenc#sha256\"/>",
+            "\n{indent:>26}<ds:DigestValue xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{digest_value}</ds:DigestValue>",
+            "\n{indent:>24}</xades:CertDigest>",
+            "\n{indent:>24}<xades:IssuerSerial>",
+            "\n{indent:>26}<ds:X509IssuerName xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{x509_issuer_name}</ds:X509IssuerName>",
+            "\n{indent:>26}<ds:X509SerialNumber xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{x509_serial_number}</ds:X509SerialNumber>",
+            "\n{indent:>24}</xades:IssuerSerial>",
+            "\n{indent:>22}</xades:Cert>",
+            "\n{indent:>20}</xades:SigningCertificate>",
+            "\n{indent:>18}</xades:SignedSignatureProperties>",
+            "\n{indent:>16}</xades:SignedProperties>",
         ),
         indent = "",
         signing_time = signing_time,
@@ -989,6 +1042,10 @@ pub(crate) fn signed_properties_xml_string(
         x509_issuer_name = x509_issuer_name,
         x509_serial_number = x509_serial_number,
     )
+    .replace("\r\n", "\n")
+    .to_string();
+    println!("{}", s);
+    s
 }
 
 impl ToXml for FinalizedInvoice {
@@ -1000,6 +1057,7 @@ impl ToXml for FinalizedInvoice {
 impl ToXml for SignedInvoice {
     fn to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError> {
         // FIXME: sort this out properly
+        // to_xml_with_format(self, format)
         let _ = format;
         Ok(self.xml().to_string())
     }
@@ -1078,6 +1136,21 @@ impl<'a, T: InvoiceView + ?Sized> Serialize for InvoiceXml<'a, T> {
         }
         root.serialize_field("cbc:DocumentCurrencyCode", currency_code)?;
         root.serialize_field("cbc:TaxCurrencyCode", currency_code)?;
+
+        // ---- credit/debit references ----
+        match &data.invoice_type {
+            InvoiceType::CreditNote(_, original, reason)
+            | InvoiceType::DebitNote(_, original, reason) => {
+                root.serialize_field("cac:BillingReference", &BillingReferenceXml(original))?;
+                if !reason.trim().is_empty() {
+                    root.serialize_field(
+                        "cac:DiscrepancyResponse",
+                        &DiscrepancyResponseXml(reason),
+                    )?;
+                }
+            }
+            _ => {}
+        }
 
         // ---- supporting references ----
         if let Some(counter) = &data.invoice_counter {
@@ -1178,13 +1251,67 @@ impl<'a, T: InvoiceView + ?Sized> Serialize for InvoiceXml<'a, T> {
     }
 }
 
+#[cfg(test)]
 mod tests {
     #[allow(unused_imports)]
     use super::*;
+    use crate::invoice::{
+        Address, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, Party, SellerRole,
+        VatCategory,
+    };
+    use chrono::TimeZone;
+    use iso_currency::Currency;
+    use isocountry::CountryCode;
     #[test]
     fn test_invoice_xml_serialization() {
-        // create dummy invoice and test serialization
-        let invoice = super::super::dummy_invoice();
+        let seller = Party::<SellerRole>::new(
+            "Acme Inc".into(),
+            Address {
+                country_code: CountryCode::SAU,
+                city: "Riyadh".into(),
+                street: "King Fahd".into(),
+                additional_street: None,
+                building_number: "1234".into(),
+                additional_number: Some("5678".into()),
+                postal_code: "12222".into(),
+                subdivision: None,
+                district: None,
+            },
+            "301121971500003",
+            None,
+        )
+        .expect("valid seller");
+
+        let line_item = LineItem {
+            description: "Item".into(),
+            quantity: 1.0,
+            unit_code: "PCE".into(),
+            unit_price: 100.0,
+            total_amount: 100.0,
+            vat_rate: 15.0,
+            vat_amount: 15.0,
+            vat_category: VatCategory::Standard,
+        };
+
+        let issue_datetime = chrono::NaiveDate::from_ymd_opt(2024, 1, 1)
+            .unwrap()
+            .and_hms_opt(12, 30, 0)
+            .unwrap();
+
+        let invoice = InvoiceBuilder::new(
+            InvoiceType::Tax(InvoiceSubType::Simplified),
+            "INV-1",
+            "uuid-123",
+            chrono::Utc.from_utc_datetime(&issue_datetime),
+            Currency::SAR,
+            "",
+            seller,
+            vec![line_item],
+            "10",
+            VatCategory::Standard,
+        )
+        .build()
+        .expect("build invoice");
         let xml_result = invoice.to_xml().unwrap();
         std::println!("{xml_result:?}");
 

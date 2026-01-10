@@ -19,19 +19,10 @@ use x509_cert::{
     der::{Decode, DecodePem, Encode},
 };
 
-const INVOICE_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2";
-const CBC_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2";
-const CAC_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2";
-const EXT_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2";
-const SIG_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:CommonSignatureComponents-2";
-const SAC_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:SignatureAggregateComponents-2";
-const SBC_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:SignatureBasicComponents-2";
-const DS_NS: &str = "http://www.w3.org/2000/09/xmldsig#";
-const XADES_NS: &str = "http://uri.etsi.org/01903/v1.3.2#";
-
-const UBL_EXTENSIONS_TEMPLATE: &str = include_str!("../../assets/templates/ubl_extensions.xml");
-const CAC_SIGNATURE_TEMPLATE: &str = include_str!("../../assets/templates/cac_signature.xml");
-const QR_REFERENCE_TEMPLATE: &str = include_str!("../../assets/templates/qr_reference.xml");
+use crate::invoice::xml::constants::{
+    CAC_NS, CAC_SIGNATURE_TEMPLATE, CBC_NS, DS_NS, EXT_NS, INVOICE_NS, QR_REFERENCE_TEMPLATE,
+    SAC_NS, SBC_NS, SIG_NS, UBL_EXTENSIONS_TEMPLATE, XADES_NS,
+};
 #[derive(Debug, Error)]
 pub enum SigningError {
     #[error("Signing error: {0}")]
@@ -48,24 +39,44 @@ pub struct SignedProperties {
     cert_hash: String,
     signed_props_hash: String,
     signing_time: chrono::DateTime<chrono::Utc>,
-    public_key_signature: Option<String>,
+    zatca_key_signature: Option<String>,
 }
 
 impl SignedProperties {
-    pub(crate) fn invoice_hash(&self) -> &str {
+    pub fn invoice_hash(&self) -> &str {
         &self.invoice_hash
     }
 
-    pub(crate) fn signature(&self) -> &str {
+    pub fn signature(&self) -> &str {
         &self.signature
     }
 
-    pub(crate) fn public_key(&self) -> &str {
+    pub fn public_key(&self) -> &str {
         &self.public_key
     }
 
-    pub(crate) fn public_key_signature(&self) -> Option<&str> {
-        self.public_key_signature.as_deref()
+    pub fn zatca_key_signature(&self) -> Option<&str> {
+        self.zatca_key_signature.as_deref()
+    }
+
+    pub fn issuer(&self) -> &str {
+        &self.issuer
+    }
+
+    pub fn serial(&self) -> &str {
+        &self.serial
+    }
+
+    pub fn cert_hash(&self) -> &str {
+        &self.cert_hash
+    }
+
+    pub fn signed_props_hash(&self) -> &str {
+        &self.signed_props_hash
+    }
+
+    pub fn signing_time(&self) -> chrono::DateTime<chrono::Utc> {
+        self.signing_time
     }
 
     // TODO can't think of a better name
@@ -75,7 +86,7 @@ impl SignedProperties {
         key: &SigningKey,
     ) -> Result<SignedProperties, SigningError> {
         let invoice_hash_b64 = invoice_hash_base64(doc)?;
-        let signature_b64 = sign_hash(key, invoice_hash_b64.as_bytes())?;
+        let signature_b64 = sign_hash(key, &invoice_hash_b64)?;
         let cert_hash_b64 = certificate_hash_base64(cert)?;
         let (issuer, serial) = issuer_and_serial(cert)?;
         let signing_time = signing_time_from_doc(doc)?;
@@ -83,7 +94,7 @@ impl SignedProperties {
             signed_properties_xml(&signing_time, &cert_hash_b64, &issuer, &serial);
         let signed_props_hash_b64 = signed_properties_hash_base64(&signed_props_xml)?;
         let public_key_b64 = public_key_base64(key);
-        // let public_key_b64 = extract_public_key_b64_from_cert(cert);
+        // let public_key_b64 = extract_signature_b64_from_cert(cert);
         let cert_signature_b64 = certificate_signature_base64(cert);
 
         Ok(SignedProperties {
@@ -95,8 +106,32 @@ impl SignedProperties {
             cert_hash: cert_hash_b64,
             signed_props_hash: signed_props_hash_b64,
             signing_time,
-            public_key_signature: Some(cert_signature_b64),
+            zatca_key_signature: Some(cert_signature_b64),
         })
+    }
+
+    pub(crate) fn from_parsed_parts(
+        invoice_hash: String,
+        signature: String,
+        public_key: String,
+        issuer: String,
+        serial: String,
+        cert_hash: String,
+        signed_props_hash: String,
+        signing_time: chrono::DateTime<chrono::Utc>,
+        zatca_key_signature: Option<String>,
+    ) -> Self {
+        Self {
+            invoice_hash,
+            signature,
+            public_key,
+            issuer,
+            serial,
+            cert_hash,
+            signed_props_hash,
+            signing_time,
+            zatca_key_signature,
+        }
     }
 
     #[cfg(test)]
@@ -104,7 +139,7 @@ impl SignedProperties {
         invoice_hash: &str,
         signature: &str,
         public_key: &str,
-        public_key_signature: Option<&str>,
+        zatca_key_signature: Option<&str>,
     ) -> Self {
         Self {
             invoice_hash: invoice_hash.to_string(),
@@ -115,7 +150,7 @@ impl SignedProperties {
             cert_hash: "test".to_string(),
             signed_props_hash: "test".to_string(),
             signing_time: chrono::Utc::now(),
-            public_key_signature: public_key_signature.map(|s| s.to_string()),
+            zatca_key_signature: zatca_key_signature.map(|s| s.to_string()),
         }
     }
 }
@@ -148,7 +183,7 @@ impl InvoiceSigner {
         })
     }
 
-    pub fn sign(&self, invoice: FinalizedInvoice) -> Result<SignedInvoice, SigningError> {
+    pub(crate) fn sign(&self, invoice: FinalizedInvoice) -> Result<SignedInvoice, SigningError> {
         let unsigned_xml = invoice
             .to_xml()
             .map_err(|e| SigningError::SigningError(e.to_string()))?;
@@ -161,7 +196,7 @@ impl InvoiceSigner {
         let signing = SignedProperties::from_parts(&doc, &self.csid, &self.private_key)?;
 
         let signed_invoice = invoice
-            .sign(signing.clone(), String::new())
+            .sign_with_bundle(signing.clone(), String::new())
             .map_err(|e| SigningError::SigningError(e.to_string()))?;
 
         apply_signed_properties_values(&mut doc, &signing)?;
@@ -186,7 +221,7 @@ impl InvoiceSigner {
                 Some(signing.invoice_hash()),
                 Some(signing.signature()),
                 Some(signing.public_key()),
-                signing.public_key_signature(),
+                signing.zatca_key_signature(),
             )
             .encode()
             .map_err(|e| SigningError::SigningError(e.to_string()))?;
@@ -196,11 +231,15 @@ impl InvoiceSigner {
 
         Ok(doc.to_string())
     }
+    pub fn certificate(&self) -> &Certificate {
+        &self.csid
+    }
 }
 
-// TODO this pattern (hash -> base64) is repeated, refactor
+// TODO this pattern (hash -> base64) is repeated, (Use base64 func for that)
 pub fn invoice_hash_base64(doc: &Document) -> Result<String, SigningError> {
     let canonicalized = canonicalize_invoice(doc)?;
+    // println!("Canonicalized invoice for hashing:\n{}", canonicalized);
     let hash = Sha256::digest(canonicalized.as_bytes());
     let invoice_hash_b64 = Base64::encode_string(&hash);
     Ok(invoice_hash_b64)
@@ -300,14 +339,17 @@ fn xpath_text_value(ctx: &xpath::Context, expr: &str, label: &str) -> Result<Str
     Ok(value)
 }
 
-fn sign_hash(key: &SigningKey, hash: &[u8]) -> Result<String, SigningError> {
-    let hash_bytes = Base64::decode_vec(core::str::from_utf8(hash).unwrap())
+fn sign_hash(key: &SigningKey, hash_b64: &str) -> Result<String, SigningError> {
+    let hash_bytes = Base64::decode_vec(hash_b64)
         .map_err(|e| SigningError::SigningError(format!("Failed to decode base64 hash: {e:?}")))?;
+    println!("Hash bytes to sign: {:x?}", hash_bytes);
     let signature: Signature = key
         .sign_recoverable(&hash_bytes)
         .map_err(|e| SigningError::SigningError(format!("Failed to sign invoice hash: {e:?}")))?
         .0;
+    println!("Signature bytes: {:x?}", signature.to_der().as_bytes());
     Ok(Base64::encode_string(signature.to_der().as_bytes()))
+    // Ok(Base64::encode_string(&signature.to_bytes()))
 }
 
 fn certificate_hash_base64(cert: &Certificate) -> Result<String, SigningError> {
@@ -402,11 +444,11 @@ fn hex_hash_to_base64(hash: &[u8]) -> String {
 }
 
 // TODO figure out how to get public key from cert properly and cross check with key
-// fn extract_public_key_b64_from_cert(cert: &Certificate) -> String {
-//     let spki = cert.tbs_certificate().subject_public_key_info();
-//     let public_key_bytes = spki.subject_public_key.to_der().unwrap(); // TODO handle error
-//     Base64::encode_string(&public_key_bytes)
-// }
+#[allow(dead_code)]
+fn extract_signature_b64_from_cert(cert: &Certificate) -> String {
+    let public_key_bytes = cert.signature().as_bytes().unwrap(); // TODO handle error
+    Base64::encode_string(public_key_bytes)
+}
 
 fn public_key_base64(key: &SigningKey) -> String {
     Base64::encode_string(
@@ -685,114 +727,6 @@ fn register_namespaces(ctx: &xpath::Context) -> Result<(), SigningError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        api::ZatcaClient,
-        config::{Config, EnvironmentType},
-        csr::CsrProperties,
-        invoice::{dummy_finalized_invoice, validation::validate_xml_invoice_from_str},
-    };
-    use base64ct::{Base64, Encoding};
-    use k256::pkcs8::{EncodePrivateKey, EncodePublicKey};
-    use std::path::Path;
-    use std::str::{FromStr, from_utf8};
-    use std::time::Duration;
-    use x509_cert::builder::{Builder, CertificateBuilder, profile};
-    use x509_cert::der::Encode;
-    use x509_cert::name::Name;
-    use x509_cert::serial_number::SerialNumber;
-    use x509_cert::spki::SubjectPublicKeyInfo;
-    use x509_cert::time::Validity;
-
-    #[test]
-    fn sign_invoice_emits_signature_and_qr() {
-        let csr_config = CsrProperties::parse_csr_config(Path::new(
-            "../assets/csr-configs/csr-config-example-EN.properties",
-        ))
-        .expect("csr config");
-        let (_csr, signer_key) = csr_config
-            .build_with_rng(EnvironmentType::NonProduction)
-            .expect("csr build");
-        let key_der = signer_key.to_pkcs8_der().expect("key der");
-        let cert_der = build_test_cert(&signer_key);
-
-        let signer = InvoiceSigner::from_der(&cert_der, key_der.as_bytes()).expect("signer");
-        let signed = signer
-            .sign(dummy_finalized_invoice())
-            .expect("sign invoice");
-        let xml = signed.to_xml().expect("signed xml");
-
-        assert!(xml.contains("ds:SignatureValue"));
-
-        let doc = Parser::default()
-            .parse_string(&xml)
-            .expect("parse signed xml");
-        let ctx = xpath::Context::new(&doc).expect("xpath context");
-        ctx.register_namespace("cbc", CBC_NS).expect("cbc ns");
-        ctx.register_namespace("cac", CAC_NS).expect("cac ns");
-
-        let nodes = ctx
-            .evaluate("//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]/cac:Attachment/cbc:EmbeddedDocumentBinaryObject")
-            .expect("qr xpath")
-            .get_nodes_as_vec();
-        assert!(!nodes.is_empty(), "missing QR node");
-        let qr_value = nodes[0].get_content();
-        assert!(!qr_value.trim().is_empty(), "empty QR value");
-    }
-
-    #[tokio::test]
-    async fn sign_invoice_with_live_csid() {
-        let otp = "123345";
-        let csr_config = CsrProperties::parse_csr_config(Path::new(
-            "../assets/csr-configs/csr-config-example-EN.properties",
-        ))
-        .expect("csr config");
-        let (csr, signer_key) = csr_config
-            .build_with_rng(EnvironmentType::NonProduction)
-            .expect("csr build");
-        let client = ZatcaClient::new(Config::default()).expect("client");
-        let ccsid_response = client
-            .post_csr_for_ccsid(&csr, otp)
-            .await
-            .expect("csid response");
-        let pscid_response = client
-            .post_ccsid_for_pccsid(&ccsid_response)
-            .await
-            .expect("csid response");
-
-        let signer = signer_from_csid(&pscid_response.binary_security_token, &signer_key);
-        let xml = std::fs::read_to_string("./assets/test/invoices/sample-simplified-invoice.xml")
-            .expect("read sample invoice");
-        let signed_xml = signer.sign_xml(&xml).expect("sign invoice xml");
-        // std::fs::write("debug_invoice.xml", &signed_xml).expect("write debug invoice");
-
-        validate_xml_invoice_from_str(&signed_xml, &Config::default())
-            .expect("validate signed invoice");
-    }
-
-    fn signer_from_csid(binary_security_token: &str, key: &SigningKey) -> InvoiceSigner {
-        // for some reason the token is a base64 encoded der cert (which is already base64 encoded)
-        let b64_der_bytes = Base64::decode_vec(binary_security_token).unwrap();
-        let b64_der = from_utf8(&b64_der_bytes).unwrap();
-        let der = Base64::decode_vec(b64_der).unwrap();
-        let key_der = key.to_pkcs8_der().expect("key der");
-        InvoiceSigner::from_der(&der, key_der.as_bytes()).expect("signer")
-    }
-
-    fn build_test_cert(key: &SigningKey) -> Vec<u8> {
-        let serial_number = SerialNumber::from(1u32);
-        let validity = Validity::from_now(Duration::new(3600, 0)).expect("validity");
-        let subject = Name::from_str("CN=Test,O=Fatoora,C=SA").expect("subject");
-        let profile = profile::cabf::Root::new(false, subject).expect("profile");
-        let public_key = key.verifying_key();
-        let spki_der = public_key.to_public_key_der().expect("public key der");
-        let pub_key = SubjectPublicKeyInfo::try_from(spki_der.as_bytes()).expect("spki");
-        let builder =
-            CertificateBuilder::new(profile, serial_number, validity, pub_key).expect("builder");
-        let cert = builder
-            .build::<_, k256::ecdsa::DerSignature>(key)
-            .expect("certificate");
-        cert.to_der().expect("cert der")
-    }
 
     #[test]
     fn serial_bytes_to_decimal_handles_large_values() {
@@ -805,7 +739,7 @@ mod tests {
     #[test]
     fn canonicalized_invoice_removes_signature_exclusions() {
         let xml_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("assets/test/invoices/sample-simplified-invoice.xml");
+            .join("tests/fixtures/invoices/sample-simplified-invoice.xml");
         let xml = std::fs::read_to_string(xml_path).expect("read sample invoice");
         let doc = Parser::default().parse_string(&xml).expect("parse invoice");
         let canonicalized = canonicalize_invoice(&doc).expect("canonicalize invoice");
@@ -818,7 +752,7 @@ mod tests {
     #[test]
     fn signed_properties_xml_matches_document() {
         let xml_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("assets/test/invoices/sample-simplified-invoice.xml");
+            .join("tests/fixtures/invoices/sample-simplified-invoice.xml");
         let xml = std::fs::read_to_string(xml_path).expect("read sample invoice");
         let doc = Parser::default().parse_string(&xml).expect("parse invoice");
         let ctx = xpath::Context::new(&doc).expect("xpath context");
@@ -862,66 +796,6 @@ mod tests {
             "<ds:DigestValue xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{}</ds:DigestValue>",
             cert_hash
         )));
-    }
-
-    #[test]
-    fn signed_invoice_matches_sample_signature_fields() {
-        let xml_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("assets/test/invoices/sample-simplified-invoice.xml");
-        let xml = std::fs::read_to_string(xml_path).expect("read sample invoice");
-        let doc = Parser::default().parse_string(&xml).expect("parse invoice");
-        let ctx = xpath::Context::new(&doc).expect("xpath context");
-        register_namespaces(&ctx).expect("register namespaces");
-
-        let expected_signed_props_digest = xml_text(
-            &ctx,
-            "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:SignedInfo/ds:Reference[@URI='#xadesSignedProperties']/ds:DigestValue",
-            "SignedProperties DigestValue",
-        );
-        // let expected_signature_value = xml_text(
-        //     &ctx,
-        //     "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:SignatureValue",
-        //     "SignatureValue",
-        // );
-        let expected_certificate = xml_text(
-            &ctx,
-            "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
-            "X509Certificate",
-        );
-
-        let cert_der = Base64::decode_vec(&expected_certificate).expect("cert der");
-        let key_der = std::fs::read("../assets/pkeys/test_zatca_pkey.der").expect("key der");
-        let signer = InvoiceSigner::from_der(&cert_der, &key_der).expect("signer");
-        let signed_xml = signer.sign_xml(&xml).expect("sign invoice");
-
-        let signed_doc = Parser::default()
-            .parse_string(&signed_xml)
-            .expect("parse signed xml");
-        let signed_ctx = xpath::Context::new(&signed_doc).expect("xpath context");
-        register_namespaces(&signed_ctx).expect("register namespaces");
-
-        let actual_signed_props_digest = xml_text(
-            &signed_ctx,
-            "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:SignedInfo/ds:Reference[@URI='#xadesSignedProperties']/ds:DigestValue",
-            "SignedProperties DigestValue",
-        );
-        // let actual_signature_value = xml_text(
-        //     &signed_ctx,
-        //     "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:SignatureValue",
-        //     "SignatureValue",
-        // );
-        let actual_certificate = xml_text(
-            &signed_ctx,
-            "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
-            "X509Certificate",
-        );
-
-        // std::fs::write("debug_invoice_signed_same_pkey.xml", &signed_xml)
-        // .expect("write debug invoice");
-        assert_eq!(actual_signed_props_digest, expected_signed_props_digest);
-        // assert_eq!(actual_signature_value, expected_signature_value); // Signatures are not
-        // determenistic
-        assert_eq!(actual_certificate, expected_certificate);
     }
 
     fn xml_text(ctx: &xpath::Context, expr: &str, label: &str) -> String {
