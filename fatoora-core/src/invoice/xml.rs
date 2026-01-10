@@ -477,18 +477,6 @@ impl<'a> Serialize for BillingReferenceXml<'a> {
     }
 }
 
-struct DiscrepancyResponseXml<'a>(&'a str);
-
-impl<'a> Serialize for DiscrepancyResponseXml<'a> {
-    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut st = s.serialize_struct("cac:DiscrepancyResponse", 1)?;
-        st.serialize_field("cbc:Description", self.0)?;
-        st.end()
-    }
-}
 impl<'a> Serialize for AdditionalDocumentReferenceXml<'a> {
     fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
     where
@@ -862,9 +850,10 @@ fn invoice_line_price<'a>(currency: &'a str, unit_price: f64) -> impl Serialize 
     }
 }
 
-fn payment_means<'a>(code: &'a str) -> impl Serialize + 'a {
+fn payment_means<'a>(code: &'a str, instruction_note: Option<&'a str>) -> impl Serialize + 'a {
     struct PaymentMeansSer<'a> {
         code: &'a str,
+        instruction_note: Option<&'a str>,
     }
     impl<'a> Serialize for PaymentMeansSer<'a> {
         fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
@@ -873,10 +862,16 @@ fn payment_means<'a>(code: &'a str) -> impl Serialize + 'a {
         {
             let mut st = s.serialize_struct("cac:PaymentMeans", 0)?;
             st.serialize_field("cbc:PaymentMeansCode", self.code)?;
+            if let Some(note) = self.instruction_note {
+                st.serialize_field("cbc:InstructionNote", note)?;
+            }
             st.end()
         }
     }
-    PaymentMeansSer { code }
+    PaymentMeansSer {
+        code,
+        instruction_note,
+    }
 }
 
 impl<'a, R: PartyRole> Serialize for PartyXml<'a, R> {
@@ -1044,7 +1039,7 @@ pub(crate) fn signed_properties_xml_string(
     )
     .replace("\r\n", "\n")
     .to_string();
-    println!("{}", s);
+    // println!("{}", s);
     s
 }
 
@@ -1131,7 +1126,7 @@ impl<'a, T: InvoiceView + ?Sized> Serialize for InvoiceXml<'a, T> {
 
         // ---- invoice type ----
         root.serialize_field("cbc:InvoiceTypeCode", &InvoiceTypeView(&data.invoice_type))?;
-        if let Some(note) = &data.note {
+        if let Some(note) = data.note.as_ref() {
             root.serialize_field("cbc:Note", &NoteXml(note))?;
         }
         root.serialize_field("cbc:DocumentCurrencyCode", currency_code)?;
@@ -1139,15 +1134,8 @@ impl<'a, T: InvoiceView + ?Sized> Serialize for InvoiceXml<'a, T> {
 
         // ---- credit/debit references ----
         match &data.invoice_type {
-            InvoiceType::CreditNote(_, original, reason)
-            | InvoiceType::DebitNote(_, original, reason) => {
+            InvoiceType::CreditNote(_, original, _) | InvoiceType::DebitNote(_, original, _) => {
                 root.serialize_field("cac:BillingReference", &BillingReferenceXml(original))?;
-                if !reason.trim().is_empty() {
-                    root.serialize_field(
-                        "cac:DiscrepancyResponse",
-                        &DiscrepancyResponseXml(reason),
-                    )?;
-                }
             }
             _ => {}
         }
@@ -1181,7 +1169,20 @@ impl<'a, T: InvoiceView + ?Sized> Serialize for InvoiceXml<'a, T> {
         )?;
 
         // ---- payment ----
-        root.serialize_field("cac:PaymentMeans", &payment_means(&data.payment_means_code))?;
+        let instruction_note = match &data.invoice_type {
+            InvoiceType::CreditNote(_, _, reason) | InvoiceType::DebitNote(_, _, reason) => {
+                if reason.trim().is_empty() {
+                    None
+                } else {
+                    Some(reason.as_str())
+                }
+            }
+            _ => None,
+        };
+        root.serialize_field(
+            "cac:PaymentMeans",
+            &payment_means(&data.payment_means_code, instruction_note),
+        )?;
 
         // ---- allowance / charges ----
         if totals.allowance_total() > 0.0 || data.allowance_reason.is_some() {
@@ -1313,9 +1314,9 @@ mod tests {
         .build()
         .expect("build invoice");
         let xml_result = invoice.to_xml().unwrap();
-        std::println!("{xml_result:?}");
+        println!("{xml_result:?}");
 
         let pretty = invoice.to_xml_pretty().unwrap();
-        std::println!("{pretty}");
+        println!("{pretty}");
     }
 }

@@ -185,6 +185,5 @@ fn credit_note_serializes_billing_reference_and_reason() {
     assert!(xml.contains("<cbc:ID>INV-ORIG</cbc:ID>"));
     assert!(xml.contains("<cbc:UUID>uuid-orig</cbc:UUID>"));
     assert!(xml.contains("<cbc:IssueDate>2023-12-31</cbc:IssueDate>"));
-    assert!(xml.contains("<cac:DiscrepancyResponse>"));
-    assert!(xml.contains("<cbc:Description>pricing correction</cbc:Description>"));
+    assert!(xml.contains("<cbc:InstructionNote>pricing correction</cbc:InstructionNote>"));
 }

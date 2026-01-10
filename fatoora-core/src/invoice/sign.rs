@@ -422,6 +422,7 @@ fn signed_properties_xml(
     issuer: &str,
     serial: &str,
 ) -> String {
+    // todo remove this indirection
     signed_properties_xml_string(
         &format_signing_time(signing_time),
         cert_hash_b64,

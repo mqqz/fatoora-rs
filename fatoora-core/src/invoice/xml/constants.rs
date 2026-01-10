@@ -1,5 +1,4 @@
-pub(crate) const INVOICE_NS: &str =
-    "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2";
+pub(crate) const INVOICE_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2";
 pub(crate) const CBC_NS: &str =
     "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2";
 pub(crate) const CAC_NS: &str =

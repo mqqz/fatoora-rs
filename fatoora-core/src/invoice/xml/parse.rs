@@ -88,7 +88,9 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
     } else {
         None
     };
-    let reason = xpath_text_optional(&ctx, "/ubl:Invoice/cac:DiscrepancyResponse/cbc:Description")?;
+    let reason =
+        xpath_text_optional(&ctx, "/ubl:Invoice/cac:PaymentMeans/cbc:InstructionNote")?
+            .or_else(|| xpath_text_optional(&ctx, "/ubl:Invoice/cbc:Note").ok().flatten());
     let invoice_type = parse_invoice_type(
         &invoice_type_name,
         &invoice_type_code,
@@ -231,6 +233,11 @@ fn parse_invoice_type(
     original_ref: Option<OriginalInvoiceRef>,
     reason: String,
 ) -> Result<InvoiceType, ParseError> {
+    let reason = if reason.trim().is_empty() {
+        "Adjustment".to_string()
+    } else {
+        reason
+    };
     let subtype = if name_code.starts_with("02") {
         InvoiceSubType::Simplified
     } else if name_code.starts_with("01") {

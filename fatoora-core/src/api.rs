@@ -137,6 +137,19 @@ struct CsidResponseBody {
     #[serde(rename = "binarySecurityToken")]
     binary_security_token: String,
     secret: String,
+    #[allow(dead_code)]
+    #[serde(rename = "tokenType")]
+    token_type: Option<String>,
+    #[allow(dead_code)]
+    #[serde(rename = "dispositionMessage")]
+    disposition_message: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+enum RenewalResponseBody {
+    Direct(CsidResponseBody),
+    Wrapped { value: CsidResponseBody },
 }
 
 // Public API
@@ -237,8 +250,85 @@ impl ZatcaClient {
         )))
     }
 
-    pub fn clear_standard_invoice(&self, _invoice: &SignedInvoice) -> Result<(), ZatcaError> {
-        todo!()
+    pub async fn clear_standard_invoice(
+        &self,
+        invoice: &SignedInvoice,
+        credentials: &CsidCredentials<Production>,
+        clearance_status: bool,
+        accept_language: Option<&str>,
+    ) -> Result<ValidationResponse, ZatcaError> {
+        self.ensure_env(credentials)?;
+        if invoice.data().invoice_type.is_simplified() {
+            return Err(ZatcaError::ClientState(
+                "Clearance only supports standard invoices".into(),
+            ));
+        }
+
+        let payload = serde_json::json!({
+            "invoiceHash": invoice.invoice_hash(),
+            "uuid": invoice.uuid(),
+            "invoice": invoice.xml_base64()
+        });
+        let url = self.build_endpoint("invoices/clearance/single");
+        let mut request = self
+            ._client
+            .post(url)
+            .header("Accept", "application/json")
+            .header("Accept-Version", "V2")
+            .header("Content-Type", "application/json")
+            .header("Clearance-Status", if clearance_status { "1" } else { "0" })
+            .basic_auth(
+                credentials.binary_security_token.clone(),
+                Some(credentials.secret.clone()),
+            )
+            .json(&payload);
+
+        match accept_language {
+            Some("ar") => request = request.header("accept-language", "ar"),
+            _ => request = request.header("accept-language", "en"),
+        }
+
+        let response = request.send().await?;
+        let status = response.status();
+        let body = response.text().await.unwrap_or_default();
+
+        if status.is_success() || status.as_u16() == 400 {
+            match serde_json::from_str::<ValidationResponse>(&body) {
+                Ok(parsed) => return Ok(parsed),
+                Err(_) => {
+                    return Err(ZatcaError::InvalidResponse(format!(
+                        "status {status}: {body}"
+                    )))
+                }
+            }
+        }
+
+        if status.as_u16() == 401 {
+            let parsed = serde_json::from_str::<UnauthorizedResponse>(&body).unwrap_or_else(|_| {
+                UnauthorizedResponse {
+                    timestamp: None,
+                    status: Some(401),
+                    error: Some("Unauthorized".into()),
+                    message: Some(body.clone()),
+                }
+            });
+            return Err(ZatcaError::Unauthorized(parsed));
+        }
+
+        if status.is_server_error() {
+            let parsed = serde_json::from_str::<ServerErrorResponse>(&body).unwrap_or_else(|_| {
+                ServerErrorResponse {
+                    category: None,
+                    code: Some("ServerError".into()),
+                    message: Some(body.clone()),
+                }
+            });
+            return Err(ZatcaError::ServerError(parsed));
+        }
+
+        Err(ZatcaError::InvalidResponse(format!(
+            "status {status}: {body}"
+        )))
     }
 
     pub async fn check_invoice_compliance(
@@ -396,11 +486,82 @@ impl ZatcaClient {
         ))
     }
 
-    pub fn renew_csid(
+    pub async fn renew_csid(
         &self,
-        _pcsid: &CsidCredentials<Compliance>,
+        pcsid: &CsidCredentials<Production>,
+        csr: &CertReq,
+        otp: &str,
+        accept_language: Option<&str>,
     ) -> Result<CsidCredentials<Production>, ZatcaError> {
-        todo!()
+        self.ensure_env(pcsid)?;
+        let encoded_csr = csr
+            .to_pem_base64_string()
+            .map_err(|e| ZatcaError::InvalidResponse(e.to_string()))?;
+        let csr_payload = serde_json::json!({ "csr": encoded_csr });
+        let url = self.build_endpoint("production/csids");
+        let mut request = self
+            ._client
+            .patch(url)
+            .header("Accept", "application/json")
+            .header("OTP", otp)
+            .header("Accept-Version", "V2")
+            .header("Content-Type", "application/json")
+            .basic_auth(
+                pcsid.binary_security_token.clone(),
+                Some(pcsid.secret.clone()),
+            )
+            .json(&csr_payload);
+
+        match accept_language {
+            Some("ar") => request = request.header("accept-language", "ar"),
+            _ => request = request.header("accept-language", "en"),
+        }
+
+        let response = request.send().await?;
+        let status = response.status();
+        let body = response.text().await.unwrap_or_default();
+
+        if status.is_success() || status.as_u16() == 428 {
+            let parsed: RenewalResponseBody = serde_json::from_str(&body)
+                .map_err(|e| ZatcaError::InvalidResponse(format!("Invalid response: {e:?}")))?;
+            let payload = match parsed {
+                RenewalResponseBody::Direct(value) => value,
+                RenewalResponseBody::Wrapped { value } => value,
+            };
+            return Ok(CsidCredentials::new(
+                self.config.env,
+                payload.request_id,
+                payload.binary_security_token,
+                payload.secret,
+            ));
+        }
+
+        if status.as_u16() == 401 {
+            let parsed = serde_json::from_str::<UnauthorizedResponse>(&body).unwrap_or_else(|_| {
+                UnauthorizedResponse {
+                    timestamp: None,
+                    status: Some(401),
+                    error: Some("Unauthorized".into()),
+                    message: Some(body.clone()),
+                }
+            });
+            return Err(ZatcaError::Unauthorized(parsed));
+        }
+
+        if status.is_server_error() {
+            let parsed = serde_json::from_str::<ServerErrorResponse>(&body).unwrap_or_else(|_| {
+                ServerErrorResponse {
+                    category: None,
+                    code: Some("ServerError".into()),
+                    message: Some(body.clone()),
+                }
+            });
+            return Err(ZatcaError::ServerError(parsed));
+        }
+
+        Err(ZatcaError::InvalidResponse(format!(
+            "status {status}: {body}"
+        )))
     }
 }
 
@@ -503,6 +664,29 @@ mod tests {
         assert_eq!(parsed.validation_results.error_messages.len(), 1);
     }
 
+    #[test]
+    fn deserialize_renewal_response_wrapped() {
+        let payload = r#"{
+          "value": {
+            "requestID": 1234567890,
+            "tokenType": null,
+            "dispositionMessage": "NOT_COMPLIANT",
+            "binarySecurityToken": "token",
+            "secret": "secret",
+            "errors": null
+          }
+        }"#;
+
+        let parsed: RenewalResponseBody = serde_json::from_str(payload).expect("deserialize");
+        let value = match parsed {
+            RenewalResponseBody::Wrapped { value } => value,
+            RenewalResponseBody::Direct(value) => value,
+        };
+        assert_eq!(value.request_id, Some(1234567890));
+        assert_eq!(value.binary_security_token, "token");
+        assert_eq!(value.secret, "secret");
+    }
+
     #[tokio::test]
     async fn report_rejects_standard_invoice() {
         let seller = Party::<SellerRole>::new(
@@ -572,6 +756,79 @@ mod tests {
 
         let result = client
             .report_simplified_invoice(&signed_invoice, &creds, false, None)
+            .await;
+        assert!(matches!(result, Err(ZatcaError::ClientState(_))));
+    }
+
+    #[tokio::test]
+    async fn clearance_rejects_simplified_invoice() {
+        let seller = Party::<SellerRole>::new(
+            "Acme Inc".into(),
+            Address {
+                country_code: CountryCode::SAU,
+                city: "Riyadh".into(),
+                street: "King Fahd".into(),
+                additional_street: None,
+                building_number: "1234".into(),
+                additional_number: Some("5678".into()),
+                postal_code: "12222".into(),
+                subdivision: None,
+                district: None,
+            },
+            "301121971500003",
+            None,
+        )
+        .expect("seller");
+
+        let line_item = LineItem {
+            description: "Item".into(),
+            quantity: 1.0,
+            unit_code: "PCE".into(),
+            unit_price: 100.0,
+            total_amount: 100.0,
+            vat_rate: 15.0,
+            vat_amount: 15.0,
+            vat_category: VatCategory::Standard,
+        };
+
+        let issue_datetime = chrono::NaiveDate::from_ymd_opt(2024, 1, 1)
+            .unwrap()
+            .and_hms_opt(12, 30, 0)
+            .unwrap();
+
+        let invoice = InvoiceBuilder::new(
+            InvoiceType::Tax(InvoiceSubType::Simplified),
+            "INV-SIM-1",
+            "uuid-sim-1",
+            chrono::Utc.from_utc_datetime(&issue_datetime),
+            Currency::SAR,
+            "",
+            seller,
+            vec![line_item],
+            "10",
+            VatCategory::Standard,
+        )
+        .build()
+        .expect("build invoice");
+
+        let signed_xml = invoice.to_xml().expect("serialize invoice");
+        let public_key_b64 = Base64::encode_string(b"pk");
+        let signing =
+            SignedProperties::from_qr_parts("hash==", "signature==", &public_key_b64, None);
+        let signed_invoice = invoice
+            .sign_with_bundle(signing, signed_xml)
+            .expect("sign invoice");
+
+        let creds = CsidCredentials::new(
+            EnvironmentType::NonProduction,
+            None,
+            "token".into(),
+            "secret".into(),
+        );
+        let client = ZatcaClient::new(Config::default()).expect("client");
+
+        let result = client
+            .clear_standard_invoice(&signed_invoice, &creds, true, None)
             .await;
         assert!(matches!(result, Err(ZatcaError::ClientState(_))));
     }
