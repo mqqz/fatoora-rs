@@ -1011,7 +1011,8 @@ pub(crate) fn signed_properties_xml_string(
     x509_issuer_name: &str,
     x509_serial_number: &str,
 ) -> String {
-    let s = format!(
+    // println!("{}", s);
+    format!(
         concat!(
             r#"<xades:SignedProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Id="xadesSignedProperties">"#,
             "\n{indent:>18}<xades:SignedSignatureProperties>",
@@ -1038,9 +1039,7 @@ pub(crate) fn signed_properties_xml_string(
         x509_serial_number = x509_serial_number,
     )
     .replace("\r\n", "\n")
-    .to_string();
-    // println!("{}", s);
-    s
+    .to_string()
 }
 
 impl ToXml for FinalizedInvoice {
