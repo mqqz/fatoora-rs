@@ -1,6 +1,7 @@
 
 # `fatoora-rs`
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+[![codecov](https://codecov.io/gh/mqqz/fatoora-rs/graph/badge.svg?token=JRI6609XU6)](https://codecov.io/gh/mqqz/fatoora-rs)
 
 An *unofficial* open-source toolkit for everything you'd need for ZATCA (Zakat, Tax and Customs Authority of Saudi Arabia) Phase 1 and 2 compliant e-invoicing 
 
