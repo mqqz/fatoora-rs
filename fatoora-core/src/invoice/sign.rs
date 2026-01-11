@@ -728,6 +728,16 @@ fn register_namespaces(ctx: &xpath::Context) -> Result<(), SigningError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::TimeZone;
+    use k256::ecdsa::SigningKey;
+    use std::str::FromStr;
+    use x509_cert::{
+        builder::{Builder, CertificateBuilder, profile},
+        name::Name,
+        serial_number::SerialNumber,
+        spki::SubjectPublicKeyInfo,
+        time::Validity,
+    };
 
     #[test]
     fn serial_bytes_to_decimal_handles_large_values() {
@@ -797,6 +807,316 @@ mod tests {
             "<ds:DigestValue xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{}</ds:DigestValue>",
             cert_hash
         )));
+    }
+
+    #[test]
+    fn ensure_signature_structure_inserts_missing_nodes() {
+        let mut doc = load_sample_doc();
+        let ctx = xpath::Context::new(&doc).expect("xpath context");
+        register_namespaces(&ctx).expect("register namespaces");
+        remove_nodes(&ctx, "//ext:UBLExtensions");
+        remove_nodes(&ctx, "//cac:Signature");
+
+        ensure_signature_structure(&mut doc).expect("ensure structure");
+
+        let ctx = xpath::Context::new(&doc).expect("xpath context");
+        register_namespaces(&ctx).expect("register namespaces");
+        assert!(!select_nodes(&ctx, "//ext:UBLExtensions").is_empty());
+        assert!(!select_nodes(&ctx, "//cac:Signature").is_empty());
+    }
+
+    #[test]
+    fn apply_signed_properties_values_updates_expected_nodes() {
+        let mut doc = load_sample_doc();
+        let signing_time = chrono::Utc
+            .with_ymd_and_hms(2024, 2, 2, 10, 30, 0)
+            .unwrap();
+        apply_signed_properties_values_raw(
+            &mut doc,
+            &signing_time,
+            "cert_hash_b64",
+            "issuer_name",
+            "serial_number",
+        )
+        .expect("apply signed properties");
+
+        let ctx = xpath::Context::new(&doc).expect("xpath context");
+        register_namespaces(&ctx).expect("register namespaces");
+        assert_eq!(
+            xml_text(
+                &ctx,
+                "//*[local-name()='SigningTime']",
+                "SigningTime",
+            ),
+            "2024-02-02T10:30:00"
+        );
+        assert_eq!(
+            xml_text(
+                &ctx,
+                "//*[local-name()='CertDigest']//*[local-name()='DigestValue']",
+                "CertDigest",
+            ),
+            "cert_hash_b64"
+        );
+        assert_eq!(
+            xml_text(
+                &ctx,
+                "//*[local-name()='IssuerSerial']//*[local-name()='X509IssuerName']",
+                "IssuerName",
+            ),
+            "issuer_name"
+        );
+        assert_eq!(
+            xml_text(
+                &ctx,
+                "//*[local-name()='IssuerSerial']//*[local-name()='X509SerialNumber']",
+                "SerialNumber",
+            ),
+            "serial_number"
+        );
+    }
+
+    #[test]
+    fn signing_time_from_doc_falls_back_to_issue_date_time() {
+        let doc = load_sample_doc();
+        let ctx = xpath::Context::new(&doc).expect("xpath context");
+        register_namespaces(&ctx).expect("register namespaces");
+        remove_nodes(&ctx, "//*[local-name()='SigningTime']");
+
+        let issue_date = xml_text(&ctx, "//cbc:IssueDate", "IssueDate");
+        let issue_time = xml_text(&ctx, "//cbc:IssueTime", "IssueTime");
+        let date = chrono::NaiveDate::parse_from_str(&issue_date, "%Y-%m-%d").unwrap();
+        let time = chrono::NaiveTime::parse_from_str(&issue_time, "%H:%M:%S").unwrap();
+        let expected = chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(
+            chrono::NaiveDateTime::new(date, time),
+            chrono::Utc,
+        );
+
+        let actual = signing_time_from_doc(&doc).expect("signing time");
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn apply_signature_values_sets_signature_and_qr() {
+        let mut doc = load_sample_doc();
+        let ctx = xpath::Context::new(&doc).expect("xpath context");
+        register_namespaces(&ctx).expect("register namespaces");
+        remove_nodes(
+            &ctx,
+            "//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]",
+        );
+
+        let signing_time = chrono::Utc
+            .with_ymd_and_hms(2024, 1, 1, 12, 30, 0)
+            .unwrap();
+        let signing = SignedProperties::from_parsed_parts(
+            "invoice_hash_b64".to_string(),
+            "signature_b64".to_string(),
+            "public_key_b64".to_string(),
+            "issuer".to_string(),
+            "serial".to_string(),
+            "cert_hash_b64".to_string(),
+            "signed_props_hash_b64".to_string(),
+            signing_time,
+            None,
+        );
+
+        let key = SigningKey::from_bytes((&[0x11; 32]).into()).expect("signing key");
+        let cert = build_test_cert(&key);
+        apply_signature_values(&mut doc, &signing, &cert, "QR_PAYLOAD").expect("apply signature");
+
+        let ctx = xpath::Context::new(&doc).expect("xpath context");
+        register_namespaces(&ctx).expect("register namespaces");
+        assert_eq!(
+            xml_text(&ctx, "//ds:SignatureValue", "SignatureValue"),
+            "signature_b64"
+        );
+        assert_eq!(
+            xml_text(
+                &ctx,
+                "//ds:Reference[@URI='#xadesSignedProperties']/ds:DigestValue",
+                "SignedPropertiesDigest",
+            ),
+            "signed_props_hash_b64"
+        );
+        assert_eq!(
+            xml_text(
+                &ctx,
+                "//ds:Reference[@Id='invoiceSignedData']/ds:DigestValue",
+                "InvoiceDigest",
+            ),
+            "invoice_hash_b64"
+        );
+        assert_eq!(
+            xml_text(
+                &ctx,
+                "//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]/cac:Attachment/cbc:EmbeddedDocumentBinaryObject",
+                "QR",
+            ),
+            "QR_PAYLOAD"
+        );
+    }
+
+    #[test]
+    fn set_qr_code_overwrites_existing_value() {
+        let mut doc = load_sample_doc();
+        set_qr_code(&mut doc, "NEW_QR").expect("set qr code");
+
+        let ctx = xpath::Context::new(&doc).expect("xpath context");
+        register_namespaces(&ctx).expect("register namespaces");
+        assert_eq!(
+            xml_text(
+                &ctx,
+                "//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]/cac:Attachment/cbc:EmbeddedDocumentBinaryObject",
+                "QR",
+            ),
+            "NEW_QR"
+        );
+    }
+
+    #[test]
+    fn set_xpath_text_rejects_missing_target() {
+        let doc = load_sample_doc();
+        let ctx = xpath::Context::new(&doc).expect("xpath context");
+        register_namespaces(&ctx).expect("register namespaces");
+        let err = set_xpath_text(&ctx, "//cbc:DoesNotExist", "value")
+            .expect_err("missing path");
+        match err {
+            SigningError::SigningError(msg) => {
+                assert!(msg.contains("XPath target not found"));
+            }
+        }
+    }
+
+    #[test]
+    fn import_fragment_rejects_invalid_xml() {
+        let mut doc = load_sample_doc();
+        let err = import_fragment(&mut doc, "")
+            .expect_err("invalid fragment");
+        match err {
+            SigningError::SigningError(msg) => {
+                assert!(
+                    msg.contains("XML parse error") || msg.contains("missing fragment root"),
+                    "unexpected: {msg}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn first_element_child_skips_text_nodes() {
+        let xml = "<root>\n  <child>ok</child>\n</root>";
+        let doc = Parser::default().parse_string(xml).expect("parse");
+        let root = doc.get_root_element().expect("root");
+        let child = first_element_child(&root).expect("first element");
+        assert_eq!(child.get_name(), "child");
+    }
+
+    #[test]
+    fn first_matching_node_returns_none_for_missing_path() {
+        let doc = load_sample_doc();
+        let ctx = xpath::Context::new(&doc).expect("xpath context");
+        register_namespaces(&ctx).expect("register namespaces");
+        let result = first_matching_node(&ctx, "//cbc:DoesNotExist").expect("xpath");
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn certificate_hash_base64_matches_manual_digest() {
+        let key = SigningKey::from_bytes((&[0x22; 32]).into()).expect("signing key");
+        let cert = build_test_cert(&key);
+        let cert_der = cert.to_der().expect("der");
+        let b64_der = Base64::encode_string(cert_der.as_slice());
+        let hash = sha2::Sha256::digest(b64_der.as_bytes());
+        let mut hex_hash = String::with_capacity(hash.len() * 2);
+        for byte in hash {
+            use std::fmt::Write;
+            let _ = write!(&mut hex_hash, "{:02x}", byte);
+        }
+        let expected = Base64::encode_string(hex_hash.as_bytes());
+        let actual = certificate_hash_base64(&cert).expect("cert hash");
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn issuer_and_serial_extracts_values() {
+        let key = SigningKey::from_bytes((&[0x33; 32]).into()).expect("signing key");
+        let cert = build_test_cert(&key);
+        let (issuer, serial) = issuer_and_serial(&cert).expect("issuer serial");
+        assert!(issuer.contains("CN=Test"));
+        assert_eq!(serial, "1");
+    }
+
+    #[test]
+    fn signed_properties_hash_base64_matches_manual_digest() {
+        let signing_time = "2024-01-01T12:30:00";
+        let digest_value = "digest";
+        let issuer = "issuer";
+        let serial = "123";
+        let xml = signed_properties_xml_string(signing_time, digest_value, issuer, serial);
+        let hash = sha2::Sha256::digest(xml.as_bytes());
+        let mut hex_hash = String::with_capacity(hash.len() * 2);
+        for byte in hash {
+            use std::fmt::Write;
+            let _ = write!(&mut hex_hash, "{:02x}", byte);
+        }
+        let expected = Base64::encode_string(hex_hash.as_bytes());
+        let actual = signed_properties_hash_base64(&xml).expect("signed props hash");
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn public_key_base64_matches_spki_der() {
+        let key = SigningKey::from_bytes((&[0x44; 32]).into()).expect("signing key");
+        let expected = Base64::encode_string(
+            &key.verifying_key()
+                .to_public_key_der()
+                .unwrap()
+                .to_der()
+                .unwrap(),
+        );
+        let actual = public_key_base64(&key);
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn format_signing_time_matches_expected_layout() {
+        let time = chrono::Utc.with_ymd_and_hms(2024, 1, 2, 3, 4, 5).unwrap();
+        assert_eq!(format_signing_time(&time), "2024-01-02T03:04:05");
+    }
+
+    fn build_test_cert(key: &SigningKey) -> Certificate {
+        let serial_number = SerialNumber::from(1u32);
+        let validity = Validity::from_now(std::time::Duration::new(3600, 0)).expect("validity");
+        let subject = Name::from_str("CN=Test,O=Fatoora,C=SA").expect("subject");
+        let profile = profile::cabf::Root::new(false, subject).expect("profile");
+        let public_key = key.verifying_key();
+        let spki_der = public_key.to_public_key_der().expect("public key der");
+        let pub_key = SubjectPublicKeyInfo::try_from(spki_der.as_bytes()).expect("spki");
+        let builder =
+            CertificateBuilder::new(profile, serial_number, validity, pub_key).expect("builder");
+        builder
+            .build::<_, k256::ecdsa::DerSignature>(key)
+            .expect("certificate")
+    }
+
+    fn load_sample_doc() -> Document {
+        let xml_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/invoices/sample-simplified-invoice.xml");
+        let xml = std::fs::read_to_string(xml_path).expect("read sample invoice");
+        Parser::default().parse_string(&xml).expect("parse invoice")
+    }
+
+    fn select_nodes(ctx: &xpath::Context, expr: &str) -> Vec<Node> {
+        ctx.evaluate(expr)
+            .unwrap_or_else(|_| panic!("XPath error for {expr}"))
+            .get_nodes_as_vec()
+    }
+
+    fn remove_nodes(ctx: &xpath::Context, expr: &str) {
+        for mut node in select_nodes(ctx, expr) {
+            node.unlink();
+        }
     }
 
     fn xml_text(ctx: &xpath::Context, expr: &str, label: &str) -> String {

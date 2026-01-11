@@ -4,9 +4,13 @@
 
 An *unofficial* open-source toolkit for everything you'd need for ZATCA (Zakat, Tax and Customs Authority of Saudi Arabia) Phase 1 and 2 compliant e-invoicing 
 
-...with bindings and support for many programming languages.
+...with bindings and support for many programming languages (coming soon lol).
 
 ...*and also built in Rust btw*
+
+> `fatoora-rs` is in active early development. While the core functionality is usable, the public API is still evolving and may change as the project matures.
+> We strive to maintain good test coverage and stability, but users should be aware that some rough edges may remain. 
+> Feedback and contributions are especially welcome at this stage. 
 
 **Disclaimer**:
 `fatoora-rs` is not affiliated, associated, authorized, endorsed by, or in any way officially connected with ZATCA (Zakat, Tax and Customs Authority), or any of its subsidiaries or its affiliates. The official ZATCA website can be found at https://zatca.gov.sa.
@@ -28,9 +32,19 @@ XML parsing/manipulation is done internally with `libxml2`, so you might need to
 
 ## Usage/Examples
 
+<details>
+<summary>CSR Generation</summary>
 ```rust
-
+CODE!
 ```
+</details>
+
+<details>
+<summary>Invoice Signing</summary>
+```rust
+CODE!
+```
+</details>
 
 ## Contributing
 

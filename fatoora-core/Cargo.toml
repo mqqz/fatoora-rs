@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 description = "Rust Fatoora/ZATCA SDK with C ABI and multi-language bindings"
 license = "MIT"
+readme = "../README.md"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

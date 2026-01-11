@@ -687,64 +687,63 @@ mod tests {
         assert_eq!(value.secret, "secret");
     }
 
+    #[test]
+    fn deserialize_validation_response_defaults_info_messages() {
+        let payload = r#"{
+          "validationResults": {
+            "warningMessages": [],
+            "errorMessages": [],
+            "status": "PASS"
+          },
+          "reportingStatus": "REPORTED",
+          "clearanceStatus": null,
+          "qrSellertStatus": null,
+          "qrBuyertStatus": null
+        }"#;
+
+        let parsed: ValidationResponse = serde_json::from_str(payload).expect("deserialize");
+        assert!(matches!(
+            parsed.validation_results.info_messages,
+            MessageList::Empty
+        ));
+    }
+
+    #[test]
+    fn csid_credentials_new_stores_env() {
+        let creds = CsidCredentials::<Compliance>::new(
+            EnvironmentType::Simulation,
+            Some(10),
+            "token".into(),
+            "secret".into(),
+        );
+        assert_eq!(creds.env, EnvironmentType::Simulation);
+        assert_eq!(creds.request_id, Some(10));
+    }
+
+    #[test]
+    fn build_endpoint_trims_leading_slash() {
+        let client = ZatcaClient::new(Config::default()).expect("client");
+        let with_slash = client.build_endpoint("/invoices/reporting/single");
+        let without_slash = client.build_endpoint("invoices/reporting/single");
+        assert_eq!(with_slash, without_slash);
+    }
+
+    #[test]
+    fn ensure_env_rejects_mismatch() {
+        let client = ZatcaClient::new(Config::default()).expect("client");
+        let creds = CsidCredentials::<Compliance>::new(
+            EnvironmentType::Production,
+            None,
+            "token".into(),
+            "secret".into(),
+        );
+        let err = client.ensure_env(&creds).expect_err("env mismatch");
+        assert!(matches!(err, ZatcaError::ClientState(_)));
+    }
+
     #[tokio::test]
     async fn report_rejects_standard_invoice() {
-        let seller = Party::<SellerRole>::new(
-            "Acme Inc".into(),
-            Address {
-                country_code: CountryCode::SAU,
-                city: "Riyadh".into(),
-                street: "King Fahd".into(),
-                additional_street: None,
-                building_number: "1234".into(),
-                additional_number: Some("5678".into()),
-                postal_code: "12222".into(),
-                subdivision: None,
-                district: None,
-            },
-            "301121971500003",
-            None,
-        )
-        .expect("seller");
-
-        let line_item = LineItem {
-            description: "Item".into(),
-            quantity: 1.0,
-            unit_code: "PCE".into(),
-            unit_price: 100.0,
-            total_amount: 100.0,
-            vat_rate: 15.0,
-            vat_amount: 15.0,
-            vat_category: VatCategory::Standard,
-        };
-
-        let issue_datetime = chrono::NaiveDate::from_ymd_opt(2024, 1, 1)
-            .unwrap()
-            .and_hms_opt(12, 30, 0)
-            .unwrap();
-
-        let invoice = InvoiceBuilder::new(
-            InvoiceType::Tax(InvoiceSubType::Standard),
-            "INV-STD-1",
-            "uuid-std-1",
-            chrono::Utc.from_utc_datetime(&issue_datetime),
-            Currency::SAR,
-            "",
-            seller,
-            vec![line_item],
-            "10",
-            VatCategory::Standard,
-        )
-        .build()
-        .expect("build invoice");
-
-        let signed_xml = invoice.to_xml().expect("serialize invoice");
-        let public_key_b64 = Base64::encode_string(b"pk");
-        let signing =
-            SignedProperties::from_qr_parts("hash==", "signature==", &public_key_b64, None);
-        let signed_invoice = invoice
-            .sign_with_bundle(signing, signed_xml)
-            .expect("sign invoice");
+        let signed_invoice = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Standard));
 
         let creds = CsidCredentials::new(
             EnvironmentType::NonProduction,
@@ -762,6 +761,52 @@ mod tests {
 
     #[tokio::test]
     async fn clearance_rejects_simplified_invoice() {
+        let signed_invoice = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
+
+        let creds = CsidCredentials::new(
+            EnvironmentType::NonProduction,
+            None,
+            "token".into(),
+            "secret".into(),
+        );
+        let client = ZatcaClient::new(Config::default()).expect("client");
+
+        let result = client
+            .clear_standard_invoice(&signed_invoice, &creds, true, None)
+            .await;
+        assert!(matches!(result, Err(ZatcaError::ClientState(_))));
+    }
+
+    #[tokio::test]
+    async fn compliance_rejects_env_mismatch() {
+        let signed_invoice = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
+        let client = ZatcaClient::new(Config::default()).expect("client");
+        let creds = CsidCredentials::new(
+            EnvironmentType::Production,
+            None,
+            "token".into(),
+            "secret".into(),
+        );
+
+        let result = client.check_invoice_compliance(&signed_invoice, &creds).await;
+        assert!(matches!(result, Err(ZatcaError::ClientState(_))));
+    }
+
+    #[tokio::test]
+    async fn post_ccsid_requires_request_id() {
+        let client = ZatcaClient::new(Config::default()).expect("client");
+        let creds = CsidCredentials::new(
+            EnvironmentType::NonProduction,
+            None,
+            "token".into(),
+            "secret".into(),
+        );
+
+        let result = client.post_ccsid_for_pcsid(&creds).await;
+        assert!(matches!(result, Err(ZatcaError::ClientState(_))));
+    }
+
+    fn build_signed_invoice(invoice_type: InvoiceType) -> SignedInvoice {
         let seller = Party::<SellerRole>::new(
             "Acme Inc".into(),
             Address {
@@ -797,9 +842,9 @@ mod tests {
             .unwrap();
 
         let invoice = InvoiceBuilder::new(
-            InvoiceType::Tax(InvoiceSubType::Simplified),
-            "INV-SIM-1",
-            "uuid-sim-1",
+            invoice_type,
+            "INV-TEST-1",
+            "uuid-test-1",
             chrono::Utc.from_utc_datetime(&issue_datetime),
             Currency::SAR,
             "",
@@ -815,21 +860,8 @@ mod tests {
         let public_key_b64 = Base64::encode_string(b"pk");
         let signing =
             SignedProperties::from_qr_parts("hash==", "signature==", &public_key_b64, None);
-        let signed_invoice = invoice
+        invoice
             .sign_with_bundle(signing, signed_xml)
-            .expect("sign invoice");
-
-        let creds = CsidCredentials::new(
-            EnvironmentType::NonProduction,
-            None,
-            "token".into(),
-            "secret".into(),
-        );
-        let client = ZatcaClient::new(Config::default()).expect("client");
-
-        let result = client
-            .clear_standard_invoice(&signed_invoice, &creds, true, None)
-            .await;
-        assert!(matches!(result, Err(ZatcaError::ClientState(_))));
+            .expect("sign invoice")
     }
 }

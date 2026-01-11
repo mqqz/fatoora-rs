@@ -1,7 +1,9 @@
 use chrono::TimeZone;
 use fatoora_core::invoice::xml::ToXml;
-use fatoora_core::invoice::xml::parse::parse_finalized_invoice_xml_file;
-use fatoora_core::invoice::xml::parse::parse_signed_invoice_xml_file;
+use fatoora_core::invoice::xml::parse::{
+    ParseError, parse_finalized_invoice_xml, parse_finalized_invoice_xml_file,
+    parse_signed_invoice_xml, parse_signed_invoice_xml_file,
+};
 use fatoora_core::invoice::{
     Address, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, OriginalInvoiceRef, Party,
     SellerRole, VatCategory,
@@ -122,6 +124,52 @@ fn parse_signed_invoice_from_fixture() {
 }
 
 #[test]
+fn parse_rejects_missing_invoice_id() {
+    let xml = load_sample_xml();
+    let xml = xml.replace("<cbc:ID>SME00010</cbc:ID>", "");
+    let err = parse_finalized_invoice_xml(&xml).expect_err("missing ID");
+    assert!(matches!(err, ParseError::MissingField("ID")));
+}
+
+#[test]
+fn parse_rejects_invalid_currency_code() {
+    let xml = load_sample_xml();
+    let xml = xml.replace("<cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>", "<cbc:DocumentCurrencyCode>ZZZ</cbc:DocumentCurrencyCode>");
+    let err = parse_finalized_invoice_xml(&xml).expect_err("invalid currency");
+    assert!(matches!(err, ParseError::InvalidValue { field: "DocumentCurrencyCode", .. }));
+}
+
+#[test]
+fn parse_rejects_unknown_invoice_type_code() {
+    let xml = load_sample_xml();
+    let xml = xml.replace(
+        "<cbc:InvoiceTypeCode name=\"0200000\">388</cbc:InvoiceTypeCode>",
+        "<cbc:InvoiceTypeCode name=\"0200000\">999</cbc:InvoiceTypeCode>",
+    );
+    let err = parse_finalized_invoice_xml(&xml).expect_err("invalid invoice type");
+    assert!(matches!(err, ParseError::InvalidValue { field: "InvoiceTypeCode", .. }));
+}
+
+#[test]
+fn parse_signed_rejects_missing_qr() {
+    let xml = load_sample_xml();
+    let xml = xml.replace("<cbc:ID>QR</cbc:ID>", "<cbc:ID>NOT_QR</cbc:ID>");
+    let err = parse_signed_invoice_xml(&xml).expect_err("missing QR");
+    assert!(matches!(err, ParseError::MissingField("QR")));
+}
+
+#[test]
+fn parse_signed_rejects_invalid_signing_time() {
+    let xml = load_sample_xml();
+    let xml = xml.replace(
+        "<xades:SigningTime>2025-07-22T15:51:28</xades:SigningTime>",
+        "<xades:SigningTime>bad-time</xades:SigningTime>",
+    );
+    let err = parse_signed_invoice_xml(&xml).expect_err("invalid signing time");
+    assert!(matches!(err, ParseError::InvalidValue { field: "SigningTime", .. }));
+}
+
+#[test]
 fn credit_note_serializes_billing_reference_and_reason() {
     let seller = Party::<SellerRole>::new(
         "Acme Inc".into(),
@@ -186,4 +234,10 @@ fn credit_note_serializes_billing_reference_and_reason() {
     assert!(xml.contains("<cbc:UUID>uuid-orig</cbc:UUID>"));
     assert!(xml.contains("<cbc:IssueDate>2023-12-31</cbc:IssueDate>"));
     assert!(xml.contains("<cbc:InstructionNote>pricing correction</cbc:InstructionNote>"));
+}
+
+fn load_sample_xml() -> String {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/invoices/sample-simplified-invoice.xml");
+    std::fs::read_to_string(&path).expect("read xml")
 }
