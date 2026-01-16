@@ -8,7 +8,8 @@ use thiserror::Error;
 pub use config::EnvironmentParseError;
 pub use csr::CsrError;
 pub use invoice::{
-    InvoiceError, InvoiceField, ValidationError, ValidationIssue, ValidationKind,
+    InvoiceError, InvoiceField, LineItemFields, LineItemPartsFields, LineItemTotalsFields,
+    ValidationError, ValidationIssue, ValidationKind,
 };
 pub use invoice::QrCodeError;
 pub use invoice::sign::SigningError;

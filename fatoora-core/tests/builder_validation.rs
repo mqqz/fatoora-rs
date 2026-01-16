@@ -1,6 +1,6 @@
 use fatoora_core::invoice::{
-    InvoiceBuilder, InvoiceError, InvoiceField, InvoiceSubType, InvoiceType, LineItem,
-    RequiredInvoiceFields, ValidationKind, VatCategory,
+    Address, InvoiceBuilder, InvoiceError, InvoiceField, InvoiceSubType, InvoiceType, LineItem,
+    LineItemPartsFields, LineItemTotalsFields, RequiredInvoiceFields, ValidationKind, VatCategory,
 };
 use fatoora_core::invoice::{OtherId, Party, SellerRole};
 use iso_currency::Currency;
@@ -9,17 +9,17 @@ use isocountry::CountryCode;
 fn dummy_seller() -> Party<SellerRole> {
     Party::<SellerRole>::new(
         "Acme Inc".into(),
-        fatoora_core::invoice::Address::new(
-            CountryCode::SAU,
-            "Riyadh",
-            "King Fahd",
-            None,
-            "1234",
-            Some("5678".into()),
-            "12222",
-            None,
-            Some("Olaya".into()),
-        ),
+        Address {
+            country_code: CountryCode::SAU,
+            city: "Riyadh".into(),
+            street: "King Fahd".into(),
+            additional_street: None,
+            building_number: "1234".into(),
+            additional_number: Some("5678".into()),
+            postal_code: "12222".into(),
+            subdivision: None,
+            district: Some("Olaya".into()),
+        },
         "399999999900003",
         Some(OtherId::with_scheme("7003339333", "CRN")),
     )
@@ -58,16 +58,15 @@ fn build_reports_missing_required_fields() {
 #[test]
 fn build_reports_invalid_line_items() {
     let issue_datetime = chrono::Utc::now();
-    let line_item = LineItem::new(
-        "",
-        -1.0,
-        "",
-        -1.0,
-        -1.0,
-        -1.0,
-        -1.0,
-        VatCategory::Standard,
-    );
+    let line_item = LineItem::from_totals(LineItemTotalsFields {
+            description: "".into(),
+            quantity: -1.0,
+            unit_code: "".into(),
+            unit_price: -1.0,
+            total_amount: -1.0,
+            vat_rate: 15.0,
+            vat_category: VatCategory::Standard,
+        });
     let builder = InvoiceBuilder::new(RequiredInvoiceFields {
         invoice_type: InvoiceType::Tax(InvoiceSubType::Simplified),
         id: "INV-1".into(),
@@ -92,7 +91,6 @@ fn build_reports_invalid_line_items() {
     let mut has_quantity = false;
     let mut has_unit_price = false;
     let mut has_total_amount = false;
-    let mut has_vat_rate = false;
     let mut has_vat_amount = false;
 
     for issue in &validation.issues {
@@ -115,9 +113,6 @@ fn build_reports_invalid_line_items() {
             (InvoiceField::LineItemTotalAmount, ValidationKind::OutOfRange) => {
                 has_total_amount = true;
             }
-            (InvoiceField::LineItemVatRate, ValidationKind::OutOfRange) => {
-                has_vat_rate = true;
-            }
             (InvoiceField::LineItemVatAmount, ValidationKind::OutOfRange) => {
                 has_vat_amount = true;
             }
@@ -130,6 +125,24 @@ fn build_reports_invalid_line_items() {
     assert!(has_quantity);
     assert!(has_unit_price);
     assert!(has_total_amount);
-    assert!(has_vat_rate);
     assert!(has_vat_amount);
+}
+
+#[test]
+fn line_item_try_from_parts_reports_mismatch() {
+    let err = LineItem::try_from_parts(LineItemPartsFields {
+        description: "Item".into(),
+        quantity: 1.0,
+        unit_code: "PCE".into(),
+        unit_price: 100.0,
+        total_amount: 100.0,
+        vat_rate: 15.0,
+        vat_amount: 10.0,
+        vat_category: VatCategory::Standard,
+    })
+    .expect_err("expected mismatch error");
+
+    assert!(err.issues.iter().any(|issue| {
+        issue.field == InvoiceField::LineItemVatAmount && issue.kind == ValidationKind::Mismatch
+    }));
 }

@@ -76,46 +76,23 @@ pub enum ValidationKind {
     Empty,
     InvalidFormat,
     OutOfRange,
+    Mismatch,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Address {
-    country_code: CountryCode,
-    city: String,
-    street: String,
-    additional_street: Option<String>,
-    building_number: String,
-    additional_number: Option<String>,
-    postal_code: String, //fix 5 digits if country is KSA
-    subdivision: Option<String>,
-    district: Option<String>,
+    pub country_code: CountryCode,
+    pub city: String,
+    pub street: String,
+    pub additional_street: Option<String>,
+    pub building_number: String,
+    pub additional_number: Option<String>,
+    pub postal_code: String, //fix 5 digits if country is KSA
+    pub subdivision: Option<String>,
+    pub district: Option<String>,
 }
 
 impl Address {
-    pub fn new(
-        country_code: CountryCode,
-        city: impl Into<String>,
-        street: impl Into<String>,
-        additional_street: Option<String>,
-        building_number: impl Into<String>,
-        additional_number: Option<String>,
-        postal_code: impl Into<String>,
-        subdivision: Option<String>,
-        district: Option<String>,
-    ) -> Self {
-        Self {
-            country_code,
-            city: city.into(),
-            street: street.into(),
-            additional_street,
-            building_number: building_number.into(),
-            additional_number,
-            postal_code: postal_code.into(),
-            subdivision,
-            district,
-        }
-    }
-
     pub fn country_code(&self) -> &CountryCode {
         &self.country_code
     }
@@ -416,27 +393,105 @@ pub struct LineItem {
     vat_category: VatCategory,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct LineItemFields {
+    pub description: String,
+    pub quantity: f64,
+    pub unit_code: String,
+    pub unit_price: f64,
+    pub vat_rate: f64,
+    pub vat_category: VatCategory,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct LineItemTotalsFields {
+    pub description: String,
+    pub quantity: f64,
+    pub unit_code: String,
+    pub unit_price: f64,
+    pub total_amount: f64,
+    pub vat_rate: f64,
+    pub vat_category: VatCategory,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct LineItemPartsFields {
+    pub description: String,
+    pub quantity: f64,
+    pub unit_code: String,
+    pub unit_price: f64,
+    pub total_amount: f64,
+    pub vat_rate: f64,
+    pub vat_amount: f64,
+    pub vat_category: VatCategory,
+}
+
 impl LineItem {
-    pub fn new(
-        description: impl Into<String>,
-        quantity: f64,
-        unit_code: impl Into<String>,
-        unit_price: f64,
-        total_amount: f64,
-        vat_rate: f64,
-        vat_amount: f64,
-        vat_category: VatCategory,
-    ) -> Self {
+    pub fn new(fields: LineItemFields) -> Self {
+        let total_amount = Self::calculate_total_amount(fields.quantity, fields.unit_price);
+        let vat_amount = Self::calculate_vat_amount(total_amount, fields.vat_rate);
         Self {
-            description: description.into(),
-            quantity,
-            unit_code: unit_code.into(),
-            unit_price,
+            description: fields.description,
+            quantity: fields.quantity,
+            unit_code: fields.unit_code,
+            unit_price: fields.unit_price,
             total_amount,
-            vat_rate,
+            vat_rate: fields.vat_rate,
             vat_amount,
-            vat_category,
+            vat_category: fields.vat_category,
         }
+    }
+
+    pub fn from_totals(fields: LineItemTotalsFields) -> Self {
+        let vat_amount = Self::calculate_vat_amount(fields.total_amount, fields.vat_rate);
+        Self {
+            description: fields.description,
+            quantity: fields.quantity,
+            unit_code: fields.unit_code,
+            unit_price: fields.unit_price,
+            total_amount: fields.total_amount,
+            vat_rate: fields.vat_rate,
+            vat_amount,
+            vat_category: fields.vat_category,
+        }
+    }
+
+    pub fn try_from_parts(
+        fields: LineItemPartsFields,
+    ) -> std::result::Result<Self, ValidationError> {
+        const EPSILON: f64 = 0.01;
+        let expected_total = Self::calculate_total_amount(fields.quantity, fields.unit_price);
+        let expected_vat = Self::calculate_vat_amount(fields.total_amount, fields.vat_rate);
+
+        let mut issues = Vec::new();
+        if (expected_total - fields.total_amount).abs() > EPSILON {
+            issues.push(ValidationIssue {
+                field: InvoiceField::LineItemTotalAmount,
+                kind: ValidationKind::Mismatch,
+                line_item_index: None,
+            });
+        }
+        if (expected_vat - fields.vat_amount).abs() > EPSILON {
+            issues.push(ValidationIssue {
+                field: InvoiceField::LineItemVatAmount,
+                kind: ValidationKind::Mismatch,
+                line_item_index: None,
+            });
+        }
+        if !issues.is_empty() {
+            return Err(ValidationError::new(issues));
+        }
+
+        Ok(Self {
+            description: fields.description,
+            quantity: fields.quantity,
+            unit_code: fields.unit_code,
+            unit_price: fields.unit_price,
+            total_amount: fields.total_amount,
+            vat_rate: fields.vat_rate,
+            vat_amount: fields.vat_amount,
+            vat_category: fields.vat_category,
+        })
     }
 
     pub fn description(&self) -> &str {
@@ -469,6 +524,14 @@ impl LineItem {
 
     pub fn vat_category(&self) -> VatCategory {
         self.vat_category
+    }
+
+    fn calculate_total_amount(quantity: f64, unit_price: f64) -> f64 {
+        quantity * unit_price
+    }
+
+    fn calculate_vat_amount(total_amount: f64, vat_rate: f64) -> f64 {
+        total_amount * (vat_rate / 100.0)
     }
 }
 

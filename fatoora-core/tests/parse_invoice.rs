@@ -185,32 +185,30 @@ fn parse_signed_rejects_invalid_signing_time() {
 fn credit_note_serializes_billing_reference_and_reason() {
     let seller = Party::<SellerRole>::new(
         "Acme Inc".into(),
-        Address::new(
-            CountryCode::SAU,
-            "Riyadh",
-            "King Fahd",
-            None,
-            "1234",
-            Some("5678".into()),
-            "12222",
-            None,
-            None,
-        ),
+        Address {
+            country_code: CountryCode::SAU,
+            city: "Riyadh".into(),
+            street: "King Fahd".into(),
+            additional_street: None,
+            building_number: "1234".into(),
+            additional_number: Some("5678".into()),
+            postal_code: "12222".into(),
+            subdivision: None,
+            district: None,
+        },
         "301121971500003",
         None,
     )
     .expect("valid seller");
 
-    let line_item = LineItem::new(
-        "Item",
-        1.0,
-        "PCE",
-        100.0,
-        100.0,
-        15.0,
-        15.0,
-        VatCategory::Standard,
-    );
+    let line_item = LineItem::new(fatoora_core::invoice::LineItemFields {
+        description: "Item".into(),
+        quantity: 1.0,
+        unit_code: "PCE".into(),
+        unit_price: 100.0,
+        vat_rate: 15.0,
+        vat_category: VatCategory::Standard,
+    });
 
     let issue_datetime = chrono::NaiveDate::from_ymd_opt(2024, 1, 1)
         .unwrap()

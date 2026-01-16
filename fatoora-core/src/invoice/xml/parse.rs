@@ -2,6 +2,7 @@ use crate::invoice::sign::SignedProperties;
 use crate::invoice::xml::constants::{CAC_NS, CBC_NS, DS_NS, INVOICE_NS, XADES_NS};
 use crate::invoice::{
     Address, FinalizedInvoice, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem,
+    LineItemPartsFields,
     OriginalInvoiceRef, OtherId, Party, SellerRole, SignedInvoice, VatCategory,
 };
 use base64ct::{Base64, Encoding};
@@ -88,9 +89,12 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
     } else {
         None
     };
-    let reason =
-        xpath_text_optional(&ctx, "/ubl:Invoice/cac:PaymentMeans/cbc:InstructionNote")?
-            .or_else(|| xpath_text_optional(&ctx, "/ubl:Invoice/cbc:Note").ok().flatten());
+    let reason = xpath_text_optional(&ctx, "/ubl:Invoice/cac:PaymentMeans/cbc:InstructionNote")?
+        .or_else(|| {
+            xpath_text_optional(&ctx, "/ubl:Invoice/cbc:Note")
+                .ok()
+                .flatten()
+        });
     let invoice_type = parse_invoice_type(
         &invoice_type_name,
         &invoice_type_code,
@@ -113,12 +117,13 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
         "/ubl:Invoice/cac:AdditionalDocumentReference[cbc:ID='ICV']/cbc:UUID",
         "ICV",
     )?;
-    let invoice_counter = invoice_counter_str
-        .parse::<u64>()
-        .map_err(|_| ParseError::InvalidValue {
-            field: "ICV",
-            value: invoice_counter_str,
-        })?;
+    let invoice_counter =
+        invoice_counter_str
+            .parse::<u64>()
+            .map_err(|_| ParseError::InvalidValue {
+                field: "ICV",
+                value: invoice_counter_str,
+            })?;
 
     let mut builder = InvoiceBuilder::new(crate::invoice::RequiredInvoiceFields {
         invoice_type,
@@ -136,7 +141,10 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
     if let Some(note) = xpath_text_optional(&ctx, "/ubl:Invoice/cbc:Note")? {
         let language = xpath_text_optional(&ctx, "/ubl:Invoice/cbc:Note/@languageID")?
             .unwrap_or_else(|| "en".to_string());
-        builder.note(crate::invoice::InvoiceNote { language, text: note });
+        builder.note(crate::invoice::InvoiceNote {
+            language,
+            text: note,
+        });
     }
     if let Some(reason) = xpath_text_optional(
         &ctx,
@@ -216,7 +224,7 @@ fn parse_signed_properties(doc: &Document) -> Result<SignedProperties, ParseErro
         "SignedPropertiesDigest",
     )?;
 
-    Ok(SignedProperties::from_parsed_parts(
+    Ok(SignedProperties {
         invoice_hash,
         signature,
         public_key,
@@ -226,7 +234,7 @@ fn parse_signed_properties(doc: &Document) -> Result<SignedProperties, ParseErro
         signed_props_hash,
         signing_time,
         zatca_key_signature,
-    ))
+    })
 }
 
 fn parse_invoice_type(
@@ -459,39 +467,51 @@ fn parse_line_items(ctx: &xpath::Context) -> Result<Vec<LineItem>, ParseError> {
             }
         };
 
-        items.push(LineItem {
+        let quantity = quantity
+            .parse::<f64>()
+            .map_err(|_| ParseError::InvalidValue {
+                field: "InvoicedQuantity",
+                value: quantity,
+            })?;
+        let unit_price = price.parse::<f64>().map_err(|_| ParseError::InvalidValue {
+            field: "PriceAmount",
+            value: price,
+        })?;
+        let total_amount = line_extension
+            .parse::<f64>()
+            .map_err(|_| ParseError::InvalidValue {
+                field: "LineExtensionAmount",
+                value: line_extension,
+            })?;
+        let vat_rate = vat_rate
+            .parse::<f64>()
+            .map_err(|_| ParseError::InvalidValue {
+                field: "LineVatPercent",
+                value: vat_rate,
+            })?;
+        let vat_amount = vat_amount
+            .parse::<f64>()
+            .map_err(|_| ParseError::InvalidValue {
+                field: "LineTaxAmount",
+                value: vat_amount,
+            })?;
+
+        let line_item = LineItem::try_from_parts(LineItemPartsFields {
             description: name,
-            quantity: quantity
-                .parse::<f64>()
-                .map_err(|_| ParseError::InvalidValue {
-                    field: "InvoicedQuantity",
-                    value: quantity,
-                })?,
+            quantity,
             unit_code,
-            unit_price: price.parse::<f64>().map_err(|_| ParseError::InvalidValue {
-                field: "PriceAmount",
-                value: price,
-            })?,
-            total_amount: line_extension
-                .parse::<f64>()
-                .map_err(|_| ParseError::InvalidValue {
-                    field: "LineExtensionAmount",
-                    value: line_extension,
-                })?,
-            vat_rate: vat_rate
-                .parse::<f64>()
-                .map_err(|_| ParseError::InvalidValue {
-                    field: "LineVatPercent",
-                    value: vat_rate,
-                })?,
-            vat_amount: vat_amount
-                .parse::<f64>()
-                .map_err(|_| ParseError::InvalidValue {
-                    field: "LineTaxAmount",
-                    value: vat_amount,
-                })?,
+            unit_price,
+            total_amount,
+            vat_rate,
+            vat_amount,
             vat_category,
-        });
+        })
+        .map_err(|err| ParseError::InvalidValue {
+            field: "LineItem",
+            value: err.to_string(),
+        })?;
+
+        items.push(line_item);
     }
 
     Ok(items)
@@ -571,6 +591,7 @@ fn decode_qr_tlv(qr_b64: &str) -> Result<std::collections::HashMap<u8, Vec<u8>>,
     Ok(entries)
 }
 
+#[allow(clippy::ptr_arg)]
 fn bytes_to_string(bytes: &Vec<u8>) -> Option<String> {
     String::from_utf8(bytes.clone()).ok()
 }

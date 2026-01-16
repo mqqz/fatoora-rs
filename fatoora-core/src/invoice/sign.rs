@@ -31,15 +31,15 @@ pub enum SigningError {
 
 #[derive(Debug, Clone)]
 pub struct SignedProperties {
-    invoice_hash: String,
-    signature: String,
-    public_key: String,
-    issuer: String,
-    serial: String,
-    cert_hash: String,
-    signed_props_hash: String,
-    signing_time: chrono::DateTime<chrono::Utc>,
-    zatca_key_signature: Option<String>,
+    pub(crate) invoice_hash: String,
+    pub(crate) signature: String,
+    pub(crate) public_key: String,
+    pub(crate) issuer: String,
+    pub(crate) serial: String,
+    pub(crate) cert_hash: String,
+    pub(crate) signed_props_hash: String,
+    pub(crate) signing_time: chrono::DateTime<chrono::Utc>,
+    pub(crate) zatca_key_signature: Option<String>,
 }
 
 impl SignedProperties {
@@ -108,30 +108,6 @@ impl SignedProperties {
             signing_time,
             zatca_key_signature: Some(cert_signature_b64),
         })
-    }
-
-    pub(crate) fn from_parsed_parts(
-        invoice_hash: String,
-        signature: String,
-        public_key: String,
-        issuer: String,
-        serial: String,
-        cert_hash: String,
-        signed_props_hash: String,
-        signing_time: chrono::DateTime<chrono::Utc>,
-        zatca_key_signature: Option<String>,
-    ) -> Self {
-        Self {
-            invoice_hash,
-            signature,
-            public_key,
-            issuer,
-            serial,
-            cert_hash,
-            signed_props_hash,
-            signing_time,
-            zatca_key_signature,
-        }
     }
 
     #[cfg(test)]
@@ -914,17 +890,17 @@ mod tests {
         );
 
         let signing_time = chrono::Utc.with_ymd_and_hms(2024, 1, 1, 12, 30, 0).unwrap();
-        let signing = SignedProperties::from_parsed_parts(
-            "invoice_hash_b64".to_string(),
-            "signature_b64".to_string(),
-            "public_key_b64".to_string(),
-            "issuer".to_string(),
-            "serial".to_string(),
-            "cert_hash_b64".to_string(),
-            "signed_props_hash_b64".to_string(),
+        let signing = SignedProperties {
+            invoice_hash: "invoice_hash_b64".to_string(),
+            signature: "signature_b64".to_string(),
+            public_key: "public_key_b64".to_string(),
+            issuer: "issuer".to_string(),
+            serial: "serial".to_string(),
+            cert_hash: "cert_hash_b64".to_string(),
+            signed_props_hash: "signed_props_hash_b64".to_string(),
             signing_time,
-            None,
-        );
+            zatca_key_signature: None,
+        };
 
         let key = SigningKey::from_bytes((&[0x11; 32]).into()).expect("signing key");
         let cert = build_test_cert(&key);

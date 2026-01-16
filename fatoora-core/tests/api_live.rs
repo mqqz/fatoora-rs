@@ -273,32 +273,30 @@ async fn clear_invoice_with_live_pcsid() {
 
         let seller = Party::<SellerRole>::new(
             "Acme Inc".into(),
-            Address::new(
-                CountryCode::SAU,
-                "Riyadh",
-                "King Fahd",
-                None,
-                "1234",
-                Some("5678".into()),
-                "12222",
-                None,
-                Some("Olaya".into()),
-            ),
+            Address {
+                country_code: CountryCode::SAU,
+                city: "Riyadh".into(),
+                street: "King Fahd".into(),
+                additional_street: None,
+                building_number: "1234".into(),
+                additional_number: Some("5678".into()),
+                postal_code: "12222".into(),
+                subdivision: None,
+                district: Some("Olaya".into()),
+            },
             "399999999900003",
             Some(OtherId::with_scheme("7003339333", "CRN")),
         )
         .expect("valid seller");
 
-        let line_items = vec![LineItem::new(
-            "Item",
-            1.0,
-            "PCE",
-            100.0,
-            100.0,
-            15.0,
-            15.0,
-            VatCategory::Standard,
-        )];
+        let line_items = vec![LineItem::new(fatoora_core::invoice::LineItemFields {
+            description: "Item".into(),
+            quantity: 1.0,
+            unit_code: "PCE".into(),
+            unit_price: 100.0,
+            vat_rate: 15.0,
+            vat_category: VatCategory::Standard,
+        })];
 
         let issue_datetime = chrono::NaiveDate::from_ymd_opt(2024, 1, 1)
             .unwrap()

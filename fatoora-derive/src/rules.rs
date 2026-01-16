@@ -3,7 +3,6 @@ use quote::quote;
 use syn::Ident;
 
 /// --- Rule Implementations --------------------------------------------------
-
 pub fn non_empty(field: &Ident) -> TokenStream {
     quote! {
         if #field.trim().is_empty() {
@@ -47,7 +46,6 @@ pub fn is_country_code(field: &Ident) -> TokenStream {
 }
 
 /// --- Dispatch Table --------------------------------------------------------
-
 /// Very simple and clean rule lookup.
 /// Add new rules by adding new match arms.
 pub fn dispatch(name: &str, field: &Ident) -> Option<TokenStream> {

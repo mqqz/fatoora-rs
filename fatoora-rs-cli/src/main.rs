@@ -165,7 +165,7 @@ fn main() -> Result<()> {
         Commands::Validate { invoice } => {
             let config = Default::default();
             validate_xml_invoice_from_file(Path::new(&invoice), &config)
-                .map_err(|errors| anyhow::anyhow!("XML validation failed: {errors:?}"))?;
+                .map_err(|error| anyhow::anyhow!("XML validation failed: {error}"))?;
             println!("OK");
         }
         Commands::Qr { invoice: _ } => {

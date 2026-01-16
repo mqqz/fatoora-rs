@@ -58,29 +58,27 @@ pub fn signer_from_csid(
 
 #[allow(dead_code)]
 fn dummy_seller_address() -> Address {
-    Address::new(
-        CountryCode::SAU,
-        "Riyadh",
-        "King Fahd",
-        None,
-        "1234",
-        Some("5678".into()),
-        "12222",
-        None,
-        Some("Olaya".into()),
-    )
+    Address {
+        country_code: CountryCode::SAU,
+        city: "Riyadh".into(),
+        street: "King Fahd".into(),
+        additional_street: None,
+        building_number: "1234".into(),
+        additional_number: Some("5678".into()),
+        postal_code: "12222".into(),
+        subdivision: None,
+        district: Some("Olaya".into()),
+    }
 }
 
 #[allow(dead_code)]
 fn dummy_line_items() -> Vec<LineItem> {
-    vec![LineItem::new(
-        "Item",
-        1.0,
-        "PCE",
-        100.0,
-        100.0,
-        15.0,
-        15.0,
-        VatCategory::Standard,
-    )]
+    vec![LineItem::new(fatoora_core::invoice::LineItemFields {
+        description: "Item".into(),
+        quantity: 1.0,
+        unit_code: "PCE".into(),
+        unit_price: 100.0,
+        vat_rate: 15.0,
+        vat_category: VatCategory::Standard,
+    })]
 }

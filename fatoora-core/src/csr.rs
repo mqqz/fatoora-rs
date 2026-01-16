@@ -105,7 +105,7 @@ impl EnvironmentType {
         }
     }
 
-    fn to_extension(&self) -> Result<TemplateNameExtension, CsrError> {
+    fn to_extension(self) -> Result<TemplateNameExtension, CsrError> {
         let bytes = self.as_template_bytes();
         let os = asn1::OctetString::new(bytes).map_err(|e| CsrError::RequestBuild {
             message: format!("invalid template name bytes for extension: {e}"),

@@ -160,10 +160,18 @@ impl InvoiceBuilder {
         } else {
             for (idx, item) in self.invoice.line_items.iter().enumerate() {
                 if item.description().trim().is_empty() {
-                    push_issue(InvoiceField::LineItemDescription, ValidationKind::Empty, Some(idx));
+                    push_issue(
+                        InvoiceField::LineItemDescription,
+                        ValidationKind::Empty,
+                        Some(idx),
+                    );
                 }
                 if item.unit_code().trim().is_empty() {
-                    push_issue(InvoiceField::LineItemUnitCode, ValidationKind::Empty, Some(idx));
+                    push_issue(
+                        InvoiceField::LineItemUnitCode,
+                        ValidationKind::Empty,
+                        Some(idx),
+                    );
                 }
                 if item.quantity() < 0.0 {
                     push_issue(
