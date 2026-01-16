@@ -200,7 +200,7 @@ impl SignedInvoice {
         self.signed_properties.zatca_key_signature()
     }
 
-    pub fn xml_base64(&self) -> String {
+    pub fn to_xml_base64(&self) -> String {
         use base64ct::{Base64, Encoding};
         Base64::encode_string(self.signed_xml.as_bytes())
     }

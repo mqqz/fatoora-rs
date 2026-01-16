@@ -43,38 +43,100 @@ pub struct ZatcaClient {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidationResponse {
     #[serde(rename = "validationResults")]
-    pub validation_results: ValidationResults,
+    validation_results: ValidationResults,
     #[serde(rename = "reportingStatus")]
-    pub reporting_status: Option<String>,
+    reporting_status: Option<String>,
     #[serde(rename = "clearanceStatus")]
-    pub clearance_status: Option<String>,
+    clearance_status: Option<String>,
     #[serde(rename = "qrSellertStatus")]
-    pub qr_seller_status: Option<String>,
+    qr_seller_status: Option<String>,
     #[serde(rename = "qrBuyertStatus")]
-    pub qr_buyer_status: Option<String>,
+    qr_buyer_status: Option<String>,
+}
+
+impl ValidationResponse {
+    pub fn validation_results(&self) -> &ValidationResults {
+        &self.validation_results
+    }
+
+    pub fn reporting_status(&self) -> Option<&str> {
+        self.reporting_status.as_deref()
+    }
+
+    pub fn clearance_status(&self) -> Option<&str> {
+        self.clearance_status.as_deref()
+    }
+
+    pub fn qr_seller_status(&self) -> Option<&str> {
+        self.qr_seller_status.as_deref()
+    }
+
+    pub fn qr_buyer_status(&self) -> Option<&str> {
+        self.qr_buyer_status.as_deref()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidationResults {
     #[serde(rename = "infoMessages", default)]
-    pub info_messages: MessageList,
+    info_messages: MessageList,
     #[serde(rename = "warningMessages", default)]
-    pub warning_messages: Vec<ValidationMessage>,
+    warning_messages: Vec<ValidationMessage>,
     #[serde(rename = "errorMessages", default)]
-    pub error_messages: Vec<ValidationMessage>,
+    error_messages: Vec<ValidationMessage>,
     #[serde(default)]
-    pub status: Option<String>,
+    status: Option<String>,
+}
+
+impl ValidationResults {
+    pub fn info_messages(&self) -> &MessageList {
+        &self.info_messages
+    }
+
+    pub fn warning_messages(&self) -> &[ValidationMessage] {
+        &self.warning_messages
+    }
+
+    pub fn error_messages(&self) -> &[ValidationMessage] {
+        &self.error_messages
+    }
+
+    pub fn status(&self) -> Option<&str> {
+        self.status.as_deref()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidationMessage {
     #[serde(rename = "type")]
-    pub message_type: Option<String>,
-    pub code: Option<String>,
-    pub category: Option<String>,
-    pub message: Option<String>,
+    message_type: Option<String>,
+    code: Option<String>,
+    category: Option<String>,
+    message: Option<String>,
     #[serde(default)]
-    pub status: Option<String>,
+    status: Option<String>,
+}
+
+impl ValidationMessage {
+    pub fn message_type(&self) -> Option<&str> {
+        self.message_type.as_deref()
+    }
+
+    pub fn code(&self) -> Option<&str> {
+        self.code.as_deref()
+    }
+
+    pub fn category(&self) -> Option<&str> {
+        self.category.as_deref()
+    }
+
+    pub fn message(&self) -> Option<&str> {
+        self.message.as_deref()
+    }
+
+    pub fn status(&self) -> Option<&str> {
+        self.status.as_deref()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -89,44 +151,92 @@ pub enum MessageList {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UnauthorizedResponse {
-    pub timestamp: Option<i64>,
-    pub status: Option<u16>,
-    pub error: Option<String>,
-    pub message: Option<String>,
+    timestamp: Option<i64>,
+    status: Option<u16>,
+    error: Option<String>,
+    message: Option<String>,
+}
+
+impl UnauthorizedResponse {
+    pub fn timestamp(&self) -> Option<i64> {
+        self.timestamp
+    }
+
+    pub fn status(&self) -> Option<u16> {
+        self.status
+    }
+
+    pub fn error(&self) -> Option<&str> {
+        self.error.as_deref()
+    }
+
+    pub fn message(&self) -> Option<&str> {
+        self.message.as_deref()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerErrorResponse {
-    pub category: Option<String>,
-    pub code: Option<String>,
-    pub message: Option<String>,
+    category: Option<String>,
+    code: Option<String>,
+    message: Option<String>,
+}
+
+impl ServerErrorResponse {
+    pub fn category(&self) -> Option<&str> {
+        self.category.as_deref()
+    }
+
+    pub fn code(&self) -> Option<&str> {
+        self.code.as_deref()
+    }
+
+    pub fn message(&self) -> Option<&str> {
+        self.message.as_deref()
+    }
 }
 
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CsidCredentials<T> {
-    pub env: EnvironmentType,
-    pub request_id: Option<u64>,
-    pub binary_security_token: String,
-    pub secret: String,
+    env: EnvironmentType,
+    request_id: Option<u64>,
+    binary_security_token: String,
+    secret: String,
     #[serde(skip)]
     _marker: PhantomData<T>,
 }
 
 impl<T> CsidCredentials<T> {
-    fn new(
+    pub fn new(
         env: EnvironmentType,
         request_id: Option<u64>,
-        binary_security_token: String,
-        secret: String,
+        binary_security_token: impl Into<String>,
+        secret: impl Into<String>,
     ) -> Self {
         Self {
             env,
             request_id,
-            binary_security_token,
-            secret,
+            binary_security_token: binary_security_token.into(),
+            secret: secret.into(),
             _marker: PhantomData,
         }
+    }
+
+    pub fn env(&self) -> EnvironmentType {
+        self.env
+    }
+
+    pub fn request_id(&self) -> Option<u64> {
+        self.request_id
+    }
+
+    pub fn binary_security_token(&self) -> &str {
+        &self.binary_security_token
+    }
+
+    pub fn secret(&self) -> &str {
+        &self.secret
     }
 }
 
@@ -171,7 +281,7 @@ impl ZatcaClient {
         accept_language: Option<&str>,
     ) -> Result<ValidationResponse, ZatcaError> {
         self.ensure_env(credentials)?;
-        if !invoice.data().invoice_type.is_simplified() {
+        if !invoice.data().invoice_type().is_simplified() {
             return Err(ZatcaError::ClientState(
                 "Reporting only supports simplified invoices".into(),
             ));
@@ -180,7 +290,7 @@ impl ZatcaClient {
         let payload = serde_json::json!({
             "invoiceHash": invoice.invoice_hash(),
             "uuid": invoice.uuid(),
-            "invoice": invoice.xml_base64()
+            "invoice": invoice.to_xml_base64()
         });
         let url = self.build_endpoint("invoices/reporting/single");
         let mut request = self
@@ -191,8 +301,8 @@ impl ZatcaClient {
             .header("Content-Type", "application/json")
             .header("Clearance-Status", if clearance_status { "1" } else { "0" })
             .basic_auth(
-                credentials.binary_security_token.clone(),
-                Some(credentials.secret.clone()),
+                credentials.binary_security_token().to_string(),
+                Some(credentials.secret().to_string()),
             )
             .json(&payload);
 
@@ -258,7 +368,7 @@ impl ZatcaClient {
         accept_language: Option<&str>,
     ) -> Result<ValidationResponse, ZatcaError> {
         self.ensure_env(credentials)?;
-        if invoice.data().invoice_type.is_simplified() {
+        if invoice.data().invoice_type().is_simplified() {
             return Err(ZatcaError::ClientState(
                 "Clearance only supports standard invoices".into(),
             ));
@@ -267,7 +377,7 @@ impl ZatcaClient {
         let payload = serde_json::json!({
             "invoiceHash": invoice.invoice_hash(),
             "uuid": invoice.uuid(),
-            "invoice": invoice.xml_base64()
+            "invoice": invoice.to_xml_base64()
         });
         let url = self.build_endpoint("invoices/clearance/single");
         let mut request = self
@@ -278,8 +388,8 @@ impl ZatcaClient {
             .header("Content-Type", "application/json")
             .header("Clearance-Status", if clearance_status { "1" } else { "0" })
             .basic_auth(
-                credentials.binary_security_token.clone(),
-                Some(credentials.secret.clone()),
+                credentials.binary_security_token().to_string(),
+                Some(credentials.secret().to_string()),
             )
             .json(&payload);
 
@@ -340,7 +450,7 @@ impl ZatcaClient {
         let payload = serde_json::json!({
             "invoiceHash": invoice.invoice_hash(),
             "uuid": invoice.uuid(),
-            "invoice": invoice.xml_base64()
+            "invoice": invoice.to_xml_base64()
         });
 
         let url = self.build_endpoint("compliance/invoices");
@@ -353,8 +463,8 @@ impl ZatcaClient {
             .header("Accept-Version", "V2")
             .header("Content-Type", "application/json")
             .basic_auth(
-                credentials.binary_security_token.clone(),
-                Some(credentials.secret.clone()),
+                credentials.binary_security_token().to_string(),
+                Some(credentials.secret().to_string()),
             )
             .json(&payload)
             .send()
@@ -431,7 +541,7 @@ impl ZatcaClient {
             .await
             .map_err(|e| ZatcaError::InvalidResponse(e.to_string()))?;
         Ok(CsidCredentials::new(
-            self.config.env,
+            self.config.env(),
             payload.request_id,
             payload.binary_security_token,
             payload.secret,
@@ -444,7 +554,7 @@ impl ZatcaClient {
     ) -> Result<CsidCredentials<Production>, ZatcaError> {
         self.ensure_env(ccsid)?;
         let request_id = ccsid
-            .request_id
+            .request_id()
             .ok_or_else(|| ZatcaError::ClientState("Missing compliance request_id".into()))?;
         let payload = serde_json::json!({
             "compliance_request_id": request_id,
@@ -458,8 +568,8 @@ impl ZatcaClient {
             .header("Accept-Version", "V2")
             .header("Content-Type", "application/json")
             .basic_auth(
-                ccsid.binary_security_token.clone(),
-                Some(ccsid.secret.clone()),
+                ccsid.binary_security_token().to_string(),
+                Some(ccsid.secret().to_string()),
             )
             .json(&payload)
             .send()
@@ -479,7 +589,7 @@ impl ZatcaClient {
             .map_err(|e| ZatcaError::InvalidResponse(e.to_string()))?;
 
         Ok(CsidCredentials::new(
-            self.config.env,
+            self.config.env(),
             payload.request_id,
             payload.binary_security_token,
             payload.secret,
@@ -507,8 +617,8 @@ impl ZatcaClient {
             .header("Accept-Version", "V2")
             .header("Content-Type", "application/json")
             .basic_auth(
-                pcsid.binary_security_token.clone(),
-                Some(pcsid.secret.clone()),
+                pcsid.binary_security_token().to_string(),
+                Some(pcsid.secret().to_string()),
             )
             .json(&csr_payload);
 
@@ -529,7 +639,7 @@ impl ZatcaClient {
                 RenewalResponseBody::Wrapped { value } => value,
             };
             return Ok(CsidCredentials::new(
-                self.config.env,
+                self.config.env(),
                 payload.request_id,
                 payload.binary_security_token,
                 payload.secret,
@@ -570,13 +680,13 @@ impl ZatcaClient {
     fn build_endpoint(&self, path: &str) -> String {
         format!(
             "{}{}",
-            self.config.env.get_endpoint_url(),
+            self.config.env().endpoint_url(),
             path.trim_start_matches('/')
         )
     }
 
     fn ensure_env<T>(&self, creds: &CsidCredentials<T>) -> Result<(), ZatcaError> {
-        if creds.env != self.config.env {
+        if creds.env() != self.config.env() {
             return Err(ZatcaError::ClientState("CSID environment mismatch".into()));
         }
         Ok(())
@@ -713,10 +823,10 @@ mod tests {
         let creds = CsidCredentials::<Compliance>::new(
             EnvironmentType::Simulation,
             Some(10),
-            "token".into(),
-            "secret".into(),
+            "token",
+            "secret",
         );
-        assert_eq!(creds.env, EnvironmentType::Simulation);
+        assert_eq!(creds.env(), EnvironmentType::Simulation);
         assert_eq!(creds.request_id, Some(10));
     }
 
@@ -734,8 +844,8 @@ mod tests {
         let creds = CsidCredentials::<Compliance>::new(
             EnvironmentType::Production,
             None,
-            "token".into(),
-            "secret".into(),
+            "token",
+            "secret",
         );
         let err = client.ensure_env(&creds).expect_err("env mismatch");
         assert!(matches!(err, ZatcaError::ClientState(_)));
@@ -748,8 +858,8 @@ mod tests {
         let creds = CsidCredentials::new(
             EnvironmentType::NonProduction,
             None,
-            "token".into(),
-            "secret".into(),
+            "token",
+            "secret",
         );
         let client = ZatcaClient::new(Config::default()).expect("client");
 
@@ -766,8 +876,8 @@ mod tests {
         let creds = CsidCredentials::new(
             EnvironmentType::NonProduction,
             None,
-            "token".into(),
-            "secret".into(),
+            "token",
+            "secret",
         );
         let client = ZatcaClient::new(Config::default()).expect("client");
 
@@ -784,8 +894,8 @@ mod tests {
         let creds = CsidCredentials::new(
             EnvironmentType::Production,
             None,
-            "token".into(),
-            "secret".into(),
+            "token",
+            "secret",
         );
 
         let result = client.check_invoice_compliance(&signed_invoice, &creds).await;
@@ -798,8 +908,8 @@ mod tests {
         let creds = CsidCredentials::new(
             EnvironmentType::NonProduction,
             None,
-            "token".into(),
-            "secret".into(),
+            "token",
+            "secret",
         );
 
         let result = client.post_ccsid_for_pcsid(&creds).await;
@@ -809,32 +919,32 @@ mod tests {
     fn build_signed_invoice(invoice_type: InvoiceType) -> SignedInvoice {
         let seller = Party::<SellerRole>::new(
             "Acme Inc".into(),
-            Address {
-                country_code: CountryCode::SAU,
-                city: "Riyadh".into(),
-                street: "King Fahd".into(),
-                additional_street: None,
-                building_number: "1234".into(),
-                additional_number: Some("5678".into()),
-                postal_code: "12222".into(),
-                subdivision: None,
-                district: None,
-            },
+            Address::new(
+                CountryCode::SAU,
+                "Riyadh",
+                "King Fahd",
+                None,
+                "1234",
+                Some("5678".into()),
+                "12222",
+                None,
+                None,
+            ),
             "301121971500003",
             None,
         )
         .expect("seller");
 
-        let line_item = LineItem {
-            description: "Item".into(),
-            quantity: 1.0,
-            unit_code: "PCE".into(),
-            unit_price: 100.0,
-            total_amount: 100.0,
-            vat_rate: 15.0,
-            vat_amount: 15.0,
-            vat_category: VatCategory::Standard,
-        };
+        let line_item = LineItem::new(
+            "Item",
+            1.0,
+            "PCE",
+            100.0,
+            100.0,
+            15.0,
+            15.0,
+            VatCategory::Standard,
+        );
 
         let issue_datetime = chrono::NaiveDate::from_ymd_opt(2024, 1, 1)
             .unwrap()

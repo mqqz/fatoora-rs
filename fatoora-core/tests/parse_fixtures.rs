@@ -58,9 +58,9 @@ fn parse_credit_debit_invoices() {
     for file in files {
         let invoice = parse_finalized_invoice_xml_file(&file)
             .unwrap_or_else(|e| panic!("failed to parse {:?}: {e:?}", file));
-        match invoice.data().invoice_type {
-            fatoora_core::invoice::InvoiceType::CreditNote(_, ref original, _)
-            | fatoora_core::invoice::InvoiceType::DebitNote(_, ref original, _) => {
+        match invoice.data().invoice_type() {
+            fatoora_core::invoice::InvoiceType::CreditNote(_, original, _)
+            | fatoora_core::invoice::InvoiceType::DebitNote(_, original, _) => {
                 assert_eq!(original.id(), "SME00002");
             }
             _ => panic!("expected credit/debit invoice type for {:?}", file),

@@ -32,12 +32,12 @@ async fn post_compliance_csid_sandbox() {
         .await
         .expect("CSID request succeeds");
     assert!(
-        !response.binary_security_token.is_empty(),
+        !response.binary_security_token().is_empty(),
         "empty binary_security_token. response: {:?}",
         response
     );
     assert!(
-        !response.secret.is_empty(),
+        !response.secret().is_empty(),
         "empty secret. response: {:?}",
         response
     );
@@ -69,12 +69,12 @@ async fn post_production_csid_sandbox() {
         .expect("Production CSID request succeeds");
     println!("Production CSID Response: {:?}", production_response);
     assert!(
-        !production_response.binary_security_token.is_empty(),
+        !production_response.binary_security_token().is_empty(),
         "empty binary_security_token. response: {:?}",
         production_response
     );
     assert!(
-        !production_response.secret.is_empty(),
+        !production_response.secret().is_empty(),
         "empty secret. response: {:?}",
         production_response
     );
@@ -101,7 +101,7 @@ async fn check_compliance_with_live_ccsid() {
         .await
         .expect("csid response");
 
-    let signer = common::signer_from_csid(&ccsid_response.binary_security_token, &signer_key);
+    let signer = common::signer_from_csid(ccsid_response.binary_security_token(), &signer_key);
     let signed_invoice = common::dummy_finalized_invoice()
         .sign(&signer)
         .expect("sign invoice with live csid");
@@ -110,8 +110,8 @@ async fn check_compliance_with_live_ccsid() {
         .await
         .expect("report signed invoice");
     assert_eq!(
-        compliance_response.reporting_status.unwrap(),
-        "REPORTED",
+        compliance_response.reporting_status(),
+        Some("REPORTED"),
         "invoice not reported successfully"
     );
 }
@@ -147,7 +147,7 @@ async fn report_invoice_with_live_pcsid() {
         .await
         .expect("csid response");
 
-    let signer = common::signer_from_csid(&ccsid_response.binary_security_token, &zatca_pkey);
+    let signer = common::signer_from_csid(ccsid_response.binary_security_token(), &zatca_pkey);
     let signed_invoice = common::dummy_finalized_invoice()
         .sign(&signer)
         .expect("sign invoice with live csid");
@@ -157,15 +157,15 @@ async fn report_invoice_with_live_pcsid() {
         .await
         .expect("report signed invoice");
     assert_eq!(
-        compliance_response.reporting_status.unwrap(),
-        "REPORTED",
+        compliance_response.reporting_status(),
+        Some("REPORTED"),
         "Compliance check failed!"
     );
     let pcsid_response = client
         .post_ccsid_for_pcsid(&ccsid_response)
         .await
         .expect("csid response");
-    let signer = common::signer_from_csid(&pcsid_response.binary_security_token, &zatca_pkey);
+    let signer = common::signer_from_csid(pcsid_response.binary_security_token(), &zatca_pkey);
     let signed_invoice = common::dummy_finalized_invoice()
         .sign(&signer)
         .expect("sign invoice with live csid");
@@ -176,11 +176,11 @@ async fn report_invoice_with_live_pcsid() {
         .expect("report signed invoice");
     println!(
         "Invoice reporting errors: {:#?}",
-        reporting_response.validation_results
+        reporting_response.validation_results()
     );
     assert_eq!(
-        reporting_response.reporting_status.unwrap(),
-        "REPORTED",
+        reporting_response.reporting_status(),
+        Some("REPORTED"),
         "invoice not reported successfully"
     );
 }
@@ -223,7 +223,7 @@ async fn renew_csid_returns_request_id() {
         .await
         .expect("renew csid succeeds");
     assert!(
-        response.request_id.is_some(),
+        response.request_id().is_some(),
         "missing request_id. response: {:?}",
         response
     );
@@ -261,7 +261,7 @@ async fn clear_invoice_with_live_pcsid() {
         .await
         .expect("pcsid response");
 
-    let signer = common::signer_from_csid(&pcsid_response.binary_security_token, &zatca_pkey);
+    let signer = common::signer_from_csid(pcsid_response.binary_security_token(), &zatca_pkey);
     let invoice = {
         use chrono::TimeZone;
         use fatoora_core::invoice::{
@@ -273,32 +273,32 @@ async fn clear_invoice_with_live_pcsid() {
 
         let seller = Party::<SellerRole>::new(
             "Acme Inc".into(),
-            Address {
-                country_code: CountryCode::SAU,
-                city: "Riyadh".into(),
-                street: "King Fahd".into(),
-                additional_street: None,
-                building_number: "1234".into(),
-                additional_number: Some("5678".into()),
-                postal_code: "12222".into(),
-                subdivision: None,
-                district: Some("Olaya".into()),
-            },
+            Address::new(
+                CountryCode::SAU,
+                "Riyadh",
+                "King Fahd",
+                None,
+                "1234",
+                Some("5678".into()),
+                "12222",
+                None,
+                Some("Olaya".into()),
+            ),
             "399999999900003",
             Some(OtherId::with_scheme("7003339333", "CRN")),
         )
         .expect("valid seller");
 
-        let line_items = vec![LineItem {
-            description: "Item".into(),
-            quantity: 1.0,
-            unit_code: "PCE".into(),
-            unit_price: 100.0,
-            total_amount: 100.0,
-            vat_rate: 15.0,
-            vat_amount: 15.0,
-            vat_category: VatCategory::Standard,
-        }];
+        let line_items = vec![LineItem::new(
+            "Item",
+            1.0,
+            "PCE",
+            100.0,
+            100.0,
+            15.0,
+            15.0,
+            VatCategory::Standard,
+        )];
 
         let issue_datetime = chrono::NaiveDate::from_ymd_opt(2024, 1, 1)
             .unwrap()
@@ -330,11 +330,11 @@ async fn clear_invoice_with_live_pcsid() {
         .expect("clear signed invoice");
     println!(
         "Invoice clearance errors: {:#?}",
-        clearance_response.validation_results
+        clearance_response.validation_results()
     );
     assert_eq!(
-        clearance_response.clearance_status.unwrap(),
-        "CLEARED",
+        clearance_response.clearance_status(),
+        Some("CLEARED"),
         "invoice not cleared successfully"
     );
 }

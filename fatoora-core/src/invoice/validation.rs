@@ -18,7 +18,7 @@ fn format_validation_errors(errors: Vec<StructuredError>) -> Vec<String> {
 
 fn build_validation_context(config: &Config) -> Result<SchemaValidationContext, Vec<String>> {
     let xsd_path = config
-        .xsd_ubl_path
+        .xsd_ubl_path()
         .to_str()
         .ok_or_else(|| vec!["Invalid XSD path".to_string()])?;
 

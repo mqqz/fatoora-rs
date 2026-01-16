@@ -30,7 +30,7 @@ impl EnvironmentType {
         }
     }
 
-    pub fn get_endpoint_url(&self) -> &'static str {
+    pub fn endpoint_url(&self) -> &'static str {
         match self {
             EnvironmentType::NonProduction => {
                 "https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal/"
@@ -45,8 +45,22 @@ impl EnvironmentType {
 
 #[derive(Debug)]
 pub struct Config {
-    pub env: EnvironmentType,
-    pub xsd_ubl_path: &'static Path,
+    env: EnvironmentType,
+    xsd_ubl_path: &'static Path,
+}
+
+impl Config {
+    pub fn new(env: EnvironmentType, xsd_ubl_path: &'static Path) -> Self {
+        Self { env, xsd_ubl_path }
+    }
+
+    pub fn env(&self) -> EnvironmentType {
+        self.env
+    }
+
+    pub fn xsd_ubl_path(&self) -> &Path {
+        self.xsd_ubl_path
+    }
 }
 
 // static function to get default config

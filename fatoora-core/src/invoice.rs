@@ -11,7 +11,9 @@ use chrono::{DateTime, TimeZone, Utc};
 use iso_currency::Currency;
 use isocountry::{CountryCode, CountryCodeParseErr};
 use std::marker::PhantomData;
+use std::str::FromStr;
 use thiserror::Error;
+use serde::{Deserialize, Serialize};
 
 type Result<T> = std::result::Result<T, InvoiceError>;
 
@@ -29,20 +31,82 @@ pub enum InvoiceError {
     MissingLineItems,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Address {
-    pub country_code: CountryCode,
-    pub city: String,
-    pub street: String,
-    pub additional_street: Option<String>,
-    pub building_number: String,
-    pub additional_number: Option<String>,
-    pub postal_code: String, //fix 5 digits if country is KSA
-    pub subdivision: Option<String>,
-    pub district: Option<String>,
+    country_code: CountryCode,
+    city: String,
+    street: String,
+    additional_street: Option<String>,
+    building_number: String,
+    additional_number: Option<String>,
+    postal_code: String, //fix 5 digits if country is KSA
+    subdivision: Option<String>,
+    district: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+impl Address {
+    pub fn new(
+        country_code: CountryCode,
+        city: impl Into<String>,
+        street: impl Into<String>,
+        additional_street: Option<String>,
+        building_number: impl Into<String>,
+        additional_number: Option<String>,
+        postal_code: impl Into<String>,
+        subdivision: Option<String>,
+        district: Option<String>,
+    ) -> Self {
+        Self {
+            country_code,
+            city: city.into(),
+            street: street.into(),
+            additional_street,
+            building_number: building_number.into(),
+            additional_number,
+            postal_code: postal_code.into(),
+            subdivision,
+            district,
+        }
+    }
+
+    pub fn country_code(&self) -> &CountryCode {
+        &self.country_code
+    }
+
+    pub fn city(&self) -> &str {
+        &self.city
+    }
+
+    pub fn street(&self) -> &str {
+        &self.street
+    }
+
+    pub fn additional_street(&self) -> Option<&str> {
+        self.additional_street.as_deref()
+    }
+
+    pub fn building_number(&self) -> &str {
+        &self.building_number
+    }
+
+    pub fn additional_number(&self) -> Option<&str> {
+        self.additional_number.as_deref()
+    }
+
+    pub fn postal_code(&self) -> &str {
+        &self.postal_code
+    }
+
+    pub fn subdivision(&self) -> Option<&str> {
+        self.subdivision.as_deref()
+    }
+
+    pub fn district(&self) -> Option<&str> {
+        self.district.as_deref()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct VatId(String);
 impl VatId {
     pub fn parse<S: Into<String>>(s: S) -> Result<Self> {
@@ -57,8 +121,31 @@ impl VatId {
         &self.0
     }
 }
+impl AsRef<str> for VatId {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+impl FromStr for VatId {
+    type Err = InvoiceError;
+    fn from_str(s: &str) -> Result<Self> {
+        VatId::parse(s)
+    }
+}
+impl TryFrom<String> for VatId {
+    type Error = InvoiceError;
+    fn try_from(value: String) -> Result<Self> {
+        VatId::parse(value)
+    }
+}
+impl TryFrom<&str> for VatId {
+    type Error = InvoiceError;
+    fn try_from(value: &str) -> Result<Self> {
+        VatId::parse(value)
+    }
+}
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct OtherId {
     value: String,
     scheme_id: Option<String>,
@@ -86,24 +173,46 @@ impl OtherId {
         self.scheme_id.as_deref()
     }
 }
+impl AsRef<str> for OtherId {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct InvoiceNote {
-    pub language: String,
-    pub text: String,
+    language: String,
+    text: String,
+}
+
+impl InvoiceNote {
+    pub fn new(language: impl Into<String>, text: impl Into<String>) -> Self {
+        Self {
+            language: language.into(),
+            text: text.into(),
+        }
+    }
+
+    pub fn language(&self) -> &str {
+        &self.language
+    }
+
+    pub fn text(&self) -> &str {
+        &self.text
+    }
 }
 
 // Marker roles
 pub trait PartyRole {}
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SellerRole;
 impl PartyRole for SellerRole {}
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BuyerRole;
 impl PartyRole for BuyerRole {}
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[allow(dead_code)]
 pub struct Party<R: PartyRole> {
     _marker: PhantomData<R>,
@@ -176,13 +285,13 @@ impl<R: PartyRole> Party<R> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum InvoiceSubType {
     Simplified,
     Standard,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct OriginalInvoiceRef {
     id: String,
     uuid: Option<String>,
@@ -221,7 +330,7 @@ impl OriginalInvoiceRef {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum InvoiceType {
     Tax(InvoiceSubType),
     Prepayment(InvoiceSubType),
@@ -241,56 +350,196 @@ impl InvoiceType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum VatCategory {
     Exempt,
     Standard,
     Zero,
     OutOfScope,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LineItem {
-    pub description: String,
-    pub quantity: f64,
-    pub unit_code: String,
-    pub unit_price: f64,
-    pub total_amount: f64,
-    pub vat_rate: f64,
-    pub vat_amount: f64,
-    pub vat_category: VatCategory,
+    description: String,
+    quantity: f64,
+    unit_code: String,
+    unit_price: f64,
+    total_amount: f64,
+    vat_rate: f64,
+    vat_amount: f64,
+    vat_category: VatCategory,
+}
+
+impl LineItem {
+    pub fn new(
+        description: impl Into<String>,
+        quantity: f64,
+        unit_code: impl Into<String>,
+        unit_price: f64,
+        total_amount: f64,
+        vat_rate: f64,
+        vat_amount: f64,
+        vat_category: VatCategory,
+    ) -> Self {
+        Self {
+            description: description.into(),
+            quantity,
+            unit_code: unit_code.into(),
+            unit_price,
+            total_amount,
+            vat_rate,
+            vat_amount,
+            vat_category,
+        }
+    }
+
+    pub fn description(&self) -> &str {
+        &self.description
+    }
+
+    pub fn quantity(&self) -> f64 {
+        self.quantity
+    }
+
+    pub fn unit_code(&self) -> &str {
+        &self.unit_code
+    }
+
+    pub fn unit_price(&self) -> f64 {
+        self.unit_price
+    }
+
+    pub fn total_amount(&self) -> f64 {
+        self.total_amount
+    }
+
+    pub fn vat_rate(&self) -> f64 {
+        self.vat_rate
+    }
+
+    pub fn vat_amount(&self) -> f64 {
+        self.vat_amount
+    }
+
+    pub fn vat_category(&self) -> VatCategory {
+        self.vat_category
+    }
 }
 
 pub type LineItems = Vec<LineItem>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InvoiceData {
-    pub invoice_type: InvoiceType,
-    pub id: String,
-    pub uuid: String,
-    pub issue_datetime: DateTime<Utc>,
-    pub currency: Currency, // currently no separate tax/invoice currency
-    pub previous_invoice_hash: String,
-    pub invoice_counter: Option<String>,
-    pub note: Option<InvoiceNote>,
-    pub seller: Seller,
-    pub buyer: Option<Buyer>,
-    pub line_items: LineItems,
-    pub payment_means_code: String,
-    pub vat_category: VatCategory,
+    invoice_type: InvoiceType,
+    id: String,
+    uuid: String,
+    issue_datetime: DateTime<Utc>,
+    currency: Currency, // currently no separate tax/invoice currency
+    previous_invoice_hash: String,
+    invoice_counter: Option<String>,
+    note: Option<InvoiceNote>,
+    seller: Seller,
+    buyer: Option<Buyer>,
+    line_items: LineItems,
+    payment_means_code: String,
+    vat_category: VatCategory,
 
     // these should probably be in a bitflag
-    pub is_third_party: bool,
-    pub is_nominal: bool,
-    pub is_export: bool,
-    pub is_summary: bool,
-    pub is_self_billed: bool,
+    is_third_party: bool,
+    is_nominal: bool,
+    is_export: bool,
+    is_summary: bool,
+    is_self_billed: bool,
 
-    pub invoice_level_charge: f64,
-    pub invoice_level_discount: f64,
-    pub allowance_reason: Option<String>,
+    invoice_level_charge: f64,
+    invoice_level_discount: f64,
+    allowance_reason: Option<String>,
 }
 
 impl InvoiceData {
+    pub fn invoice_type(&self) -> &InvoiceType {
+        &self.invoice_type
+    }
+
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn uuid(&self) -> &str {
+        &self.uuid
+    }
+
+    pub fn issue_datetime(&self) -> &DateTime<Utc> {
+        &self.issue_datetime
+    }
+
+    pub fn currency(&self) -> &Currency {
+        &self.currency
+    }
+
+    pub fn previous_invoice_hash(&self) -> &str {
+        &self.previous_invoice_hash
+    }
+
+    pub fn invoice_counter(&self) -> Option<&str> {
+        self.invoice_counter.as_deref()
+    }
+
+    pub fn note(&self) -> Option<&InvoiceNote> {
+        self.note.as_ref()
+    }
+
+    pub fn seller(&self) -> &Seller {
+        &self.seller
+    }
+
+    pub fn buyer(&self) -> Option<&Buyer> {
+        self.buyer.as_ref()
+    }
+
+    pub fn line_items(&self) -> &[LineItem] {
+        &self.line_items
+    }
+
+    pub fn payment_means_code(&self) -> &str {
+        &self.payment_means_code
+    }
+
+    pub fn vat_category(&self) -> VatCategory {
+        self.vat_category
+    }
+
+    pub fn is_third_party(&self) -> bool {
+        self.is_third_party
+    }
+
+    pub fn is_nominal(&self) -> bool {
+        self.is_nominal
+    }
+
+    pub fn is_export(&self) -> bool {
+        self.is_export
+    }
+
+    pub fn is_summary(&self) -> bool {
+        self.is_summary
+    }
+
+    pub fn is_self_billed(&self) -> bool {
+        self.is_self_billed
+    }
+
+    pub fn invoice_level_charge(&self) -> f64 {
+        self.invoice_level_charge
+    }
+
+    pub fn invoice_level_discount(&self) -> f64 {
+        self.invoice_level_discount
+    }
+
+    pub fn allowance_reason(&self) -> Option<&str> {
+        self.allowance_reason.as_deref()
+    }
+
     pub(crate) fn seller_name(&self) -> QrResult<&str> {
         let name = self.seller.name.trim();
         if name.is_empty() {
@@ -325,7 +574,7 @@ impl InvoiceData {
         format!("{:.2}", amount)
     }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct InvoiceTotalsData {
     line_extension: f64,
     tax_amount: f64,

@@ -19,61 +19,73 @@ fn parse_sample_simplified_invoice() {
     let invoice = parse_finalized_invoice_xml_file(&path).expect("parse invoice");
     let data = invoice.data();
 
-    assert_eq!(data.id, "SME00010");
-    assert_eq!(data.uuid, "8e6000cf-1a98-4174-b3e7-b5d5954bc10d");
-    assert_eq!(data.issue_datetime.date_naive().to_string(), "2022-08-17");
+    assert_eq!(data.id(), "SME00010");
+    assert_eq!(data.uuid(), "8e6000cf-1a98-4174-b3e7-b5d5954bc10d");
     assert_eq!(
-        data.issue_datetime.time().format("%H:%M:%S").to_string(),
+        data.issue_datetime().date_naive().to_string(),
+        "2022-08-17"
+    );
+    assert_eq!(
+        data.issue_datetime().time().format("%H:%M:%S").to_string(),
         "17:41:08"
     );
-    assert_eq!(data.currency.code(), "SAR");
+    assert_eq!(data.currency().code(), "SAR");
     assert_eq!(
-        data.previous_invoice_hash,
+        data.previous_invoice_hash(),
         "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ=="
     );
-    assert_eq!(data.invoice_counter.as_deref(), Some("10"));
+    assert_eq!(data.invoice_counter(), Some("10"));
 
     assert_eq!(
-        data.seller.name(),
+        data.seller().name(),
         "شركة توريد التكنولوجيا بأقصى سرعة المحدودة | Maximum Speed Tech Supply LTD"
     );
-    assert_eq!(data.seller.vat_id().unwrap().as_str(), "399999999900003");
-    assert_eq!(data.seller.other_id().unwrap().as_str(), "1010010000");
-    assert_eq!(data.seller.other_id().unwrap().scheme_id(), Some("CRN"));
+    assert_eq!(
+        data.seller().vat_id().unwrap().as_str(),
+        "399999999900003"
+    );
+    assert_eq!(
+        data.seller().other_id().unwrap().as_str(),
+        "1010010000"
+    );
+    assert_eq!(
+        data.seller().other_id().unwrap().scheme_id(),
+        Some("CRN")
+    );
 
-    let address = data.seller.address();
-    assert!(address.street.contains("Prince Sultan"));
-    assert_eq!(address.building_number, "2322");
-    assert!(address.city.contains("Riyadh"));
-    assert_eq!(address.postal_code, "23333");
-    assert_eq!(address.country_code.alpha2(), "SA");
+    let address = data.seller().address();
+    assert!(address.street().contains("Prince Sultan"));
+    assert_eq!(address.building_number(), "2322");
+    assert!(address.city().contains("Riyadh"));
+    assert_eq!(address.postal_code(), "23333");
+    assert_eq!(address.country_code().alpha2(), "SA");
 
     let totals = invoice.totals();
     assert_eq!(totals.line_extension(), 201.0);
     assert_eq!(totals.tax_amount(), 30.15);
     assert_eq!(totals.tax_inclusive_amount(), 231.15);
 
-    assert_eq!(data.line_items.len(), 2);
-    assert_eq!(data.line_items[0].description, "كتاب");
-    assert_eq!(data.line_items[0].quantity, 33.0);
-    assert_eq!(data.line_items[0].unit_code, "PCE");
-    assert_eq!(data.line_items[0].total_amount, 99.0);
-    assert_eq!(data.line_items[0].unit_price, 3.0);
-    assert_eq!(data.line_items[0].vat_rate, 15.0);
-    assert_eq!(data.line_items[0].vat_amount, 14.85);
+    assert_eq!(data.line_items().len(), 2);
+    assert_eq!(data.line_items()[0].description(), "كتاب");
+    assert_eq!(data.line_items()[0].quantity(), 33.0);
+    assert_eq!(data.line_items()[0].unit_code(), "PCE");
+    assert_eq!(data.line_items()[0].total_amount(), 99.0);
+    assert_eq!(data.line_items()[0].unit_price(), 3.0);
+    assert_eq!(data.line_items()[0].vat_rate(), 15.0);
+    assert_eq!(data.line_items()[0].vat_amount(), 14.85);
     assert!(matches!(
-        data.line_items[0].vat_category,
+        data.line_items()[0].vat_category(),
         fatoora_core::invoice::VatCategory::Standard
     ));
-    assert_eq!(data.line_items[1].description, "قلم");
-    assert_eq!(data.line_items[1].quantity, 3.0);
-    assert_eq!(data.line_items[1].unit_code, "PCE");
-    assert_eq!(data.line_items[1].total_amount, 102.0);
-    assert_eq!(data.line_items[1].unit_price, 34.0);
-    assert_eq!(data.line_items[1].vat_rate, 15.0);
-    assert_eq!(data.line_items[1].vat_amount, 15.30);
+    assert_eq!(data.line_items()[1].description(), "قلم");
+    assert_eq!(data.line_items()[1].quantity(), 3.0);
+    assert_eq!(data.line_items()[1].unit_code(), "PCE");
+    assert_eq!(data.line_items()[1].total_amount(), 102.0);
+    assert_eq!(data.line_items()[1].unit_price(), 34.0);
+    assert_eq!(data.line_items()[1].vat_rate(), 15.0);
+    assert_eq!(data.line_items()[1].vat_amount(), 15.30);
     assert!(matches!(
-        data.line_items[1].vat_category,
+        data.line_items()[1].vat_category(),
         fatoora_core::invoice::VatCategory::Standard
     ));
 }
@@ -86,7 +98,7 @@ fn parse_signed_invoice_from_fixture() {
     let signed = parse_signed_invoice_xml_file(&path).expect("parse signed invoice");
     let data = signed.data();
 
-    assert_eq!(data.id, "SME00010");
+    assert_eq!(data.id(), "SME00010");
     assert!(signed.xml().contains("<ds:Signature"));
     assert!(!signed.qr_code().trim().is_empty());
     assert_eq!(
@@ -173,32 +185,32 @@ fn parse_signed_rejects_invalid_signing_time() {
 fn credit_note_serializes_billing_reference_and_reason() {
     let seller = Party::<SellerRole>::new(
         "Acme Inc".into(),
-        Address {
-            country_code: CountryCode::SAU,
-            city: "Riyadh".into(),
-            street: "King Fahd".into(),
-            additional_street: None,
-            building_number: "1234".into(),
-            additional_number: Some("5678".into()),
-            postal_code: "12222".into(),
-            subdivision: None,
-            district: None,
-        },
+        Address::new(
+            CountryCode::SAU,
+            "Riyadh",
+            "King Fahd",
+            None,
+            "1234",
+            Some("5678".into()),
+            "12222",
+            None,
+            None,
+        ),
         "301121971500003",
         None,
     )
     .expect("valid seller");
 
-    let line_item = LineItem {
-        description: "Item".into(),
-        quantity: 1.0,
-        unit_code: "PCE".into(),
-        unit_price: 100.0,
-        total_amount: 100.0,
-        vat_rate: 15.0,
-        vat_amount: 15.0,
-        vat_category: VatCategory::Standard,
-    };
+    let line_item = LineItem::new(
+        "Item",
+        1.0,
+        "PCE",
+        100.0,
+        100.0,
+        15.0,
+        15.0,
+        VatCategory::Standard,
+    );
 
     let issue_datetime = chrono::NaiveDate::from_ymd_opt(2024, 1, 1)
         .unwrap()
