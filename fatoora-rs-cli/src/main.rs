@@ -4,9 +4,14 @@ use clap::{Parser, Subcommand, ValueEnum};
 use fatoora_core::{
     config::EnvironmentType,
     csr::{CsrProperties, ToBase64String},
-    invoice::validation::validate_xml_invoice_from_file,
+    invoice::{
+        sign::invoice_hash_base64, validation::validate_xml_invoice_from_file,
+        xml::parse::parse_signed_invoice_xml,
+    },
 };
 use k256::pkcs8::{EncodePrivateKey, LineEnding};
+use libxml::parser::Parser as XmlParser;
+use serde_json::json;
 use std::path::Path;
 use x509_cert::der::EncodePem;
 
@@ -21,45 +26,47 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     Csr {
-        #[arg(long)]
+        #[arg(long, help = "Path to CSR properties file")]
         csr_config: String,
-        #[arg(long)]
+        #[arg(long, help = "Write generated private key to this path")]
         private_key: Option<String>,
-        #[arg(long)]
+        #[arg(long, help = "Write generated CSR to this path")]
         generated_csr: Option<String>,
-        #[arg(long)]
+        #[arg(long, help = "Output PEM instead of base64 DER")]
         pem: bool,
     },
     Sign {
-        #[arg(long)]
+        #[arg(long, help = "Path to input invoice XML")]
         invoice: String,
-        #[arg(long)]
+        #[arg(long, help = "Path to signing certificate")]
         cert: String,
-        #[arg(long)]
+        #[arg(long, help = "Path to signing key")]
         key: String,
-        #[arg(long, value_enum, default_value_t = KeyFormat::Pem)]
+        #[arg(long, value_enum, default_value_t = KeyFormat::Pem, help = "Certificate format")]
         cert_format: KeyFormat,
-        #[arg(long, value_enum, default_value_t = KeyFormat::Pem)]
+        #[arg(long, value_enum, default_value_t = KeyFormat::Pem, help = "Key format")]
         key_format: KeyFormat,
-        #[arg(long)]
+        #[arg(long, help = "Write signed invoice XML to this path")]
         signed_invoice: Option<String>,
     },
     Validate {
-        #[arg(long)]
+        #[arg(long, help = "Path to invoice XML")]
         invoice: String,
+        #[arg(long, help = "Path to UBL XSD schema root invoice file")]
+        xsd_path: Option<String>,
     },
     Qr {
-        #[arg(long)]
+        #[arg(long, help = "Path to signed invoice XML")]
         invoice: String,
     },
     GenerateHash {
-        #[arg(long)]
+        #[arg(long, help = "Path to invoice XML")]
         invoice: String,
     },
     InvoiceRequest {
-        #[arg(long)]
+        #[arg(long, help = "Path to signed invoice XML")]
         invoice: String,
-        #[arg(long)]
+        #[arg(long, help = "Write JSON request payload to this path")]
         api_request: Option<String>,
     },
 }
@@ -162,25 +169,85 @@ fn main() -> Result<()> {
                 println!("{signed_xml}");
             }
         }
-        Commands::Validate { invoice } => {
-            let config = Default::default();
+        Commands::Validate { invoice, xsd_path } => {
+            let config = match xsd_path {
+                Some(path) => {
+                    let path_ref = Path::new(&path);
+                    if !path_ref.exists() {
+                        bail!(
+                            "XSD path not found: {path}. Provide a valid path via --xsd-path."
+                        );
+                    }
+                    fatoora_core::config::Config::new(EnvironmentType::NonProduction, path_ref)
+                }
+                None => {
+                    let default_path = resolve_xsd_path();
+                    if !default_path.exists() {
+                        bail!(
+                            "XSD not found at default location: {}. Provide --xsd-path.",
+                            default_path.display()
+                        );
+                    }
+                    fatoora_core::config::Config::new(EnvironmentType::NonProduction, default_path)
+                }
+            };
             validate_xml_invoice_from_file(Path::new(&invoice), &config)
                 .map_err(|error| anyhow::anyhow!("XML validation failed: {error}"))?;
             println!("OK");
         }
-        Commands::Qr { invoice: _ } => {
-            bail!("QR extraction is not wired yet: no XML->invoice parser or QR extractor");
+        Commands::Qr { invoice } => {
+            let xml = std::fs::read_to_string(&invoice)
+                .with_context(|| format!("failed to read invoice file {invoice}"))?;
+            let signed = parse_signed_invoice_xml(&xml)
+                .with_context(|| format!("failed to parse signed invoice from {invoice}"))?;
+            println!("{}", signed.qr_code());
         }
-        Commands::GenerateHash { invoice: _invoice } => {
-            todo!()
+        Commands::GenerateHash { invoice } => {
+            let xml = std::fs::read_to_string(&invoice)
+                .with_context(|| format!("failed to read invoice file {invoice}"))?;
+            let doc = XmlParser::default()
+                .parse_string(&xml)
+                .with_context(|| format!("failed to parse XML from {invoice}"))?;
+            let hash = invoice_hash_base64(&doc)?;
+            println!("{hash}");
         }
         Commands::InvoiceRequest {
-            invoice: _,
-            api_request: _,
+            invoice,
+            api_request,
         } => {
-            bail!("invoice request generation is not wired yet");
+            let xml = std::fs::read_to_string(&invoice)
+                .with_context(|| format!("failed to read invoice file {invoice}"))?;
+            let signed = parse_signed_invoice_xml(&xml)
+                .with_context(|| format!("failed to parse signed invoice from {invoice}"))?;
+            let payload = json!({
+                "invoiceHash": signed.invoice_hash(),
+                "uuid": signed.uuid(),
+                "invoice": signed.to_xml_base64(),
+            });
+            let output = serde_json::to_string_pretty(&payload)
+                .context("failed to serialize invoice request")?;
+
+            if let Some(path) = api_request {
+                std::fs::write(&path, output.as_bytes())
+                    .with_context(|| format!("failed to write request to {path}"))?;
+            } else {
+                println!("{output}");
+            }
         }
     }
 
     Ok(())
+}
+
+fn resolve_xsd_path() -> std::path::PathBuf {
+    let mut path = std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::new());
+    if let Some(dir) = path.parent() {
+        path = dir.to_path_buf();
+    }
+    path.join("assets")
+        .join("schemas")
+        .join("UBL2.1")
+        .join("xsd")
+        .join("maindoc")
+        .join("UBL-Invoice-2.1.xsd")
 }

@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{path::Path, str::FromStr};
+use std::{path::{Path, PathBuf}, str::FromStr};
 use thiserror::Error;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -54,12 +54,15 @@ impl EnvironmentType {
 #[derive(Debug)]
 pub struct Config {
     env: EnvironmentType,
-    xsd_ubl_path: &'static Path,
+    xsd_ubl_path: PathBuf,
 }
 
 impl Config {
-    pub fn new(env: EnvironmentType, xsd_ubl_path: &'static Path) -> Self {
-        Self { env, xsd_ubl_path }
+    pub fn new(env: EnvironmentType, xsd_ubl_path: impl Into<PathBuf>) -> Self {
+        Self {
+            env,
+            xsd_ubl_path: xsd_ubl_path.into(),
+        }
     }
 
     pub fn env(&self) -> EnvironmentType {
@@ -67,7 +70,7 @@ impl Config {
     }
 
     pub fn xsd_ubl_path(&self) -> &Path {
-        self.xsd_ubl_path
+        &self.xsd_ubl_path
     }
 }
 
@@ -76,7 +79,9 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             env: EnvironmentType::NonProduction,
-            xsd_ubl_path: Path::new("./assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd"),
+            xsd_ubl_path: PathBuf::from(
+                "./assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd",
+            ),
         }
     }
 }

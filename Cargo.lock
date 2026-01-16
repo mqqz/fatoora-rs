@@ -622,6 +622,8 @@ dependencies = [
  "clap",
  "fatoora-core",
  "k256",
+ "libxml",
+ "serde_json",
  "x509-cert",
 ]
 
