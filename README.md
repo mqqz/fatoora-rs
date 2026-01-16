@@ -21,14 +21,16 @@ WIP
 
 ## Features
 
-Everything done by the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloadSDK) (but faster and better)
+Everything done by the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloadSDK) 
 - CSR Generation
 - Invoice Signing (All invoice types)
 - Validation (UBL only for now)
 - QR Generation
 - API Requests
 
-## Dependancies
+*But we do it faster and better* e.g. ~180x faster invoice hashing than ZATCA's SDK (see [`bench/`](bench/cli/results/hash_bench.md))
+
+## Dependencies
 XML parsing/manipulation is done internally with `libxml2`, so you might need to install it if you haven't already see [here](https://github.com/KWARC/rust-libxml?tab=readme-ov-file#installation-prerequisites) for relevant instructions.
 
 ## Usage/Examples
