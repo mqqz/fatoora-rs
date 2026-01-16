@@ -3,11 +3,14 @@ mod qr;
 pub mod sign;
 pub mod validation;
 pub mod xml;
-pub use builder::{FinalizedInvoice, InvoiceBuilder, InvoiceView, SignedInvoice};
+pub use builder::{
+    FinalizedInvoice, InvoiceBuilder, InvoiceView, RequiredInvoiceFields, SignedInvoice,
+};
 pub use qr::{QrCodeError, QrPayload, QrResult};
 
 #[allow(unused_imports)]
-use chrono::{DateTime, TimeZone, Utc};
+use bitflags::bitflags;
+use chrono::{DateTime, Utc};
 use iso_currency::Currency;
 use isocountry::{CountryCode, CountryCodeParseErr};
 use std::marker::PhantomData;
@@ -19,6 +22,8 @@ type Result<T> = std::result::Result<T, InvoiceError>;
 
 #[derive(Debug, Error)]
 pub enum InvoiceError {
+    #[error(transparent)]
+    Validation(#[from] ValidationError),
     #[error("Invalid country code: {0}")]
     InvalidCountryCode(#[from] CountryCodeParseErr),
     #[error("Missing VAT ID for seller")]
@@ -27,8 +32,50 @@ pub enum InvoiceError {
     MissingBuyerId,
     #[error("Invalid VAT ID format")]
     InvalidVatFormat,
-    #[error("Invoice must have at least one line item")]
-    MissingLineItems,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Error)]
+#[error("invoice validation failed")]
+pub struct ValidationError {
+    pub issues: Vec<ValidationIssue>,
+}
+
+impl ValidationError {
+    pub fn new(issues: Vec<ValidationIssue>) -> Self {
+        Self { issues }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ValidationIssue {
+    pub field: InvoiceField,
+    pub kind: ValidationKind,
+    pub line_item_index: Option<usize>,
+}
+
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InvoiceField {
+    Id,
+    Uuid,
+    LineItems,
+    PaymentMeansCode,
+    LineItemDescription,
+    LineItemUnitCode,
+    LineItemQuantity,
+    LineItemUnitPrice,
+    LineItemTotalAmount,
+    LineItemVatRate,
+    LineItemVatAmount,
+}
+
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ValidationKind {
+    Missing,
+    Empty,
+    InvalidFormat,
+    OutOfRange,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -427,6 +474,17 @@ impl LineItem {
 
 pub type LineItems = Vec<LineItem>;
 
+bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+    pub struct InvoiceFlags: u8 {
+        const THIRD_PARTY = 0b00001;
+        const NOMINAL = 0b00010;
+        const EXPORT = 0b00100;
+        const SUMMARY = 0b01000;
+        const SELF_BILLED = 0b10000;
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InvoiceData {
     invoice_type: InvoiceType,
@@ -435,7 +493,7 @@ pub struct InvoiceData {
     issue_datetime: DateTime<Utc>,
     currency: Currency, // currently no separate tax/invoice currency
     previous_invoice_hash: String,
-    invoice_counter: Option<String>,
+    invoice_counter: u64,
     note: Option<InvoiceNote>,
     seller: Seller,
     buyer: Option<Buyer>,
@@ -443,12 +501,7 @@ pub struct InvoiceData {
     payment_means_code: String,
     vat_category: VatCategory,
 
-    // these should probably be in a bitflag
-    is_third_party: bool,
-    is_nominal: bool,
-    is_export: bool,
-    is_summary: bool,
-    is_self_billed: bool,
+    flags: InvoiceFlags,
 
     invoice_level_charge: f64,
     invoice_level_discount: f64,
@@ -480,8 +533,8 @@ impl InvoiceData {
         &self.previous_invoice_hash
     }
 
-    pub fn invoice_counter(&self) -> Option<&str> {
-        self.invoice_counter.as_deref()
+    pub fn invoice_counter(&self) -> u64 {
+        self.invoice_counter
     }
 
     pub fn note(&self) -> Option<&InvoiceNote> {
@@ -508,24 +561,28 @@ impl InvoiceData {
         self.vat_category
     }
 
+    pub fn flags(&self) -> InvoiceFlags {
+        self.flags
+    }
+
     pub fn is_third_party(&self) -> bool {
-        self.is_third_party
+        self.flags.contains(InvoiceFlags::THIRD_PARTY)
     }
 
     pub fn is_nominal(&self) -> bool {
-        self.is_nominal
+        self.flags.contains(InvoiceFlags::NOMINAL)
     }
 
     pub fn is_export(&self) -> bool {
-        self.is_export
+        self.flags.contains(InvoiceFlags::EXPORT)
     }
 
     pub fn is_summary(&self) -> bool {
-        self.is_summary
+        self.flags.contains(InvoiceFlags::SUMMARY)
     }
 
     pub fn is_self_billed(&self) -> bool {
-        self.is_self_billed
+        self.flags.contains(InvoiceFlags::SELF_BILLED)
     }
 
     pub fn invoice_level_charge(&self) -> f64 {

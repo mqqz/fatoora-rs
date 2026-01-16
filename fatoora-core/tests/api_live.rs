@@ -266,7 +266,7 @@ async fn clear_invoice_with_live_pcsid() {
         use chrono::TimeZone;
         use fatoora_core::invoice::{
             Address, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, OtherId, Party,
-            SellerRole, VatCategory,
+            RequiredInvoiceFields, SellerRole, VatCategory,
         };
         use iso_currency::Currency;
         use isocountry::CountryCode;
@@ -305,19 +305,21 @@ async fn clear_invoice_with_live_pcsid() {
             .and_hms_opt(12, 30, 0)
             .unwrap();
 
-        InvoiceBuilder::new(
-            InvoiceType::Tax(InvoiceSubType::Standard),
-            "INV-0-1",
-            "8e6000cf-1a98-4174-b3e7-b5d5954bc10d",
-            chrono::Utc.from_utc_datetime(&issue_datetime),
-            Currency::SAR,
-            "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
+        InvoiceBuilder::new(RequiredInvoiceFields {
+            invoice_type: InvoiceType::Tax(InvoiceSubType::Standard),
+            id: "INV-0-1".into(),
+            uuid: "8e6000cf-1a98-4174-b3e7-b5d5954bc10d".into(),
+            issue_datetime: chrono::Utc.from_utc_datetime(&issue_datetime),
+            currency: Currency::SAR,
+            previous_invoice_hash:
+                "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ=="
+                    .into(),
+            invoice_counter: 0,
             seller,
             line_items,
-            "10",
-            VatCategory::Standard,
-        )
-        .invoice_counter("0")
+            payment_means_code: "10".into(),
+            vat_category: VatCategory::Standard,
+        })
         .build()
         .expect("build invoice")
     };

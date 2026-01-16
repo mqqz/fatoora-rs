@@ -1005,42 +1005,6 @@ pub trait ToXml {
     }
 }
 
-pub(crate) fn signed_properties_xml_string(
-    signing_time: &str,
-    digest_value: &str,
-    x509_issuer_name: &str,
-    x509_serial_number: &str,
-) -> String {
-    // println!("{}", s);
-    format!(
-        concat!(
-            r#"<xades:SignedProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Id="xadesSignedProperties">"#,
-            "\n{indent:>18}<xades:SignedSignatureProperties>",
-            "\n{indent:>20}<xades:SigningTime>{signing_time}</xades:SigningTime>",
-            "\n{indent:>20}<xades:SigningCertificate>",
-            "\n{indent:>22}<xades:Cert>",
-            "\n{indent:>24}<xades:CertDigest>",
-            "\n{indent:>26}<ds:DigestMethod xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\" Algorithm=\"http://www.w3.org/2001/04/xmlenc#sha256\"/>",
-            "\n{indent:>26}<ds:DigestValue xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{digest_value}</ds:DigestValue>",
-            "\n{indent:>24}</xades:CertDigest>",
-            "\n{indent:>24}<xades:IssuerSerial>",
-            "\n{indent:>26}<ds:X509IssuerName xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{x509_issuer_name}</ds:X509IssuerName>",
-            "\n{indent:>26}<ds:X509SerialNumber xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{x509_serial_number}</ds:X509SerialNumber>",
-            "\n{indent:>24}</xades:IssuerSerial>",
-            "\n{indent:>22}</xades:Cert>",
-            "\n{indent:>20}</xades:SigningCertificate>",
-            "\n{indent:>18}</xades:SignedSignatureProperties>",
-            "\n{indent:>16}</xades:SignedProperties>",
-        ),
-        indent = "",
-        signing_time = signing_time,
-        digest_value = digest_value,
-        x509_issuer_name = x509_issuer_name,
-        x509_serial_number = x509_serial_number,
-    )
-    .replace("\r\n", "\n")
-    .to_string()
-}
 
 impl ToXml for FinalizedInvoice {
     fn to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError> {
@@ -1140,12 +1104,11 @@ impl<'a, T: InvoiceView + ?Sized> Serialize for InvoiceXml<'a, T> {
         }
 
         // ---- supporting references ----
-        if let Some(counter) = &data.invoice_counter {
-            root.serialize_field(
-                "cac:AdditionalDocumentReference",
-                &AdditionalDocumentReferenceXml::InvoiceCounter(counter),
-            )?;
-        }
+        let counter = data.invoice_counter.to_string();
+        root.serialize_field(
+            "cac:AdditionalDocumentReference",
+            &AdditionalDocumentReferenceXml::InvoiceCounter(&counter),
+        )?;
         root.serialize_field(
             "cac:AdditionalDocumentReference",
             &AdditionalDocumentReferenceXml::PreviousInvoiceHash(&data.previous_invoice_hash),
@@ -1256,8 +1219,8 @@ mod tests {
     #[allow(unused_imports)]
     use super::*;
     use crate::invoice::{
-        Address, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, Party, SellerRole,
-        VatCategory,
+        Address, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, Party,
+        RequiredInvoiceFields, SellerRole, VatCategory,
     };
     use chrono::TimeZone;
     use iso_currency::Currency;
@@ -1298,18 +1261,19 @@ mod tests {
             .and_hms_opt(12, 30, 0)
             .unwrap();
 
-        let invoice = InvoiceBuilder::new(
-            InvoiceType::Tax(InvoiceSubType::Simplified),
-            "INV-1",
-            "uuid-123",
-            chrono::Utc.from_utc_datetime(&issue_datetime),
-            Currency::SAR,
-            "",
+        let invoice = InvoiceBuilder::new(RequiredInvoiceFields {
+            invoice_type: InvoiceType::Tax(InvoiceSubType::Simplified),
+            id: "INV-1".into(),
+            uuid: "uuid-123".into(),
+            issue_datetime: chrono::Utc.from_utc_datetime(&issue_datetime),
+            currency: Currency::SAR,
+            previous_invoice_hash: "".into(),
+            invoice_counter: 0,
             seller,
-            vec![line_item],
-            "10",
-            VatCategory::Standard,
-        )
+            line_items: vec![line_item],
+            payment_means_code: "10".into(),
+            vat_category: VatCategory::Standard,
+        })
         .build()
         .expect("build invoice");
         let xml_result = invoice.to_xml().unwrap();

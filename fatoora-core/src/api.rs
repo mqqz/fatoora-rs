@@ -1,4 +1,3 @@
-use anyhow::Result;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -699,7 +698,7 @@ mod tests {
     use crate::{
         invoice::{
             sign::SignedProperties, xml::ToXml, Address, InvoiceBuilder, InvoiceSubType,
-            InvoiceType, LineItem, Party, SellerRole, VatCategory,
+            InvoiceType, LineItem, Party, RequiredInvoiceFields, SellerRole, VatCategory,
         },
     };
     use base64ct::{Base64, Encoding};
@@ -951,18 +950,19 @@ mod tests {
             .and_hms_opt(12, 30, 0)
             .unwrap();
 
-        let invoice = InvoiceBuilder::new(
+        let invoice = InvoiceBuilder::new(RequiredInvoiceFields {
             invoice_type,
-            "INV-TEST-1",
-            "uuid-test-1",
-            chrono::Utc.from_utc_datetime(&issue_datetime),
-            Currency::SAR,
-            "",
+            id: "INV-TEST-1".into(),
+            uuid: "uuid-test-1".into(),
+            issue_datetime: chrono::Utc.from_utc_datetime(&issue_datetime),
+            currency: Currency::SAR,
+            previous_invoice_hash: "".into(),
+            invoice_counter: 0,
             seller,
-            vec![line_item],
-            "10",
-            VatCategory::Standard,
-        )
+            line_items: vec![line_item],
+            payment_means_code: "10".into(),
+            vat_category: VatCategory::Standard,
+        })
         .build()
         .expect("build invoice");
 

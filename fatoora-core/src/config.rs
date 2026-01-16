@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::{path::Path, str::FromStr};
+use thiserror::Error;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum EnvironmentType {
@@ -8,15 +9,22 @@ pub enum EnvironmentType {
     Production,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Error)]
+pub enum EnvironmentParseError {
+    #[error("invalid environment type: {input}")]
+    Invalid { input: String },
+}
+
 impl FromStr for EnvironmentType {
-    type Err = anyhow::Error;
-    fn from_str(env: &str) -> Result<EnvironmentType, anyhow::Error> {
+    type Err = EnvironmentParseError;
+    fn from_str(env: &str) -> Result<EnvironmentType, EnvironmentParseError> {
         match env.to_ascii_lowercase().as_str() {
             "non_production" => Ok(EnvironmentType::NonProduction),
             "simulation" => Ok(EnvironmentType::Simulation),
             "production" => Ok(EnvironmentType::Production),
-            _ => Err(anyhow::anyhow!("Invalid environment type")), // TODO standardise error
-                                                                   // handling
+            _ => Err(EnvironmentParseError::Invalid {
+                input: env.to_string(),
+            }),
         }
     }
 }

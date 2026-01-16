@@ -2,7 +2,7 @@ use base64ct::{Base64, Encoding};
 use chrono::TimeZone;
 use fatoora_core::invoice::{
     Address, FinalizedInvoice, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, OtherId,
-    Party, SellerRole, VatCategory,
+    Party, RequiredInvoiceFields, SellerRole, VatCategory,
 };
 use iso_currency::Currency;
 use isocountry::CountryCode;
@@ -24,20 +24,21 @@ pub fn dummy_finalized_invoice() -> FinalizedInvoice {
         .and_hms_opt(12, 30, 0)
         .unwrap();
 
-    InvoiceBuilder::new(
-        InvoiceType::Tax(InvoiceSubType::Simplified),
-        "INV-1",
-        "8e6000cf-1a98-4174-b3e7-b5d5954bc10d",
-        chrono::Utc.from_utc_datetime(&issue_datetime),
-        Currency::SAR,
-        "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
+    let builder = InvoiceBuilder::new(RequiredInvoiceFields {
+        invoice_type: InvoiceType::Tax(InvoiceSubType::Simplified),
+        id: "INV-1".into(),
+        uuid: "8e6000cf-1a98-4174-b3e7-b5d5954bc10d".into(),
+        issue_datetime: chrono::Utc.from_utc_datetime(&issue_datetime),
+        currency: Currency::SAR,
+        previous_invoice_hash: "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==".into(),
+        invoice_counter: 0,
         seller,
-        dummy_line_items(),
-        "10",
-        VatCategory::Standard,
-    )
-    .invoice_counter("0")
-    .build()
+        line_items: dummy_line_items(),
+        payment_means_code: "10".into(),
+        vat_category: VatCategory::Standard,
+    });
+    builder
+        .build()
     .expect("build dummy invoice")
 }
 

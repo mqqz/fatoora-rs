@@ -15,12 +15,7 @@ fn test_validate_xml_invoice() {
     let result = validate_xml_invoice_from_file(&xml_path, &config);
     match result {
         Ok(_) => (),
-        Err(errors) => {
-            for error in errors {
-                println!("Validation error: {}", error);
-            }
-            panic!("XML validation failed");
-        }
+        Err(error) => panic!("XML validation failed: {error}"),
     }
 }
 
@@ -33,11 +28,6 @@ fn test_our_invoices_can_be_validated() {
     let result = validate_xml_invoice_from_str(&xml_invoice, &config);
     match result {
         Ok(_) => (),
-        Err(errors) => {
-            for error in errors {
-                println!("Validation error: {}", error);
-            }
-            panic!("XML validation failed");
-        }
+        Err(error) => panic!("XML validation failed: {error}"),
     }
 }

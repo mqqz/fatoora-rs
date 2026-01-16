@@ -108,33 +108,35 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
 
     let vat_category = parse_vat_category(&ctx)?;
     let line_items = parse_line_items(&ctx)?;
+    let invoice_counter_str = xpath_text_required(
+        &ctx,
+        "/ubl:Invoice/cac:AdditionalDocumentReference[cbc:ID='ICV']/cbc:UUID",
+        "ICV",
+    )?;
+    let invoice_counter = invoice_counter_str
+        .parse::<u64>()
+        .map_err(|_| ParseError::InvalidValue {
+            field: "ICV",
+            value: invoice_counter_str,
+        })?;
 
-    let mut builder = InvoiceBuilder::new(
+    let mut builder = InvoiceBuilder::new(crate::invoice::RequiredInvoiceFields {
         invoice_type,
         id,
         uuid,
         issue_datetime,
         currency,
         previous_invoice_hash,
+        invoice_counter,
         seller,
         line_items,
         payment_means_code,
         vat_category,
-    );
-
-    if let Some(icv) = xpath_text_optional(
-        &ctx,
-        "/ubl:Invoice/cac:AdditionalDocumentReference[cbc:ID='ICV']/cbc:UUID",
-    )? {
-        builder = builder.invoice_counter(icv);
-    }
+    });
     if let Some(note) = xpath_text_optional(&ctx, "/ubl:Invoice/cbc:Note")? {
         let language = xpath_text_optional(&ctx, "/ubl:Invoice/cbc:Note/@languageID")?
             .unwrap_or_else(|| "en".to_string());
-        builder = builder.note(crate::invoice::InvoiceNote {
-            language,
-            text: note,
-        });
+        builder.note(crate::invoice::InvoiceNote { language, text: note });
     }
     if let Some(reason) = xpath_text_optional(
         &ctx,
@@ -143,7 +145,7 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
         let amount = xpath_text_optional(&ctx, "/ubl:Invoice/cac:AllowanceCharge/cbc:Amount")?
             .and_then(|v| v.parse::<f64>().ok())
             .unwrap_or(0.0);
-        builder = builder
+        builder
             .invoice_level_discount(amount)
             .allowance_reason(reason);
     }

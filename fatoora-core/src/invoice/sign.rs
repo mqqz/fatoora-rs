@@ -1,5 +1,5 @@
 use crate::invoice::QrPayload;
-use crate::invoice::xml::{ToXml, signed_properties_xml_string};
+use crate::invoice::xml::ToXml;
 use crate::invoice::{FinalizedInvoice, SignedInvoice};
 use base64ct::{Base64, Encoding};
 use k256::ecdsa::{Signature, SigningKey};
@@ -239,7 +239,6 @@ impl InvoiceSigner {
 // TODO this pattern (hash -> base64) is repeated, (Use base64 func for that)
 pub fn invoice_hash_base64(doc: &Document) -> Result<String, SigningError> {
     let canonicalized = canonicalize_invoice(doc)?;
-    // println!("Canonicalized invoice for hashing:\n{}", canonicalized);
     let hash = Sha256::digest(canonicalized.as_bytes());
     let invoice_hash_b64 = Base64::encode_string(&hash);
     Ok(invoice_hash_b64)
@@ -342,14 +341,11 @@ fn xpath_text_value(ctx: &xpath::Context, expr: &str, label: &str) -> Result<Str
 fn sign_hash(key: &SigningKey, hash_b64: &str) -> Result<String, SigningError> {
     let hash_bytes = Base64::decode_vec(hash_b64)
         .map_err(|e| SigningError::SigningError(format!("Failed to decode base64 hash: {e:?}")))?;
-    println!("Hash bytes to sign: {:x?}", hash_bytes);
     let signature: Signature = key
         .sign_recoverable(&hash_bytes)
         .map_err(|e| SigningError::SigningError(format!("Failed to sign invoice hash: {e:?}")))?
         .0;
-    println!("Signature bytes: {:x?}", signature.to_der().as_bytes());
     Ok(Base64::encode_string(signature.to_der().as_bytes()))
-    // Ok(Base64::encode_string(&signature.to_bytes()))
 }
 
 fn certificate_hash_base64(cert: &Certificate) -> Result<String, SigningError> {
@@ -365,15 +361,6 @@ fn certificate_signature_base64(cert: &Certificate) -> String {
     let signature = cert.signature();
 
     let bytes = signature.as_bytes().unwrap();
-    // let mut hex_sig = String::with_capacity(bytes.len() * 2);
-    // for byte in bytes {
-    //     let _ = write!(&mut hex_sig, "{:02x}", byte);
-    // }
-    // println!("Certificate signature hex: {:?}", hex_sig);
-    // println!("Bytes no enc: {:?}", bytes);
-    // let enc_bytes = Base64::encode_string(bytes);
-    // println!("Bytes enc: {:?}", enc_bytes);
-    // println!("Bytes dec: {:?}", Base64::decode_vec(&enc_bytes).unwrap());
     Base64::encode_string(bytes)
 }
 
@@ -422,13 +409,34 @@ fn signed_properties_xml(
     issuer: &str,
     serial: &str,
 ) -> String {
-    // todo remove this indirection
-    signed_properties_xml_string(
-        &format_signing_time(signing_time),
-        cert_hash_b64,
-        issuer,
-        serial,
+    format!(
+        concat!(
+            r#"<xades:SignedProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Id="xadesSignedProperties">"#,
+            "\n{indent:>18}<xades:SignedSignatureProperties>",
+            "\n{indent:>20}<xades:SigningTime>{signing_time}</xades:SigningTime>",
+            "\n{indent:>20}<xades:SigningCertificate>",
+            "\n{indent:>22}<xades:Cert>",
+            "\n{indent:>24}<xades:CertDigest>",
+            "\n{indent:>26}<ds:DigestMethod xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\" Algorithm=\"http://www.w3.org/2001/04/xmlenc#sha256\"/>",
+            "\n{indent:>26}<ds:DigestValue xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{digest_value}</ds:DigestValue>",
+            "\n{indent:>24}</xades:CertDigest>",
+            "\n{indent:>24}<xades:IssuerSerial>",
+            "\n{indent:>26}<ds:X509IssuerName xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{x509_issuer_name}</ds:X509IssuerName>",
+            "\n{indent:>26}<ds:X509SerialNumber xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">{x509_serial_number}</ds:X509SerialNumber>",
+            "\n{indent:>24}</xades:IssuerSerial>",
+            "\n{indent:>22}</xades:Cert>",
+            "\n{indent:>20}</xades:SigningCertificate>",
+            "\n{indent:>18}</xades:SignedSignatureProperties>",
+            "\n{indent:>16}</xades:SignedProperties>",
+        ),
+        indent = "",
+        signing_time = &format_signing_time(signing_time),
+        digest_value = cert_hash_b64,
+        x509_issuer_name = issuer,
+        x509_serial_number = serial,
     )
+    .replace("\r\n", "\n")
+    .to_string()
 }
 
 fn signed_properties_hash_base64(signed_props_xml: &str) -> Result<String, SigningError> {
@@ -446,9 +454,14 @@ fn hex_hash_to_base64(hash: &[u8]) -> String {
 
 // TODO figure out how to get public key from cert properly and cross check with key
 #[allow(dead_code)]
-fn extract_signature_b64_from_cert(cert: &Certificate) -> String {
-    let public_key_bytes = cert.signature().as_bytes().unwrap(); // TODO handle error
-    Base64::encode_string(public_key_bytes)
+fn extract_signature_b64_from_cert(cert: &Certificate) -> Result<String, SigningError> {
+    let public_key_bytes = cert
+        .signature()
+        .as_bytes()
+        .ok_or(SigningError::SigningError(
+            "Failed to extract public key from certificate".into(),
+        ))?;
+    Ok(Base64::encode_string(public_key_bytes))
 }
 
 fn public_key_base64(key: &SigningKey) -> String {
@@ -828,9 +841,7 @@ mod tests {
     #[test]
     fn apply_signed_properties_values_updates_expected_nodes() {
         let mut doc = load_sample_doc();
-        let signing_time = chrono::Utc
-            .with_ymd_and_hms(2024, 2, 2, 10, 30, 0)
-            .unwrap();
+        let signing_time = chrono::Utc.with_ymd_and_hms(2024, 2, 2, 10, 30, 0).unwrap();
         apply_signed_properties_values_raw(
             &mut doc,
             &signing_time,
@@ -843,11 +854,7 @@ mod tests {
         let ctx = xpath::Context::new(&doc).expect("xpath context");
         register_namespaces(&ctx).expect("register namespaces");
         assert_eq!(
-            xml_text(
-                &ctx,
-                "//*[local-name()='SigningTime']",
-                "SigningTime",
-            ),
+            xml_text(&ctx, "//*[local-name()='SigningTime']", "SigningTime",),
             "2024-02-02T10:30:00"
         );
         assert_eq!(
@@ -906,9 +913,7 @@ mod tests {
             "//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]",
         );
 
-        let signing_time = chrono::Utc
-            .with_ymd_and_hms(2024, 1, 1, 12, 30, 0)
-            .unwrap();
+        let signing_time = chrono::Utc.with_ymd_and_hms(2024, 1, 1, 12, 30, 0).unwrap();
         let signing = SignedProperties::from_parsed_parts(
             "invoice_hash_b64".to_string(),
             "signature_b64".to_string(),
@@ -979,8 +984,7 @@ mod tests {
         let doc = load_sample_doc();
         let ctx = xpath::Context::new(&doc).expect("xpath context");
         register_namespaces(&ctx).expect("register namespaces");
-        let err = set_xpath_text(&ctx, "//cbc:DoesNotExist", "value")
-            .expect_err("missing path");
+        let err = set_xpath_text(&ctx, "//cbc:DoesNotExist", "value").expect_err("missing path");
         match err {
             SigningError::SigningError(msg) => {
                 assert!(msg.contains("XPath target not found"));
@@ -991,8 +995,7 @@ mod tests {
     #[test]
     fn import_fragment_rejects_invalid_xml() {
         let mut doc = load_sample_doc();
-        let err = import_fragment(&mut doc, "")
-            .expect_err("invalid fragment");
+        let err = import_fragment(&mut doc, "").expect_err("invalid fragment");
         match err {
             SigningError::SigningError(msg) => {
                 assert!(
@@ -1049,11 +1052,11 @@ mod tests {
 
     #[test]
     fn signed_properties_hash_base64_matches_manual_digest() {
-        let signing_time = "2024-01-01T12:30:00";
+        let signing_time = chrono::Utc.with_ymd_and_hms(2024, 2, 2, 10, 30, 0).unwrap();
         let digest_value = "digest";
         let issuer = "issuer";
         let serial = "123";
-        let xml = signed_properties_xml_string(signing_time, digest_value, issuer, serial);
+        let xml = signed_properties_xml(&signing_time, digest_value, issuer, serial);
         let hash = sha2::Sha256::digest(xml.as_bytes());
         let mut hex_hash = String::with_capacity(hash.len() * 2);
         for byte in hash {

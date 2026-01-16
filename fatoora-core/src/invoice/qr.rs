@@ -205,7 +205,7 @@ mod tests {
     use crate::invoice::xml::ToXml;
     use crate::invoice::{
         Address, FinalizedInvoice, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, Party,
-        SellerRole, VatCategory,
+        RequiredInvoiceFields, SellerRole, VatCategory,
     };
     use base64ct::{Base64, Encoding};
     use chrono::TimeZone;
@@ -247,18 +247,19 @@ mod tests {
             .and_hms_opt(12, 30, 0)
             .unwrap();
 
-        InvoiceBuilder::new(
-            InvoiceType::Tax(InvoiceSubType::Simplified),
-            "INV-1",
-            "uuid-123",
-            chrono::Utc.from_utc_datetime(&issue_datetime),
-            Currency::SAR,
-            "",
+        InvoiceBuilder::new(RequiredInvoiceFields {
+            invoice_type: InvoiceType::Tax(InvoiceSubType::Simplified),
+            id: "INV-1".into(),
+            uuid: "uuid-123".into(),
+            issue_datetime: chrono::Utc.from_utc_datetime(&issue_datetime),
+            currency: Currency::SAR,
+            previous_invoice_hash: "".into(),
+            invoice_counter: 0,
             seller,
-            vec![line_item],
-            "10",
-            VatCategory::Standard,
-        )
+            line_items: vec![line_item],
+            payment_means_code: "10".into(),
+            vat_category: VatCategory::Standard,
+        })
         .build()
         .expect("build sample invoice")
     }

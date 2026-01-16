@@ -6,7 +6,7 @@ use fatoora_core::invoice::xml::parse::{
 };
 use fatoora_core::invoice::{
     Address, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, OriginalInvoiceRef, Party,
-    SellerRole, VatCategory,
+    RequiredInvoiceFields, SellerRole, VatCategory,
 };
 use iso_currency::Currency;
 use isocountry::CountryCode;
@@ -34,7 +34,7 @@ fn parse_sample_simplified_invoice() {
         data.previous_invoice_hash(),
         "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ=="
     );
-    assert_eq!(data.invoice_counter(), Some("10"));
+    assert_eq!(data.invoice_counter(), 10);
 
     assert_eq!(
         data.seller().name(),
@@ -221,22 +221,23 @@ fn credit_note_serializes_billing_reference_and_reason() {
         .with_uuid("uuid-orig")
         .with_issue_date(chrono::NaiveDate::from_ymd_opt(2023, 12, 31).unwrap());
 
-    let invoice = InvoiceBuilder::new(
-        InvoiceType::CreditNote(
+    let invoice = InvoiceBuilder::new(RequiredInvoiceFields {
+        invoice_type: InvoiceType::CreditNote(
             InvoiceSubType::Standard,
             original,
             "pricing correction".into(),
         ),
-        "CR-1",
-        "uuid-cr-1",
-        chrono::Utc.from_utc_datetime(&issue_datetime),
-        Currency::SAR,
-        "hash",
+        id: "CR-1".into(),
+        uuid: "uuid-cr-1".into(),
+        issue_datetime: chrono::Utc.from_utc_datetime(&issue_datetime),
+        currency: Currency::SAR,
+        previous_invoice_hash: "hash".into(),
+        invoice_counter: 0,
         seller,
-        vec![line_item],
-        "10",
-        VatCategory::Standard,
-    )
+        line_items: vec![line_item],
+        payment_means_code: "10".into(),
+        vat_category: VatCategory::Standard,
+    })
     .build()
     .expect("build credit note");
 
