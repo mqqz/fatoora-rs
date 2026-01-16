@@ -35,15 +35,115 @@ XML parsing/manipulation is done internally with `libxml2`, so you might need to
 
 <details>
 <summary>CSR Generation</summary>
+Rust
 ```rust
-CODE!
+use fatoora_core::config::EnvironmentType;
+use fatoora_core::csr::CsrProperties;
+
+let props = CsrProperties::parse_csr_config("csr.properties".as_ref())?;
+let (csr, key) = props.build_with_rng(EnvironmentType::NonProduction)?;
+let csr_pem = csr.to_pem(Default::default())?;
+let key_pem = key.to_pkcs8_pem(Default::default())?;
+```
+
+CLI
+```bash
+fatoora-rs-cli csr --csr-config csr.properties --generated-csr csr.pem --private-key key.pem --pem
 ```
 </details>
 
 <details>
 <summary>Invoice Signing</summary>
+Rust
 ```rust
-CODE!
+use fatoora_core::invoice::sign::InvoiceSigner;
+
+let cert_pem = std::fs::read_to_string("cert.pem")?;
+let key_pem = std::fs::read_to_string("key.pem")?;
+let signer = InvoiceSigner::from_pem(cert_pem.trim(), key_pem.trim())?;
+let xml = std::fs::read_to_string("invoice.xml")?;
+let signed_xml = signer.sign_xml(&xml)?;
+```
+
+CLI
+```bash
+fatoora-rs-cli sign --invoice invoice.xml --cert cert.pem --key key.pem --signed-invoice signed.xml
+```
+</details>
+
+<details>
+<summary>Validation</summary>
+Rust
+```rust
+use fatoora_core::config::Config;
+use fatoora_core::invoice::validation::validate_xml_invoice_from_file;
+
+let config = Config::new(
+    fatoora_core::config::EnvironmentType::NonProduction,
+    "assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd",
+);
+validate_xml_invoice_from_file("invoice.xml".as_ref(), &config)?;
+```
+
+CLI
+```bash
+fatoora-rs-cli validate --invoice invoice.xml --xsd-path assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd
+```
+</details>
+
+<details>
+<summary>QR Extraction</summary>
+Rust
+```rust
+use fatoora_core::invoice::xml::parse::parse_signed_invoice_xml;
+
+let xml = std::fs::read_to_string("signed.xml")?;
+let signed = parse_signed_invoice_xml(&xml)?;
+let qr = signed.qr_code();
+```
+
+CLI
+```bash
+fatoora-rs-cli qr --invoice signed.xml
+```
+</details>
+
+<details>
+<summary>Invoice Hash</summary>
+Rust
+```rust
+use fatoora_core::invoice::sign::invoice_hash_base64;
+use libxml::parser::Parser;
+
+let xml = std::fs::read_to_string("invoice.xml")?;
+let doc = Parser::default().parse_string(&xml)?;
+let hash = invoice_hash_base64(&doc)?;
+```
+
+CLI
+```bash
+fatoora-rs-cli generate-hash --invoice invoice.xml
+```
+</details>
+
+<details>
+<summary>Invoice Request Payload</summary>
+Rust
+```rust
+use fatoora_core::invoice::xml::parse::parse_signed_invoice_xml;
+
+let xml = std::fs::read_to_string("signed.xml")?;
+let signed = parse_signed_invoice_xml(&xml)?;
+let payload = serde_json::json!({
+    "invoiceHash": signed.invoice_hash(),
+    "uuid": signed.uuid(),
+    "invoice": signed.to_xml_base64(),
+});
+```
+
+CLI
+```bash
+fatoora-rs-cli invoice-request --invoice signed.xml --api-request request.json
 ```
 </details>
 
