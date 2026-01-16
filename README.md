@@ -51,9 +51,10 @@ CODE!
 
 Contributions are always welcome!
 - Open issues for discussion before implementing any big features
-- Add relevant tests and make sure there are no formatting issues.
+- Add relevant tests and make sure there are no formatting issues
 
 ## Roadmap
+- Increase test coverage to 100% (Inshallah)
 - Add the full validation suite (not only UBL schema)
 - Expand bindings to other languages (subject to demand)
 - PDF invoice generation
