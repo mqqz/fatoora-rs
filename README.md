@@ -37,6 +37,7 @@ XML parsing/manipulation is done internally with `libxml2`, so you might need to
 
 <details>
 <summary>CSR Generation</summary>
+
 Rust
 ```rust
 use fatoora_core::config::EnvironmentType;
@@ -56,6 +57,7 @@ fatoora-rs-cli csr --csr-config csr.properties --generated-csr csr.pem --private
 
 <details>
 <summary>Invoice Signing</summary>
+
 Rust
 ```rust
 use fatoora_core::invoice::sign::InvoiceSigner;
@@ -75,6 +77,7 @@ fatoora-rs-cli sign --invoice invoice.xml --cert cert.pem --key key.pem --signed
 
 <details>
 <summary>Validation</summary>
+
 Rust
 ```rust
 use fatoora_core::config::Config;
@@ -95,6 +98,7 @@ fatoora-rs-cli validate --invoice invoice.xml --xsd-path assets/schemas/UBL2.1/x
 
 <details>
 <summary>QR Extraction</summary>
+
 Rust
 ```rust
 use fatoora_core::invoice::xml::parse::parse_signed_invoice_xml;
@@ -112,6 +116,7 @@ fatoora-rs-cli qr --invoice signed.xml
 
 <details>
 <summary>Invoice Hash</summary>
+
 Rust
 ```rust
 use fatoora_core::invoice::sign::invoice_hash_base64;
@@ -130,6 +135,7 @@ fatoora-rs-cli generate-hash --invoice invoice.xml
 
 <details>
 <summary>Invoice Request Payload</summary>
+
 Rust
 ```rust
 use fatoora_core::invoice::xml::parse::parse_signed_invoice_xml;
