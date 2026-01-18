@@ -1,3 +1,4 @@
+//! XML serialization for invoices.
 use super::{
     Address, Buyer, FinalizedInvoice, InvoiceData, InvoiceNote, InvoiceType, InvoiceView, LineItem,
     OtherId, Party, PartyRole, Seller, SignedInvoice, VatCategory, VatId,
@@ -11,8 +12,10 @@ use quick_xml::se::{SeError, Serializer as QuickXmlSerializer};
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 use thiserror::Error;
 
+/// Wrapper for serializing invoices to XML.
 pub struct InvoiceXml<'a, T: InvoiceView + ?Sized>(pub &'a T);
 
+/// XML serialization error.
 #[derive(Debug, Error)]
 pub enum InvoiceXmlError {
     #[error("failed to serialize invoice to XML: {source}")]
@@ -22,6 +25,7 @@ pub enum InvoiceXmlError {
     },
 }
 
+/// XML formatting options.
 #[derive(Debug, Clone, Copy, Default)]
 pub enum XmlFormat {
     #[default]
@@ -987,6 +991,18 @@ impl<'a> Serialize for InvoiceLineXml<'a> {
     }
 }
 
+/// Serialize invoices to XML.
+///
+/// # Examples
+/// ```rust,no_run
+/// use fatoora_core::invoice::xml::ToXml;
+/// use fatoora_core::invoice::FinalizedInvoice;
+///
+/// let invoice: FinalizedInvoice = unimplemented!();
+/// let xml = invoice.to_xml()?;
+/// # let _ = xml;
+/// # Ok::<(), fatoora_core::invoice::xml::InvoiceXmlError>(())
+/// ```
 pub trait ToXml {
     fn to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError>;
 

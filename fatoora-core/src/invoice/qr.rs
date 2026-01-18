@@ -1,3 +1,4 @@
+//! QR payload generation and encoding.
 use super::{InvoiceData, InvoiceTotalsData};
 use base64ct::{Base64, Encoding};
 use libxml::{tree::Document, xpath};
@@ -5,6 +6,7 @@ use thiserror::Error;
 
 use crate::invoice::xml::constants::{CAC_NS, CBC_NS};
 
+/// Errors emitted when building or encoding QR payloads.
 #[derive(Debug, Error)]
 pub enum QrCodeError {
     #[error("seller legal name is missing")]
@@ -19,8 +21,23 @@ pub enum QrCodeError {
     Xml(String),
 }
 
+/// QR result alias.
 pub type QrResult<T> = std::result::Result<T, QrCodeError>;
 
+/// QR payload builder for ZATCA tags.
+///
+/// # Examples
+/// ```rust,ignore
+/// use fatoora_core::invoice::QrPayload;
+/// use fatoora_core::invoice::{FinalizedInvoice, InvoiceTotalsData};
+///
+/// let invoice: FinalizedInvoice = unimplemented!();
+/// let totals = InvoiceTotalsData::from_data(invoice.data());
+/// let payload = QrPayload::from_invoice(invoice.data(), &totals)?;
+/// let encoded = payload.encode()?;
+/// # let _ = encoded;
+/// # Ok::<(), fatoora_core::QrCodeError>(())
+/// ```
 #[derive(Debug, Clone)]
 pub struct QrPayload {
     seller_name: String,

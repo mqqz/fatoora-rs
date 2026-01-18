@@ -1,3 +1,4 @@
+//! CSR generation and helpers.
 use crate::config::EnvironmentType;
 use base64ct::{Base64, Encoding};
 use ecdsa;
@@ -26,6 +27,7 @@ use x509_cert::{
     request::CertReq,
 };
 
+/// Errors that can occur while generating or validating CSRs.
 #[derive(Debug, Error)]
 pub enum CsrError {
     #[error("failed to open CSR config file '{path}': {source}")]
@@ -114,6 +116,18 @@ impl EnvironmentType {
     }
 }
 
+/// CSR properties parsed from the SDK properties file.
+///
+/// # Examples
+/// ```rust,no_run
+/// use fatoora_core::config::EnvironmentType;
+/// use fatoora_core::csr::CsrProperties;
+///
+/// let props = CsrProperties::parse_csr_config("csr.properties".as_ref())?;
+/// let (csr, _key) = props.build_with_rng(EnvironmentType::NonProduction)?;
+/// # let _ = csr;
+/// # Ok::<(), fatoora_core::CsrError>(())
+/// ```
 #[allow(dead_code)]
 #[derive(Validate, Debug)]
 #[validate_error(CsrError)]
@@ -248,6 +262,7 @@ impl From<String> for CsrError {
     }
 }
 
+/// Encode to base64 string.
 pub trait ToBase64String {
     fn to_base64_string(&self) -> Result<String, CsrError>;
     fn to_pem_base64_string(&self) -> Result<String, CsrError>;

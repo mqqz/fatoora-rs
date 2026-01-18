@@ -1,3 +1,4 @@
+//! Invoice builder and view types.
 use super::{
     Buyer, InvoiceData, InvoiceError, InvoiceField, InvoiceFlags, InvoiceNote, InvoiceTotalsData,
     InvoiceType, LineItems, QrPayload, QrResult, Seller, ValidationError, ValidationIssue,
@@ -7,6 +8,7 @@ use crate::invoice::sign::{InvoiceSigner, SignedProperties, SigningError};
 use chrono::{DateTime, Utc};
 use iso_currency::Currency;
 
+/// A finalized invoice with computed totals.
 #[derive(Debug)]
 pub struct FinalizedInvoice {
     data: InvoiceData,
@@ -14,6 +16,7 @@ pub struct FinalizedInvoice {
 }
 
 // TODO maybe traits?
+/// A signed invoice with QR payload and signed XML.
 #[derive(Debug)]
 pub struct SignedInvoice {
     finalized: FinalizedInvoice,
@@ -22,6 +25,45 @@ pub struct SignedInvoice {
     signed_xml: String,
 }
 
+/// Required invoice fields used to construct an [`InvoiceBuilder`].
+///
+/// # Examples
+/// ```rust,no_run
+/// use chrono::Utc;
+/// use iso_currency::Currency;
+/// use fatoora_core::invoice::{
+///     InvoiceBuilder, RequiredInvoiceFields, InvoiceSubType, InvoiceType, LineItem,
+///     LineItemFields, VatCategory, Seller,
+/// };
+///
+/// let seller: Seller = unimplemented!();
+/// let line_items = vec![LineItem::new(LineItemFields {
+///     description: "Item".into(),
+///     quantity: 1.0,
+///     unit_code: "PCE".into(),
+///     unit_price: 100.0,
+///     vat_rate: 15.0,
+///     vat_category: VatCategory::Standard,
+/// })];
+///
+/// let required = RequiredInvoiceFields {
+///     invoice_type: InvoiceType::Tax(InvoiceSubType::Simplified),
+///     id: "INV-1".into(),
+///     uuid: "uuid-1".into(),
+///     issue_datetime: Utc::now(),
+///     currency: Currency::SAR,
+///     previous_invoice_hash: "hash".into(),
+///     invoice_counter: 1,
+///     seller,
+///     line_items,
+///     payment_means_code: "10".into(),
+///     vat_category: VatCategory::Standard,
+/// };
+///
+/// let invoice = InvoiceBuilder::new(required).build()?;
+/// # let _ = invoice;
+/// # Ok::<(), fatoora_core::InvoiceError>(())
+/// ```
 #[derive(Debug)]
 pub struct RequiredInvoiceFields {
     pub invoice_type: InvoiceType,
@@ -37,12 +79,14 @@ pub struct RequiredInvoiceFields {
     pub vat_category: VatCategory,
 }
 
+/// Builder for creating a validated invoice.
 pub struct InvoiceBuilder {
     invoice: InvoiceData,
 }
 
 // TODO remove unneccessary constructor parameters
 impl InvoiceBuilder {
+    /// Create a builder from required invoice fields.
     pub fn new(required: RequiredInvoiceFields) -> Self {
         Self::from_required(required)
     }
@@ -222,6 +266,7 @@ impl InvoiceBuilder {
 }
 
 impl FinalizedInvoice {
+    /// Access the underlying invoice data.
     pub fn data(&self) -> &InvoiceData {
         &self.data
     }
@@ -230,6 +275,7 @@ impl FinalizedInvoice {
         &self.totals
     }
 
+    /// Sign the invoice with the provided signer.
     pub fn sign(self, signer: &InvoiceSigner) -> Result<SignedInvoice, SigningError> {
         signer.sign(self)
     }
@@ -257,6 +303,7 @@ impl FinalizedInvoice {
 }
 
 impl SignedInvoice {
+    /// Access the underlying invoice data.
     pub fn data(&self) -> &InvoiceData {
         self.finalized.data()
     }
@@ -309,8 +356,11 @@ impl SignedInvoice {
 }
 
 pub trait InvoiceView {
+    /// Invoice data.
     fn data(&self) -> &InvoiceData;
+    /// Computed totals.
     fn totals(&self) -> &InvoiceTotalsData;
+    /// Optional QR payload.
     fn qr_code(&self) -> Option<&str>;
 }
 

@@ -1,3 +1,4 @@
+//! XML signing and signature helpers.
 use crate::invoice::QrPayload;
 use crate::invoice::xml::ToXml;
 use crate::invoice::{FinalizedInvoice, SignedInvoice};
@@ -23,12 +24,14 @@ use crate::invoice::xml::constants::{
     CAC_NS, CAC_SIGNATURE_TEMPLATE, CBC_NS, DS_NS, EXT_NS, INVOICE_NS, QR_REFERENCE_TEMPLATE,
     SAC_NS, SBC_NS, SIG_NS, UBL_EXTENSIONS_TEMPLATE, XADES_NS,
 };
+/// Errors emitted by signing operations.
 #[derive(Debug, Error)]
 pub enum SigningError {
     #[error("Signing error: {0}")]
     SigningError(String),
 }
 
+/// Signed properties extracted from or applied to an invoice.
 #[derive(Debug, Clone)]
 pub struct SignedProperties {
     pub(crate) invoice_hash: String,
@@ -131,6 +134,18 @@ impl SignedProperties {
     }
 }
 
+/// Signs invoices using a certificate and private key.
+///
+/// # Examples
+/// ```rust,no_run
+/// use fatoora_core::invoice::sign::InvoiceSigner;
+///
+/// let cert_pem = std::fs::read_to_string("cert.pem")?;
+/// let key_pem = std::fs::read_to_string("key.pem")?;
+/// let signer = InvoiceSigner::from_pem(cert_pem.trim(), key_pem.trim())?;
+/// # let _ = signer;
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 pub struct InvoiceSigner {
     csid: Certificate,
     private_key: SigningKey,
@@ -213,6 +228,19 @@ impl InvoiceSigner {
 }
 
 // TODO this pattern (hash -> base64) is repeated, (Use base64 func for that)
+/// Compute the base64 invoice hash from a parsed XML document.
+///
+/// # Examples
+/// ```rust,no_run
+/// use libxml::parser::Parser;
+/// use fatoora_core::invoice::sign::invoice_hash_base64;
+///
+/// let xml = std::fs::read_to_string("invoice.xml")?;
+/// let doc = Parser::default().parse_string(&xml)?;
+/// let hash = invoice_hash_base64(&doc)?;
+/// # let _ = hash;
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 pub fn invoice_hash_base64(doc: &Document) -> Result<String, SigningError> {
     let canonicalized = canonicalize_invoice(doc)?;
     let hash = Sha256::digest(canonicalized.as_bytes());

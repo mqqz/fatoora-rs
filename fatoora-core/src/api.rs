@@ -1,3 +1,4 @@
+//! ZATCA HTTP API client and response types.
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -10,6 +11,7 @@ use crate::{
 };
 use std::marker::PhantomData;
 
+/// Errors returned by the ZATCA API client.
 #[derive(Error, Debug)]
 pub enum ZatcaError {
     #[error("Network error: {0}")]
@@ -26,19 +28,34 @@ pub enum ZatcaError {
     ClientState(String),
 }
 
+/// Marker trait for API token scope, either Compliance (CCSID) or Production (PCSID).
 pub trait TokenScope {}
 #[derive(Debug)]
+/// Compliance (CCSID) token scope.
 pub struct Compliance;
 #[derive(Debug)]
+/// Production (PCSID) token scope.
 pub struct Production;
 impl TokenScope for Compliance {}
 impl TokenScope for Production {}
 
+/// ZATCA API client.
+///
+/// # Examples
+/// ```rust,no_run
+/// use fatoora_core::api::ZatcaClient;
+/// use fatoora_core::config::Config;
+///
+/// let client = ZatcaClient::new(Config::default())?;
+/// # let _ = client;
+/// # Ok::<(), fatoora_core::ZatcaError>(())
+/// ```
 pub struct ZatcaClient {
     config: Config,
     _client: Client,
 }
 
+/// API validation response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidationResponse {
     #[serde(rename = "validationResults")]
@@ -75,6 +92,7 @@ impl ValidationResponse {
     }
 }
 
+/// Validation results container.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidationResults {
     #[serde(rename = "infoMessages", default)]
@@ -105,6 +123,7 @@ impl ValidationResults {
     }
 }
 
+/// Validation message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidationMessage {
     #[serde(rename = "type")]
@@ -141,6 +160,7 @@ impl ValidationMessage {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 #[derive(Default)]
+/// Message list returned by the API.
 pub enum MessageList {
     One(ValidationMessage),
     Many(Vec<ValidationMessage>),
@@ -148,6 +168,7 @@ pub enum MessageList {
     Empty,
 }
 
+/// Unauthorized response body.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UnauthorizedResponse {
     timestamp: Option<i64>,
@@ -174,6 +195,7 @@ impl UnauthorizedResponse {
     }
 }
 
+/// Server error response body.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerErrorResponse {
     category: Option<String>,
@@ -197,6 +219,23 @@ impl ServerErrorResponse {
 
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+/// CSID credentials used for API calls.
+/// This is usually obtained after requesting a CSID from ZATCA.
+/// ie. through [post_ccsid_for_pcsid][ZatcaClient::post_ccsid_for_pcsid] or [post_csr_for_ccsid][ZatcaClient::post_csr_for_ccsid].
+/// But can also be constructed manually if you have the necessary values.
+///
+/// # Examples
+/// ```rust
+/// use fatoora_core::api::{CsidCredentials, Compliance};
+/// use fatoora_core::config::EnvironmentType;
+///
+/// let creds = CsidCredentials::<Compliance>::new(
+///     EnvironmentType::NonProduction,
+///     Some(1234567890123),             // requestID field
+///     "TUlJQ1BUQ0NBZU9nQXdJQkFnS....", // binarySecurityToken field
+///     "Dehvg1fc8GF6Jwt5bOxXwC6en....", // secret field 
+/// );
+/// ```
 pub struct CsidCredentials<T> {
     env: EnvironmentType,
     request_id: Option<u64>,
@@ -272,6 +311,8 @@ impl ZatcaClient {
         })
     }
 
+    /// Report a simplified invoice to ZATCA's gateway.
+    /// See [ZATCA documentation](https://sandbox.zatca.gov.sa/IntegrationSandbox/reporting-api) for more details.
     pub async fn report_simplified_invoice(
         &self,
         invoice: &SignedInvoice,
@@ -359,6 +400,8 @@ impl ZatcaClient {
         )))
     }
 
+    /// Clear a standard invoice through ZATCA's gateway.
+    /// See [ZATCA documentation](https://sandbox.zatca.gov.sa/Integration/clearance-api) for more details.
     pub async fn clear_standard_invoice(
         &self,
         invoice: &SignedInvoice,
@@ -440,6 +483,8 @@ impl ZatcaClient {
         )))
     }
 
+    /// Check invoice compliance through ZATCA's gateway.
+    /// See [ZATCA documentation](https://sandbox.zatca.gov.sa/IntegrationSandbox/preInvoice-api) for more details.
     pub async fn check_invoice_compliance(
         &self,
         invoice: &SignedInvoice,
@@ -505,7 +550,9 @@ impl ZatcaClient {
             "status {status}: {body}"
         )))
     }
-
+    /// Request a compliance CSID from ZATCA by submitting a CSR.
+    /// See [ZATCA
+    /// documentation](https://sandbox.zatca.gov.sa/IntegrationSandbox/complianceCert-api) for more details.
     pub async fn post_csr_for_ccsid(
         &self,
         csr: &CertReq,
@@ -547,6 +594,8 @@ impl ZatcaClient {
         ))
     }
 
+    /// Requests a production CSID from ZATCA using a compliance CSID previously obtained e.g. from [post_csr_for_ccsid][ZatcaClient::post_csr_for_ccsid].
+    /// See [ZATCA documentation](https://sandbox.zatca.gov.sa/Integration/request-api) for more details.
     pub async fn post_ccsid_for_pcsid(
         &self,
         ccsid: &CsidCredentials<Compliance>,
@@ -595,6 +644,8 @@ impl ZatcaClient {
         ))
     }
 
+    /// Renew a production CSID by submitting a new CSR.
+    /// See [ZATCA documentation](https://sandbox.zatca.gov.sa/Integration/renewal-api) for more details.
     pub async fn renew_csid(
         &self,
         pcsid: &CsidCredentials<Production>,

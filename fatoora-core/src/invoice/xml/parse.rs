@@ -1,3 +1,4 @@
+//! XML parsing for invoices.
 use crate::invoice::sign::SignedProperties;
 use crate::invoice::xml::constants::{CAC_NS, CBC_NS, DS_NS, INVOICE_NS, XADES_NS};
 use crate::invoice::{
@@ -13,6 +14,7 @@ use libxml::{parser::Parser, tree::Document, xpath};
 use std::path::Path;
 use thiserror::Error;
 
+/// Errors emitted while parsing XML invoices.
 #[derive(Debug, Error)]
 pub enum ParseError {
     #[error("XML parse error: {0}")]
@@ -25,6 +27,17 @@ pub enum ParseError {
     InvalidValue { field: &'static str, value: String },
 }
 
+/// Parse a finalized invoice from XML string.
+///
+/// # Examples
+/// ```rust,no_run
+/// use fatoora_core::invoice::xml::parse::parse_finalized_invoice_xml;
+///
+/// let xml = std::fs::read_to_string("invoice.xml")?;
+/// let invoice = parse_finalized_invoice_xml(&xml)?;
+/// # let _ = invoice;
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 pub fn parse_finalized_invoice_xml(xml: &str) -> Result<FinalizedInvoice, ParseError> {
     let doc = Parser::default()
         .parse_string(xml)
@@ -32,11 +45,13 @@ pub fn parse_finalized_invoice_xml(xml: &str) -> Result<FinalizedInvoice, ParseE
     parse_finalized_invoice_doc(&doc)
 }
 
+/// Parse a finalized invoice from an XML file.
 pub fn parse_finalized_invoice_xml_file(path: &Path) -> Result<FinalizedInvoice, ParseError> {
     let xml = std::fs::read_to_string(path).map_err(|e| ParseError::XmlParse(format!("{e:?}")))?;
     parse_finalized_invoice_xml(&xml)
 }
 
+/// Parse a signed invoice from XML string.
 pub fn parse_signed_invoice_xml(xml: &str) -> Result<SignedInvoice, ParseError> {
     let doc = Parser::default()
         .parse_string(xml)
@@ -49,6 +64,7 @@ pub fn parse_signed_invoice_xml(xml: &str) -> Result<SignedInvoice, ParseError> 
     Ok(signed)
 }
 
+/// Parse a signed invoice from an XML file.
 pub fn parse_signed_invoice_xml_file(path: &Path) -> Result<SignedInvoice, ParseError> {
     let xml = std::fs::read_to_string(path).map_err(|e| ParseError::XmlParse(format!("{e:?}")))?;
     parse_signed_invoice_xml(&xml)

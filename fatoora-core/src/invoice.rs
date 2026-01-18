@@ -1,3 +1,4 @@
+//! Invoice domain types and builders.
 mod builder;
 mod qr;
 pub mod sign;
@@ -20,6 +21,7 @@ use serde::{Deserialize, Serialize};
 
 type Result<T> = std::result::Result<T, InvoiceError>;
 
+/// Invoice-related errors.
 #[derive(Debug, Error)]
 pub enum InvoiceError {
     #[error(transparent)]
@@ -34,6 +36,7 @@ pub enum InvoiceError {
     InvalidVatFormat,
 }
 
+/// Structured validation error with field-level issues.
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
 #[error("invoice validation failed")]
 pub struct ValidationError {
@@ -46,6 +49,7 @@ impl ValidationError {
     }
 }
 
+/// Single validation issue.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ValidationIssue {
     pub field: InvoiceField,
@@ -54,6 +58,7 @@ pub struct ValidationIssue {
 }
 
 #[non_exhaustive]
+/// Field associated with a validation issue.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InvoiceField {
     Id,
@@ -70,6 +75,7 @@ pub enum InvoiceField {
 }
 
 #[non_exhaustive]
+/// Classification of validation issues.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ValidationKind {
     Missing,
@@ -79,6 +85,7 @@ pub enum ValidationKind {
     Mismatch,
 }
 
+/// Postal address for parties.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Address {
     pub country_code: CountryCode,
@@ -130,6 +137,16 @@ impl Address {
     }
 }
 
+/// VAT identifier wrapper with validation helpers.
+///
+/// # Examples
+/// ```rust
+/// use fatoora_core::invoice::VatId;
+///
+/// let vat = VatId::parse("399999999900003")?;
+/// assert_eq!(vat.as_str(), "399999999900003");
+/// # Ok::<(), fatoora_core::InvoiceError>(())
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct VatId(String);
 impl VatId {
@@ -169,6 +186,16 @@ impl TryFrom<&str> for VatId {
     }
 }
 
+/// Additional party identifier.
+///
+/// # Examples
+/// ```rust
+/// use fatoora_core::invoice::OtherId;
+///
+/// let id = OtherId::with_scheme("7003339333", "CRN");
+/// assert_eq!(id.as_str(), "7003339333");
+/// assert_eq!(id.scheme_id(), Some("CRN"));
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct OtherId {
     value: String,
@@ -203,6 +230,16 @@ impl AsRef<str> for OtherId {
     }
 }
 
+/// Invoice note with language metadata.
+///
+/// # Examples
+/// ```rust
+/// use fatoora_core::invoice::InvoiceNote;
+///
+/// let note = InvoiceNote::new("en", "Thank you");
+/// assert_eq!(note.language(), "en");
+/// assert_eq!(note.text(), "Thank you");
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct InvoiceNote {
     language: String,
@@ -227,15 +264,44 @@ impl InvoiceNote {
 }
 
 // Marker roles
+/// Marker trait for party role types.
 pub trait PartyRole {}
 
+/// Seller role marker.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SellerRole;
 impl PartyRole for SellerRole {}
+/// Buyer role marker.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BuyerRole;
 impl PartyRole for BuyerRole {}
 
+/// Party wrapper with role-specific typing.
+///
+/// # Examples
+/// ```rust
+/// use fatoora_core::invoice::{Party, SellerRole, Address, OtherId};
+/// use isocountry::CountryCode;
+///
+/// let seller = Party::<SellerRole>::new(
+///     "Acme Inc".into(),
+///     Address {
+///         country_code: CountryCode::SAU,
+///         city: "Riyadh".into(),
+///         street: "King Fahd".into(),
+///         additional_street: None,
+///         building_number: "1234".into(),
+///         additional_number: Some("5678".into()),
+///         postal_code: "12222".into(),
+///         subdivision: None,
+///         district: None,
+///     },
+///     "399999999900003",
+///     Some(OtherId::with_scheme("7003339333", "CRN")),
+/// )?;
+/// # let _ = seller;
+/// # Ok::<(), fatoora_core::InvoiceError>(())
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[allow(dead_code)]
 pub struct Party<R: PartyRole> {
@@ -309,12 +375,32 @@ impl<R: PartyRole> Party<R> {
     }
 }
 
+/// Invoice subtype used for tax invoices and notes.
+///
+/// # Examples
+/// ```rust
+/// use fatoora_core::invoice::{InvoiceSubType, InvoiceType};
+///
+/// let invoice_type = InvoiceType::Tax(InvoiceSubType::Simplified);
+/// assert!(invoice_type.is_simplified());
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum InvoiceSubType {
     Simplified,
     Standard,
 }
 
+/// Reference to an original invoice for credit/debit notes.
+///
+/// # Examples
+/// ```rust
+/// use fatoora_core::invoice::OriginalInvoiceRef;
+///
+/// let original = OriginalInvoiceRef::new("INV-ORIG")
+///     .with_uuid("uuid-orig");
+/// assert_eq!(original.id(), "INV-ORIG");
+/// assert_eq!(original.uuid(), Some("uuid-orig"));
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct OriginalInvoiceRef {
     id: String,
@@ -354,6 +440,15 @@ impl OriginalInvoiceRef {
     }
 }
 
+/// Invoice type and required metadata.
+///
+/// # Examples
+/// ```rust
+/// use fatoora_core::invoice::{InvoiceSubType, InvoiceType};
+///
+/// let invoice_type = InvoiceType::Prepayment(InvoiceSubType::Standard);
+/// assert!(!invoice_type.is_simplified());
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum InvoiceType {
     Tax(InvoiceSubType),
@@ -374,6 +469,15 @@ impl InvoiceType {
     }
 }
 
+/// VAT category for line items.
+///
+/// # Examples
+/// ```rust
+/// use fatoora_core::invoice::VatCategory;
+///
+/// let cat = VatCategory::Standard;
+/// assert!(matches!(cat, VatCategory::Standard));
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum VatCategory {
     Exempt,
@@ -381,6 +485,22 @@ pub enum VatCategory {
     Zero,
     OutOfScope,
 }
+/// Single invoice line item.
+///
+/// # Examples
+/// ```rust
+/// use fatoora_core::invoice::{LineItem, LineItemFields, VatCategory};
+///
+/// let item = LineItem::new(LineItemFields {
+///     description: "Item".into(),
+///     quantity: 2.0,
+///     unit_code: "PCE".into(),
+///     unit_price: 50.0,
+///     vat_rate: 15.0,
+///     vat_category: VatCategory::Standard,
+/// });
+/// assert_eq!(item.total_amount(), 100.0);
+/// ```
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LineItem {
     description: String,
@@ -393,6 +513,7 @@ pub struct LineItem {
     vat_category: VatCategory,
 }
 
+/// Fields for creating a line item with computed totals.
 #[derive(Debug, Clone, PartialEq)]
 pub struct LineItemFields {
     pub description: String,
@@ -403,6 +524,23 @@ pub struct LineItemFields {
     pub vat_category: VatCategory,
 }
 
+/// Fields for creating a line item with provided totals.
+///
+/// # Examples
+/// ```rust
+/// use fatoora_core::invoice::{LineItem, LineItemTotalsFields, VatCategory};
+///
+/// let item = LineItem::from_totals(LineItemTotalsFields {
+///     description: "Item".into(),
+///     quantity: 1.0,
+///     unit_code: "PCE".into(),
+///     unit_price: 100.0,
+///     total_amount: 100.0,
+///     vat_rate: 15.0,
+///     vat_category: VatCategory::Standard,
+/// });
+/// assert_eq!(item.vat_amount(), 15.0);
+/// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct LineItemTotalsFields {
     pub description: String,
@@ -414,6 +552,25 @@ pub struct LineItemTotalsFields {
     pub vat_category: VatCategory,
 }
 
+/// Fields for creating a line item from fully specified parts.
+///
+/// # Examples
+/// ```rust
+/// use fatoora_core::invoice::{LineItem, LineItemPartsFields, VatCategory};
+///
+/// let item = LineItem::try_from_parts(LineItemPartsFields {
+///     description: "Item".into(),
+///     quantity: 1.0,
+///     unit_code: "PCE".into(),
+///     unit_price: 100.0,
+///     total_amount: 100.0,
+///     vat_rate: 15.0,
+///     vat_amount: 15.0,
+///     vat_category: VatCategory::Standard,
+/// })?;
+/// # let _ = item;
+/// # Ok::<(), fatoora_core::ValidationError>(())
+/// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct LineItemPartsFields {
     pub description: String,
@@ -535,9 +692,34 @@ impl LineItem {
     }
 }
 
+/// Collection of line items.
+///
+/// # Examples
+/// ```rust
+/// use fatoora_core::invoice::{LineItem, LineItemFields, LineItems, VatCategory};
+///
+/// let items: LineItems = vec![LineItem::new(LineItemFields {
+///     description: "Item".into(),
+///     quantity: 1.0,
+///     unit_code: "PCE".into(),
+///     unit_price: 100.0,
+///     vat_rate: 15.0,
+///     vat_category: VatCategory::Standard,
+/// })];
+/// assert_eq!(items.len(), 1);
+/// ```
 pub type LineItems = Vec<LineItem>;
 
 bitflags! {
+    /// Invoice boolean flags packed into a bitset.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use fatoora_core::invoice::InvoiceFlags;
+    ///
+    /// let flags = InvoiceFlags::EXPORT | InvoiceFlags::SELF_BILLED;
+    /// assert!(flags.contains(InvoiceFlags::EXPORT));
+    /// ```
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
     pub struct InvoiceFlags: u8 {
         const THIRD_PARTY = 0b00001;
@@ -548,6 +730,17 @@ bitflags! {
     }
 }
 
+/// Core invoice data model.
+///
+/// Instances are produced by the builder and exposed via views.
+///
+/// # Examples
+/// ```rust,ignore
+/// use fatoora_core::invoice::InvoiceData;
+///
+/// let data: InvoiceData = unimplemented!();
+/// # let _ = data;
+/// ```
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InvoiceData {
     invoice_type: InvoiceType,
@@ -694,6 +887,15 @@ impl InvoiceData {
         format!("{:.2}", amount)
     }
 }
+/// Computed invoice totals.
+///
+/// # Examples
+/// ```rust,ignore
+/// use fatoora_core::invoice::InvoiceTotalsData;
+///
+/// let totals: InvoiceTotalsData = unimplemented!();
+/// let _ = totals.tax_inclusive_amount();
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct InvoiceTotalsData {
     line_extension: f64,

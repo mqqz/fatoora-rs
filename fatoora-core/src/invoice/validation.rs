@@ -1,3 +1,4 @@
+//! XML schema validation helpers.
 use std::path::{Path, PathBuf};
 
 use crate::config::Config;
@@ -10,6 +11,7 @@ use thiserror::Error;
 
 pub type ValidationResult = Result<(), XmlValidationError>;
 
+/// Errors emitted during XML schema validation.
 #[derive(Debug, Error)]
 pub enum XmlValidationError {
     #[error("file not found: {path}")]
@@ -38,6 +40,20 @@ fn build_validation_context(config: &Config) -> Result<SchemaValidationContext, 
         .map_err(|errors| XmlValidationError::SchemaParse { errors })
 }
 
+/// Validate an XML invoice file against the UBL schema.
+///
+/// # Examples
+/// ```rust,no_run
+/// use fatoora_core::config::{Config, EnvironmentType};
+/// use fatoora_core::invoice::validation::validate_xml_invoice_from_file;
+///
+/// let config = Config::new(
+///     EnvironmentType::NonProduction,
+///     "assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd",
+/// );
+/// validate_xml_invoice_from_file("invoice.xml".as_ref(), &config)?;
+/// # Ok::<(), fatoora_core::invoice::validation::XmlValidationError>(())
+/// ```
 pub fn validate_xml_invoice_from_file(path: &Path, config: &Config) -> ValidationResult {
     // check if file exists because libxml will just unhelpfully error out otherwise
     if !path.exists() {
@@ -58,6 +74,7 @@ pub fn validate_xml_invoice_from_file(path: &Path, config: &Config) -> Validatio
         .map_err(|errors| XmlValidationError::SchemaValidation { errors })
 }
 
+/// Validate an XML invoice string against the UBL schema.
 pub fn validate_xml_invoice_from_str(xml: &str, config: &Config) -> ValidationResult {
     let mut validation_ctx = build_validation_context(config)?;
     let document = Parser::default()
