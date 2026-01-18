@@ -184,7 +184,10 @@ fn main() -> Result<()> {
                             "XSD path not found: {path}. Provide a valid path via --xsd-path."
                         );
                     }
-                    fatoora_core::config::Config::new(EnvironmentType::NonProduction, path_ref)
+                    fatoora_core::config::Config::with_xsd_path(
+                        EnvironmentType::NonProduction,
+                        path_ref,
+                    )
                 }
                 None => {
                     let default_path = resolve_xsd_path();
@@ -194,7 +197,10 @@ fn main() -> Result<()> {
                             default_path.display()
                         );
                     }
-                    fatoora_core::config::Config::new(EnvironmentType::NonProduction, default_path)
+                    fatoora_core::config::Config::with_xsd_path(
+                        EnvironmentType::NonProduction,
+                        default_path,
+                    )
                 }
             };
             validate_xml_invoice_from_file(Path::new(&invoice), &config)
