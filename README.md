@@ -1,7 +1,11 @@
 
 # `fatoora-rs`
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
-[![codecov](https://codecov.io/gh/mqqz/fatoora-rs/graph/badge.svg?token=JRI6609XU6)](https://codecov.io/gh/mqqz/fatoora-rs)
+[![codecov](https://codecov.io/gh/mqqz/fatoora-rs/graph/badge.svg?token=JRI6609XU6)](https://codecov.io/gh/mqqz/fatoora-rs) 
+[![Crates.io Version](https://img.shields.io/crates/v/fatoora-core?logo=rust&label=fatoora-core)](https://crates.io/crates/fatoora-core)
+[![Crates.io Version](https://img.shields.io/crates/v/fatoora-rs-cli?logo=rust&label=fatoora-rs-cli)](https://crates.io/crates/fatoora-rs-cli)
+[![Crates.io Version](https://img.shields.io/crates/v/fatoora-derive?logo=rust&label=fatoora-derive)](https://crates.io/crates/fatoora-derive)
+
 
 An *unofficial* open-source toolkit for everything you'd need for ZATCA (Zakat, Tax and Customs Authority of Saudi Arabia) Phase 1 and 2 compliant e-invoicing 
 
@@ -17,7 +21,7 @@ An *unofficial* open-source toolkit for everything you'd need for ZATCA (Zakat, 
 `fatoora-rs` is not affiliated, associated, authorized, endorsed by, or in any way officially connected with ZATCA (Zakat, Tax and Customs Authority), or any of its subsidiaries or its affiliates. The official ZATCA website can be found at https://zatca.gov.sa.
 
 ## Documentation
-WIP
+Check out [docs.rs](https://docs.rs/fatoora-core/latest/fatoora_core/) for the rust core library documentation.
 
 ## Features
 
@@ -32,6 +36,14 @@ Everything done by the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloa
 
 ## Dependencies
 XML parsing/manipulation is done internally with `libxml2`, so you might need to install it if you haven't already see [here](https://github.com/KWARC/rust-libxml?tab=readme-ov-file#installation-prerequisites) for relevant instructions.
+
+## Installation
+The rust library can be added with `cargo add fatoora-core`.
+
+The cli tool can also be installed with `cargo`: 
+```
+cargo install fatoora-rs-cli
+```
 
 ## Usage/Examples
 
@@ -158,10 +170,8 @@ Contributions are always welcome!
 - Open issues for discussion before implementing any big features
 - Add relevant tests and make sure there are no formatting issues
 
-### Network tests
-
-Live API tests run by default with the rest of the test suite.
-Set `SKIP_ZATCA_LIVE_API=1` to disable them locally or in CI.
+> Live API tests run by default with the rest of the test suite.
+> Set `SKIP_ZATCA_LIVE_API=1` to disable them locally or in CI.
 
 ## Roadmap
 - Increase test coverage to 100% (Inshallah)
