@@ -1,21 +1,15 @@
+#![cfg(network_tests)]
+
 mod common;
 
-#[cfg(not(feature = "disable-network"))]
 use base64ct::{Base64, Encoding};
-#[cfg(not(feature = "disable-network"))]
 use fatoora_core::api::ZatcaClient;
-#[cfg(not(feature = "disable-network"))]
 use fatoora_core::config::{Config, EnvironmentType};
-#[cfg(not(feature = "disable-network"))]
 use fatoora_core::csr::CsrProperties;
-#[cfg(not(feature = "disable-network"))]
 use std::path::Path;
-#[cfg(not(feature = "disable-network"))]
 use x509_cert::der::Decode;
-#[cfg(not(feature = "disable-network"))]
 use x509_cert::request::CertReq;
 
-#[cfg(not(feature = "disable-network"))]
 #[tokio::test]
 async fn post_compliance_csid_sandbox() {
     let otp = "123345";
@@ -43,12 +37,6 @@ async fn post_compliance_csid_sandbox() {
     );
 }
 
-#[cfg(feature = "disable-network")]
-#[test]
-#[ignore = "network tests disabled; enable by omitting --features disable-network"]
-fn post_compliance_csid_sandbox() {}
-
-#[cfg(not(feature = "disable-network"))]
 #[tokio::test]
 async fn post_production_csid_sandbox() {
     let otp = "123345";
@@ -80,12 +68,6 @@ async fn post_production_csid_sandbox() {
     );
 }
 
-#[cfg(feature = "disable-network")]
-#[test]
-#[ignore = "network tests disabled; enable by omitting --features disable-network"]
-fn report_simplified_invoice_sandbox() {}
-
-#[cfg(not(feature = "disable-network"))]
 #[tokio::test]
 async fn check_compliance_with_live_ccsid() {
     let otp = "123345";
@@ -116,12 +98,6 @@ async fn check_compliance_with_live_ccsid() {
     );
 }
 
-#[cfg(feature = "disable-network")]
-#[test]
-#[ignore = "network tests disabled; enable by omitting --features disable-network"]
-fn check_compliance_with_live_ccsid() {}
-
-#[cfg(not(feature = "disable-network"))]
 #[tokio::test]
 async fn report_invoice_with_live_pcsid() {
     // csr generation
@@ -185,12 +161,6 @@ async fn report_invoice_with_live_pcsid() {
     );
 }
 
-#[cfg(feature = "disable-network")]
-#[test]
-#[ignore = "network tests disabled; enable by omitting --features disable-network"]
-fn report_invoice_with_live_pcsid() {}
-
-#[cfg(not(feature = "disable-network"))]
 #[tokio::test]
 async fn renew_csid_returns_request_id() {
     use k256::pkcs8::DecodePrivateKey;
@@ -229,11 +199,6 @@ async fn renew_csid_returns_request_id() {
     );
 }
 
-#[cfg(feature = "disable-network")]
-#[test]
-#[ignore = "network tests disabled; enable by omitting --features disable-network"]
-fn renew_csid_returns_request_id() {}
-#[cfg(not(feature = "disable-network"))]
 #[tokio::test]
 async fn clear_invoice_with_live_pcsid() {
     use k256::pkcs8::DecodePrivateKey;
@@ -338,8 +303,3 @@ async fn clear_invoice_with_live_pcsid() {
         "invoice not cleared successfully"
     );
 }
-
-#[cfg(feature = "disable-network")]
-#[test]
-#[ignore = "network tests disabled; enable by omitting --features disable-network"]
-fn clear_invoice_with_live_pcsid() {}

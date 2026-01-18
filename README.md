@@ -28,7 +28,7 @@ Everything done by the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloa
 - QR Generation
 - API Requests
 
-*But we do it faster and better* e.g. ~180x faster invoice hashing than ZATCA's SDK (see [`bench/`](bench/cli/results/hash_bench.md))
+*But we do it faster and better* e.g. ~190x faster invoice hashing than ZATCA's SDK (see [`bench/`](bench/cli/results/hash_bench.md))
 
 ## Dependencies
 XML parsing/manipulation is done internally with `libxml2`, so you might need to install it if you haven't already see [here](https://github.com/KWARC/rust-libxml?tab=readme-ov-file#installation-prerequisites) for relevant instructions.
@@ -160,6 +160,14 @@ fatoora-rs-cli invoice-request --invoice signed.xml --api-request request.json
 Contributions are always welcome!
 - Open issues for discussion before implementing any big features
 - Add relevant tests and make sure there are no formatting issues
+
+### Network tests
+
+Live API tests are behind a custom cfg flag to keep them opt-in.
+
+```bash
+RUSTFLAGS="--cfg network_tests" cargo test -p fatoora-core --test api_live
+```
 
 ## Roadmap
 - Increase test coverage to 100% (Inshallah)
