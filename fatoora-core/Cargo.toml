@@ -50,9 +50,6 @@ iso_currency = { version = "0.5.3", features = ["with-serde"] }
 reqwest = { version = "0.13.0", features = ["json"] }
 bitflags = { version = "2.10.0", features = ["serde"] }
 
-[lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ["cfg(network_tests)"] }
-
 [dev-dependencies]
 tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread"] }
 

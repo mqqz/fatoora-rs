@@ -1,5 +1,3 @@
-#![cfg(network_tests)]
-
 mod common;
 
 use base64ct::{Base64, Encoding};
@@ -10,8 +8,21 @@ use std::path::Path;
 use x509_cert::der::Decode;
 use x509_cert::request::CertReq;
 
+fn should_skip_network_tests() -> bool {
+    match std::env::var("SKIP_ZATCA_LIVE_API") {
+        Ok(value) => {
+            let value = value.to_ascii_lowercase();
+            value == "1" || value == "true" || value == "yes"
+        }
+        Err(_) => false,
+    }
+}
+
 #[tokio::test]
 async fn post_compliance_csid_sandbox() {
+    if should_skip_network_tests() {
+        return;
+    }
     let otp = "123345";
     let csr_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/csrs/test_zatca_en1.csr");
@@ -39,6 +50,9 @@ async fn post_compliance_csid_sandbox() {
 
 #[tokio::test]
 async fn post_production_csid_sandbox() {
+    if should_skip_network_tests() {
+        return;
+    }
     let otp = "123345";
     let csr_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/csrs/test_zatca_en1.csr");
@@ -70,6 +84,9 @@ async fn post_production_csid_sandbox() {
 
 #[tokio::test]
 async fn check_compliance_with_live_ccsid() {
+    if should_skip_network_tests() {
+        return;
+    }
     let otp = "123345";
     let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
@@ -100,6 +117,9 @@ async fn check_compliance_with_live_ccsid() {
 
 #[tokio::test]
 async fn report_invoice_with_live_pcsid() {
+    if should_skip_network_tests() {
+        return;
+    }
     // csr generation
     use k256::pkcs8::DecodePrivateKey;
 
@@ -163,6 +183,9 @@ async fn report_invoice_with_live_pcsid() {
 
 #[tokio::test]
 async fn renew_csid_returns_request_id() {
+    if should_skip_network_tests() {
+        return;
+    }
     use k256::pkcs8::DecodePrivateKey;
 
     let otp = "123456";
@@ -201,6 +224,9 @@ async fn renew_csid_returns_request_id() {
 
 #[tokio::test]
 async fn clear_invoice_with_live_pcsid() {
+    if should_skip_network_tests() {
+        return;
+    }
     use k256::pkcs8::DecodePrivateKey;
 
     let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))

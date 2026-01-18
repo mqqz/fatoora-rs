@@ -160,11 +160,8 @@ Contributions are always welcome!
 
 ### Network tests
 
-Live API tests are behind a custom cfg flag to keep them opt-in.
-
-```bash
-RUSTFLAGS="--cfg network_tests" cargo test -p fatoora-core --test api_live
-```
+Live API tests run by default with the rest of the test suite.
+Set `SKIP_ZATCA_LIVE_API=1` to disable them locally or in CI.
 
 ## Roadmap
 - Increase test coverage to 100% (Inshallah)
