@@ -32,7 +32,7 @@ pub enum SigningError {
 }
 
 /// Signed properties extracted from or applied to an invoice.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SignedProperties {
     pub(crate) invoice_hash: String,
     pub(crate) signature: String,

@@ -30,10 +30,10 @@ pub enum ZatcaError {
 
 /// Marker trait for API token scope, either Compliance (CCSID) or Production (PCSID).
 pub trait TokenScope {}
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 /// Compliance (CCSID) token scope.
 pub struct Compliance;
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 /// Production (PCSID) token scope.
 pub struct Production;
 impl TokenScope for Compliance {}
@@ -50,13 +50,14 @@ impl TokenScope for Production {}
 /// # let _ = client;
 /// # Ok::<(), fatoora_core::ZatcaError>(())
 /// ```
+#[derive(Debug)]
 pub struct ZatcaClient {
     config: Config,
     _client: Client,
 }
 
 /// API validation response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ValidationResponse {
     #[serde(rename = "validationResults")]
     validation_results: ValidationResults,
@@ -93,7 +94,7 @@ impl ValidationResponse {
 }
 
 /// Validation results container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ValidationResults {
     #[serde(rename = "infoMessages", default)]
     info_messages: MessageList,
@@ -124,7 +125,7 @@ impl ValidationResults {
 }
 
 /// Validation message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ValidationMessage {
     #[serde(rename = "type")]
     message_type: Option<String>,
@@ -157,7 +158,7 @@ impl ValidationMessage {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(untagged)]
 #[derive(Default)]
 /// Message list returned by the API.
@@ -169,7 +170,7 @@ pub enum MessageList {
 }
 
 /// Unauthorized response body.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct UnauthorizedResponse {
     timestamp: Option<i64>,
     status: Option<u16>,
@@ -196,7 +197,7 @@ impl UnauthorizedResponse {
 }
 
 /// Server error response body.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ServerErrorResponse {
     category: Option<String>,
     code: Option<String>,
@@ -218,7 +219,6 @@ impl ServerErrorResponse {
 }
 
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
 /// CSID credentials used for API calls.
 /// This is usually obtained after requesting a CSID from ZATCA.
 /// ie. through [post_ccsid_for_pcsid][ZatcaClient::post_ccsid_for_pcsid] or [post_csr_for_ccsid][ZatcaClient::post_csr_for_ccsid].
@@ -236,6 +236,7 @@ impl ServerErrorResponse {
 ///     "Dehvg1fc8GF6Jwt5bOxXwC6en....", // secret field 
 /// );
 /// ```
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct CsidCredentials<T> {
     env: EnvironmentType,
     request_id: Option<u64>,

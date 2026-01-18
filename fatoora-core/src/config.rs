@@ -19,7 +19,7 @@ use thiserror::Error;
 /// assert_eq!(env, EnvironmentType::Simulation);
 /// # Ok::<(), fatoora_core::EnvironmentParseError>(())
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum EnvironmentType {
     NonProduction,
     Simulation,
@@ -27,7 +27,7 @@ pub enum EnvironmentType {
 }
 
 /// Error returned when parsing an [`EnvironmentType`] from a string.
-#[derive(Debug, Clone, PartialEq, Eq, Error)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Error)]
 pub enum EnvironmentParseError {
     #[error("invalid environment type: {input}")]
     Invalid { input: String },
@@ -78,7 +78,7 @@ impl EnvironmentType {
 /// let config = Config::new(EnvironmentType::NonProduction, "path/to/UBL-Invoice-2.1.xsd");
 /// # let _ = config;
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Config {
     env: EnvironmentType,
     xsd_ubl_path: PathBuf,

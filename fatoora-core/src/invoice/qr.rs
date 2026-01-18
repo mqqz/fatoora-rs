@@ -38,7 +38,7 @@ pub type QrResult<T> = std::result::Result<T, QrCodeError>;
 /// # let _ = encoded;
 /// # Ok::<(), fatoora_core::QrCodeError>(())
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct QrPayload {
     seller_name: String,
     seller_vat: String,

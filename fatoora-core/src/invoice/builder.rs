@@ -9,7 +9,7 @@ use chrono::{DateTime, Utc};
 use iso_currency::Currency;
 
 /// A finalized invoice with computed totals.
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FinalizedInvoice {
     data: InvoiceData,
     totals: InvoiceTotalsData,
@@ -17,7 +17,7 @@ pub struct FinalizedInvoice {
 
 // TODO maybe traits?
 /// A signed invoice with QR payload and signed XML.
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SignedInvoice {
     finalized: FinalizedInvoice,
     signed_properties: SignedProperties,
@@ -64,7 +64,7 @@ pub struct SignedInvoice {
 /// # let _ = invoice;
 /// # Ok::<(), fatoora_core::InvoiceError>(())
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RequiredInvoiceFields {
     pub invoice_type: InvoiceType,
     pub id: String,
@@ -80,6 +80,7 @@ pub struct RequiredInvoiceFields {
 }
 
 /// Builder for creating a validated invoice.
+#[derive(Debug, Clone)]
 pub struct InvoiceBuilder {
     invoice: InvoiceData,
 }

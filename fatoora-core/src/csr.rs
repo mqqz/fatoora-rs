@@ -129,7 +129,7 @@ impl EnvironmentType {
 /// # Ok::<(), fatoora_core::CsrError>(())
 /// ```
 #[allow(dead_code)]
-#[derive(Validate, Debug)]
+#[derive(Validate, Debug, Clone, PartialEq, Eq, Hash)]
 #[validate_error(CsrError)]
 #[validate(non_empty, no_special_chars)]
 pub struct CsrProperties {

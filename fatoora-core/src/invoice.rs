@@ -37,7 +37,7 @@ pub enum InvoiceError {
 }
 
 /// Structured validation error with field-level issues.
-#[derive(Debug, Clone, PartialEq, Eq, Error)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Error)]
 #[error("invoice validation failed")]
 pub struct ValidationError {
     pub issues: Vec<ValidationIssue>,
@@ -50,7 +50,7 @@ impl ValidationError {
 }
 
 /// Single validation issue.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ValidationIssue {
     pub field: InvoiceField,
     pub kind: ValidationKind,
@@ -59,7 +59,7 @@ pub struct ValidationIssue {
 
 #[non_exhaustive]
 /// Field associated with a validation issue.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum InvoiceField {
     Id,
     Uuid,
@@ -76,7 +76,7 @@ pub enum InvoiceField {
 
 #[non_exhaustive]
 /// Classification of validation issues.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ValidationKind {
     Missing,
     Empty,
@@ -86,7 +86,7 @@ pub enum ValidationKind {
 }
 
 /// Postal address for parties.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Address {
     pub country_code: CountryCode,
     pub city: String,
@@ -150,7 +150,7 @@ impl Address {
 ///
 /// # Errors
 /// Returns [`InvoiceError::InvalidVatFormat`] if the input is empty.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct VatId(String);
 impl VatId {
     pub fn parse<S: Into<String>>(s: S) -> Result<Self> {
@@ -199,7 +199,7 @@ impl TryFrom<&str> for VatId {
 /// assert_eq!(id.as_str(), "7003339333");
 /// assert_eq!(id.scheme_id(), Some("CRN"));
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct OtherId {
     value: String,
     scheme_id: Option<String>,
@@ -243,7 +243,7 @@ impl AsRef<str> for OtherId {
 /// assert_eq!(note.language(), "en");
 /// assert_eq!(note.text(), "Thank you");
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct InvoiceNote {
     language: String,
     text: String,
@@ -271,11 +271,11 @@ impl InvoiceNote {
 pub trait PartyRole {}
 
 /// Seller role marker.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
 pub struct SellerRole;
 impl PartyRole for SellerRole {}
 /// Buyer role marker.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
 pub struct BuyerRole;
 impl PartyRole for BuyerRole {}
 
@@ -305,7 +305,7 @@ impl PartyRole for BuyerRole {}
 /// # let _ = seller;
 /// # Ok::<(), fatoora_core::InvoiceError>(())
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[allow(dead_code)]
 pub struct Party<R: PartyRole> {
     _marker: PhantomData<R>,
@@ -395,7 +395,7 @@ impl<R: PartyRole> Party<R> {
 /// let invoice_type = InvoiceType::Tax(InvoiceSubType::Simplified);
 /// assert!(invoice_type.is_simplified());
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum InvoiceSubType {
     Simplified,
     Standard,
@@ -412,7 +412,7 @@ pub enum InvoiceSubType {
 /// assert_eq!(original.id(), "INV-ORIG");
 /// assert_eq!(original.uuid(), Some("uuid-orig"));
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct OriginalInvoiceRef {
     id: String,
     uuid: Option<String>,
@@ -460,7 +460,7 @@ impl OriginalInvoiceRef {
 /// let invoice_type = InvoiceType::Prepayment(InvoiceSubType::Standard);
 /// assert!(!invoice_type.is_simplified());
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum InvoiceType {
     Tax(InvoiceSubType),
     Prepayment(InvoiceSubType),
@@ -489,7 +489,7 @@ impl InvoiceType {
 /// let cat = VatCategory::Standard;
 /// assert!(matches!(cat, VatCategory::Standard));
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum VatCategory {
     Exempt,
     Standard,
@@ -735,7 +735,7 @@ bitflags! {
     /// let flags = InvoiceFlags::EXPORT | InvoiceFlags::SELF_BILLED;
     /// assert!(flags.contains(InvoiceFlags::EXPORT));
     /// ```
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
     pub struct InvoiceFlags: u8 {
         const THIRD_PARTY = 0b00001;
         const NOMINAL = 0b00010;

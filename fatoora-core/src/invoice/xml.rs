@@ -13,6 +13,7 @@ use serde::ser::{Serialize, SerializeStruct, Serializer};
 use thiserror::Error;
 
 /// Wrapper for serializing invoices to XML.
+#[derive(Debug, Clone, Copy)]
 pub struct InvoiceXml<'a, T: InvoiceView + ?Sized>(pub &'a T);
 
 /// XML serialization error.
@@ -26,7 +27,7 @@ pub enum InvoiceXmlError {
 }
 
 /// XML formatting options.
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 pub enum XmlFormat {
     #[default]
     Compact,
