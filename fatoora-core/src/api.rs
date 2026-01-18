@@ -48,7 +48,8 @@ impl TokenScope for Production {}
 ///
 /// let client = ZatcaClient::new(Config::default())?;
 /// # let _ = client;
-/// # Ok::<(), fatoora_core::ZatcaError>(())
+/// use fatoora_core::api::ZatcaError;
+/// # Ok::<(), ZatcaError>(())
 /// ```
 #[derive(Debug)]
 pub struct ZatcaClient {

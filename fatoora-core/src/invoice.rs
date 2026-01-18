@@ -141,11 +141,11 @@ impl Address {
 ///
 /// # Examples
 /// ```rust
-/// use fatoora_core::invoice::VatId;
+/// use fatoora_core::invoice::{VatId, InvoiceError};
 ///
 /// let vat = VatId::parse("399999999900003")?;
 /// assert_eq!(vat.as_str(), "399999999900003");
-/// # Ok::<(), fatoora_core::InvoiceError>(())
+/// # Ok::<(), InvoiceError>(())
 /// ```
 ///
 /// # Errors
@@ -303,7 +303,8 @@ impl PartyRole for BuyerRole {}
 ///     Some(OtherId::with_scheme("7003339333", "CRN")),
 /// )?;
 /// # let _ = seller;
-/// # Ok::<(), fatoora_core::InvoiceError>(())
+/// use fatoora_core::invoice::InvoiceError;
+/// # Ok::<(), InvoiceError>(())
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[allow(dead_code)]
@@ -580,7 +581,8 @@ pub struct LineItemTotalsFields {
 ///     vat_category: VatCategory::Standard,
 /// })?;
 /// # let _ = item;
-/// # Ok::<(), fatoora_core::ValidationError>(())
+/// use fatoora_core::invoice::ValidationError;
+/// # Ok::<(), ValidationError>(())
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct LineItemPartsFields {

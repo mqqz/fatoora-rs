@@ -4,10 +4,7 @@
 //! ```rust
 //! use fatoora_core::config::{Config, EnvironmentType};
 //!
-//! let config = Config::new(
-//!     EnvironmentType::NonProduction,
-//!     "assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd",
-//! );
+//! let config = Config::new(EnvironmentType::NonProduction);
 //! # let _ = config;
 //! ```
 pub mod api;
@@ -17,18 +14,18 @@ pub mod invoice;
 
 use thiserror::Error;
 
-pub use config::EnvironmentParseError;
-pub use csr::CsrError;
-pub use invoice::{
-    InvoiceError, InvoiceField, LineItemFields, LineItemPartsFields, LineItemTotalsFields,
-    ValidationError, ValidationIssue, ValidationKind,
-};
-pub use invoice::QrCodeError;
-pub use invoice::sign::SigningError;
-pub use invoice::xml::InvoiceXmlError;
-pub use invoice::xml::parse::ParseError;
-pub use invoice::validation::XmlValidationError;
-pub use api::ZatcaError;
+// pub use config::EnvironmentParseError;
+// pub use csr::CsrError;
+// pub use invoice::{
+//     InvoiceError, InvoiceField, LineItemFields, LineItemPartsFields, LineItemTotalsFields,
+//     ValidationError, ValidationIssue, ValidationKind,
+// };
+// pub use invoice::QrCodeError;
+// pub use invoice::sign::SigningError;
+// pub use invoice::xml::InvoiceXmlError;
+// pub use invoice::xml::parse::ParseError;
+// pub use invoice::validation::XmlValidationError;
+// pub use api::ZatcaError;
 
 /// Top-level error wrapper for core operations.
 #[derive(Debug, Error)]

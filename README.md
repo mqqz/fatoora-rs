@@ -83,10 +83,7 @@ Rust
 use fatoora_core::config::Config;
 use fatoora_core::invoice::validation::validate_xml_invoice_from_file;
 
-let config = Config::new(
-    fatoora_core::config::EnvironmentType::NonProduction,
-    "assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd",
-);
+let config = Config::new(fatoora_core::config::EnvironmentType::NonProduction);
 validate_xml_invoice_from_file("invoice.xml".as_ref(), &config)?;
 ```
 

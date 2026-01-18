@@ -62,7 +62,8 @@ pub struct SignedInvoice {
 ///
 /// let invoice = InvoiceBuilder::new(required).build()?;
 /// # let _ = invoice;
-/// # Ok::<(), fatoora_core::InvoiceError>(())
+/// use fatoora_core::invoice::InvoiceError;
+/// # Ok::<(), InvoiceError>(())
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct RequiredInvoiceFields {

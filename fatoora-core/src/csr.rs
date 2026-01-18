@@ -126,7 +126,8 @@ impl EnvironmentType {
 /// let props = CsrProperties::parse_csr_config("csr.properties".as_ref())?;
 /// let (csr, _key) = props.build_with_rng(EnvironmentType::NonProduction)?;
 /// # let _ = csr;
-/// # Ok::<(), fatoora_core::CsrError>(())
+/// use fatoora_core::csr::CsrError;
+/// # Ok::<(), CsrError>(())
 /// ```
 #[allow(dead_code)]
 #[derive(Validate, Debug, Clone, PartialEq, Eq, Hash)]

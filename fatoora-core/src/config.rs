@@ -17,7 +17,8 @@ use thiserror::Error;
 ///
 /// let env = EnvironmentType::from_str("simulation")?;
 /// assert_eq!(env, EnvironmentType::Simulation);
-/// # Ok::<(), fatoora_core::EnvironmentParseError>(())
+/// use fatoora_core::config::EnvironmentParseError;
+/// # Ok::<(), EnvironmentParseError>(())
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum EnvironmentType {
@@ -75,7 +76,7 @@ impl EnvironmentType {
 /// ```rust
 /// use fatoora_core::config::{Config, EnvironmentType};
 ///
-/// let config = Config::new(EnvironmentType::NonProduction, "path/to/UBL-Invoice-2.1.xsd");
+/// let config = Config::new(EnvironmentType::NonProduction);
 /// # let _ = config;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -85,7 +86,16 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(env: EnvironmentType, xsd_ubl_path: impl Into<PathBuf>) -> Self {
+    /// Create a config using the bundled UBL XSD path.
+    pub fn new(env: EnvironmentType) -> Self {
+        Self {
+            env,
+            xsd_ubl_path: default_xsd_path(),
+        }
+    }
+
+    /// Create a config with a custom UBL XSD path.
+    pub fn with_xsd_path(env: EnvironmentType, xsd_ubl_path: impl Into<PathBuf>) -> Self {
         Self {
             env,
             xsd_ubl_path: xsd_ubl_path.into(),
@@ -106,9 +116,12 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             env: EnvironmentType::NonProduction,
-            xsd_ubl_path: PathBuf::from(
-                "./assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd",
-            ),
+            xsd_ubl_path: default_xsd_path(),
         }
     }
+}
+
+fn default_xsd_path() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd")
 }
