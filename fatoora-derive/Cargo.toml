@@ -2,6 +2,15 @@
 name = "fatoora-derive"
 version = "0.1.0"
 edition = "2024"
+description = "Proc-macro helpers for fatoora-core validation rules"
+license = "MIT"
+authors = ["mqqz"]
+homepage = "https://github.com/mqqz/fatoora-rs"
+documentation = "https://docs.rs/fatoora-derive"
+repository = "https://github.com/mqqz/fatoora-rs"
+readme = "../README.md"
+keywords = ["zatca", "validation", "proc-macro"]
+categories = ["development-tools::procedural-macro-helpers"]
 
 [lib]
 proc-macro = true

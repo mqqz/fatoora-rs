@@ -1,12 +1,21 @@
 [package]
 name = "fatoora-rs-cli"
-version = "0.1.0"
+version = "0.1.0-alpha"
 edition = "2024"
+description = "Command-line interface for the fatoora ZATCA SDK"
+license = "MIT"
+authors = ["mqqz"]
+homepage = "https://github.com/mqqz/fatoora-rs"
+documentation = "https://docs.rs/fatoora-rs-cli"
+repository = "https://github.com/mqqz/fatoora-rs"
+readme = "../README.md"
+keywords = ["zatca", "e-invoice", "cli"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 anyhow = "1.0.100"
 clap = { version = "4.5.53", features = ["derive"] }
-fatoora-core = { path = "../fatoora-core" }
+fatoora-core = { version = "0.1.0-alpha", path = "../fatoora-core" }
 base64ct = "1.8.0"
 k256 = { version = "0.14.0-rc.1", features = ["pkcs8", "pem"] }
 libxml = "0.3.5"

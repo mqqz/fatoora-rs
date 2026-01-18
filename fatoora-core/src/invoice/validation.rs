@@ -54,6 +54,9 @@ fn build_validation_context(config: &Config) -> Result<SchemaValidationContext, 
 /// validate_xml_invoice_from_file("invoice.xml".as_ref(), &config)?;
 /// # Ok::<(), fatoora_core::invoice::validation::XmlValidationError>(())
 /// ```
+///
+/// # Errors
+/// Returns [`XmlValidationError`] if the file cannot be read or validation fails.
 pub fn validate_xml_invoice_from_file(path: &Path, config: &Config) -> ValidationResult {
     // check if file exists because libxml will just unhelpfully error out otherwise
     if !path.exists() {
@@ -75,6 +78,9 @@ pub fn validate_xml_invoice_from_file(path: &Path, config: &Config) -> Validatio
 }
 
 /// Validate an XML invoice string against the UBL schema.
+///
+/// # Errors
+/// Returns [`XmlValidationError`] if the XML is invalid or validation fails.
 pub fn validate_xml_invoice_from_str(xml: &str, config: &Config) -> ValidationResult {
     let mut validation_ctx = build_validation_context(config)?;
     let document = Parser::default()

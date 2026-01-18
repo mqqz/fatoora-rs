@@ -152,6 +152,10 @@ pub struct InvoiceSigner {
 }
 
 impl InvoiceSigner {
+    /// Construct a signer from DER-encoded certificate and key.
+    ///
+    /// # Errors
+    /// Returns [`SigningError`] if the certificate or key cannot be parsed.
     pub fn from_der(cert_der: &[u8], private_key_der: &[u8]) -> Result<Self, SigningError> {
         let cert = Certificate::from_der(cert_der)
             .map_err(|e| SigningError::SigningError(format!("Certificate parse error: {e:?}")))?;
@@ -163,6 +167,10 @@ impl InvoiceSigner {
         })
     }
 
+    /// Construct a signer from PEM-encoded certificate and key.
+    ///
+    /// # Errors
+    /// Returns [`SigningError`] if the certificate or key cannot be parsed.
     pub fn from_pem(cert_pem: &str, private_key_pem: &str) -> Result<Self, SigningError> {
         let cert = Certificate::from_pem(cert_pem.as_bytes())
             .map_err(|e| SigningError::SigningError(format!("Certificate parse error: {e:?}")))?;
@@ -197,6 +205,10 @@ impl InvoiceSigner {
         Ok(signed_invoice.with_xml(signed_xml))
     }
 
+    /// Sign a pre-built invoice XML string.
+    ///
+    /// # Errors
+    /// Returns [`SigningError`] if XML parsing or signature application fails.
     // TODO maybe return SignedInvoice instead?
     pub fn sign_xml(&self, xml: &str) -> Result<String, SigningError> {
         let mut doc = Parser::default()
@@ -241,6 +253,9 @@ impl InvoiceSigner {
 /// # let _ = hash;
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
+///
+/// # Errors
+/// Returns [`SigningError`] if canonicalization or hashing fails.
 pub fn invoice_hash_base64(doc: &Document) -> Result<String, SigningError> {
     let canonicalized = canonicalize_invoice(doc)?;
     let hash = Sha256::digest(canonicalized.as_bytes());

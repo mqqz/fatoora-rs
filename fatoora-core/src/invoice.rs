@@ -147,6 +147,9 @@ impl Address {
 /// assert_eq!(vat.as_str(), "399999999900003");
 /// # Ok::<(), fatoora_core::InvoiceError>(())
 /// ```
+///
+/// # Errors
+/// Returns [`InvoiceError::InvalidVatFormat`] if the input is empty.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct VatId(String);
 impl VatId {
@@ -316,6 +319,10 @@ pub type Seller = Party<SellerRole>;
 pub type Buyer = Party<BuyerRole>;
 
 impl Party<SellerRole> {
+    /// Create a seller party from validated inputs.
+    ///
+    /// # Errors
+    /// Returns an error if the VAT ID is invalid.
     pub fn new(
         name: String,
         address: Address,
@@ -334,6 +341,10 @@ impl Party<SellerRole> {
 }
 
 impl Party<BuyerRole> {
+    /// Create a buyer party from validated inputs.
+    ///
+    /// # Errors
+    /// Returns an error if the VAT ID is invalid or no identifier is provided.
     pub fn new(
         name: String,
         address: Address,
@@ -613,6 +624,10 @@ impl LineItem {
         }
     }
 
+    /// Create a line item from fully specified amounts.
+    ///
+    /// # Errors
+    /// Returns [`ValidationError`] if totals do not match computed values.
     pub fn try_from_parts(
         fields: LineItemPartsFields,
     ) -> std::result::Result<Self, ValidationError> {

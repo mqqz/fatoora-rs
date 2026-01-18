@@ -1,3 +1,15 @@
+//! Rust toolkit for ZATCA Phase 1/2 e-invoicing (CSR, signing, validation, QR, and API).
+//!
+//! # Examples
+//! ```rust
+//! use fatoora_core::config::{Config, EnvironmentType};
+//!
+//! let config = Config::new(
+//!     EnvironmentType::NonProduction,
+//!     "assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd",
+//! );
+//! # let _ = config;
+//! ```
 pub mod api;
 pub mod config;
 pub mod csr;
@@ -18,6 +30,7 @@ pub use invoice::xml::parse::ParseError;
 pub use invoice::validation::XmlValidationError;
 pub use api::ZatcaError;
 
+/// Top-level error wrapper for core operations.
 #[derive(Debug, Error)]
 pub enum Error {
     #[error(transparent)]
@@ -37,4 +50,3 @@ pub enum Error {
     #[error(transparent)]
     Csr(#[from] csr::CsrError),
 }
-

@@ -186,6 +186,10 @@ impl CsrProperties {
         ecdsa::SigningKey::<Secp256k1>::generate()
     }
 
+    /// Build a CSR using the provided signer.
+    ///
+    /// # Errors
+    /// Returns [`CsrError`] when subject or extension generation fails.
     pub fn build(&self, signer: &SigningKey, env: EnvironmentType) -> Result<CertReq, CsrError> {
         let subject = self.generate_subject()?;
         let asn1_extension = self.generate_template_name_extension(env)?;
@@ -213,12 +217,20 @@ impl CsrProperties {
             })
     }
 
+    /// Generate a CSR and a new signing key.
+    ///
+    /// # Errors
+    /// Returns [`CsrError`] when CSR generation fails.
     pub fn build_with_rng(&self, env: EnvironmentType) -> Result<(CertReq, SigningKey), CsrError> {
         let signer: ecdsa::SigningKey<Secp256k1> = self.generate_signer();
         let csr = self.build(&signer, env)?;
         Ok((csr, signer))
     }
 
+    /// Parse a CSR properties file.
+    ///
+    /// # Errors
+    /// Returns [`CsrError`] when the file cannot be read or required fields are missing.
     pub fn parse_csr_config(csr_path: &path::Path) -> Result<CsrProperties, CsrError> {
         let pathbuf = csr_path.to_path_buf();
         let file = File::open(csr_path).map_err(|e| CsrError::Io {

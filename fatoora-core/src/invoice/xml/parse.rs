@@ -38,6 +38,9 @@ pub enum ParseError {
 /// # let _ = invoice;
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
+///
+/// # Errors
+/// Returns [`ParseError`] if the XML is invalid or required fields are missing.
 pub fn parse_finalized_invoice_xml(xml: &str) -> Result<FinalizedInvoice, ParseError> {
     let doc = Parser::default()
         .parse_string(xml)
@@ -46,12 +49,18 @@ pub fn parse_finalized_invoice_xml(xml: &str) -> Result<FinalizedInvoice, ParseE
 }
 
 /// Parse a finalized invoice from an XML file.
+///
+/// # Errors
+/// Returns [`ParseError`] if the file cannot be read or the XML is invalid.
 pub fn parse_finalized_invoice_xml_file(path: &Path) -> Result<FinalizedInvoice, ParseError> {
     let xml = std::fs::read_to_string(path).map_err(|e| ParseError::XmlParse(format!("{e:?}")))?;
     parse_finalized_invoice_xml(&xml)
 }
 
 /// Parse a signed invoice from XML string.
+///
+/// # Errors
+/// Returns [`ParseError`] if the XML is invalid or required fields are missing.
 pub fn parse_signed_invoice_xml(xml: &str) -> Result<SignedInvoice, ParseError> {
     let doc = Parser::default()
         .parse_string(xml)
@@ -65,6 +74,9 @@ pub fn parse_signed_invoice_xml(xml: &str) -> Result<SignedInvoice, ParseError> 
 }
 
 /// Parse a signed invoice from an XML file.
+///
+/// # Errors
+/// Returns [`ParseError`] if the file cannot be read or the XML is invalid.
 pub fn parse_signed_invoice_xml_file(path: &Path) -> Result<SignedInvoice, ParseError> {
     let xml = std::fs::read_to_string(path).map_err(|e| ParseError::XmlParse(format!("{e:?}")))?;
     parse_signed_invoice_xml(&xml)

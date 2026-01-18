@@ -4,7 +4,13 @@ version = "0.1.0-alpha"
 edition = "2024"
 description = "Rust Fatoora/ZATCA SDK with C ABI and multi-language bindings"
 license = "MIT"
+repository = "https://github.com/mqqz/fatoora-rs"
 readme = "../README.md"
+authors = ["mqqz"]
+homepage = "https://github.com/mqqz/fatoora-rs"
+documentation = "https://docs.rs/fatoora-core"
+keywords = ["zatca", "e-invoice", "invoice", "ubl", "saudi"]
+categories = ["api-bindings", "cryptography", "parser-implementations"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -17,7 +23,7 @@ serde = "1.0.228"
 serde_json = "1.0.145"
 sha2 = "0.10.9"
 thiserror = "2.0.17"
-fatoora-derive = { path = "../fatoora-derive" }
+fatoora-derive = { version = "0.1.0", path = "../fatoora-derive" }
 x509-cert = { version = "0.3.0-rc.2", features = ["builder", "pem"] }
 k256 = { version = "0.14.0-rc.1", features = [
     "ecdsa",

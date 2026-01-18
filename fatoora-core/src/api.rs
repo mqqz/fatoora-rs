@@ -246,6 +246,7 @@ pub struct CsidCredentials<T> {
 }
 
 impl<T> CsidCredentials<T> {
+    /// Create credential bundle for ZATCA requests.
     pub fn new(
         env: EnvironmentType,
         request_id: Option<u64>,
@@ -302,6 +303,10 @@ enum RenewalResponseBody {
 
 // Public API
 impl ZatcaClient {
+    /// Create a new API client using the provided configuration.
+    ///
+    /// # Errors
+    /// Returns [`ZatcaError::Http`] if the HTTP client cannot be built.
     pub fn new(config: Config) -> Result<Self, ZatcaError> {
         let client = Client::builder().build().map_err(ZatcaError::Http)?;
 
@@ -313,6 +318,9 @@ impl ZatcaClient {
 
     /// Report a simplified invoice to ZATCA's gateway.
     /// See [ZATCA documentation](https://sandbox.zatca.gov.sa/IntegrationSandbox/reporting-api) for more details.
+    ///
+    /// # Errors
+    /// Returns [`ZatcaError`] for network failures, invalid responses, or client state issues.
     pub async fn report_simplified_invoice(
         &self,
         invoice: &SignedInvoice,
@@ -402,6 +410,9 @@ impl ZatcaClient {
 
     /// Clear a standard invoice through ZATCA's gateway.
     /// See [ZATCA documentation](https://sandbox.zatca.gov.sa/Integration/clearance-api) for more details.
+    ///
+    /// # Errors
+    /// Returns [`ZatcaError`] for network failures, invalid responses, or client state issues.
     pub async fn clear_standard_invoice(
         &self,
         invoice: &SignedInvoice,
@@ -485,6 +496,9 @@ impl ZatcaClient {
 
     /// Check invoice compliance through ZATCA's gateway.
     /// See [ZATCA documentation](https://sandbox.zatca.gov.sa/IntegrationSandbox/preInvoice-api) for more details.
+    ///
+    /// # Errors
+    /// Returns [`ZatcaError`] for network failures, invalid responses, or client state issues.
     pub async fn check_invoice_compliance(
         &self,
         invoice: &SignedInvoice,
@@ -553,6 +567,9 @@ impl ZatcaClient {
     /// Request a compliance CSID from ZATCA by submitting a CSR.
     /// See [ZATCA
     /// documentation](https://sandbox.zatca.gov.sa/IntegrationSandbox/complianceCert-api) for more details.
+    ///
+    /// # Errors
+    /// Returns [`ZatcaError`] if the request fails or the response cannot be parsed.
     pub async fn post_csr_for_ccsid(
         &self,
         csr: &CertReq,
@@ -596,6 +613,9 @@ impl ZatcaClient {
 
     /// Requests a production CSID from ZATCA using a compliance CSID previously obtained e.g. from [post_csr_for_ccsid][ZatcaClient::post_csr_for_ccsid].
     /// See [ZATCA documentation](https://sandbox.zatca.gov.sa/Integration/request-api) for more details.
+    ///
+    /// # Errors
+    /// Returns [`ZatcaError`] if the request fails or the compliance CSID is missing data.
     pub async fn post_ccsid_for_pcsid(
         &self,
         ccsid: &CsidCredentials<Compliance>,
@@ -646,6 +666,9 @@ impl ZatcaClient {
 
     /// Renew a production CSID by submitting a new CSR.
     /// See [ZATCA documentation](https://sandbox.zatca.gov.sa/Integration/renewal-api) for more details.
+    ///
+    /// # Errors
+    /// Returns [`ZatcaError`] if the request fails or the response cannot be parsed.
     pub async fn renew_csid(
         &self,
         pcsid: &CsidCredentials<Production>,

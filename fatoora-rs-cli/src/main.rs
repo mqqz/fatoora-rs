@@ -1,3 +1,9 @@
+//! Command-line interface for the `fatoora-core` ZATCA SDK.
+//!
+//! # Examples
+//! ```bash
+//! fatoora-rs-cli csr --csr-config csr.properties --generated-csr csr.pem --private-key key.pem
+//! ```
 use anyhow::{Context, Result, bail};
 use base64ct::{Base64, Encoding};
 use clap::{Parser, Subcommand, ValueEnum};

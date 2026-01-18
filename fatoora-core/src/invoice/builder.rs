@@ -180,6 +180,10 @@ impl InvoiceBuilder {
         self
     }
 
+    /// Validate the invoice and compute totals.
+    ///
+    /// # Errors
+    /// Returns [`InvoiceError::Validation`] when required fields are missing or invalid.
     pub fn build(self) -> Result<FinalizedInvoice, InvoiceError> {
         let mut issues = Vec::new();
         let mut push_issue = |field: InvoiceField, kind: ValidationKind, line_item_index| {
@@ -276,6 +280,9 @@ impl FinalizedInvoice {
     }
 
     /// Sign the invoice with the provided signer.
+    ///
+    /// # Errors
+    /// Returns [`SigningError`] if signing or XML generation fails.
     pub fn sign(self, signer: &InvoiceSigner) -> Result<SignedInvoice, SigningError> {
         signer.sign(self)
     }

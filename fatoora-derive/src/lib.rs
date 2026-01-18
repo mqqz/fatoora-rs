@@ -1,3 +1,15 @@
+//! Proc-macro helpers for validating invoice inputs used by `fatoora-core`.
+//!
+//! # Examples
+//! ```rust
+//! use fatoora_derive::Validate;
+//!
+//! #[derive(Validate)]
+//! struct Payload {
+//!     #[validate(non_empty)]
+//!     name: String,
+//! }
+//! ```
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{ToTokens, quote};
@@ -58,6 +70,10 @@ fn is_string_type(ty: &Type) -> bool {
     }
 }
 
+/// Derive constructor-based validation for structs.
+///
+/// # Errors
+/// Emits a compile error if rules are unknown or applied to unsupported field types.
 #[proc_macro_derive(Validate, attributes(validate, validate_error))]
 pub fn derive_validate(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
