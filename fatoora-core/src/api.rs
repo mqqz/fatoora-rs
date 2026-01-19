@@ -312,22 +312,21 @@ impl ZatcaClient {
     /// Returns [`ZatcaError::Http`] if the HTTP client cannot be built.
     pub fn new(config: Config) -> Result<Self, ZatcaError> {
         let client = Client::builder().build().map_err(ZatcaError::Http)?;
+        let base_url = std::env::var("FATOORA_ZATCA_BASE_URL")
+            .ok()
+            .map(|value| {
+                if value.ends_with('/') {
+                    value
+                } else {
+                    format!("{value}/")
+                }
+            })
+            .unwrap_or_else(|| config.env().endpoint_url().to_string());
 
         Ok(Self {
             config,
             _client: client,
-            base_url: config.env().endpoint_url().to_string(),
-        })
-    }
-
-    #[cfg(test)]
-    pub fn with_base_url(config: Config, base_url: impl Into<String>) -> Result<Self, ZatcaError> {
-        let client = Client::builder().build().map_err(ZatcaError::Http)?;
-
-        Ok(Self {
-            config,
-            _client: client,
-            base_url: base_url.into(),
+            base_url,
         })
     }
 
@@ -785,6 +784,7 @@ impl ZatcaClient {
 mod tests {
     use super::*;
     use crate::{
+        csr::CsrProperties,
         invoice::{
             sign::SignedProperties, xml::ToXml, Address, InvoiceBuilder, InvoiceSubType,
             InvoiceType, LineItem, Party, RequiredInvoiceFields, SellerRole, VatCategory,
@@ -792,8 +792,10 @@ mod tests {
     };
     use base64ct::{Base64, Encoding};
     use chrono::TimeZone;
+    use httpmock::{Method::PATCH, Method::POST, MockServer};
     use isocountry::CountryCode;
     use iso_currency::Currency;
+    use std::path::Path;
 
     #[test]
     fn deserialize_validation_response_with_info_object() {
@@ -919,6 +921,81 @@ mod tests {
     }
 
     #[test]
+    fn response_getters_expose_fields() {
+        let payload = r#"{
+          "validationResults": {
+            "infoMessages": {
+              "type": "INFO",
+              "code": "INFO_CODE",
+              "category": "Info",
+              "message": "ok",
+              "status": "PASS"
+            },
+            "warningMessages": [
+              {
+                "type": "WARN",
+                "code": "WARN_CODE",
+                "category": "Warn",
+                "message": "warn",
+                "status": "WARN"
+              }
+            ],
+            "errorMessages": [],
+            "status": "PASS"
+          },
+          "reportingStatus": "REPORTED",
+          "clearanceStatus": "CLEARED",
+          "qrSellertStatus": "OK",
+          "qrBuyertStatus": "OK"
+        }"#;
+
+        let parsed: ValidationResponse = serde_json::from_str(payload).expect("deserialize");
+        assert_eq!(parsed.reporting_status(), Some("REPORTED"));
+        assert_eq!(parsed.clearance_status(), Some("CLEARED"));
+        assert_eq!(parsed.qr_seller_status(), Some("OK"));
+        assert_eq!(parsed.qr_buyer_status(), Some("OK"));
+
+        let results = parsed.validation_results();
+        assert_eq!(results.status(), Some("PASS"));
+        assert_eq!(results.warning_messages().len(), 1);
+        assert_eq!(results.error_messages().len(), 0);
+
+        match results.info_messages() {
+            MessageList::One(message) => {
+                assert_eq!(message.message_type(), Some("INFO"));
+                assert_eq!(message.code(), Some("INFO_CODE"));
+                assert_eq!(message.category(), Some("Info"));
+                assert_eq!(message.message(), Some("ok"));
+                assert_eq!(message.status(), Some("PASS"));
+            }
+            _ => panic!("expected info message"),
+        }
+    }
+
+    #[test]
+    fn error_response_getters_expose_fields() {
+        let unauthorized = UnauthorizedResponse {
+            timestamp: Some(1),
+            status: Some(401),
+            error: Some("Unauthorized".into()),
+            message: Some("nope".into()),
+        };
+        assert_eq!(unauthorized.timestamp(), Some(1));
+        assert_eq!(unauthorized.status(), Some(401));
+        assert_eq!(unauthorized.error(), Some("Unauthorized"));
+        assert_eq!(unauthorized.message(), Some("nope"));
+
+        let server_error = ServerErrorResponse {
+            category: Some("Server".into()),
+            code: Some("ERR".into()),
+            message: Some("boom".into()),
+        };
+        assert_eq!(server_error.category(), Some("Server"));
+        assert_eq!(server_error.code(), Some("ERR"));
+        assert_eq!(server_error.message(), Some("boom"));
+    }
+
+    #[test]
     fn build_endpoint_trims_leading_slash() {
         let client = ZatcaClient::new(Config::default()).expect("client");
         let with_slash = client.build_endpoint("/invoices/reporting/single");
@@ -1002,6 +1079,626 @@ mod tests {
 
         let result = client.post_ccsid_for_pcsid(&creds).await;
         assert!(matches!(result, Err(ZatcaError::ClientState(_))));
+    }
+
+    use std::sync::{Mutex, OnceLock};
+
+    fn base_url_lock() -> &'static Mutex<()> {
+        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+        LOCK.get_or_init(|| Mutex::new(()))
+    }
+
+    struct BaseUrlGuard {
+        _lock: std::sync::MutexGuard<'static, ()>,
+        previous: Option<String>,
+    }
+
+    impl BaseUrlGuard {
+        fn new(url: &str) -> Self {
+            let lock = base_url_lock().lock().expect("base url lock");
+            let previous = std::env::var("FATOORA_ZATCA_BASE_URL").ok();
+            unsafe {
+                std::env::set_var("FATOORA_ZATCA_BASE_URL", url);
+            }
+            Self {
+                _lock: lock,
+                previous,
+            }
+        }
+    }
+
+    impl Drop for BaseUrlGuard {
+        fn drop(&mut self) {
+            match self.previous.as_ref() {
+                Some(value) => unsafe {
+                    std::env::set_var("FATOORA_ZATCA_BASE_URL", value);
+                },
+                None => unsafe {
+                    std::env::remove_var("FATOORA_ZATCA_BASE_URL");
+                },
+            }
+        }
+    }
+
+    fn try_start_server() -> Option<MockServer> {
+        std::panic::catch_unwind(MockServer::start).ok()
+    }
+
+    #[test]
+    fn zatca_invoice_endpoints_use_base_url() {
+        let server = match try_start_server() {
+            Some(server) => server,
+            None => return,
+        };
+        let _guard = BaseUrlGuard::new(&format!("{}/", server.base_url()));
+        let body = r#"{
+          "validationResults": {
+            "infoMessages": [],
+            "warningMessages": [],
+            "errorMessages": [],
+            "status": "PASS"
+          },
+          "reportingStatus": "REPORTED",
+          "clearanceStatus": null,
+          "qrSellertStatus": null,
+          "qrBuyertStatus": null
+        }"#;
+
+        let report_mock = server.mock(|when, then| {
+            when.method(POST)
+                .path("/invoices/reporting/single")
+                .header("accept-language", "ar");
+            then.status(200)
+                .header("content-type", "application/json")
+                .body(body);
+        });
+
+        let clear_mock = server.mock(|when, then| {
+            when.method(POST)
+                .path("/invoices/clearance/single")
+                .header("accept-language", "en");
+            then.status(200)
+                .header("content-type", "application/json")
+                .body(body);
+        });
+
+        let compliance_mock = server.mock(|when, then| {
+            when.method(POST)
+                .path("/compliance/invoices")
+                .header("accept-language", "en");
+            then.status(200)
+                .header("content-type", "application/json")
+                .body(body);
+        });
+
+        let rt = tokio::runtime::Runtime::new().expect("runtime");
+        rt.block_on(async {
+            let client = ZatcaClient::new(Config::default()).expect("client");
+            let simplified = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
+            let standard = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Standard));
+            let pcsid = CsidCredentials::new(
+                EnvironmentType::NonProduction,
+                None,
+                "token",
+                "secret",
+            );
+            let ccsid = CsidCredentials::new(
+                EnvironmentType::NonProduction,
+                None,
+                "token",
+                "secret",
+            );
+
+            let report = client
+                .report_simplified_invoice(&simplified, &pcsid, false, Some("ar"))
+                .await;
+            assert!(report.is_ok());
+            let clear = client
+                .clear_standard_invoice(&standard, &pcsid, true, None)
+                .await;
+            assert!(clear.is_ok());
+            let compliance = client.check_invoice_compliance(&simplified, &ccsid).await;
+            assert!(compliance.is_ok());
+
+            report_mock.assert();
+            clear_mock.assert();
+            compliance_mock.assert();
+        });
+    }
+
+    #[test]
+    fn zatca_csid_endpoints_use_base_url() {
+        let server = match try_start_server() {
+            Some(server) => server,
+            None => return,
+        };
+        let _guard = BaseUrlGuard::new(&format!("{}/", server.base_url()));
+        let ccsid_body = r#"{
+          "requestID": 42,
+          "binarySecurityToken": "token",
+          "secret": "secret"
+        }"#;
+        let pcsid_body = r#"{
+          "requestID": 77,
+          "binarySecurityToken": "ptoken",
+          "secret": "psecret"
+        }"#;
+        let renew_body = r#"{
+          "value": {
+            "requestID": 88,
+            "binarySecurityToken": "rtoken",
+            "secret": "rsecret"
+          }
+        }"#;
+
+        let csr_mock = server.mock(|when, then| {
+            when.method(POST).path("/compliance").header("OTP", "123456");
+            then.status(200)
+                .header("content-type", "application/json")
+                .body(ccsid_body);
+        });
+        let pcsid_mock = server.mock(|when, then| {
+            when.method(POST).path("/production/csids");
+            then.status(200)
+                .header("content-type", "application/json")
+                .body(pcsid_body);
+        });
+        let renew_mock = server.mock(|when, then| {
+            when.method(PATCH)
+                .path("/production/csids")
+                .header("accept-language", "ar");
+            then.status(428)
+                .header("content-type", "application/json")
+                .body(renew_body);
+        });
+
+        let rt = tokio::runtime::Runtime::new().expect("runtime");
+        rt.block_on(async {
+            let client = ZatcaClient::new(Config::default()).expect("client");
+            let csr = build_csr();
+            let ccsid = client
+                .post_csr_for_ccsid(&csr, "123456")
+                .await
+                .expect("ccsid");
+            assert_eq!(ccsid.request_id(), Some(42));
+
+            let pcsid = client
+                .post_ccsid_for_pcsid(&ccsid)
+                .await
+                .expect("pcsid");
+            assert_eq!(pcsid.request_id(), Some(77));
+
+            let renewed = client
+                .renew_csid(&pcsid, &csr, "123456", Some("ar"))
+                .await
+                .expect("renew");
+            assert_eq!(renewed.request_id(), Some(88));
+
+            csr_mock.assert();
+            pcsid_mock.assert();
+            renew_mock.assert();
+        });
+    }
+
+    #[test]
+    fn report_handles_unauthorized_and_not_acceptable() {
+        let server = match try_start_server() {
+            Some(server) => server,
+            None => return,
+        };
+        let _guard = BaseUrlGuard::new(&format!("{}/", server.base_url()));
+        let unauthorized = r#"{"status":401,"error":"Unauthorized","message":"nope"}"#;
+
+        let mut unauthorized_mock = server.mock(|when, then| {
+            when.method(POST).path("/invoices/reporting/single");
+            then.status(401)
+                .header("content-type", "application/json")
+                .body(unauthorized);
+        });
+
+        let not_acceptable_mock = server.mock(|when, then| {
+            when.method(POST).path("/invoices/reporting/single");
+            then.status(406).body("nope");
+        });
+
+        let rt = tokio::runtime::Runtime::new().expect("runtime");
+        rt.block_on(async {
+            let client = ZatcaClient::new(Config::default()).expect("client");
+            let invoice = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
+            let creds = CsidCredentials::new(
+                EnvironmentType::NonProduction,
+                None,
+                "token",
+                "secret",
+            );
+
+            let result = client
+                .report_simplified_invoice(&invoice, &creds, false, None)
+                .await;
+            assert!(matches!(result, Err(ZatcaError::Unauthorized(_))));
+
+            unauthorized_mock.delete();
+
+            let result = client
+                .report_simplified_invoice(&invoice, &creds, false, None)
+                .await;
+            assert!(matches!(result, Err(ZatcaError::InvalidResponse(_))));
+
+            not_acceptable_mock.assert();
+        });
+    }
+
+    #[test]
+    fn report_and_clear_handle_server_error_and_unauthorized() {
+        let server = match try_start_server() {
+            Some(server) => server,
+            None => return,
+        };
+        let _guard = BaseUrlGuard::new(&format!("{}/", server.base_url()));
+
+        let report_mock = server.mock(|when, then| {
+            when.method(POST).path("/invoices/reporting/single");
+            then.status(500)
+                .header("content-type", "application/json")
+                .body(r#"{"category":"Server","code":"ERR","message":"boom"}"#);
+        });
+
+        let clear_mock = server.mock(|when, then| {
+            when.method(POST).path("/invoices/clearance/single");
+            then.status(401)
+                .header("content-type", "application/json")
+                .body(r#"{"status":401,"error":"Unauthorized","message":"nope"}"#);
+        });
+
+        let rt = tokio::runtime::Runtime::new().expect("runtime");
+        rt.block_on(async {
+            let client = ZatcaClient::new(Config::default()).expect("client");
+            let simplified = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
+            let standard = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Standard));
+            let pcsid = CsidCredentials::new(
+                EnvironmentType::NonProduction,
+                None,
+                "token",
+                "secret",
+            );
+
+            let result = client
+                .report_simplified_invoice(&simplified, &pcsid, false, None)
+                .await;
+            assert!(matches!(result, Err(ZatcaError::ServerError(_))));
+
+            let result = client
+                .clear_standard_invoice(&standard, &pcsid, true, None)
+                .await;
+            assert!(matches!(result, Err(ZatcaError::Unauthorized(_))));
+
+            report_mock.assert();
+            clear_mock.assert();
+        });
+    }
+
+    #[test]
+    fn clear_and_compliance_error_paths() {
+        let server = match try_start_server() {
+            Some(server) => server,
+            None => return,
+        };
+        let _guard = BaseUrlGuard::new(&format!("{}/", server.base_url()));
+
+        let clear_mock = server.mock(|when, then| {
+            when.method(POST).path("/invoices/clearance/single");
+            then.status(200).body("not json");
+        });
+
+        let compliance_mock = server.mock(|when, then| {
+            when.method(POST).path("/compliance/invoices");
+            then.status(500)
+                .header("content-type", "application/json")
+                .body(r#"{"category":"Server","code":"ERR","message":"boom"}"#);
+        });
+
+        let rt = tokio::runtime::Runtime::new().expect("runtime");
+        rt.block_on(async {
+            let client = ZatcaClient::new(Config::default()).expect("client");
+            let standard = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Standard));
+            let simplified = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
+            let pcsid = CsidCredentials::new(
+                EnvironmentType::NonProduction,
+                None,
+                "token",
+                "secret",
+            );
+            let ccsid = CsidCredentials::new(
+                EnvironmentType::NonProduction,
+                None,
+                "token",
+                "secret",
+            );
+
+            let result = client
+                .clear_standard_invoice(&standard, &pcsid, true, None)
+                .await;
+            assert!(matches!(result, Err(ZatcaError::InvalidResponse(_))));
+
+            let result = client.check_invoice_compliance(&simplified, &ccsid).await;
+            assert!(matches!(result, Err(ZatcaError::ServerError(_))));
+
+            clear_mock.assert();
+            compliance_mock.assert();
+        });
+    }
+
+    #[test]
+    fn report_handles_conflict_response() {
+        let server = match try_start_server() {
+            Some(server) => server,
+            None => return,
+        };
+        let _guard = BaseUrlGuard::new(&format!("{}/", server.base_url()));
+        let body = r#"{
+          "validationResults": {
+            "infoMessages": [],
+            "warningMessages": [],
+            "errorMessages": [],
+            "status": "PASS"
+          },
+          "reportingStatus": "REPORTED",
+          "clearanceStatus": null,
+          "qrSellertStatus": null,
+          "qrBuyertStatus": null
+        }"#;
+
+        let report_mock = server.mock(|when, then| {
+            when.method(POST).path("/invoices/reporting/single");
+            then.status(409)
+                .header("content-type", "application/json")
+                .body(body);
+        });
+
+        let rt = tokio::runtime::Runtime::new().expect("runtime");
+        rt.block_on(async {
+            let client = ZatcaClient::new(Config::default()).expect("client");
+            let invoice = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
+            let pcsid = CsidCredentials::new(
+                EnvironmentType::NonProduction,
+                None,
+                "token",
+                "secret",
+            );
+
+            let result = client
+                .report_simplified_invoice(&invoice, &pcsid, false, None)
+                .await;
+            assert!(result.is_ok());
+
+            report_mock.assert();
+        });
+    }
+
+    #[test]
+    fn clear_handles_server_error() {
+        let server = match try_start_server() {
+            Some(server) => server,
+            None => return,
+        };
+        let _guard = BaseUrlGuard::new(&format!("{}/", server.base_url()));
+
+        let clear_mock = server.mock(|when, then| {
+            when.method(POST).path("/invoices/clearance/single");
+            then.status(500)
+                .header("content-type", "application/json")
+                .body(r#"{"category":"Server","code":"ERR","message":"boom"}"#);
+        });
+
+        let rt = tokio::runtime::Runtime::new().expect("runtime");
+        rt.block_on(async {
+            let client = ZatcaClient::new(Config::default()).expect("client");
+            let invoice = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Standard));
+            let pcsid = CsidCredentials::new(
+                EnvironmentType::NonProduction,
+                None,
+                "token",
+                "secret",
+            );
+
+            let result = client
+                .clear_standard_invoice(&invoice, &pcsid, true, None)
+                .await;
+            assert!(matches!(result, Err(ZatcaError::ServerError(_))));
+
+            clear_mock.assert();
+        });
+    }
+
+    #[test]
+    fn compliance_handles_unauthorized() {
+        let server = match try_start_server() {
+            Some(server) => server,
+            None => return,
+        };
+        let _guard = BaseUrlGuard::new(&format!("{}/", server.base_url()));
+
+        let compliance_mock = server.mock(|when, then| {
+            when.method(POST).path("/compliance/invoices");
+            then.status(401)
+                .header("content-type", "application/json")
+                .body(r#"{"status":401,"error":"Unauthorized","message":"nope"}"#);
+        });
+
+        let rt = tokio::runtime::Runtime::new().expect("runtime");
+        rt.block_on(async {
+            let client = ZatcaClient::new(Config::default()).expect("client");
+            let invoice = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
+            let ccsid = CsidCredentials::new(
+                EnvironmentType::NonProduction,
+                None,
+                "token",
+                "secret",
+            );
+
+            let result = client.check_invoice_compliance(&invoice, &ccsid).await;
+            assert!(matches!(result, Err(ZatcaError::Unauthorized(_))));
+
+            compliance_mock.assert();
+        });
+    }
+
+    #[test]
+    fn csid_requests_handle_invalid_and_unauthorized() {
+        let server = match try_start_server() {
+            Some(server) => server,
+            None => return,
+        };
+        let _guard = BaseUrlGuard::new(&format!("{}/", server.base_url()));
+
+        let csr_mock = server.mock(|when, then| {
+            when.method(POST).path("/compliance");
+            then.status(400).body("bad");
+        });
+
+        let pcsid_mock = server.mock(|when, then| {
+            when.method(POST).path("/production/csids");
+            then.status(400).body("bad");
+        });
+
+        let renew_mock = server.mock(|when, then| {
+            when.method(PATCH).path("/production/csids");
+            then.status(401)
+                .header("content-type", "application/json")
+                .body(r#"{"status":401,"error":"Unauthorized","message":"nope"}"#);
+        });
+
+        let rt = tokio::runtime::Runtime::new().expect("runtime");
+        rt.block_on(async {
+            let client = ZatcaClient::new(Config::default()).expect("client");
+            let csr = build_csr();
+
+            let result = client.post_csr_for_ccsid(&csr, "123456").await;
+            assert!(matches!(result, Err(ZatcaError::InvalidResponse(_))));
+
+            let ccsid = CsidCredentials::new(
+                EnvironmentType::NonProduction,
+                Some(10),
+                "token",
+                "secret",
+            );
+            let result = client.post_ccsid_for_pcsid(&ccsid).await;
+            assert!(matches!(result, Err(ZatcaError::InvalidResponse(_))));
+
+            let pcsid = CsidCredentials::new(
+                EnvironmentType::NonProduction,
+                Some(11),
+                "token",
+                "secret",
+            );
+            let result = client
+                .renew_csid(&pcsid, &csr, "123456", None)
+                .await;
+            assert!(matches!(result, Err(ZatcaError::Unauthorized(_))));
+
+            csr_mock.assert();
+            pcsid_mock.assert();
+            renew_mock.assert();
+        });
+    }
+
+    #[test]
+    fn compliance_and_renew_invalid_response_paths() {
+        let server = match try_start_server() {
+            Some(server) => server,
+            None => return,
+        };
+        let _guard = BaseUrlGuard::new(&format!("{}/", server.base_url()));
+
+        let compliance_mock = server.mock(|when, then| {
+            when.method(POST).path("/compliance/invoices");
+            then.status(200).body("not json");
+        });
+
+        let renew_mock = server.mock(|when, then| {
+            when.method(PATCH).path("/production/csids");
+            then.status(418).body("nope");
+        });
+
+        let rt = tokio::runtime::Runtime::new().expect("runtime");
+        rt.block_on(async {
+            let client = ZatcaClient::new(Config::default()).expect("client");
+            let invoice = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
+            let ccsid = CsidCredentials::new(
+                EnvironmentType::NonProduction,
+                None,
+                "token",
+                "secret",
+            );
+            let pcsid = CsidCredentials::new(
+                EnvironmentType::NonProduction,
+                Some(1),
+                "token",
+                "secret",
+            );
+            let csr = build_csr();
+
+            let result = client.check_invoice_compliance(&invoice, &ccsid).await;
+            assert!(matches!(result, Err(ZatcaError::InvalidResponse(_))));
+
+            let result = client
+                .renew_csid(&pcsid, &csr, "123456", None)
+                .await;
+            assert!(matches!(result, Err(ZatcaError::InvalidResponse(_))));
+
+            compliance_mock.assert();
+            renew_mock.assert();
+        });
+    }
+
+    #[test]
+    fn csid_requests_handle_invalid_json() {
+        let server = match try_start_server() {
+            Some(server) => server,
+            None => return,
+        };
+        let _guard = BaseUrlGuard::new(&format!("{}/", server.base_url()));
+
+        let csr_mock = server.mock(|when, then| {
+            when.method(POST).path("/compliance");
+            then.status(200).body("not json");
+        });
+
+        let pcsid_mock = server.mock(|when, then| {
+            when.method(POST).path("/production/csids");
+            then.status(200).body("not json");
+        });
+
+        let rt = tokio::runtime::Runtime::new().expect("runtime");
+        rt.block_on(async {
+            let client = ZatcaClient::new(Config::default()).expect("client");
+            let csr = build_csr();
+
+            let result = client.post_csr_for_ccsid(&csr, "123456").await;
+            assert!(matches!(result, Err(ZatcaError::InvalidResponse(_))));
+
+            let ccsid = CsidCredentials::new(
+                EnvironmentType::NonProduction,
+                Some(10),
+                "token",
+                "secret",
+            );
+            let result = client.post_ccsid_for_pcsid(&ccsid).await;
+            assert!(matches!(result, Err(ZatcaError::InvalidResponse(_))));
+
+            csr_mock.assert();
+            pcsid_mock.assert();
+        });
+    }
+
+    fn build_csr() -> CertReq {
+        let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
+        let csr_config = CsrProperties::parse_csr_config(&config_path).expect("csr config");
+        let (csr, _key) = csr_config
+            .build_with_rng(EnvironmentType::NonProduction)
+            .expect("csr build");
+        csr
     }
 
     fn build_signed_invoice(invoice_type: InvoiceType) -> SignedInvoice {

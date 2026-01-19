@@ -35,3 +35,23 @@ pub unsafe extern "C" fn fatoora_error_free(error: *mut std::os::raw::c_char) {
         unsafe { drop(std::ffi::CString::from_raw(error)) };
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::FfiResult;
+
+    #[test]
+    fn ok_sets_error_null() {
+        let result = FfiResult::ok(123u32);
+        assert!(result.ok);
+        assert!(result.error.is_null());
+    }
+
+    #[test]
+    fn err_allocates_error() {
+        let result = FfiResult::<u32>::err("boom".to_string());
+        assert!(!result.ok);
+        assert!(!result.error.is_null());
+        unsafe { drop(std::ffi::CString::from_raw(result.error)) };
+    }
+}

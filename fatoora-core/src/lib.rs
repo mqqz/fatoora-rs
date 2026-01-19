@@ -47,3 +47,64 @@ pub enum Error {
     #[error(transparent)]
     Csr(#[from] csr::CsrError),
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Error;
+    use crate::{
+        api::ZatcaError,
+        csr::CsrError,
+        invoice::{
+            InvoiceError, QrCodeError, ValidationError, ValidationIssue, ValidationKind,
+            InvoiceField,
+        },
+    };
+    use crate::invoice::sign::SigningError;
+    use crate::invoice::xml::InvoiceXmlError;
+    use crate::invoice::xml::parse::ParseError;
+    use crate::invoice::validation::XmlValidationError;
+    use quick_xml::se::SeError;
+
+    #[test]
+    fn error_conversions_cover_variants() {
+        let invoice_err = InvoiceError::Validation(ValidationError::new(vec![
+            ValidationIssue {
+                field: InvoiceField::Id,
+                kind: ValidationKind::Missing,
+                line_item_index: None,
+            },
+        ]));
+        let err: Error = invoice_err.into();
+        assert!(matches!(err, Error::Invoice(_)));
+
+        let err: Error = SigningError::SigningError("sign".into()).into();
+        assert!(matches!(err, Error::Signing(_)));
+
+        let err: Error = QrCodeError::MissingSellerName.into();
+        assert!(matches!(err, Error::Qr(_)));
+
+        let xml_err = InvoiceXmlError::Serialize {
+            source: SeError::Custom("xml".into()),
+        };
+        let err: Error = xml_err.into();
+        assert!(matches!(err, Error::Xml(_)));
+
+        let err: Error = ParseError::MissingField("uuid").into();
+        assert!(matches!(err, Error::Parse(_)));
+
+        let err: Error = XmlValidationError::InvalidXmlPath {
+            path: "bad".into(),
+        }
+        .into();
+        assert!(matches!(err, Error::XmlValidation(_)));
+
+        let err: Error = ZatcaError::ClientState("state".into()).into();
+        assert!(matches!(err, Error::Api(_)));
+
+        let err: Error = CsrError::Validation {
+            message: "csr".into(),
+        }
+        .into();
+        assert!(matches!(err, Error::Csr(_)));
+    }
+}

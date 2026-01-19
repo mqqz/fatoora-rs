@@ -146,3 +146,30 @@ pub struct FfiCsidCompliance {
 pub struct FfiCsidProduction {
     pub ptr: *mut c_void,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn enum_conversions() {
+        assert_eq!(EnvironmentType::from(FfiEnvironment::NonProduction), EnvironmentType::NonProduction);
+        assert_eq!(EnvironmentType::from(FfiEnvironment::Simulation), EnvironmentType::Simulation);
+        assert_eq!(EnvironmentType::from(FfiEnvironment::Production), EnvironmentType::Production);
+
+        assert_eq!(InvoiceSubType::from(FfiInvoiceSubType::Standard), InvoiceSubType::Standard);
+        assert_eq!(InvoiceSubType::from(FfiInvoiceSubType::Simplified), InvoiceSubType::Simplified);
+
+        assert_eq!(VatCategory::from(FfiVatCategory::Exempt), VatCategory::Exempt);
+        assert_eq!(VatCategory::from(FfiVatCategory::Standard), VatCategory::Standard);
+        assert_eq!(VatCategory::from(FfiVatCategory::Zero), VatCategory::Zero);
+        assert_eq!(VatCategory::from(FfiVatCategory::OutOfScope), VatCategory::OutOfScope);
+    }
+
+    #[test]
+    fn ffi_string_from_owned() {
+        let value = FfiString::from("hello".to_string());
+        assert!(!value.ptr.is_null());
+        unsafe { drop(CString::from_raw(value.ptr)) };
+    }
+}

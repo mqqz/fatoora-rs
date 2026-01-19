@@ -49,3 +49,4 @@ bitflags = { version = "2.10.0", features = ["serde"] }
 
 [dev-dependencies]
 tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread"] }
+httpmock = "0.7.0"

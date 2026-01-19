@@ -25,7 +25,7 @@ use fatoora_core::invoice::validation::{validate_xml_invoice_from_file, validate
 mod error;
 mod types;
 
-pub use error::FfiResult;
+pub use error::{FfiResult, fatoora_error_free};
 pub use types::{
     FfiConfig, FfiEnvironment, FfiFinalizedInvoice, FfiInvoiceBuilder, FfiInvoiceSubType,
     FfiInvoiceTypeKind, FfiSignedInvoice, FfiSigner, FfiString, FfiVatCategory, FfiInvoiceFlag,
@@ -2235,4 +2235,1502 @@ pub unsafe extern "C" fn fatoora_signed_invoice_free(signed: *mut FfiSignedInvoi
     }
     unsafe { drop(Box::from_raw(signed.ptr as *mut SignedInvoice)) };
     signed.ptr = std::ptr::null_mut();
+}
+
+#[cfg(test)]
+mod test_support {
+    use std::sync::{Mutex, OnceLock};
+
+    fn base_url_lock() -> &'static Mutex<()> {
+        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+        LOCK.get_or_init(|| Mutex::new(()))
+    }
+
+    pub(super) struct BaseUrlGuard {
+        _lock: std::sync::MutexGuard<'static, ()>,
+        previous: Option<String>,
+    }
+
+    impl BaseUrlGuard {
+        pub(super) fn new(url: &str) -> Self {
+            let lock = base_url_lock()
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner());
+            let previous = std::env::var("FATOORA_ZATCA_BASE_URL").ok();
+            unsafe {
+                std::env::set_var("FATOORA_ZATCA_BASE_URL", url);
+            }
+            Self {
+                _lock: lock,
+                previous,
+            }
+        }
+    }
+
+    impl Drop for BaseUrlGuard {
+        fn drop(&mut self) {
+            match self.previous.as_ref() {
+                Some(value) => unsafe {
+                    std::env::set_var("FATOORA_ZATCA_BASE_URL", value);
+                },
+                None => unsafe {
+                    std::env::remove_var("FATOORA_ZATCA_BASE_URL");
+                },
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod ffi_zatca_tests {
+    use std::ffi::CString;
+    use std::os::raw::c_void;
+    use std::path::Path;
+    use std::str::FromStr;
+    use std::time::Duration;
+
+    use chrono::TimeZone;
+    use fatoora_core::{
+        api::ZatcaClient,
+        config::{Config, EnvironmentType},
+        csr::CsrProperties,
+        invoice::{
+            sign::InvoiceSigner,
+            Address, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, Party,
+            RequiredInvoiceFields, SellerRole, SignedInvoice, VatCategory,
+        },
+    };
+    use httpmock::{Method::PATCH, Method::POST, MockServer};
+    use isocountry::CountryCode;
+    use iso_currency::Currency;
+    use k256::ecdsa::SigningKey;
+    use k256::pkcs8::EncodePrivateKey;
+    use x509_cert::builder::{Builder, CertificateBuilder, profile};
+    use x509_cert::der::Encode;
+    use x509_cert::name::Name;
+    use x509_cert::request::CertReq;
+    use x509_cert::serial_number::SerialNumber;
+    use x509_cert::spki::EncodePublicKey;
+    use x509_cert::spki::SubjectPublicKeyInfo;
+    use x509_cert::time::Validity;
+
+    use super::*;
+
+    fn cstr(value: &str) -> CString {
+        CString::new(value).expect("CString")
+    }
+
+    fn mock_base_url(server: &MockServer) -> String {
+        format!("{}/", server.base_url())
+    }
+
+    fn try_start_server() -> Option<MockServer> {
+        std::panic::catch_unwind(MockServer::start).ok()
+    }
+
+    use super::test_support::BaseUrlGuard;
+
+    fn build_csr() -> CertReq {
+        let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties");
+        let csr_config = CsrProperties::parse_csr_config(&config_path).expect("csr config");
+        let (csr, _key) = csr_config
+            .build_with_rng(EnvironmentType::NonProduction)
+            .expect("csr build");
+        csr
+    }
+
+    fn build_signed_invoice(invoice_type: InvoiceType, signer: &InvoiceSigner) -> SignedInvoice {
+        let seller = Party::<SellerRole>::new(
+            "Acme Inc".into(),
+            Address {
+                country_code: CountryCode::SAU,
+                city: "Riyadh".into(),
+                street: "King Fahd".into(),
+                additional_street: None,
+                building_number: "1234".into(),
+                additional_number: Some("5678".into()),
+                postal_code: "12222".into(),
+                subdivision: None,
+                district: None,
+            },
+            "301121971500003",
+            None,
+        )
+        .expect("seller");
+
+        let line_item = LineItem::new(fatoora_core::invoice::LineItemFields {
+            description: "Item".into(),
+            quantity: 1.0,
+            unit_code: "PCE".into(),
+            unit_price: 100.0,
+            vat_rate: 15.0,
+            vat_category: VatCategory::Standard,
+        });
+
+        let issue_datetime = chrono::NaiveDate::from_ymd_opt(2024, 1, 1)
+            .unwrap()
+            .and_hms_opt(12, 30, 0)
+            .unwrap();
+
+        let invoice = InvoiceBuilder::new(RequiredInvoiceFields {
+            invoice_type,
+            id: "INV-TEST-1".into(),
+            uuid: "uuid-test-1".into(),
+            issue_datetime: chrono::Utc.from_utc_datetime(&issue_datetime),
+            currency: Currency::SAR,
+            previous_invoice_hash: "".into(),
+            invoice_counter: 0,
+            seller,
+            line_items: vec![line_item],
+            payment_means_code: "10".into(),
+            vat_category: VatCategory::Standard,
+        })
+        .build()
+        .expect("build invoice");
+        invoice.sign(signer).expect("sign invoice")
+    }
+
+    fn build_test_cert(key: &SigningKey) -> Vec<u8> {
+        let serial_number = SerialNumber::from(1u32);
+        let validity = Validity::from_now(Duration::new(3600, 0)).expect("validity");
+        let subject = Name::from_str("CN=Test,O=Fatoora,C=SA").expect("subject");
+        let profile = profile::cabf::Root::new(false, subject).expect("profile");
+        let public_key = key.verifying_key();
+        let spki_der = public_key.to_public_key_der().expect("public key der");
+        let pub_key = SubjectPublicKeyInfo::try_from(spki_der.as_bytes()).expect("spki");
+        let builder =
+            CertificateBuilder::new(profile, serial_number, validity, pub_key).expect("builder");
+        let cert = builder
+            .build::<_, k256::ecdsa::DerSignature>(key)
+            .expect("certificate");
+        cert.to_der().expect("cert der")
+    }
+
+    fn build_test_signer() -> InvoiceSigner {
+        let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties");
+        let csr_config = CsrProperties::parse_csr_config(&config_path).expect("csr config");
+        let (_csr, signer_key) = csr_config
+            .build_with_rng(EnvironmentType::NonProduction)
+            .expect("csr build");
+        let key_der = signer_key.to_pkcs8_der().expect("key der");
+        let cert_der = build_test_cert(&signer_key);
+        InvoiceSigner::from_der(&cert_der, key_der.as_bytes()).expect("signer")
+    }
+
+    #[test]
+    fn ffi_zatca_invoice_endpoints() {
+        let server = match try_start_server() {
+            Some(server) => server,
+            None => return,
+        };
+        let _guard = BaseUrlGuard::new(&mock_base_url(&server));
+        let body = r#"{
+          "validationResults": {
+            "infoMessages": [],
+            "warningMessages": [],
+            "errorMessages": [],
+            "status": "PASS"
+          },
+          "reportingStatus": "REPORTED",
+          "clearanceStatus": null,
+          "qrSellertStatus": null,
+          "qrBuyertStatus": null
+        }"#;
+
+        let report_mock = server.mock(|when, then| {
+            when.method(POST)
+                .path("/invoices/reporting/single")
+                .header("accept-language", "ar");
+            then.status(200)
+                .header("content-type", "application/json")
+                .body(body);
+        });
+        let clear_mock = server.mock(|when, then| {
+            when.method(POST)
+                .path("/invoices/clearance/single")
+                .header("accept-language", "en");
+            then.status(200)
+                .header("content-type", "application/json")
+                .body(body);
+        });
+        let compliance_mock = server.mock(|when, then| {
+            when.method(POST)
+                .path("/compliance/invoices")
+                .header("accept-language", "en");
+            then.status(200)
+                .header("content-type", "application/json")
+                .body(body);
+        });
+
+        let client = ZatcaClient::new(Config::default()).expect("client");
+        let mut ffi_client = FfiZatcaClient {
+            ptr: Box::into_raw(Box::new(client)) as *mut c_void,
+        };
+
+        unsafe {
+            let signer = build_test_signer();
+            let simplified =
+                build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified), &signer);
+            let mut ffi_simplified = FfiSignedInvoice {
+                ptr: Box::into_raw(Box::new(simplified)) as *mut c_void,
+            };
+
+            let pcsid_result = fatoora_csid_production_new(
+                FfiEnvironment::NonProduction,
+                false,
+                0,
+                cstr("token").as_ptr(),
+                cstr("secret").as_ptr(),
+            );
+            assert!(pcsid_result.ok);
+            let mut pcsid = pcsid_result.value;
+
+            let report_result = fatoora_zatca_report_simplified_invoice(
+                &mut ffi_client,
+                &mut ffi_simplified,
+                &mut pcsid,
+                false,
+                cstr("ar").as_ptr(),
+            );
+            assert!(report_result.ok);
+            fatoora_string_free(report_result.value);
+
+            let standard =
+                build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Standard), &signer);
+            let mut ffi_standard = FfiSignedInvoice {
+                ptr: Box::into_raw(Box::new(standard)) as *mut c_void,
+            };
+
+            let clear_result = fatoora_zatca_clear_standard_invoice(
+                &mut ffi_client,
+                &mut ffi_standard,
+                &mut pcsid,
+                true,
+                std::ptr::null(),
+            );
+            assert!(clear_result.ok);
+            fatoora_string_free(clear_result.value);
+
+            let ccsid_result = fatoora_csid_compliance_new(
+                FfiEnvironment::NonProduction,
+                false,
+                0,
+                cstr("token").as_ptr(),
+                cstr("secret").as_ptr(),
+            );
+            assert!(ccsid_result.ok);
+            let mut ccsid = ccsid_result.value;
+
+            let compliance_result =
+                fatoora_zatca_check_compliance(&mut ffi_client, &mut ffi_simplified, &mut ccsid);
+            assert!(compliance_result.ok);
+            fatoora_string_free(compliance_result.value);
+
+            fatoora_signed_invoice_free(&mut ffi_simplified);
+            fatoora_signed_invoice_free(&mut ffi_standard);
+            fatoora_csid_production_free(&mut pcsid);
+            fatoora_csid_compliance_free(&mut ccsid);
+            fatoora_zatca_client_free(&mut ffi_client);
+        }
+
+        report_mock.assert();
+        clear_mock.assert();
+        compliance_mock.assert();
+    }
+
+    #[test]
+    fn ffi_zatca_csid_endpoints() {
+        let server = match try_start_server() {
+            Some(server) => server,
+            None => return,
+        };
+        let _guard = BaseUrlGuard::new(&mock_base_url(&server));
+        let ccsid_body = r#"{
+          "requestID": 42,
+          "binarySecurityToken": "token",
+          "secret": "secret"
+        }"#;
+        let pcsid_body = r#"{
+          "requestID": 77,
+          "binarySecurityToken": "ptoken",
+          "secret": "psecret"
+        }"#;
+        let renew_body = r#"{
+          "value": {
+            "requestID": 88,
+            "binarySecurityToken": "rtoken",
+            "secret": "rsecret"
+          }
+        }"#;
+
+        let csr_mock = server.mock(|when, then| {
+            when.method(POST).path("/compliance").header("OTP", "123456");
+            then.status(200)
+                .header("content-type", "application/json")
+                .body(ccsid_body);
+        });
+        let pcsid_mock = server.mock(|when, then| {
+            when.method(POST).path("/production/csids");
+            then.status(200)
+                .header("content-type", "application/json")
+                .body(pcsid_body);
+        });
+        let renew_mock = server.mock(|when, then| {
+            when.method(PATCH)
+                .path("/production/csids")
+                .header("accept-language", "ar");
+            then.status(428)
+                .header("content-type", "application/json")
+                .body(renew_body);
+        });
+
+        let client = ZatcaClient::new(Config::default()).expect("client");
+        let mut ffi_client = FfiZatcaClient {
+            ptr: Box::into_raw(Box::new(client)) as *mut c_void,
+        };
+
+        unsafe {
+            let mut ffi_csr = FfiCsr {
+                ptr: Box::into_raw(Box::new(build_csr())) as *mut c_void,
+            };
+
+            let ccsid_result = fatoora_zatca_post_csr_for_ccsid(
+                &mut ffi_client,
+                &mut ffi_csr,
+                cstr("123456").as_ptr(),
+            );
+            assert!(ccsid_result.ok);
+            let mut ccsid = ccsid_result.value;
+
+            let pcsid_result = fatoora_zatca_post_ccsid_for_pcsid(&mut ffi_client, &mut ccsid);
+            assert!(pcsid_result.ok);
+            let mut pcsid = pcsid_result.value;
+
+            let renewed_result = fatoora_zatca_renew_csid(
+                &mut ffi_client,
+                &mut pcsid,
+                &mut ffi_csr,
+                cstr("123456").as_ptr(),
+                cstr("ar").as_ptr(),
+            );
+            assert!(renewed_result.ok);
+            let mut renewed = renewed_result.value;
+
+            fatoora_csr_free(&mut ffi_csr);
+            fatoora_csid_compliance_free(&mut ccsid);
+            fatoora_csid_production_free(&mut pcsid);
+            fatoora_csid_production_free(&mut renewed);
+            fatoora_zatca_client_free(&mut ffi_client);
+        }
+
+        csr_mock.assert();
+        pcsid_mock.assert();
+        renew_mock.assert();
+    }
+}
+
+#[cfg(test)]
+mod ffi_coverage_tests {
+    use std::ffi::CString;
+    use std::path::Path;
+    use std::str::FromStr;
+    use std::time::Duration;
+
+    use fatoora_core::{
+        config::EnvironmentType,
+        csr::CsrProperties,
+        invoice::{sign::InvoiceSigner},
+    };
+    use x509_cert::der::Decode;
+    use k256::ecdsa::SigningKey;
+    use k256::pkcs8::EncodePrivateKey;
+    use x509_cert::builder::{Builder, CertificateBuilder, profile};
+    use x509_cert::der::Encode;
+    use x509_cert::der::EncodePem;
+    use x509_cert::der::pem::LineEnding;
+    use x509_cert::name::Name;
+    use x509_cert::Certificate;
+    use x509_cert::serial_number::SerialNumber;
+    use x509_cert::spki::EncodePublicKey;
+    use x509_cert::spki::SubjectPublicKeyInfo;
+    use x509_cert::time::Validity;
+
+    use super::*;
+
+    fn cstr(value: &str) -> CString {
+        CString::new(value).expect("CString")
+    }
+
+    use super::test_support::BaseUrlGuard;
+
+    fn build_test_cert(key: &SigningKey) -> Vec<u8> {
+        let serial_number = SerialNumber::from(1u32);
+        let validity = Validity::from_now(Duration::new(3600, 0)).expect("validity");
+        let subject = Name::from_str("CN=Test,O=Fatoora,C=SA").expect("subject");
+        let profile = profile::cabf::Root::new(false, subject).expect("profile");
+        let public_key = key.verifying_key();
+        let spki_der = public_key.to_public_key_der().expect("public key der");
+        let pub_key = SubjectPublicKeyInfo::try_from(spki_der.as_bytes()).expect("spki");
+        let builder =
+            CertificateBuilder::new(profile, serial_number, validity, pub_key).expect("builder");
+        let cert = builder
+            .build::<_, k256::ecdsa::DerSignature>(key)
+            .expect("certificate");
+        cert.to_der().expect("cert der")
+    }
+
+    fn build_test_signer() -> (Vec<u8>, Vec<u8>) {
+        let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties");
+        let csr_config = CsrProperties::parse_csr_config(&config_path).expect("csr config");
+        let (_csr, signer_key) = csr_config
+            .build_with_rng(EnvironmentType::NonProduction)
+            .expect("csr build");
+        let key_der = signer_key.to_pkcs8_der().expect("key der").as_bytes().to_vec();
+        let cert_der = build_test_cert(&signer_key);
+        let _ = InvoiceSigner::from_der(&cert_der, &key_der).expect("signer");
+        (cert_der, key_der)
+    }
+
+    fn load_fixture(path: &str) -> String {
+        let full_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../fatoora-core/tests/fixtures")
+            .join(path);
+        std::fs::read_to_string(full_path).expect("fixture")
+    }
+
+    fn build_invoice_builder() -> FfiResult<FfiInvoiceBuilder> {
+        unsafe {
+            fatoora_invoice_builder_new(
+                FfiInvoiceTypeKind::Tax,
+                FfiInvoiceSubType::Simplified,
+                cstr("INV-42").as_ptr(),
+                cstr("123e4567-e89b-12d3-a456-426614174000").as_ptr(),
+                1_700_000_000,
+                0,
+                cstr("SAR").as_ptr(),
+                cstr("hash").as_ptr(),
+                1,
+                cstr("10").as_ptr(),
+                FfiVatCategory::Standard,
+                cstr("Acme Inc").as_ptr(),
+                cstr("SAU").as_ptr(),
+                cstr("Riyadh").as_ptr(),
+                cstr("King Fahd").as_ptr(),
+                std::ptr::null(),
+                cstr("1234").as_ptr(),
+                std::ptr::null(),
+                cstr("12222").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                cstr("399999999900003").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+            )
+        }
+    }
+
+    #[test]
+    fn config_and_validation_paths() {
+        let default_xsd = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../fatoora-core/assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd");
+        unsafe {
+            let config = fatoora_config_new(FfiEnvironment::NonProduction);
+            assert!(!config.is_null());
+            let config_with_xsd =
+                fatoora_config_with_xsd(FfiEnvironment::NonProduction, cstr(default_xsd.to_string_lossy().as_ref()).as_ptr());
+            assert!(!config_with_xsd.is_null());
+
+            let missing = fatoora_validate_xml_file(config, cstr("missing.xml").as_ptr());
+            assert!(!missing.ok);
+            if !missing.error.is_null() {
+                fatoora_error_free(missing.error);
+            }
+
+            let invalid = fatoora_validate_xml_str(config, cstr("<Invoice>").as_ptr());
+            assert!(!invalid.ok);
+            if !invalid.error.is_null() {
+                fatoora_error_free(invalid.error);
+            }
+
+            fatoora_config_free(config);
+            fatoora_config_free(config_with_xsd);
+        }
+    }
+
+    #[test]
+    fn csr_and_key_paths() {
+        let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties");
+        unsafe {
+            let props = fatoora_csr_properties_parse(cstr(config_path.to_string_lossy().as_ref()).as_ptr());
+            assert!(props.ok);
+            let mut props_handle = props.value;
+
+            let bundle = fatoora_csr_build_with_rng(&mut props_handle, FfiEnvironment::NonProduction);
+            assert!(bundle.ok);
+            let mut bundle = bundle.value;
+
+            let csr_b64 = fatoora_csr_to_base64(&mut bundle.csr);
+            assert!(csr_b64.ok);
+            fatoora_string_free(csr_b64.value);
+
+            let csr_pem_b64 = fatoora_csr_to_pem_base64(&mut bundle.csr);
+            assert!(csr_pem_b64.ok);
+            fatoora_string_free(csr_pem_b64.value);
+
+            let key_pem = fatoora_signing_key_to_pem(&mut bundle.key);
+            assert!(key_pem.ok);
+
+            let mut key_from_pem = fatoora_signing_key_from_pem(key_pem.value.ptr);
+            assert!(key_from_pem.ok);
+
+            let key_der = SigningKey::from_pkcs8_pem(
+                std::ffi::CStr::from_ptr(key_pem.value.ptr).to_str().expect("pem"),
+            )
+            .expect("pem key")
+            .to_pkcs8_der()
+            .expect("der key");
+            let mut key_from_der =
+                fatoora_signing_key_from_der(key_der.as_bytes().as_ptr(), key_der.as_bytes().len());
+            assert!(key_from_der.ok);
+
+            let csr_with_key =
+                fatoora_csr_build(&mut props_handle, &mut bundle.key, FfiEnvironment::NonProduction);
+            assert!(csr_with_key.ok);
+            let mut csr_with_key = csr_with_key.value;
+
+            fatoora_csr_free(&mut csr_with_key);
+            fatoora_signing_key_free(&mut bundle.key);
+            fatoora_csr_free(&mut bundle.csr);
+            fatoora_signing_key_free(&mut key_from_pem.value);
+            fatoora_signing_key_free(&mut key_from_der.value);
+            fatoora_csr_properties_free(&mut props_handle);
+            fatoora_string_free(key_pem.value);
+        }
+    }
+
+    #[test]
+    fn invoice_builder_invalid_inputs() {
+        unsafe {
+            let bad_currency = fatoora_invoice_builder_new(
+                FfiInvoiceTypeKind::Tax,
+                FfiInvoiceSubType::Simplified,
+                cstr("INV-INVALID").as_ptr(),
+                cstr("uuid").as_ptr(),
+                1_700_000_000,
+                0,
+                cstr("ZZZ").as_ptr(),
+                cstr("hash").as_ptr(),
+                1,
+                cstr("10").as_ptr(),
+                FfiVatCategory::Standard,
+                cstr("Acme Inc").as_ptr(),
+                cstr("SAU").as_ptr(),
+                cstr("Riyadh").as_ptr(),
+                cstr("King Fahd").as_ptr(),
+                std::ptr::null(),
+                cstr("1234").as_ptr(),
+                std::ptr::null(),
+                cstr("12222").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                cstr("399999999900003").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+            );
+            assert!(!bad_currency.ok);
+            if !bad_currency.error.is_null() {
+                fatoora_error_free(bad_currency.error);
+            }
+
+            let bad_country = fatoora_invoice_builder_new(
+                FfiInvoiceTypeKind::Tax,
+                FfiInvoiceSubType::Simplified,
+                cstr("INV-INVALID").as_ptr(),
+                cstr("uuid").as_ptr(),
+                1_700_000_000,
+                0,
+                cstr("SAR").as_ptr(),
+                cstr("hash").as_ptr(),
+                1,
+                cstr("10").as_ptr(),
+                FfiVatCategory::Standard,
+                cstr("Acme Inc").as_ptr(),
+                cstr("ZZZ").as_ptr(),
+                cstr("Riyadh").as_ptr(),
+                cstr("King Fahd").as_ptr(),
+                std::ptr::null(),
+                cstr("1234").as_ptr(),
+                std::ptr::null(),
+                cstr("12222").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                cstr("399999999900003").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+            );
+            assert!(!bad_country.ok);
+            if !bad_country.error.is_null() {
+                fatoora_error_free(bad_country.error);
+            }
+
+            let bad_timestamp = fatoora_invoice_builder_new(
+                FfiInvoiceTypeKind::Tax,
+                FfiInvoiceSubType::Simplified,
+                cstr("INV-INVALID").as_ptr(),
+                cstr("uuid").as_ptr(),
+                1_700_000_000,
+                2_000_000_000,
+                cstr("SAR").as_ptr(),
+                cstr("hash").as_ptr(),
+                1,
+                cstr("10").as_ptr(),
+                FfiVatCategory::Standard,
+                cstr("Acme Inc").as_ptr(),
+                cstr("SAU").as_ptr(),
+                cstr("Riyadh").as_ptr(),
+                cstr("King Fahd").as_ptr(),
+                std::ptr::null(),
+                cstr("1234").as_ptr(),
+                std::ptr::null(),
+                cstr("12222").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                cstr("399999999900003").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+            );
+            assert!(!bad_timestamp.ok);
+            if !bad_timestamp.error.is_null() {
+                fatoora_error_free(bad_timestamp.error);
+            }
+        }
+    }
+
+    #[test]
+    fn credit_note_builder_roundtrip() {
+        unsafe {
+            let builder = fatoora_invoice_builder_new(
+                FfiInvoiceTypeKind::CreditNote,
+                FfiInvoiceSubType::Simplified,
+                cstr("CR-1").as_ptr(),
+                cstr("uuid-credit").as_ptr(),
+                1_700_000_000,
+                0,
+                cstr("SAR").as_ptr(),
+                cstr("hash").as_ptr(),
+                1,
+                cstr("10").as_ptr(),
+                FfiVatCategory::Standard,
+                cstr("Acme Inc").as_ptr(),
+                cstr("SAU").as_ptr(),
+                cstr("Riyadh").as_ptr(),
+                cstr("King Fahd").as_ptr(),
+                std::ptr::null(),
+                cstr("1234").as_ptr(),
+                std::ptr::null(),
+                cstr("12222").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                cstr("399999999900003").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                cstr("INV-ORIG").as_ptr(),
+                cstr("uuid-orig").as_ptr(),
+                cstr("2024-01-01").as_ptr(),
+                cstr("Return").as_ptr(),
+            );
+            assert!(builder.ok);
+            let mut builder = builder.value;
+
+            let add_result = fatoora_invoice_builder_add_line_item(
+                &mut builder,
+                cstr("Item").as_ptr(),
+                1.0,
+                cstr("PCE").as_ptr(),
+                100.0,
+                15.0,
+                FfiVatCategory::Standard,
+            );
+            assert!(add_result.ok);
+
+            let invoice_result = fatoora_invoice_builder_build(&mut builder);
+            assert!(invoice_result.ok);
+            let mut invoice = invoice_result.value;
+
+            let xml = fatoora_invoice_to_xml(&mut invoice);
+            assert!(xml.ok);
+            fatoora_string_free(xml.value);
+
+            fatoora_invoice_free(&mut invoice);
+            fatoora_invoice_builder_free(&mut builder);
+        }
+    }
+
+    #[test]
+    fn invoice_builder_flags_enable_disable() {
+        unsafe {
+            let builder = build_invoice_builder();
+            assert!(builder.ok);
+            let mut builder = builder.value;
+
+            let set_flags = fatoora_invoice_builder_set_flags(&mut builder, 0b00001);
+            assert!(set_flags.ok);
+            let enable_flags = fatoora_invoice_builder_enable_flags(&mut builder, 0b00100);
+            assert!(enable_flags.ok);
+            let disable_flags = fatoora_invoice_builder_disable_flags(&mut builder, 0b00001);
+            assert!(disable_flags.ok);
+
+            let add_result = fatoora_invoice_builder_add_line_item(
+                &mut builder,
+                cstr("Item").as_ptr(),
+                1.0,
+                cstr("PCE").as_ptr(),
+                50.0,
+                15.0,
+                FfiVatCategory::Standard,
+            );
+            assert!(add_result.ok);
+
+            let invoice_result = fatoora_invoice_builder_build(&mut builder);
+            assert!(invoice_result.ok);
+            let mut invoice = invoice_result.value;
+
+            let flags = fatoora_invoice_flags(&mut invoice);
+            assert!(flags.ok);
+
+            fatoora_invoice_free(&mut invoice);
+            fatoora_invoice_builder_free(&mut builder);
+        }
+    }
+
+    #[test]
+    fn zatca_client_new_free_paths() {
+        unsafe {
+            let config = fatoora_config_new(FfiEnvironment::NonProduction);
+            assert!(!config.is_null());
+            let client = fatoora_zatca_client_new(config);
+            assert!(client.ok);
+            let mut client = client.value;
+            fatoora_zatca_client_free(&mut client);
+            fatoora_config_free(config);
+        }
+    }
+
+    #[test]
+    fn debit_note_builder_with_optional_fields() {
+        unsafe {
+            let builder = fatoora_invoice_builder_new(
+                FfiInvoiceTypeKind::DebitNote,
+                FfiInvoiceSubType::Simplified,
+                cstr("DB-1").as_ptr(),
+                cstr("uuid-debit").as_ptr(),
+                1_700_000_000,
+                0,
+                cstr("SAR").as_ptr(),
+                cstr("hash").as_ptr(),
+                1,
+                cstr("10").as_ptr(),
+                FfiVatCategory::Standard,
+                cstr("Acme Inc").as_ptr(),
+                cstr("SAU").as_ptr(),
+                cstr("Riyadh").as_ptr(),
+                cstr("King Fahd").as_ptr(),
+                cstr("").as_ptr(),
+                cstr("1234").as_ptr(),
+                cstr("5678").as_ptr(),
+                cstr("12222").as_ptr(),
+                cstr("").as_ptr(),
+                cstr("District 1").as_ptr(),
+                cstr("399999999900003").as_ptr(),
+                cstr("12345").as_ptr(),
+                cstr("CRN").as_ptr(),
+                cstr("INV-ORIG").as_ptr(),
+                cstr("uuid-orig").as_ptr(),
+                cstr("2024-01-01").as_ptr(),
+                cstr("Adjustment").as_ptr(),
+            );
+            assert!(builder.ok);
+            let mut builder = builder.value;
+
+            let buyer_result = fatoora_invoice_builder_set_buyer(
+                &mut builder,
+                cstr("Buyer Inc").as_ptr(),
+                cstr("SAU").as_ptr(),
+                cstr("Riyadh").as_ptr(),
+                cstr("Takhassusi").as_ptr(),
+                cstr("").as_ptr(),
+                cstr("555").as_ptr(),
+                cstr("1234").as_ptr(),
+                cstr("12222").as_ptr(),
+                cstr("").as_ptr(),
+                cstr("District 2").as_ptr(),
+                cstr("399999999900003").as_ptr(),
+                cstr("67890").as_ptr(),
+                cstr("MOM").as_ptr(),
+            );
+            assert!(buyer_result.ok);
+
+            let add_result = fatoora_invoice_builder_add_line_item(
+                &mut builder,
+                cstr("Item").as_ptr(),
+                1.0,
+                cstr("PCE").as_ptr(),
+                25.0,
+                15.0,
+                FfiVatCategory::Standard,
+            );
+            assert!(add_result.ok);
+
+            let invoice_result = fatoora_invoice_builder_build(&mut builder);
+            assert!(invoice_result.ok);
+            let mut invoice = invoice_result.value;
+
+            let flags = fatoora_invoice_flags(&mut invoice);
+            assert!(flags.ok);
+
+            fatoora_invoice_free(&mut invoice);
+            fatoora_invoice_builder_free(&mut builder);
+        }
+    }
+
+    #[test]
+    fn zatca_calls_fail_without_server() {
+        let _guard = BaseUrlGuard::new("http://127.0.0.1:9/");
+        unsafe {
+            let config = fatoora_config_new(FfiEnvironment::NonProduction);
+            assert!(!config.is_null());
+            let client = fatoora_zatca_client_new(config);
+            assert!(client.ok);
+            let mut client = client.value;
+
+            let csr_props_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties");
+            let props = fatoora_csr_properties_parse(cstr(csr_props_path.to_string_lossy().as_ref()).as_ptr());
+            assert!(props.ok);
+            let mut props_handle = props.value;
+            let bundle = fatoora_csr_build_with_rng(&mut props_handle, FfiEnvironment::NonProduction);
+            assert!(bundle.ok);
+            let mut bundle = bundle.value;
+
+            let ccsid_result = fatoora_csid_compliance_new(
+                FfiEnvironment::NonProduction,
+                true,
+                10,
+                cstr("token").as_ptr(),
+                cstr("secret").as_ptr(),
+            );
+            assert!(ccsid_result.ok);
+            let mut ccsid = ccsid_result.value;
+
+            let pcsid_result = fatoora_csid_production_new(
+                FfiEnvironment::NonProduction,
+                true,
+                20,
+                cstr("token").as_ptr(),
+                cstr("secret").as_ptr(),
+            );
+            assert!(pcsid_result.ok);
+            let mut pcsid = pcsid_result.value;
+
+            let simplified_xml =
+                load_fixture("invoices/Simplified/Invoice/Simplified_Invoice.xml");
+            let standard_xml = load_fixture("invoices/Standard/Invoice/Standard_Invoice.xml");
+            let simplified = fatoora_parse_signed_invoice_xml(cstr(&simplified_xml).as_ptr());
+            assert!(simplified.ok);
+            let mut simplified = simplified.value;
+            let standard = fatoora_parse_signed_invoice_xml(cstr(&standard_xml).as_ptr());
+            assert!(standard.ok);
+            let mut standard = standard.value;
+
+            let result = fatoora_zatca_post_csr_for_ccsid(&mut client, &mut bundle.csr, cstr("123456").as_ptr());
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+            let result = fatoora_zatca_post_ccsid_for_pcsid(&mut client, &mut ccsid);
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+            let result = fatoora_zatca_renew_csid(
+                &mut client,
+                &mut pcsid,
+                &mut bundle.csr,
+                cstr("123456").as_ptr(),
+                std::ptr::null(),
+            );
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+            let result = fatoora_zatca_check_compliance(&mut client, &mut simplified, &mut ccsid);
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+            let result = fatoora_zatca_report_simplified_invoice(
+                &mut client,
+                &mut simplified,
+                &mut pcsid,
+                false,
+                std::ptr::null(),
+            );
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+            let result = fatoora_zatca_clear_standard_invoice(
+                &mut client,
+                &mut standard,
+                &mut pcsid,
+                true,
+                std::ptr::null(),
+            );
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            fatoora_signed_invoice_free(&mut simplified);
+            fatoora_signed_invoice_free(&mut standard);
+            fatoora_csr_free(&mut bundle.csr);
+            fatoora_signing_key_free(&mut bundle.key);
+            fatoora_csr_properties_free(&mut props_handle);
+            fatoora_csid_compliance_free(&mut ccsid);
+            fatoora_csid_production_free(&mut pcsid);
+            fatoora_zatca_client_free(&mut client);
+            fatoora_config_free(config);
+        }
+    }
+
+    #[test]
+    fn ffi_error_paths_cover_more_lines() {
+        unsafe {
+            let null_key = fatoora_signing_key_to_pem(std::ptr::null_mut());
+            assert!(!null_key.ok);
+            if !null_key.error.is_null() {
+                fatoora_error_free(null_key.error);
+            }
+
+            let null_csr = fatoora_csr_to_base64(std::ptr::null_mut());
+            assert!(!null_csr.ok);
+            if !null_csr.error.is_null() {
+                fatoora_error_free(null_csr.error);
+            }
+
+            let null_client = fatoora_zatca_client_new(std::ptr::null_mut());
+            assert!(!null_client.ok);
+            if !null_client.error.is_null() {
+                fatoora_error_free(null_client.error);
+            }
+
+            let builder = build_invoice_builder();
+            assert!(builder.ok);
+            let mut builder = builder.value;
+            let add_result = fatoora_invoice_builder_add_line_item(
+                &mut builder,
+                cstr("Item").as_ptr(),
+                1.0,
+                cstr("PCE").as_ptr(),
+                50.0,
+                15.0,
+                FfiVatCategory::Standard,
+            );
+            assert!(add_result.ok);
+            let invoice_result = fatoora_invoice_builder_build(&mut builder);
+            assert!(invoice_result.ok);
+            let mut invoice = invoice_result.value;
+
+            let out_of_range = fatoora_invoice_line_item_description(&mut invoice, 99);
+            assert!(!out_of_range.ok);
+            if !out_of_range.error.is_null() {
+                fatoora_error_free(out_of_range.error);
+            }
+
+            let sign_err = fatoora_invoice_sign(&mut invoice, std::ptr::null_mut());
+            assert!(!sign_err.ok);
+            if !sign_err.error.is_null() {
+                fatoora_error_free(sign_err.error);
+            }
+            fatoora_invoice_builder_free(&mut builder);
+
+            let null_signed = fatoora_signed_invoice_xml(std::ptr::null_mut());
+            assert!(!null_signed.ok);
+            if !null_signed.error.is_null() {
+                fatoora_error_free(null_signed.error);
+            }
+
+            let ccsid = fatoora_csid_compliance_new(
+                FfiEnvironment::NonProduction,
+                false,
+                0,
+                cstr("token").as_ptr(),
+                cstr("secret").as_ptr(),
+            );
+            assert!(ccsid.ok);
+            let mut ccsid = ccsid.value;
+            let missing_id = fatoora_csid_compliance_request_id(&mut ccsid);
+            assert!(!missing_id.ok);
+            if !missing_id.error.is_null() {
+                fatoora_error_free(missing_id.error);
+            }
+            fatoora_csid_compliance_free(&mut ccsid);
+
+            let pcsid = fatoora_csid_production_new(
+                FfiEnvironment::NonProduction,
+                true,
+                55,
+                cstr("token").as_ptr(),
+                cstr("secret").as_ptr(),
+            );
+            assert!(pcsid.ok);
+            let mut pcsid = pcsid.value;
+            let request_id = fatoora_csid_production_request_id(&mut pcsid);
+            assert!(request_id.ok);
+            fatoora_csid_production_free(&mut pcsid);
+        }
+    }
+
+    #[test]
+    fn ffi_null_and_parse_error_paths() {
+        unsafe {
+            let result = fatoora_invoice_builder_set_buyer(
+                std::ptr::null_mut(),
+                cstr("Buyer").as_ptr(),
+                cstr("SAU").as_ptr(),
+                cstr("Riyadh").as_ptr(),
+                cstr("Street").as_ptr(),
+                std::ptr::null(),
+                cstr("1234").as_ptr(),
+                std::ptr::null(),
+                cstr("12222").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                cstr("399999999900003").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+            );
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_invoice_builder_set_note(
+                std::ptr::null_mut(),
+                cstr("en").as_ptr(),
+                cstr("Note").as_ptr(),
+            );
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result =
+                fatoora_invoice_builder_set_allowance(std::ptr::null_mut(), cstr("Disc").as_ptr(), 1.0);
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_invoice_builder_enable_flags(std::ptr::null_mut(), 0b1);
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_invoice_builder_disable_flags(std::ptr::null_mut(), 0b1);
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_invoice_builder_build(std::ptr::null_mut());
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_invoice_line_item_quantity(std::ptr::null_mut(), 0);
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_signed_invoice_totals_tax_inclusive(std::ptr::null_mut());
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_signed_invoice_line_item_quantity(std::ptr::null_mut(), 0);
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_invoice_totals_tax_amount(std::ptr::null_mut());
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_invoice_line_item_vat_category(std::ptr::null_mut(), 0);
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_signed_invoice_line_item_total_amount(std::ptr::null_mut(), 0);
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_signed_invoice_totals_tax_amount(std::ptr::null_mut());
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_signed_invoice_line_item_vat_rate(std::ptr::null_mut(), 0);
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_invoice_totals_charge_total(std::ptr::null_mut());
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_invoice_totals_allowance_total(std::ptr::null_mut());
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_signed_invoice_totals_line_extension(std::ptr::null_mut());
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_invoice_totals_taxable_amount(std::ptr::null_mut());
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_invoice_flags(std::ptr::null_mut());
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_signed_invoice_flags(std::ptr::null_mut());
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_invoice_to_xml(std::ptr::null_mut());
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+
+            let result = fatoora_parse_finalized_invoice_xml(cstr("<bad").as_ptr());
+            assert!(!result.ok);
+            if !result.error.is_null() {
+                fatoora_error_free(result.error);
+            }
+        }
+    }
+
+    #[test]
+    fn invoice_builder_and_signed_accessors() {
+        let (cert_der, key_der) = build_test_signer();
+        let key_pem = {
+            let key = SigningKey::from_pkcs8_der(&key_der).expect("key");
+            key.to_pkcs8_pem(x509_cert::der::pem::LineEnding::LF)
+                .expect("pem")
+                .to_string()
+        };
+        let cert_pem = {
+            let cert = Certificate::from_der(&cert_der).expect("cert");
+            cert.to_pem(LineEnding::LF).expect("cert pem").to_string()
+        };
+
+        unsafe {
+            let builder = build_invoice_builder();
+            assert!(builder.ok);
+            let mut builder = builder.value;
+
+            let add_result = fatoora_invoice_builder_add_line_item(
+                &mut builder,
+                cstr("Item").as_ptr(),
+                2.0,
+                cstr("PCE").as_ptr(),
+                50.0,
+                15.0,
+                FfiVatCategory::Standard,
+            );
+            assert!(add_result.ok);
+
+            let buyer_result = fatoora_invoice_builder_set_buyer(
+                &mut builder,
+                cstr("Buyer Inc").as_ptr(),
+                cstr("SAU").as_ptr(),
+                cstr("Riyadh").as_ptr(),
+                cstr("Takhassusi").as_ptr(),
+                std::ptr::null(),
+                cstr("555").as_ptr(),
+                std::ptr::null(),
+                cstr("12222").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                cstr("399999999900003").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+            );
+            assert!(buyer_result.ok);
+
+            let note_result = fatoora_invoice_builder_set_note(
+                &mut builder,
+                cstr("en").as_ptr(),
+                cstr("Note").as_ptr(),
+            );
+            assert!(note_result.ok);
+
+            let allowance_result =
+                fatoora_invoice_builder_set_allowance(&mut builder, cstr("Discount").as_ptr(), 5.0);
+            assert!(allowance_result.ok);
+
+            let flags_result = fatoora_invoice_builder_set_flags(&mut builder, 0b00101);
+            assert!(flags_result.ok);
+
+            let invoice_result = fatoora_invoice_builder_build(&mut builder);
+            assert!(invoice_result.ok);
+            let mut invoice = invoice_result.value;
+
+            let count = fatoora_invoice_line_item_count(&mut invoice);
+            assert!(count.ok);
+            assert_eq!(count.value, 1);
+
+            let description = fatoora_invoice_line_item_description(&mut invoice, 0);
+            assert!(description.ok);
+            fatoora_string_free(description.value);
+
+            let unit_code = fatoora_invoice_line_item_unit_code(&mut invoice, 0);
+            assert!(unit_code.ok);
+            fatoora_string_free(unit_code.value);
+
+            let quantity = fatoora_invoice_line_item_quantity(&mut invoice, 0);
+            assert!(quantity.ok);
+
+            let unit_price = fatoora_invoice_line_item_unit_price(&mut invoice, 0);
+            assert!(unit_price.ok);
+
+            let total_amount = fatoora_invoice_line_item_total_amount(&mut invoice, 0);
+            assert!(total_amount.ok);
+
+            let vat_rate = fatoora_invoice_line_item_vat_rate(&mut invoice, 0);
+            assert!(vat_rate.ok);
+
+            let vat_amount = fatoora_invoice_line_item_vat_amount(&mut invoice, 0);
+            assert!(vat_amount.ok);
+
+            let vat_category = fatoora_invoice_line_item_vat_category(&mut invoice, 0);
+            assert!(vat_category.ok);
+            assert_eq!(vat_category.value, FfiVatCategory::Standard as u8);
+
+            let totals = fatoora_invoice_totals_tax_inclusive(&mut invoice);
+            assert!(totals.ok);
+            let totals = fatoora_invoice_totals_tax_amount(&mut invoice);
+            assert!(totals.ok);
+            let totals = fatoora_invoice_totals_line_extension(&mut invoice);
+            assert!(totals.ok);
+            let totals = fatoora_invoice_totals_allowance_total(&mut invoice);
+            assert!(totals.ok);
+            let totals = fatoora_invoice_totals_charge_total(&mut invoice);
+            assert!(totals.ok);
+            let totals = fatoora_invoice_totals_taxable_amount(&mut invoice);
+            assert!(totals.ok);
+
+            let flags = fatoora_invoice_flags(&mut invoice);
+            assert!(flags.ok);
+
+            let xml = fatoora_invoice_to_xml(&mut invoice);
+            assert!(xml.ok);
+            let xml_str = std::ffi::CStr::from_ptr(xml.value.ptr)
+                .to_string_lossy()
+                .to_string();
+            fatoora_string_free(xml.value);
+
+            let parsed = fatoora_parse_finalized_invoice_xml(cstr(&xml_str).as_ptr());
+            assert!(parsed.ok);
+            let mut parsed = parsed.value;
+            let parsed_count = fatoora_invoice_line_item_count(&mut parsed);
+            assert!(parsed_count.ok);
+            fatoora_invoice_free(&mut parsed);
+
+            let signer_der = fatoora_signer_from_der(
+                cert_der.as_ptr(),
+                cert_der.len(),
+                key_der.as_ptr(),
+                key_der.len(),
+            );
+            assert!(signer_der.ok);
+            let mut signer_der = signer_der.value;
+
+            let signer_pem =
+                fatoora_signer_from_pem(cstr(&cert_pem).as_ptr(), cstr(&key_pem).as_ptr());
+            assert!(signer_pem.ok);
+            let mut signer_pem = signer_pem.value;
+
+            let signed = fatoora_invoice_sign(&mut invoice, &mut signer_der);
+            assert!(signed.ok);
+            let mut signed = signed.value;
+
+            let signed_xml = fatoora_signed_invoice_xml(&mut signed);
+            assert!(signed_xml.ok);
+            let signed_xml_str = std::ffi::CStr::from_ptr(signed_xml.value.ptr)
+                .to_string_lossy()
+                .to_string();
+            fatoora_string_free(signed_xml.value);
+            let signed_qr = fatoora_signed_invoice_qr(&mut signed);
+            assert!(signed_qr.ok);
+            fatoora_string_free(signed_qr.value);
+            let signed_uuid = fatoora_signed_invoice_uuid(&mut signed);
+            assert!(signed_uuid.ok);
+            fatoora_string_free(signed_uuid.value);
+            let signed_hash = fatoora_signed_invoice_hash(&mut signed);
+            assert!(signed_hash.ok);
+            fatoora_string_free(signed_hash.value);
+            let signed_xml_b64 = fatoora_signed_invoice_xml_base64(&mut signed);
+            assert!(signed_xml_b64.ok);
+            fatoora_string_free(signed_xml_b64.value);
+
+            let parsed_signed = fatoora_parse_signed_invoice_xml(cstr(&signed_xml_str).as_ptr());
+            assert!(parsed_signed.ok);
+            let mut parsed_signed = parsed_signed.value;
+            let parsed_hash = fatoora_signed_invoice_hash(&mut parsed_signed);
+            assert!(parsed_hash.ok);
+            fatoora_string_free(parsed_hash.value);
+            fatoora_signed_invoice_free(&mut parsed_signed);
+
+            let signed_count = fatoora_signed_invoice_line_item_count(&mut signed);
+            assert!(signed_count.ok);
+            let signed_description = fatoora_signed_invoice_line_item_description(&mut signed, 0);
+            assert!(signed_description.ok);
+            fatoora_string_free(signed_description.value);
+            let signed_unit_code = fatoora_signed_invoice_line_item_unit_code(&mut signed, 0);
+            assert!(signed_unit_code.ok);
+            fatoora_string_free(signed_unit_code.value);
+            let signed_quantity = fatoora_signed_invoice_line_item_quantity(&mut signed, 0);
+            assert!(signed_quantity.ok);
+            let signed_unit_price = fatoora_signed_invoice_line_item_unit_price(&mut signed, 0);
+            assert!(signed_unit_price.ok);
+            let signed_total_amount = fatoora_signed_invoice_line_item_total_amount(&mut signed, 0);
+            assert!(signed_total_amount.ok);
+            let signed_vat_rate = fatoora_signed_invoice_line_item_vat_rate(&mut signed, 0);
+            assert!(signed_vat_rate.ok);
+            let signed_vat_amount = fatoora_signed_invoice_line_item_vat_amount(&mut signed, 0);
+            assert!(signed_vat_amount.ok);
+            let signed_vat_category = fatoora_signed_invoice_line_item_vat_category(&mut signed, 0);
+            assert!(signed_vat_category.ok);
+            assert_eq!(signed_vat_category.value, FfiVatCategory::Standard as u8);
+
+            let signed_totals = fatoora_signed_invoice_totals_tax_inclusive(&mut signed);
+            assert!(signed_totals.ok);
+            let signed_totals = fatoora_signed_invoice_totals_tax_amount(&mut signed);
+            assert!(signed_totals.ok);
+            let signed_totals = fatoora_signed_invoice_totals_line_extension(&mut signed);
+            assert!(signed_totals.ok);
+            let signed_totals = fatoora_signed_invoice_totals_allowance_total(&mut signed);
+            assert!(signed_totals.ok);
+            let signed_totals = fatoora_signed_invoice_totals_charge_total(&mut signed);
+            assert!(signed_totals.ok);
+            let signed_totals = fatoora_signed_invoice_totals_taxable_amount(&mut signed);
+            assert!(signed_totals.ok);
+
+            let signed_flags = fatoora_signed_invoice_flags(&mut signed);
+            assert!(signed_flags.ok);
+
+            fatoora_signed_invoice_free(&mut signed);
+            fatoora_signer_free(&mut signer_der);
+            fatoora_signer_free(&mut signer_pem);
+            fatoora_invoice_free(&mut invoice);
+            fatoora_invoice_builder_free(&mut builder);
+        }
+    }
+
+    #[test]
+    fn csid_accessors_cover_paths() {
+        unsafe {
+            let ccsid_result = fatoora_csid_compliance_new(
+                FfiEnvironment::NonProduction,
+                true,
+                77,
+                cstr("token").as_ptr(),
+                cstr("secret").as_ptr(),
+            );
+            assert!(ccsid_result.ok);
+            let mut ccsid = ccsid_result.value;
+            let request_id = fatoora_csid_compliance_request_id(&mut ccsid);
+            assert!(request_id.ok);
+
+            let token = fatoora_csid_compliance_token(&mut ccsid);
+            assert!(token.ok);
+            fatoora_string_free(token.value);
+            let secret = fatoora_csid_compliance_secret(&mut ccsid);
+            assert!(secret.ok);
+            fatoora_string_free(secret.value);
+
+            let pcsid_result = fatoora_csid_production_new(
+                FfiEnvironment::NonProduction,
+                false,
+                0,
+                cstr("ptoken").as_ptr(),
+                cstr("psecret").as_ptr(),
+            );
+            assert!(pcsid_result.ok);
+            let mut pcsid = pcsid_result.value;
+            let request_id = fatoora_csid_production_request_id(&mut pcsid);
+            assert!(!request_id.ok);
+            if !request_id.error.is_null() {
+                fatoora_error_free(request_id.error);
+            }
+            let token = fatoora_csid_production_token(&mut pcsid);
+            assert!(token.ok);
+            fatoora_string_free(token.value);
+            let secret = fatoora_csid_production_secret(&mut pcsid);
+            assert!(secret.ok);
+            fatoora_string_free(secret.value);
+
+            fatoora_csid_compliance_free(&mut ccsid);
+            fatoora_csid_production_free(&mut pcsid);
+        }
+    }
 }
