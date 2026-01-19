@@ -32,7 +32,7 @@ Everything done by the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloa
 - QR Generation
 - API Requests
 
-*But we do it faster and better* e.g. ~190x faster invoice hashing than ZATCA's SDK (see [`bench/`](bench/cli/results/hash_bench.md))
+*But we do it faster and better* e.g. ~190x faster invoice hashing than ZATCA's SDK (see [`bench/`](https://github.com/mqqz/fatoora-rs/blob/main/bench/cli/results/hash_bench.md))
 
 ## Dependencies
 XML parsing/manipulation is done internally with `libxml2`, so you might need to install it if you haven't already see [here](https://github.com/KWARC/rust-libxml?tab=readme-ov-file#installation-prerequisites) for relevant instructions.
