@@ -8,7 +8,7 @@ use thiserror::Error;
 /// used in CSR generation.
 /// - NonProduction: This is what ZATCA refers to as the "Integration Sandbox".
 /// - Simulation: This is the "Simulation Test Environment" provided by ZATCA which you need to
-/// sign up for.
+///   sign up for.
 /// - Production: The live production environment.
 /// # Examples
 /// ```rust

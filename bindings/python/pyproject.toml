@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fatoora"
+version = "0.1.0"
+description = "Python bindings for the fatoora ZATCA SDK"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "mqqz" }]
+dependencies = ["cffi>=1.16"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools]
+packages = ["fatoora"]
+
+[tool.setuptools.package-data]
+fatoora = ["*.so", "*.dylib", "*.dll"]
+
+[tool.cibuildwheel]
+build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
+skip = "pp* *-musllinux_*"
+test-command = "python -c \"import fatoora; print(fatoora.__all__)\""
+
+[tool.cibuildwheel.linux]
+before-build = "cargo build -p fatoora-ffi --release"
+
+[tool.cibuildwheel.macos]
+before-build = "cargo build -p fatoora-ffi --release"
+
+[tool.cibuildwheel.windows]
+before-build = "cargo build -p fatoora-ffi --release"

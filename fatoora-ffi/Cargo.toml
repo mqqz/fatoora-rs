@@ -1,0 +1,28 @@
+[package]
+name = "fatoora-ffi"
+version = "0.1.0"
+edition = "2024"
+description = "C ABI bindings for the fatoora ZATCA SDK"
+license = "MIT"
+authors = ["mqqz"]
+homepage = "https://github.com/mqqz/fatoora-rs"
+repository = "https://github.com/mqqz/fatoora-rs"
+readme = "../README.md"
+keywords = ["zatca", "ffi", "c-abi"]
+categories = ["api-bindings", "external-ffi-bindings"]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+fatoora-core = { path = "../fatoora-core", version = "0.1.0" }
+chrono = { version = "0.4.42", features = ["serde"] }
+iso_currency = { version = "0.5.3", features = ["with-serde"] }
+isocountry = "0.3.2"
+k256 = { version = "0.14.0-rc.1", features = ["pkcs8", "pem"] }
+serde_json = "1.0.145"
+tokio = { version = "1.47.1", features = ["rt", "rt-multi-thread"] }
+x509-cert = { version = "0.3.0-rc.2", features = ["pem"] }
+
+[build-dependencies]
+cbindgen = "0.29.2"

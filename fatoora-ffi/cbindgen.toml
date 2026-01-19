@@ -1,0 +1,6 @@
+language = "C"
+include_guard = "FATOORA_FFI_H"
+namespaces = ["fatoora"]
+
+[enum]
+prefix_with_name = true

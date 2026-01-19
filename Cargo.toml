@@ -5,4 +5,5 @@ members = [
     "fatoora-derive",
     "fatoora-core",
     "fatoora-rs-cli",
+    "fatoora-ffi",
 ]
