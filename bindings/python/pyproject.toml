@@ -15,7 +15,6 @@ keywords = ["zatca", "invoice", "e-invoicing", "sdk", "ffi"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Topic :: Software Development :: Libraries",
 ]
@@ -31,7 +30,6 @@ dev = ["pytest>=8.0"]
 
 [tool.setuptools]
 packages = ["fatoora"]
-license-files = ["LICENSE"]
 
 [tool.setuptools.package-data]
 fatoora = ["*.so", "*.dylib", "*.dll"]
