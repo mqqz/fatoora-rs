@@ -8,20 +8,30 @@ version = "0.1.0"
 description = "Python bindings for the fatoora ZATCA SDK"
 readme = "README.md"
 requires-python = ">=3.9"
-license = { text = "MIT" }
+license = "MIT"
 authors = [{ name = "mqqz" }]
 dependencies = ["cffi>=1.16"]
+keywords = ["zatca", "invoice", "e-invoicing", "sdk", "ffi"]
 classifiers = [
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
+  "Topic :: Software Development :: Libraries",
 ]
+
+[project.urls]
+Homepage = "https://github.com/mqqz/fatoora-rs"
+Repository = "https://github.com/mqqz/fatoora-rs"
+Documentation = "https://github.com/mqqz/fatoora-rs"
+Issues = "https://github.com/mqqz/fatoora-rs/issues"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
 
 [tool.setuptools]
 packages = ["fatoora"]
+license-files = ["LICENSE"]
 
 [tool.setuptools.package-data]
 fatoora = ["*.so", "*.dylib", "*.dll"]

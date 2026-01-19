@@ -1,0 +1,90 @@
+name: ci-release
+
+on:
+  pull_request:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Rust
+        run: rustup update stable
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Generate code coverage
+        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # required for private repos or protected branches
+          files: lcov.info
+          fail_ci_if_error: true
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: coverage
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Rust
+        run: rustup update stable
+      - name: Publish crates
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          cargo publish -p fatoora-derive --locked
+          cargo publish -p fatoora-core --locked
+          cargo publish -p fatoora-ffi --locked
+          cargo publish -p fatoora-rs-cli --locked
+
+  release-cli:
+    runs-on: ${{ matrix.os }}
+    needs: coverage
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            ext: ""
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            ext: ""
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            ext: ".exe"
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Rust
+        run: rustup update stable
+
+      - name: Build CLI
+        run: cargo build -p fatoora-rs-cli --release --target ${{ matrix.target }}
+
+      - name: Package CLI (unix)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/fatoora-rs-cli dist/fatoora-rs-cli-${{ matrix.target }}
+
+      - name: Package CLI (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item target/${{ matrix.target }}/release/fatoora-rs-cli.exe dist/fatoora-rs-cli-${{ matrix.target }}.exe
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*

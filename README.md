@@ -9,7 +9,7 @@
 
 An *unofficial* open-source toolkit for everything you'd need for ZATCA (Zakat, Tax and Customs Authority of Saudi Arabia) Phase 1 and 2 compliant e-invoicing 
 
-...with bindings and support for many programming languages (coming soon lol).
+...with bindings and support for many programming languages (so far only C/C++ and Python).
 
 ...*and also built in Rust btw*
 

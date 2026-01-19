@@ -1,0 +1,87 @@
+name: python
+
+on:
+  pull_request:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  test-bindings:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v3
+
+      - name: Create venv
+        run: uv venv .venv
+
+      - name: Build FFI library
+        run: cargo build -p fatoora-ffi --release
+
+      - name: Install bindings
+        run: uv pip install --python .venv/bin/python -e bindings/python[dev]
+
+      - name: Run tests
+        run: uv run --python .venv/bin/python pytest bindings/python/tests
+
+  build-wheels:
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ${{ matrix.os }}
+    needs: test-bindings
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install build tooling
+        run: python -m pip install --upgrade pip cibuildwheel build
+
+      - name: Build wheels
+        env:
+          CIBW_WORKING_DIRECTORY: bindings/python
+        run: python -m cibuildwheel --output-dir dist
+
+      - name: Build sdist
+        run: python -m build --sdist --outdir dist bindings/python
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dist-${{ matrix.os }}
+          path: dist/*
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build-wheels
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
