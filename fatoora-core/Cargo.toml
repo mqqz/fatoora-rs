@@ -12,11 +12,8 @@ documentation = "https://docs.rs/fatoora-core"
 keywords = ["zatca", "e-invoice", "invoice", "ubl", "saudi"]
 categories = ["api-bindings", "cryptography", "parser-implementations"]
 
-[lib]
-crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-ffi-support = "0.4"
 java-properties = "2.0.0"
 quick-xml = { version = "0.39.0", features = ["serialize"] }
 serde = "1.0.228"
@@ -52,6 +49,3 @@ bitflags = { version = "2.10.0", features = ["serde"] }
 
 [dev-dependencies]
 tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread"] }
-
-[build-dependencies]
-cbindgen = "0.29.2"
