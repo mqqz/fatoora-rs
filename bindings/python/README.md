@@ -12,12 +12,12 @@ uv pip install -e .
 ### Build a wheel (uv)
 
 ```bash
-uv pip wheel .
+uv build --wheel
 ```
 
 ### Wheels (CI)
 
-- GitHub Actions uses `cibuildwheel` to produce platform wheels in `dist/`.
+- GitHub Actions uses `cibuildwheel` to produce platform wheels in `dist/` (wheel-only publishing).
 - See `.github/workflows/python-wheels.yml` for the build matrix.
 
 ### Notes

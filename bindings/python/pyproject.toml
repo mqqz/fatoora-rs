@@ -3,7 +3,7 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fatoora"
+name = "fatoora-rs"
 version = "0.1.0"
 description = "Python bindings for the fatoora ZATCA SDK"
 readme = "README.md"
