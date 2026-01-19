@@ -20,11 +20,14 @@ jobs:
 
       - uses: astral-sh/setup-uv@v3
 
+      - name: Create venv
+        run: uv venv .venv
+
       - name: Build FFI library
         run: cargo build -p fatoora-ffi --release
 
       - name: Install bindings
-        run: uv pip install -e bindings/python[dev]
+        run: uv pip install --python .venv/bin/python -e bindings/python[dev]
 
       - name: Run tests
-        run: uv run pytest bindings/python/tests
+        run: uv run --python .venv/bin/python pytest bindings/python/tests
