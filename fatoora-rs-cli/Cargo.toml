@@ -1,6 +1,6 @@
 [package]
 name = "fatoora-rs-cli"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "Command-line interface for the fatoora ZATCA SDK"
 license = "MIT"
@@ -15,7 +15,7 @@ categories = ["command-line-utilities"]
 [dependencies]
 anyhow = "1.0.100"
 clap = { version = "4.5.53", features = ["derive"] }
-fatoora-core = { version = "0.1.0", path = "../fatoora-core" }
+fatoora-core = { version = "0.1.1", path = "../fatoora-core" }
 base64ct = "1.8.0"
 k256 = { version = "0.14.0-rc.1", features = ["pkcs8", "pem"] }
 libxml = "0.3.5"

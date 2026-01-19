@@ -1,6 +1,6 @@
 [package]
 name = "fatoora-ffi"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "C ABI bindings for the fatoora ZATCA SDK"
 license = "MIT"
@@ -15,7 +15,7 @@ categories = ["api-bindings", "external-ffi-bindings"]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-fatoora-core = { path = "../fatoora-core", version = "0.1.0" }
+fatoora-core = { path = "../fatoora-core", version = "0.1.1" }
 chrono = { version = "0.4.42", features = ["serde"] }
 iso_currency = { version = "0.5.3", features = ["with-serde"] }
 isocountry = "0.3.2"

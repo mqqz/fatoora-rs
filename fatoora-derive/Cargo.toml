@@ -1,6 +1,6 @@
 [package]
 name = "fatoora-derive"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "Proc-macro helpers for fatoora-core validation rules"
 license = "MIT"

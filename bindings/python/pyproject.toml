@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fatoora-rs"
-version = "0.1.0"
-description = "Python bindings for the fatoora ZATCA SDK"
+version = "0.1.1"
+description = "Python bindings for the fatoora-rs ZATCA SDK"
 readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT"
