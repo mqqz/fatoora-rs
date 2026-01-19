@@ -55,6 +55,7 @@ impl TokenScope for Production {}
 pub struct ZatcaClient {
     config: Config,
     _client: Client,
+    base_url: String,
 }
 
 /// API validation response.
@@ -315,6 +316,18 @@ impl ZatcaClient {
         Ok(Self {
             config,
             _client: client,
+            base_url: config.env().endpoint_url().to_string(),
+        })
+    }
+
+    #[cfg(test)]
+    pub fn with_base_url(config: Config, base_url: impl Into<String>) -> Result<Self, ZatcaError> {
+        let client = Client::builder().build().map_err(ZatcaError::Http)?;
+
+        Ok(Self {
+            config,
+            _client: client,
+            base_url: base_url.into(),
         })
     }
 
@@ -755,7 +768,7 @@ impl ZatcaClient {
     fn build_endpoint(&self, path: &str) -> String {
         format!(
             "{}{}",
-            self.config.env().endpoint_url(),
+            self.base_url,
             path.trim_start_matches('/')
         )
     }
