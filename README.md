@@ -5,7 +5,7 @@
 [![Crates.io Version](https://img.shields.io/crates/v/fatoora-core?logo=rust&label=fatoora-core)](https://crates.io/crates/fatoora-core)
 [![Crates.io Version](https://img.shields.io/crates/v/fatoora-rs-cli?logo=rust&label=fatoora-rs-cli)](https://crates.io/crates/fatoora-rs-cli)
 [![Crates.io Version](https://img.shields.io/crates/v/fatoora-derive?logo=rust&label=fatoora-derive)](https://crates.io/crates/fatoora-derive)
-
+[![PyPi Version](https://img.shields.io/pypi/v/fatoora-rs?logo=python)](https://pypi.org/project/fatoora-rs/)
 
 An *unofficial* open-source toolkit for everything you'd need for ZATCA (Zakat, Tax and Customs Authority of Saudi Arabia) Phase 1 and 2 compliant e-invoicing 
 
