@@ -87,7 +87,20 @@ jobs:
           workspaces: |
             .
 
+      - name: Install libxml2 (vcpkg)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg $env:VCPKG_ROOT
+          & $env:VCPKG_ROOT\bootstrap-vcpkg.bat
+          & $env:VCPKG_ROOT\vcpkg.exe install libxml2:x64-windows
+        env:
+          VCPKG_ROOT: ${{ runner.temp }}\vcpkg
+
       - name: Build CLI
+        env:
+          VCPKG_ROOT: ${{ runner.temp }}\vcpkg
+          VCPKGRS_DYNAMIC: "1"
         run: cargo build -p fatoora-rs-cli --release --target ${{ matrix.target }}
 
       - name: Package CLI (unix)

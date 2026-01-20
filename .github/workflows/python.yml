@@ -86,7 +86,7 @@ jobs:
 
       - name: Build wheels
         env:
-          CIBW_WORKING_DIRECTORY: bindings/python
+          CIBW_PROJECT_DIR: bindings/python
         run: python -m cibuildwheel --output-dir dist
 
       - name: Upload artifacts
