@@ -166,12 +166,7 @@ fatoora-rs-cli invoice-request --invoice signed.xml --api-request request.json
 
 ## Contributing
 
-Contributions are always welcome!
-- Open issues for discussion before implementing any big features
-- Add relevant tests and make sure there are no formatting issues
-
-> Live API tests run by default with the rest of the test suite.
-> Set `SKIP_ZATCA_LIVE_API=1` to disable them locally or in CI.
+Contributions are always welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
 ## Roadmap
 - Increase test coverage to 100% (Inshallah)
