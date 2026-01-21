@@ -13,24 +13,35 @@ use x509_cert::request::CertReq;
 use fatoora_core::config::Config;
 use fatoora_core::invoice::{
     Address, FinalizedInvoice, InvoiceBuilder, InvoiceData, InvoiceNote, InvoiceSubType, InvoiceType,
-    LineItem, LineItemFields, OtherId, Party, RequiredInvoiceFields, SellerRole,
-    SignedInvoice, VatCategory, InvoiceFlags,
+    LineItem, LineItemFields, OtherId, OriginalInvoiceRef, Party, PartyRole, RequiredInvoiceFields,
+    SellerRole, SignedInvoice, VatCategory, VatId, InvoiceFlags,
 };
-use fatoora_core::api::{CsidCredentials, ZatcaClient, Compliance, Production};
+use fatoora_core::api::{
+    CsidCredentials, ZatcaClient, Compliance, MessageList, Production, ValidationMessage,
+    ValidationResponse, ValidationResults,
+};
 use fatoora_core::csr::{CsrProperties, ToBase64String};
 use fatoora_core::invoice::sign::InvoiceSigner;
 use fatoora_core::invoice::xml::ToXml;
 use fatoora_core::invoice::validation::{validate_xml_invoice_from_file, validate_xml_invoice_from_str};
 
 mod error;
+#[macro_use]
+mod macros;
 mod types;
 
-pub use error::{FfiResult, fatoora_error_free};
+pub use error::{
+    FfiErrorDetails, FfiErrorKind, FfiResult, fatoora_error_free, ffi_error_from_api,
+    ffi_error_from_csr, ffi_error_from_invoice, ffi_error_from_parse, ffi_error_from_qr,
+    ffi_error_from_signing, ffi_error_from_validation, ffi_error_from_xml,
+    ffi_error_internal, ffi_error_invalid_input,
+};
 pub use types::{
     FfiConfig, FfiEnvironment, FfiFinalizedInvoice, FfiInvoiceBuilder, FfiInvoiceSubType,
     FfiInvoiceTypeKind, FfiSignedInvoice, FfiSigner, FfiString, FfiVatCategory, FfiInvoiceFlag,
     FfiCsrProperties, FfiCsr, FfiSigningKey, FfiCsrBundle, FfiZatcaClient, FfiCsidCompliance,
-    FfiCsidProduction,
+    FfiCsidProduction, FfiValidationMessage, FfiValidationResponse, FfiValidationResults,
+    FfiAddress, FfiParty, FfiVatId, FfiOtherId, FfiInvoiceNote, FfiOriginalInvoiceRef,
 };
 
 fn optional_string(ptr: *const c_char) -> Option<String> {
@@ -48,13 +59,62 @@ fn optional_string(ptr: *const c_char) -> Option<String> {
     }
 }
 
-fn required_string(ptr: *const c_char, label: &str) -> Result<String, String> {
+fn optional_str_to_ffi(value: Option<&str>) -> FfiString {
+    match value {
+        Some(value) => FfiString::from(value.to_string()),
+        None => FfiString { ptr: std::ptr::null_mut() },
+    }
+}
+
+fn optional_handle<T>(value: Option<T>) -> *mut std::os::raw::c_void {
+    match value {
+        Some(value) => Box::into_raw(Box::new(value)) as *mut std::os::raw::c_void,
+        None => std::ptr::null_mut(),
+    }
+}
+
+#[derive(Clone)]
+struct PartyOwned {
+    name: String,
+    address: Address,
+    vat_id: Option<VatId>,
+    other_id: Option<OtherId>,
+}
+
+impl<R: PartyRole> From<&Party<R>> for PartyOwned {
+    fn from(value: &Party<R>) -> Self {
+        Self {
+            name: value.name().to_string(),
+            address: value.address().clone(),
+            vat_id: value.vat_id().cloned(),
+            other_id: value.other_id().cloned(),
+        }
+    }
+}
+
+fn message_list_len(list: &MessageList) -> usize {
+    match list {
+        MessageList::One(_) => 1,
+        MessageList::Many(values) => values.len(),
+        MessageList::Empty => 0,
+    }
+}
+
+fn message_list_get<'a>(list: &'a MessageList, index: usize) -> Option<&'a ValidationMessage> {
+    match list {
+        MessageList::One(message) => (index == 0).then_some(message),
+        MessageList::Many(values) => values.get(index),
+        MessageList::Empty => None,
+    }
+}
+
+fn required_string(ptr: *const c_char, label: &str) -> Result<String, FfiErrorDetails> {
     if ptr.is_null() {
-        return Err(format!("{label} is null"));
+        return Err(ffi_error_invalid_input(format!("{label} is null")));
     }
     let value = unsafe { CStr::from_ptr(ptr) }
         .to_str()
-        .map_err(|_| format!("{label} is not valid utf-8"))?;
+        .map_err(|_| ffi_error_invalid_input(format!("{label} is not valid utf-8")))?;
     Ok(value.trim().to_string())
 }
 
@@ -73,42 +133,43 @@ fn flags_to_bits(flags: InvoiceFlags) -> u8 {
     flags.bits()
 }
 
-fn parse_country(code: &str) -> Result<CountryCode, String> {
+fn parse_country(code: &str) -> Result<CountryCode, FfiErrorDetails> {
     CountryCode::for_alpha3(code)
-        .map_err(|_| format!("Invalid country code: {code}"))
+        .map_err(|_| ffi_error_invalid_input(format!("Invalid country code: {code}")))
 }
 
-fn parse_currency(code: &str) -> Result<Currency, String> {
+fn parse_currency(code: &str) -> Result<Currency, FfiErrorDetails> {
     Currency::from_code(code)
-        .ok_or_else(|| format!("Invalid currency code: {code}"))
+        .ok_or_else(|| ffi_error_invalid_input(format!("Invalid currency code: {code}")))
 }
 
-fn parse_issue_datetime(seconds: i64, nanos: u32) -> Result<chrono::DateTime<Utc>, String> {
+fn parse_issue_datetime(seconds: i64, nanos: u32) -> Result<chrono::DateTime<Utc>, FfiErrorDetails> {
     Utc.timestamp_opt(seconds, nanos)
         .single()
-        .ok_or_else(|| "Invalid issue timestamp".to_string())
+        .ok_or_else(|| ffi_error_invalid_input("Invalid issue timestamp"))
 }
 
 fn run_async<T>(
     fut: impl std::future::Future<Output = Result<T, fatoora_core::api::ZatcaError>>,
-) -> Result<T, String> {
-    let rt = Runtime::new().map_err(|err| err.to_string())?;
-    rt.block_on(fut).map_err(|err| err.to_string())
+) -> Result<T, FfiErrorDetails> {
+    let rt = Runtime::new()
+        .map_err(|err| ffi_error_internal(format!("runtime init failed: {err}")))?;
+    rt.block_on(fut).map_err(ffi_error_from_api)
 }
 
 fn original_invoice_ref(
     id: Option<String>,
     uuid: Option<String>,
     issue_date: Option<String>,
-) -> Result<fatoora_core::invoice::OriginalInvoiceRef, String> {
-    let id = id.ok_or_else(|| "Missing original invoice id".to_string())?;
+) -> Result<fatoora_core::invoice::OriginalInvoiceRef, FfiErrorDetails> {
+    let id = id.ok_or_else(|| ffi_error_invalid_input("Missing original invoice id"))?;
     let mut reference = fatoora_core::invoice::OriginalInvoiceRef::new(id);
     if let Some(uuid) = uuid {
         reference = reference.with_uuid(uuid);
     }
     if let Some(date) = issue_date {
         let parsed = chrono::NaiveDate::parse_from_str(&date, "%Y-%m-%d")
-            .map_err(|_| format!("Invalid issue date: {date}"))?;
+            .map_err(|_| ffi_error_invalid_input(format!("Invalid issue date: {date}")))?;
         reference = reference.with_issue_date(parsed);
     }
     Ok(reference)
@@ -121,43 +182,43 @@ fn invoice_type_from_parts(
     original_uuid: Option<String>,
     original_issue_date: Option<String>,
     reason: Option<String>,
-) -> Result<InvoiceType, String> {
+) -> Result<InvoiceType, FfiErrorDetails> {
     let sub_type: InvoiceSubType = sub_type.into();
     match kind {
         FfiInvoiceTypeKind::Tax => Ok(InvoiceType::Tax(sub_type)),
         FfiInvoiceTypeKind::Prepayment => Ok(InvoiceType::Prepayment(sub_type)),
         FfiInvoiceTypeKind::CreditNote => {
-            let reason = reason.ok_or_else(|| "Missing credit note reason".to_string())?;
+            let reason = reason.ok_or_else(|| ffi_error_invalid_input("Missing credit note reason"))?;
             let reference = original_invoice_ref(original_id, original_uuid, original_issue_date)?;
             Ok(InvoiceType::CreditNote(sub_type, reference, reason))
         }
         FfiInvoiceTypeKind::DebitNote => {
-            let reason = reason.ok_or_else(|| "Missing debit note reason".to_string())?;
+            let reason = reason.ok_or_else(|| ffi_error_invalid_input("Missing debit note reason"))?;
             let reference = original_invoice_ref(original_id, original_uuid, original_issue_date)?;
             Ok(InvoiceType::DebitNote(sub_type, reference, reason))
         }
     }
 }
 
-fn take_handle<T>(handle: &mut *mut std::os::raw::c_void, label: &str) -> Result<Box<T>, String> {
+fn take_handle<T>(handle: &mut *mut std::os::raw::c_void, label: &str) -> Result<Box<T>, FfiErrorDetails> {
     if handle.is_null() || (*handle).is_null() {
-        return Err(format!("{label} handle is null"));
+        return Err(ffi_error_invalid_input(format!("{label} handle is null")));
     }
     let ptr = *handle as *mut T;
     if ptr.is_null() {
-        return Err(format!("{label} handle is null"));
+        return Err(ffi_error_invalid_input(format!("{label} handle is null")));
     }
     *handle = std::ptr::null_mut();
     Ok(unsafe { Box::from_raw(ptr) })
 }
 
-fn borrow_handle<'a, T>(handle: *mut std::os::raw::c_void, label: &str) -> Result<&'a T, String> {
+fn borrow_handle<'a, T>(handle: *mut std::os::raw::c_void, label: &str) -> Result<&'a T, FfiErrorDetails> {
     if handle.is_null() {
-        return Err(format!("{label} handle is null"));
+        return Err(ffi_error_invalid_input(format!("{label} handle is null")));
     }
     let ptr = handle as *const T;
     if ptr.is_null() {
-        return Err(format!("{label} handle is null"));
+        return Err(ffi_error_invalid_input(format!("{label} handle is null")));
     }
     Ok(unsafe { &*ptr })
 }
@@ -165,21 +226,21 @@ fn borrow_handle<'a, T>(handle: *mut std::os::raw::c_void, label: &str) -> Resul
 fn borrow_handle_mut<'a, T>(
     handle: *mut std::os::raw::c_void,
     label: &str,
-) -> Result<&'a mut T, String> {
+) -> Result<&'a mut T, FfiErrorDetails> {
     if handle.is_null() {
-        return Err(format!("{label} handle is null"));
+        return Err(ffi_error_invalid_input(format!("{label} handle is null")));
     }
     let ptr = handle as *mut T;
     if ptr.is_null() {
-        return Err(format!("{label} handle is null"));
+        return Err(ffi_error_invalid_input(format!("{label} handle is null")));
     }
     Ok(unsafe { &mut *ptr })
 }
 
-fn borrow_config<'a>(config: *mut FfiConfig) -> Result<&'a Config, String> {
+fn borrow_config<'a>(config: *mut FfiConfig) -> Result<&'a Config, FfiErrorDetails> {
     let config = match unsafe { config.as_mut() } {
         Some(handle) => handle,
-        None => return Err("config handle is null".to_string()),
+        None => return Err(ffi_error_invalid_input("config handle is null")),
     };
     borrow_handle::<Config>(config.ptr, "config")
 }
@@ -239,15 +300,12 @@ pub unsafe extern "C" fn fatoora_config_free(config: *mut FfiConfig) {
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_csr_properties_parse(path: *const c_char) -> FfiResult<FfiCsrProperties> {
-    let path = match required_string(path, "csr properties path") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let path = ffi_required_string!(path, "csr properties path");
     match CsrProperties::parse_csr_config(std::path::Path::new(&path)) {
         Ok(props) => FfiResult::ok(FfiCsrProperties {
             ptr: Box::into_raw(Box::new(props)) as *mut std::os::raw::c_void,
         }),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
     }
 }
 
@@ -255,30 +313,22 @@ pub unsafe extern "C" fn fatoora_csr_properties_parse(path: *const c_char) -> Ff
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_csr_properties_free(props: *mut FfiCsrProperties) {
-    if props.is_null() {
-        return;
-    }
-    let props = unsafe { &mut *props };
-    if props.ptr.is_null() {
-        return;
-    }
-    unsafe { drop(Box::from_raw(props.ptr as *mut CsrProperties)) };
-    props.ptr = std::ptr::null_mut();
+    ffi_handle_free!(props, CsrProperties);
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signing_key_from_pem(pem: *const c_char) -> FfiResult<FfiSigningKey> {
-    let pem = match required_string(pem, "signing key pem") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let pem = ffi_required_string!(pem, "signing key pem");
     match SigningKey::from_pkcs8_pem(&pem) {
         Ok(key) => FfiResult::ok(FfiSigningKey {
             ptr: Box::into_raw(Box::new(key)) as *mut std::os::raw::c_void,
         }),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(FfiErrorDetails::new(
+            FfiErrorKind::Crypto,
+            err.to_string(),
+        )),
     }
 }
 
@@ -287,14 +337,17 @@ pub unsafe extern "C" fn fatoora_signing_key_from_pem(pem: *const c_char) -> Ffi
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signing_key_from_der(der: *const u8, len: usize) -> FfiResult<FfiSigningKey> {
     if der.is_null() {
-        return FfiResult::err("null der pointer".to_string());
+        return FfiResult::err(ffi_error_invalid_input("null der pointer"));
     }
     let data = unsafe { std::slice::from_raw_parts(der, len) };
     match SigningKey::from_pkcs8_der(data) {
         Ok(key) => FfiResult::ok(FfiSigningKey {
             ptr: Box::into_raw(Box::new(key)) as *mut std::os::raw::c_void,
         }),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(FfiErrorDetails::new(
+            FfiErrorKind::Crypto,
+            err.to_string(),
+        )),
     }
 }
 
@@ -302,17 +355,13 @@ pub unsafe extern "C" fn fatoora_signing_key_from_der(der: *const u8, len: usize
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signing_key_to_pem(key: *mut FfiSigningKey) -> FfiResult<FfiString> {
-    let key = match unsafe { key.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signing key handle is null".to_string()),
-    };
-    let key = match borrow_handle::<SigningKey>(key.ptr, "signing key") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let key = ffi_borrow!(key, "signing key", SigningKey);
     match key.to_pkcs8_pem(LineEnding::LF) {
         Ok(pem) => FfiResult::ok(FfiString::from(pem.to_string())),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(FfiErrorDetails::new(
+            FfiErrorKind::Crypto,
+            err.to_string(),
+        )),
     }
 }
 
@@ -320,15 +369,7 @@ pub unsafe extern "C" fn fatoora_signing_key_to_pem(key: *mut FfiSigningKey) -> 
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signing_key_free(key: *mut FfiSigningKey) {
-    if key.is_null() {
-        return;
-    }
-    let key = unsafe { &mut *key };
-    if key.ptr.is_null() {
-        return;
-    }
-    unsafe { drop(Box::from_raw(key.ptr as *mut SigningKey)) };
-    key.ptr = std::ptr::null_mut();
+    ffi_handle_free!(key, SigningKey);
 }
 
 #[unsafe(no_mangle)]
@@ -338,14 +379,7 @@ pub unsafe extern "C" fn fatoora_csr_build_with_rng(
     props: *mut FfiCsrProperties,
     env: FfiEnvironment,
 ) -> FfiResult<FfiCsrBundle> {
-    let props = match unsafe { props.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csr properties handle is null".to_string()),
-    };
-    let props = match borrow_handle::<CsrProperties>(props.ptr, "csr properties") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let props = ffi_borrow!(props, "csr properties", CsrProperties);
     match props.build_with_rng(env.into()) {
         Ok((csr, key)) => FfiResult::ok(FfiCsrBundle {
             csr: FfiCsr {
@@ -355,7 +389,7 @@ pub unsafe extern "C" fn fatoora_csr_build_with_rng(
                 ptr: Box::into_raw(Box::new(key)) as *mut std::os::raw::c_void,
             },
         }),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
     }
 }
 
@@ -367,27 +401,13 @@ pub unsafe extern "C" fn fatoora_csr_build(
     key: *mut FfiSigningKey,
     env: FfiEnvironment,
 ) -> FfiResult<FfiCsr> {
-    let props = match unsafe { props.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csr properties handle is null".to_string()),
-    };
-    let props = match borrow_handle::<CsrProperties>(props.ptr, "csr properties") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let key = match unsafe { key.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signing key handle is null".to_string()),
-    };
-    let key = match borrow_handle::<SigningKey>(key.ptr, "signing key") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let props = ffi_borrow!(props, "csr properties", CsrProperties);
+    let key = ffi_borrow!(key, "signing key", SigningKey);
     match props.build(key, env.into()) {
         Ok(csr) => FfiResult::ok(FfiCsr {
             ptr: Box::into_raw(Box::new(csr)) as *mut std::os::raw::c_void,
         }),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
     }
 }
 
@@ -395,17 +415,10 @@ pub unsafe extern "C" fn fatoora_csr_build(
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_csr_to_base64(csr: *mut FfiCsr) -> FfiResult<FfiString> {
-    let csr = match unsafe { csr.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csr handle is null".to_string()),
-    };
-    let csr = match borrow_handle::<CertReq>(csr.ptr, "csr") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let csr = ffi_borrow!(csr, "csr", CertReq);
     match csr.to_base64_string() {
         Ok(value) => FfiResult::ok(FfiString::from(value)),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
     }
 }
 
@@ -413,17 +426,10 @@ pub unsafe extern "C" fn fatoora_csr_to_base64(csr: *mut FfiCsr) -> FfiResult<Ff
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_csr_to_pem_base64(csr: *mut FfiCsr) -> FfiResult<FfiString> {
-    let csr = match unsafe { csr.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csr handle is null".to_string()),
-    };
-    let csr = match borrow_handle::<CertReq>(csr.ptr, "csr") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let csr = ffi_borrow!(csr, "csr", CertReq);
     match csr.to_pem_base64_string() {
         Ok(value) => FfiResult::ok(FfiString::from(value)),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
     }
 }
 
@@ -431,15 +437,7 @@ pub unsafe extern "C" fn fatoora_csr_to_pem_base64(csr: *mut FfiCsr) -> FfiResul
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_csr_free(csr: *mut FfiCsr) {
-    if csr.is_null() {
-        return;
-    }
-    let csr = unsafe { &mut *csr };
-    if csr.ptr.is_null() {
-        return;
-    }
-    unsafe { drop(Box::from_raw(csr.ptr as *mut CertReq)) };
-    csr.ptr = std::ptr::null_mut();
+    ffi_handle_free!(csr, CertReq);
 }
 
 #[unsafe(no_mangle)]
@@ -454,7 +452,7 @@ pub unsafe extern "C" fn fatoora_zatca_client_new(config: *mut FfiConfig) -> Ffi
         Ok(client) => FfiResult::ok(FfiZatcaClient {
             ptr: Box::into_raw(Box::new(client)) as *mut std::os::raw::c_void,
         }),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(ffi_error_from_api(err)),
     }
 }
 
@@ -462,15 +460,7 @@ pub unsafe extern "C" fn fatoora_zatca_client_new(config: *mut FfiConfig) -> Ffi
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_zatca_client_free(client: *mut FfiZatcaClient) {
-    if client.is_null() {
-        return;
-    }
-    let client = unsafe { &mut *client };
-    if client.ptr.is_null() {
-        return;
-    }
-    unsafe { drop(Box::from_raw(client.ptr as *mut ZatcaClient)) };
-    client.ptr = std::ptr::null_mut();
+    ffi_handle_free!(client, ZatcaClient);
 }
 
 #[unsafe(no_mangle)]
@@ -483,14 +473,8 @@ pub unsafe extern "C" fn fatoora_csid_compliance_new(
     token: *const c_char,
     secret: *const c_char,
 ) -> FfiResult<FfiCsidCompliance> {
-    let token = match required_string(token, "csid token") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let secret = match required_string(secret, "csid secret") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let token = ffi_required_string!(token, "csid token");
+    let secret = ffi_required_string!(secret, "csid secret");
     let creds = CsidCredentials::<Compliance>::new(
         env.into(),
         if has_request_id { Some(request_id) } else { None },
@@ -512,14 +496,8 @@ pub unsafe extern "C" fn fatoora_csid_production_new(
     token: *const c_char,
     secret: *const c_char,
 ) -> FfiResult<FfiCsidProduction> {
-    let token = match required_string(token, "csid token") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let secret = match required_string(secret, "csid secret") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let token = ffi_required_string!(token, "csid token");
+    let secret = ffi_required_string!(secret, "csid secret");
     let creds = CsidCredentials::<Production>::new(
         env.into(),
         if has_request_id { Some(request_id) } else { None },
@@ -535,17 +513,10 @@ pub unsafe extern "C" fn fatoora_csid_production_new(
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_csid_compliance_request_id(creds: *mut FfiCsidCompliance) -> FfiResult<u64> {
-    let creds = match unsafe { creds.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csid handle is null".to_string()),
-    };
-    let creds = match borrow_handle::<CsidCredentials<Compliance>>(creds.ptr, "csid") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let creds = ffi_borrow!(creds, "csid", CsidCredentials<Compliance>);
     match creds.request_id() {
         Some(value) => FfiResult::ok(value),
-        None => FfiResult::err("missing request id".to_string()),
+        None => FfiResult::err(ffi_error_invalid_input("missing request id")),
     }
 }
 
@@ -553,108 +524,61 @@ pub unsafe extern "C" fn fatoora_csid_compliance_request_id(creds: *mut FfiCsidC
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_csid_production_request_id(creds: *mut FfiCsidProduction) -> FfiResult<u64> {
-    let creds = match unsafe { creds.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csid handle is null".to_string()),
-    };
-    let creds = match borrow_handle::<CsidCredentials<Production>>(creds.ptr, "csid") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let creds = ffi_borrow!(creds, "csid", CsidCredentials<Production>);
     match creds.request_id() {
         Some(value) => FfiResult::ok(value),
-        None => FfiResult::err("missing request id".to_string()),
+        None => FfiResult::err(ffi_error_invalid_input("missing request id")),
     }
 }
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_csid_compliance_token(creds: *mut FfiCsidCompliance) -> FfiResult<FfiString> {
-    let creds = match unsafe { creds.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csid handle is null".to_string()),
-    };
-    let creds = match borrow_handle::<CsidCredentials<Compliance>>(creds.ptr, "csid") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(FfiString::from(creds.binary_security_token().to_string()))
-}
+ffi_handle_getter!(
+    fatoora_csid_compliance_token,
+    FfiCsidCompliance,
+    CsidCredentials<Compliance>,
+    "csid",
+    FfiString,
+    |creds| FfiString::from(creds.binary_security_token().to_string())
+);
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_csid_compliance_secret(creds: *mut FfiCsidCompliance) -> FfiResult<FfiString> {
-    let creds = match unsafe { creds.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csid handle is null".to_string()),
-    };
-    let creds = match borrow_handle::<CsidCredentials<Compliance>>(creds.ptr, "csid") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(FfiString::from(creds.secret().to_string()))
-}
+ffi_handle_getter!(
+    fatoora_csid_compliance_secret,
+    FfiCsidCompliance,
+    CsidCredentials<Compliance>,
+    "csid",
+    FfiString,
+    |creds| FfiString::from(creds.secret().to_string())
+);
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_csid_production_token(creds: *mut FfiCsidProduction) -> FfiResult<FfiString> {
-    let creds = match unsafe { creds.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csid handle is null".to_string()),
-    };
-    let creds = match borrow_handle::<CsidCredentials<Production>>(creds.ptr, "csid") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(FfiString::from(creds.binary_security_token().to_string()))
-}
+ffi_handle_getter!(
+    fatoora_csid_production_token,
+    FfiCsidProduction,
+    CsidCredentials<Production>,
+    "csid",
+    FfiString,
+    |creds| FfiString::from(creds.binary_security_token().to_string())
+);
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_csid_production_secret(creds: *mut FfiCsidProduction) -> FfiResult<FfiString> {
-    let creds = match unsafe { creds.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csid handle is null".to_string()),
-    };
-    let creds = match borrow_handle::<CsidCredentials<Production>>(creds.ptr, "csid") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(FfiString::from(creds.secret().to_string()))
-}
+ffi_handle_getter!(
+    fatoora_csid_production_secret,
+    FfiCsidProduction,
+    CsidCredentials<Production>,
+    "csid",
+    FfiString,
+    |creds| FfiString::from(creds.secret().to_string())
+);
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_csid_compliance_free(creds: *mut FfiCsidCompliance) {
-    if creds.is_null() {
-        return;
-    }
-    let creds = unsafe { &mut *creds };
-    if creds.ptr.is_null() {
-        return;
-    }
-    unsafe { drop(Box::from_raw(creds.ptr as *mut CsidCredentials<Compliance>)) };
-    creds.ptr = std::ptr::null_mut();
+    ffi_handle_free!(creds, CsidCredentials<Compliance>);
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_csid_production_free(creds: *mut FfiCsidProduction) {
-    if creds.is_null() {
-        return;
-    }
-    let creds = unsafe { &mut *creds };
-    if creds.ptr.is_null() {
-        return;
-    }
-    unsafe { drop(Box::from_raw(creds.ptr as *mut CsidCredentials<Production>)) };
-    creds.ptr = std::ptr::null_mut();
+    ffi_handle_free!(creds, CsidCredentials<Production>);
 }
 
 #[unsafe(no_mangle)]
@@ -665,26 +589,9 @@ pub unsafe extern "C" fn fatoora_zatca_post_csr_for_ccsid(
     csr: *mut FfiCsr,
     otp: *const c_char,
 ) -> FfiResult<FfiCsidCompliance> {
-    let client = match unsafe { client.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("client handle is null".to_string()),
-    };
-    let client = match borrow_handle::<ZatcaClient>(client.ptr, "client") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let csr = match unsafe { csr.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csr handle is null".to_string()),
-    };
-    let csr = match borrow_handle::<CertReq>(csr.ptr, "csr") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let otp = match required_string(otp, "otp") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let client = ffi_borrow!(client, "client", ZatcaClient);
+    let csr = ffi_borrow!(csr, "csr", CertReq);
+    let otp = ffi_required_string!(otp, "otp");
     match run_async(client.post_csr_for_ccsid(csr, &otp)) {
         Ok(creds) => FfiResult::ok(FfiCsidCompliance {
             ptr: Box::into_raw(Box::new(creds)) as *mut std::os::raw::c_void,
@@ -700,22 +607,8 @@ pub unsafe extern "C" fn fatoora_zatca_post_ccsid_for_pcsid(
     client: *mut FfiZatcaClient,
     ccsid: *mut FfiCsidCompliance,
 ) -> FfiResult<FfiCsidProduction> {
-    let client = match unsafe { client.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("client handle is null".to_string()),
-    };
-    let client = match borrow_handle::<ZatcaClient>(client.ptr, "client") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let ccsid = match unsafe { ccsid.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csid handle is null".to_string()),
-    };
-    let ccsid = match borrow_handle::<CsidCredentials<Compliance>>(ccsid.ptr, "csid") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let client = ffi_borrow!(client, "client", ZatcaClient);
+    let ccsid = ffi_borrow!(ccsid, "csid", CsidCredentials<Compliance>);
     match run_async(client.post_ccsid_for_pcsid(ccsid)) {
         Ok(creds) => FfiResult::ok(FfiCsidProduction {
             ptr: Box::into_raw(Box::new(creds)) as *mut std::os::raw::c_void,
@@ -734,34 +627,10 @@ pub unsafe extern "C" fn fatoora_zatca_renew_csid(
     otp: *const c_char,
     accept_language: *const c_char,
 ) -> FfiResult<FfiCsidProduction> {
-    let client = match unsafe { client.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("client handle is null".to_string()),
-    };
-    let client = match borrow_handle::<ZatcaClient>(client.ptr, "client") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let pcsid = match unsafe { pcsid.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csid handle is null".to_string()),
-    };
-    let pcsid = match borrow_handle::<CsidCredentials<Production>>(pcsid.ptr, "csid") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let csr = match unsafe { csr.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csr handle is null".to_string()),
-    };
-    let csr = match borrow_handle::<CertReq>(csr.ptr, "csr") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let otp = match required_string(otp, "otp") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let client = ffi_borrow!(client, "client", ZatcaClient);
+    let pcsid = ffi_borrow!(pcsid, "csid", CsidCredentials<Production>);
+    let csr = ffi_borrow!(csr, "csr", CertReq);
+    let otp = ffi_required_string!(otp, "otp");
     let language = optional_string(accept_language);
     match run_async(client.renew_csid(pcsid, csr, &otp, language.as_deref())) {
         Ok(creds) => FfiResult::ok(FfiCsidProduction {
@@ -771,10 +640,6 @@ pub unsafe extern "C" fn fatoora_zatca_renew_csid(
     }
 }
 
-fn validation_response_to_json(response: &fatoora_core::api::ValidationResponse) -> Result<String, String> {
-    serde_json::to_string(response).map_err(|err| err.to_string())
-}
-
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
@@ -782,36 +647,14 @@ pub unsafe extern "C" fn fatoora_zatca_check_compliance(
     client: *mut FfiZatcaClient,
     invoice: *mut FfiSignedInvoice,
     ccsid: *mut FfiCsidCompliance,
-) -> FfiResult<FfiString> {
-    let client = match unsafe { client.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("client handle is null".to_string()),
-    };
-    let client = match borrow_handle::<ZatcaClient>(client.ptr, "client") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<SignedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let ccsid = match unsafe { ccsid.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csid handle is null".to_string()),
-    };
-    let ccsid = match borrow_handle::<CsidCredentials<Compliance>>(ccsid.ptr, "csid") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+) -> FfiResult<FfiValidationResponse> {
+    let client = ffi_borrow!(client, "client", ZatcaClient);
+    let invoice = ffi_borrow!(invoice, "invoice", SignedInvoice);
+    let ccsid = ffi_borrow!(ccsid, "csid", CsidCredentials<Compliance>);
     match run_async(client.check_invoice_compliance(invoice, ccsid)) {
-        Ok(response) => match validation_response_to_json(&response) {
-            Ok(json) => FfiResult::ok(FfiString::from(json)),
-            Err(message) => FfiResult::err(message),
-        },
+        Ok(response) => FfiResult::ok(FfiValidationResponse {
+            ptr: Box::into_raw(Box::new(response)) as *mut std::os::raw::c_void,
+        }),
         Err(message) => FfiResult::err(message),
     }
 }
@@ -825,31 +668,10 @@ pub unsafe extern "C" fn fatoora_zatca_report_simplified_invoice(
     pcsid: *mut FfiCsidProduction,
     clearance_status: bool,
     accept_language: *const c_char,
-) -> FfiResult<FfiString> {
-    let client = match unsafe { client.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("client handle is null".to_string()),
-    };
-    let client = match borrow_handle::<ZatcaClient>(client.ptr, "client") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<SignedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let pcsid = match unsafe { pcsid.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csid handle is null".to_string()),
-    };
-    let pcsid = match borrow_handle::<CsidCredentials<Production>>(pcsid.ptr, "csid") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+) -> FfiResult<FfiValidationResponse> {
+    let client = ffi_borrow!(client, "client", ZatcaClient);
+    let invoice = ffi_borrow!(invoice, "invoice", SignedInvoice);
+    let pcsid = ffi_borrow!(pcsid, "csid", CsidCredentials<Production>);
     let language = optional_string(accept_language);
     match run_async(client.report_simplified_invoice(
         invoice,
@@ -857,10 +679,9 @@ pub unsafe extern "C" fn fatoora_zatca_report_simplified_invoice(
         clearance_status,
         language.as_deref(),
     )) {
-        Ok(response) => match validation_response_to_json(&response) {
-            Ok(json) => FfiResult::ok(FfiString::from(json)),
-            Err(message) => FfiResult::err(message),
-        },
+        Ok(response) => FfiResult::ok(FfiValidationResponse {
+            ptr: Box::into_raw(Box::new(response)) as *mut std::os::raw::c_void,
+        }),
         Err(message) => FfiResult::err(message),
     }
 }
@@ -874,31 +695,10 @@ pub unsafe extern "C" fn fatoora_zatca_clear_standard_invoice(
     pcsid: *mut FfiCsidProduction,
     clearance_status: bool,
     accept_language: *const c_char,
-) -> FfiResult<FfiString> {
-    let client = match unsafe { client.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("client handle is null".to_string()),
-    };
-    let client = match borrow_handle::<ZatcaClient>(client.ptr, "client") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<SignedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let pcsid = match unsafe { pcsid.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("csid handle is null".to_string()),
-    };
-    let pcsid = match borrow_handle::<CsidCredentials<Production>>(pcsid.ptr, "csid") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+) -> FfiResult<FfiValidationResponse> {
+    let client = ffi_borrow!(client, "client", ZatcaClient);
+    let invoice = ffi_borrow!(invoice, "invoice", SignedInvoice);
+    let pcsid = ffi_borrow!(pcsid, "csid", CsidCredentials<Production>);
     let language = optional_string(accept_language);
     match run_async(client.clear_standard_invoice(
         invoice,
@@ -906,13 +706,215 @@ pub unsafe extern "C" fn fatoora_zatca_clear_standard_invoice(
         clearance_status,
         language.as_deref(),
     )) {
-        Ok(response) => match validation_response_to_json(&response) {
-            Ok(json) => FfiResult::ok(FfiString::from(json)),
-            Err(message) => FfiResult::err(message),
-        },
+        Ok(response) => FfiResult::ok(FfiValidationResponse {
+            ptr: Box::into_raw(Box::new(response)) as *mut std::os::raw::c_void,
+        }),
         Err(message) => FfiResult::err(message),
     }
 }
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_validation_response_free(response: *mut FfiValidationResponse) {
+    ffi_handle_free!(response, ValidationResponse);
+}
+
+ffi_handle_getter!(
+    fatoora_validation_response_reporting_status,
+    FfiValidationResponse,
+    ValidationResponse,
+    "response",
+    FfiString,
+    |response| optional_str_to_ffi(response.reporting_status())
+);
+
+ffi_handle_getter!(
+    fatoora_validation_response_clearance_status,
+    FfiValidationResponse,
+    ValidationResponse,
+    "response",
+    FfiString,
+    |response| optional_str_to_ffi(response.clearance_status())
+);
+
+ffi_handle_getter!(
+    fatoora_validation_response_qr_seller_status,
+    FfiValidationResponse,
+    ValidationResponse,
+    "response",
+    FfiString,
+    |response| optional_str_to_ffi(response.qr_seller_status())
+);
+
+ffi_handle_getter!(
+    fatoora_validation_response_qr_buyer_status,
+    FfiValidationResponse,
+    ValidationResponse,
+    "response",
+    FfiString,
+    |response| optional_str_to_ffi(response.qr_buyer_status())
+);
+
+ffi_handle_getter!(
+    fatoora_validation_response_results,
+    FfiValidationResponse,
+    ValidationResponse,
+    "response",
+    FfiValidationResults,
+    |response| {
+        let results = response.validation_results().clone();
+        FfiValidationResults {
+            ptr: Box::into_raw(Box::new(results)) as *mut std::os::raw::c_void,
+        }
+    }
+);
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_validation_results_free(results: *mut FfiValidationResults) {
+    ffi_handle_free!(results, ValidationResults);
+}
+
+ffi_handle_getter!(
+    fatoora_validation_results_status,
+    FfiValidationResults,
+    ValidationResults,
+    "results",
+    FfiString,
+    |results| optional_str_to_ffi(results.status())
+);
+
+ffi_handle_getter!(
+    fatoora_validation_results_info_len,
+    FfiValidationResults,
+    ValidationResults,
+    "results",
+    u64,
+    |results| message_list_len(results.info_messages()) as u64
+);
+
+ffi_handle_getter!(
+    fatoora_validation_results_warning_len,
+    FfiValidationResults,
+    ValidationResults,
+    "results",
+    u64,
+    |results| results.warning_messages().len() as u64
+);
+
+ffi_handle_getter!(
+    fatoora_validation_results_error_len,
+    FfiValidationResults,
+    ValidationResults,
+    "results",
+    u64,
+    |results| results.error_messages().len() as u64
+);
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_validation_results_info_message(
+    results: *mut FfiValidationResults,
+    index: u64,
+) -> FfiResult<FfiValidationMessage> {
+    let results = ffi_borrow!(results, "results", ValidationResults);
+    let message = match message_list_get(results.info_messages(), index as usize) {
+        Some(value) => value,
+        None => return FfiResult::err(ffi_error_invalid_input("info message index out of range")),
+    };
+    FfiResult::ok(FfiValidationMessage {
+        ptr: Box::into_raw(Box::new(message.clone())) as *mut std::os::raw::c_void,
+    })
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_validation_results_warning_message(
+    results: *mut FfiValidationResults,
+    index: u64,
+) -> FfiResult<FfiValidationMessage> {
+    let results = ffi_borrow!(results, "results", ValidationResults);
+    let message = match results.warning_messages().get(index as usize) {
+        Some(value) => value,
+        None => return FfiResult::err(ffi_error_invalid_input("warning message index out of range")),
+    };
+    FfiResult::ok(FfiValidationMessage {
+        ptr: Box::into_raw(Box::new(message.clone())) as *mut std::os::raw::c_void,
+    })
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_validation_results_error_message(
+    results: *mut FfiValidationResults,
+    index: u64,
+) -> FfiResult<FfiValidationMessage> {
+    let results = ffi_borrow!(results, "results", ValidationResults);
+    let message = match results.error_messages().get(index as usize) {
+        Some(value) => value,
+        None => return FfiResult::err(ffi_error_invalid_input("error message index out of range")),
+    };
+    FfiResult::ok(FfiValidationMessage {
+        ptr: Box::into_raw(Box::new(message.clone())) as *mut std::os::raw::c_void,
+    })
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_validation_message_free(message: *mut FfiValidationMessage) {
+    ffi_handle_free!(message, ValidationMessage);
+}
+
+ffi_handle_getter!(
+    fatoora_validation_message_type,
+    FfiValidationMessage,
+    ValidationMessage,
+    "message",
+    FfiString,
+    |message| optional_str_to_ffi(message.message_type())
+);
+
+ffi_handle_getter!(
+    fatoora_validation_message_code,
+    FfiValidationMessage,
+    ValidationMessage,
+    "message",
+    FfiString,
+    |message| optional_str_to_ffi(message.code())
+);
+
+ffi_handle_getter!(
+    fatoora_validation_message_category,
+    FfiValidationMessage,
+    ValidationMessage,
+    "message",
+    FfiString,
+    |message| optional_str_to_ffi(message.category())
+);
+
+ffi_handle_getter!(
+    fatoora_validation_message_text,
+    FfiValidationMessage,
+    ValidationMessage,
+    "message",
+    FfiString,
+    |message| optional_str_to_ffi(message.message())
+);
+
+ffi_handle_getter!(
+    fatoora_validation_message_status,
+    FfiValidationMessage,
+    ValidationMessage,
+    "message",
+    FfiString,
+    |message| optional_str_to_ffi(message.status())
+);
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
@@ -924,13 +926,10 @@ pub unsafe extern "C" fn fatoora_validate_xml_str(
         Ok(value) => value,
         Err(message) => return FfiResult::err(message),
     };
-    let xml = match required_string(xml, "xml") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let xml = ffi_required_string!(xml, "xml");
     match validate_xml_invoice_from_str(&xml, config) {
         Ok(()) => FfiResult::ok(true),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(ffi_error_from_validation(err)),
     }
 }
 
@@ -945,13 +944,10 @@ pub unsafe extern "C" fn fatoora_validate_xml_file(
         Ok(value) => value,
         Err(message) => return FfiResult::err(message),
     };
-    let path = match required_string(path, "xml path") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let path = ffi_required_string!(path, "xml path");
     match validate_xml_invoice_from_file(std::path::Path::new(&path), config) {
         Ok(()) => FfiResult::ok(true),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(ffi_error_from_validation(err)),
     }
 }
 
@@ -988,18 +984,12 @@ pub unsafe extern "C" fn fatoora_invoice_builder_new(
     original_invoice_issue_date: *const c_char,
     original_invoice_reason: *const c_char,
 ) -> FfiResult<FfiInvoiceBuilder> {
-    let currency_code = match required_string(currency_code, "currency code") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let currency_code = ffi_required_string!(currency_code, "currency code");
     let currency = match parse_currency(&currency_code) {
         Ok(value) => value,
         Err(message) => return FfiResult::err(message),
     };
-    let seller_country_code = match required_string(seller_country_code, "seller country code") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let seller_country_code = ffi_required_string!(seller_country_code, "seller country code");
     let country_code = match parse_country(&seller_country_code) {
         Ok(value) => value,
         Err(message) => return FfiResult::err(message),
@@ -1021,23 +1011,11 @@ pub unsafe extern "C" fn fatoora_invoice_builder_new(
         Err(message) => return FfiResult::err(message),
     };
 
-    let seller_city = match required_string(seller_city, "seller city") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let seller_street = match required_string(seller_street, "seller street") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let seller_city = ffi_required_string!(seller_city, "seller city");
+    let seller_street = ffi_required_string!(seller_street, "seller street");
     let seller_building_number =
-        match required_string(seller_building_number, "seller building number") {
-            Ok(value) => value,
-            Err(message) => return FfiResult::err(message),
-        };
-    let seller_postal_code = match required_string(seller_postal_code, "seller postal code") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+        ffi_required_string!(seller_building_number, "seller building number");
+    let seller_postal_code = ffi_required_string!(seller_postal_code, "seller postal code");
     let seller_address = Address {
         country_code,
         city: seller_city,
@@ -1055,36 +1033,18 @@ pub unsafe extern "C" fn fatoora_invoice_builder_new(
         optional_string(seller_other_id_scheme),
     );
 
-    let seller_name = match required_string(seller_name, "seller name") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let seller_vat_id = match required_string(seller_vat_id, "seller vat id") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let seller_name = ffi_required_string!(seller_name, "seller name");
+    let seller_vat_id = ffi_required_string!(seller_vat_id, "seller vat id");
     let seller = match Party::<SellerRole>::new(seller_name, seller_address, seller_vat_id, seller_other) {
         Ok(value) => value,
-        Err(err) => return FfiResult::err(err.to_string()),
+        Err(err) => return FfiResult::err(ffi_error_from_invoice(err)),
     };
 
-    let id = match required_string(id, "invoice id") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let uuid = match required_string(uuid, "invoice uuid") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let id = ffi_required_string!(id, "invoice id");
+    let uuid = ffi_required_string!(uuid, "invoice uuid");
     let previous_invoice_hash =
-        match required_string(previous_invoice_hash, "previous invoice hash") {
-            Ok(value) => value,
-            Err(message) => return FfiResult::err(message),
-        };
-    let payment_means_code = match required_string(payment_means_code, "payment means code") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+        ffi_required_string!(previous_invoice_hash, "previous invoice hash");
+    let payment_means_code = ffi_required_string!(payment_means_code, "payment means code");
     let required = RequiredInvoiceFields {
         invoice_type,
         id,
@@ -1112,14 +1072,7 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_flags(
     builder: *mut FfiInvoiceBuilder,
     flags: u8,
 ) -> FfiResult<bool> {
-    let builder = match unsafe { builder.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("builder handle is null".to_string()),
-    };
-    let builder = match borrow_handle_mut::<InvoiceBuilder>(builder.ptr, "builder") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
     builder.flags(flags_from_bits(flags));
     FfiResult::ok(true)
 }
@@ -1131,14 +1084,7 @@ pub unsafe extern "C" fn fatoora_invoice_builder_enable_flags(
     builder: *mut FfiInvoiceBuilder,
     flags: u8,
 ) -> FfiResult<bool> {
-    let builder = match unsafe { builder.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("builder handle is null".to_string()),
-    };
-    let builder = match borrow_handle_mut::<InvoiceBuilder>(builder.ptr, "builder") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
     builder.enable_flags(flags_from_bits(flags));
     FfiResult::ok(true)
 }
@@ -1150,14 +1096,7 @@ pub unsafe extern "C" fn fatoora_invoice_builder_disable_flags(
     builder: *mut FfiInvoiceBuilder,
     flags: u8,
 ) -> FfiResult<bool> {
-    let builder = match unsafe { builder.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("builder handle is null".to_string()),
-    };
-    let builder = match borrow_handle_mut::<InvoiceBuilder>(builder.ptr, "builder") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
     builder.disable_flags(flags_from_bits(flags));
     FfiResult::ok(true)
 }
@@ -1174,23 +1113,10 @@ pub unsafe extern "C" fn fatoora_invoice_builder_add_line_item(
     vat_rate: f64,
     vat_category: FfiVatCategory,
 ) -> FfiResult<bool> {
-    let builder = match unsafe { builder.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("builder handle is null".to_string()),
-    };
-    let builder = match borrow_handle_mut::<InvoiceBuilder>(builder.ptr, "builder") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
 
-    let description = match required_string(description, "line item description") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let unit_code = match required_string(unit_code, "line item unit code") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let description = ffi_required_string!(description, "line item description");
+    let unit_code = ffi_required_string!(unit_code, "line item unit code");
     let item = LineItem::new(LineItemFields {
         description,
         quantity,
@@ -1222,40 +1148,18 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_buyer(
     other_id_value: *const c_char,
     other_id_scheme: *const c_char,
 ) -> FfiResult<bool> {
-    let builder = match unsafe { builder.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("builder handle is null".to_string()),
-    };
-    let builder = match borrow_handle_mut::<InvoiceBuilder>(builder.ptr, "builder") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
 
-    let country_code = match required_string(country_code, "buyer country code") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let country_code = ffi_required_string!(country_code, "buyer country code");
     let buyer_country = match parse_country(&country_code) {
         Ok(value) => value,
         Err(message) => return FfiResult::err(message),
     };
 
-    let city = match required_string(city, "buyer city") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let street = match required_string(street, "buyer street") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let building_number = match required_string(building_number, "buyer building number") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let postal_code = match required_string(postal_code, "buyer postal code") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let city = ffi_required_string!(city, "buyer city");
+    let street = ffi_required_string!(street, "buyer street");
+    let building_number = ffi_required_string!(building_number, "buyer building number");
+    let postal_code = ffi_required_string!(postal_code, "buyer postal code");
     let address = Address {
         country_code: buyer_country,
         city,
@@ -1272,13 +1176,10 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_buyer(
         optional_string(other_id_value),
         optional_string(other_id_scheme),
     );
-    let name = match required_string(name, "buyer name") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let name = ffi_required_string!(name, "buyer name");
     let buyer = match Party::<fatoora_core::invoice::BuyerRole>::new(name, address, optional_string(vat_id), other) {
         Ok(value) => value,
-        Err(err) => return FfiResult::err(err.to_string()),
+        Err(err) => return FfiResult::err(ffi_error_from_invoice(err)),
     };
     builder.set_buyer(buyer);
     FfiResult::ok(true)
@@ -1292,23 +1193,9 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_note(
     language: *const c_char,
     text: *const c_char,
 ) -> FfiResult<bool> {
-    let builder = match unsafe { builder.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("builder handle is null".to_string()),
-    };
-    let builder = match borrow_handle_mut::<InvoiceBuilder>(builder.ptr, "builder") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-
-    let language = match required_string(language, "note language") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let text = match required_string(text, "note text") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+    let language = ffi_required_string!(language, "note language");
+    let text = ffi_required_string!(text, "note text");
     let note = InvoiceNote::new(&language, &text);
     builder.set_note(note);
     FfiResult::ok(true)
@@ -1322,18 +1209,8 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_allowance(
     reason: *const c_char,
     amount: f64,
 ) -> FfiResult<bool> {
-    let builder = match unsafe { builder.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("builder handle is null".to_string()),
-    };
-    let builder = match borrow_handle_mut::<InvoiceBuilder>(builder.ptr, "builder") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let reason = match required_string(reason, "allowance reason") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+    let reason = ffi_required_string!(reason, "allowance reason");
     builder.set_allowance(&reason, amount);
     FfiResult::ok(true)
 }
@@ -1342,35 +1219,20 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_allowance(
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_builder_free(builder: *mut FfiInvoiceBuilder) {
-    if builder.is_null() {
-        return;
-    }
-    let builder = unsafe { &mut *builder };
-    if builder.ptr.is_null() {
-        return;
-    }
-    unsafe { drop(Box::from_raw(builder.ptr as *mut InvoiceBuilder)) };
-    builder.ptr = std::ptr::null_mut();
+    ffi_handle_free!(builder, InvoiceBuilder);
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_builder_build(builder: *mut FfiInvoiceBuilder) -> FfiResult<FfiFinalizedInvoice> {
-    if builder.is_null() {
-        return FfiResult::err("builder handle is null".to_string());
-    }
-    let handle = unsafe { &mut *builder };
-    let builder = match take_handle::<InvoiceBuilder>(&mut handle.ptr, "builder") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let builder = ffi_take_handle!(builder, "builder", InvoiceBuilder);
 
     match builder.build() {
         Ok(invoice) => FfiResult::ok(FfiFinalizedInvoice {
             ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
         }),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(ffi_error_from_invoice(err)),
     }
 }
 
@@ -1380,15 +1242,12 @@ pub unsafe extern "C" fn fatoora_invoice_builder_build(builder: *mut FfiInvoiceB
 pub unsafe extern "C" fn fatoora_parse_finalized_invoice_xml(
     xml: *const c_char,
 ) -> FfiResult<FfiFinalizedInvoice> {
-    let xml = match required_string(xml, "xml") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let xml = ffi_required_string!(xml, "xml");
     match fatoora_core::invoice::xml::parse::parse_finalized_invoice_xml(&xml) {
         Ok(invoice) => FfiResult::ok(FfiFinalizedInvoice {
             ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
         }),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(ffi_error_from_parse(err)),
     }
 }
 
@@ -1398,15 +1257,12 @@ pub unsafe extern "C" fn fatoora_parse_finalized_invoice_xml(
 pub unsafe extern "C" fn fatoora_parse_signed_invoice_xml(
     xml: *const c_char,
 ) -> FfiResult<FfiSignedInvoice> {
-    let xml = match required_string(xml, "xml") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let xml = ffi_required_string!(xml, "xml");
     match fatoora_core::invoice::xml::parse::parse_signed_invoice_xml(&xml) {
         Ok(invoice) => FfiResult::ok(FfiSignedInvoice {
             ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
         }),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(ffi_error_from_parse(err)),
     }
 }
 
@@ -1414,14 +1270,7 @@ pub unsafe extern "C" fn fatoora_parse_signed_invoice_xml(
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_line_item_count(invoice: *mut FfiFinalizedInvoice) -> FfiResult<u64> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
     FfiResult::ok(invoice.data().line_items().len() as u64)
 }
 
@@ -1429,23 +1278,17 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_count(invoice: *mut FfiFinali
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signed_invoice_line_item_count(signed: *mut FfiSignedInvoice) -> FfiResult<u64> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     FfiResult::ok(signed.data().line_items().len() as u64)
 }
 
-fn line_item_from_invoice(invoice: &InvoiceData, index: u64) -> Result<&LineItem, String> {
-    let idx = usize::try_from(index).map_err(|_| "index out of range".to_string())?;
+fn line_item_from_invoice(invoice: &InvoiceData, index: u64) -> Result<&LineItem, FfiErrorDetails> {
+    let idx = usize::try_from(index)
+        .map_err(|_| ffi_error_invalid_input("index out of range"))?;
     invoice
         .line_items()
         .get(idx)
-        .ok_or_else(|| "index out of range".to_string())
+        .ok_or_else(|| ffi_error_invalid_input("index out of range"))
 }
 
 #[unsafe(no_mangle)]
@@ -1455,14 +1298,7 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_description(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
     match line_item_from_invoice(invoice.data(), index) {
         Ok(item) => FfiResult::ok(FfiString::from(item.description().to_string())),
         Err(message) => FfiResult::err(message),
@@ -1476,14 +1312,7 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_unit_code(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
     match line_item_from_invoice(invoice.data(), index) {
         Ok(item) => FfiResult::ok(FfiString::from(item.unit_code().to_string())),
         Err(message) => FfiResult::err(message),
@@ -1497,14 +1326,7 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_quantity(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
 ) -> FfiResult<f64> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
     match line_item_from_invoice(invoice.data(), index) {
         Ok(item) => FfiResult::ok(item.quantity()),
         Err(message) => FfiResult::err(message),
@@ -1518,14 +1340,7 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_unit_price(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
 ) -> FfiResult<f64> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
     match line_item_from_invoice(invoice.data(), index) {
         Ok(item) => FfiResult::ok(item.unit_price()),
         Err(message) => FfiResult::err(message),
@@ -1539,14 +1354,7 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_total_amount(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
 ) -> FfiResult<f64> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
     match line_item_from_invoice(invoice.data(), index) {
         Ok(item) => FfiResult::ok(item.total_amount()),
         Err(message) => FfiResult::err(message),
@@ -1560,14 +1368,7 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_vat_rate(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
 ) -> FfiResult<f64> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
     match line_item_from_invoice(invoice.data(), index) {
         Ok(item) => FfiResult::ok(item.vat_rate()),
         Err(message) => FfiResult::err(message),
@@ -1581,14 +1382,7 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_vat_amount(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
 ) -> FfiResult<f64> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
     match line_item_from_invoice(invoice.data(), index) {
         Ok(item) => FfiResult::ok(item.vat_amount()),
         Err(message) => FfiResult::err(message),
@@ -1602,14 +1396,7 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_vat_category(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
 ) -> FfiResult<u8> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
     match line_item_from_invoice(invoice.data(), index) {
         Ok(item) => FfiResult::ok(item.vat_category() as u8),
         Err(message) => FfiResult::err(message),
@@ -1623,14 +1410,7 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_description(
     signed: *mut FfiSignedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     match line_item_from_invoice(signed.data(), index) {
         Ok(item) => FfiResult::ok(FfiString::from(item.description().to_string())),
         Err(message) => FfiResult::err(message),
@@ -1644,14 +1424,7 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_unit_code(
     signed: *mut FfiSignedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     match line_item_from_invoice(signed.data(), index) {
         Ok(item) => FfiResult::ok(FfiString::from(item.unit_code().to_string())),
         Err(message) => FfiResult::err(message),
@@ -1665,14 +1438,7 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_quantity(
     signed: *mut FfiSignedInvoice,
     index: u64,
 ) -> FfiResult<f64> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     match line_item_from_invoice(signed.data(), index) {
         Ok(item) => FfiResult::ok(item.quantity()),
         Err(message) => FfiResult::err(message),
@@ -1686,14 +1452,7 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_unit_price(
     signed: *mut FfiSignedInvoice,
     index: u64,
 ) -> FfiResult<f64> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     match line_item_from_invoice(signed.data(), index) {
         Ok(item) => FfiResult::ok(item.unit_price()),
         Err(message) => FfiResult::err(message),
@@ -1707,14 +1466,7 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_total_amount(
     signed: *mut FfiSignedInvoice,
     index: u64,
 ) -> FfiResult<f64> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     match line_item_from_invoice(signed.data(), index) {
         Ok(item) => FfiResult::ok(item.total_amount()),
         Err(message) => FfiResult::err(message),
@@ -1728,14 +1480,7 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_vat_rate(
     signed: *mut FfiSignedInvoice,
     index: u64,
 ) -> FfiResult<f64> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     match line_item_from_invoice(signed.data(), index) {
         Ok(item) => FfiResult::ok(item.vat_rate()),
         Err(message) => FfiResult::err(message),
@@ -1749,14 +1494,7 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_vat_amount(
     signed: *mut FfiSignedInvoice,
     index: u64,
 ) -> FfiResult<f64> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     match line_item_from_invoice(signed.data(), index) {
         Ok(item) => FfiResult::ok(item.vat_amount()),
         Err(message) => FfiResult::err(message),
@@ -1770,269 +1508,160 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_vat_category(
     signed: *mut FfiSignedInvoice,
     index: u64,
 ) -> FfiResult<u8> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     match line_item_from_invoice(signed.data(), index) {
         Ok(item) => FfiResult::ok(item.vat_category() as u8),
         Err(message) => FfiResult::err(message),
     }
 }
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_invoice_totals_tax_inclusive(
-    invoice: *mut FfiFinalizedInvoice,
-) -> FfiResult<f64> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(invoice.totals().tax_inclusive_amount())
-}
+ffi_handle_getter!(
+    fatoora_invoice_totals_tax_inclusive,
+    FfiFinalizedInvoice,
+    FinalizedInvoice,
+    "invoice",
+    f64,
+    |invoice| invoice.totals().tax_inclusive_amount()
+);
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_invoice_totals_tax_amount(
-    invoice: *mut FfiFinalizedInvoice,
-) -> FfiResult<f64> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(invoice.totals().tax_amount())
-}
+ffi_handle_getter!(
+    fatoora_invoice_totals_tax_amount,
+    FfiFinalizedInvoice,
+    FinalizedInvoice,
+    "invoice",
+    f64,
+    |invoice| invoice.totals().tax_amount()
+);
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_invoice_totals_line_extension(
-    invoice: *mut FfiFinalizedInvoice,
-) -> FfiResult<f64> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(invoice.totals().line_extension())
-}
+ffi_handle_getter!(
+    fatoora_invoice_totals_line_extension,
+    FfiFinalizedInvoice,
+    FinalizedInvoice,
+    "invoice",
+    f64,
+    |invoice| invoice.totals().line_extension()
+);
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_invoice_totals_allowance_total(
-    invoice: *mut FfiFinalizedInvoice,
-) -> FfiResult<f64> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(invoice.totals().allowance_total())
-}
+ffi_handle_getter!(
+    fatoora_invoice_totals_allowance_total,
+    FfiFinalizedInvoice,
+    FinalizedInvoice,
+    "invoice",
+    f64,
+    |invoice| invoice.totals().allowance_total()
+);
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_invoice_totals_charge_total(
-    invoice: *mut FfiFinalizedInvoice,
-) -> FfiResult<f64> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(invoice.totals().charge_total())
-}
+ffi_handle_getter!(
+    fatoora_invoice_totals_charge_total,
+    FfiFinalizedInvoice,
+    FinalizedInvoice,
+    "invoice",
+    f64,
+    |invoice| invoice.totals().charge_total()
+);
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_invoice_totals_taxable_amount(
-    invoice: *mut FfiFinalizedInvoice,
-) -> FfiResult<f64> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(invoice.totals().taxable_amount())
-}
+ffi_handle_getter!(
+    fatoora_invoice_totals_taxable_amount,
+    FfiFinalizedInvoice,
+    FinalizedInvoice,
+    "invoice",
+    f64,
+    |invoice| invoice.totals().taxable_amount()
+);
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_signed_invoice_totals_tax_inclusive(
-    signed: *mut FfiSignedInvoice,
-) -> FfiResult<f64> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(signed.totals().tax_inclusive_amount())
-}
+ffi_handle_getter!(
+    fatoora_signed_invoice_totals_tax_inclusive,
+    FfiSignedInvoice,
+    SignedInvoice,
+    "signed",
+    f64,
+    |signed| signed.totals().tax_inclusive_amount()
+);
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_signed_invoice_totals_tax_amount(
-    signed: *mut FfiSignedInvoice,
-) -> FfiResult<f64> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(signed.totals().tax_amount())
-}
+ffi_handle_getter!(
+    fatoora_signed_invoice_totals_tax_amount,
+    FfiSignedInvoice,
+    SignedInvoice,
+    "signed",
+    f64,
+    |signed| signed.totals().tax_amount()
+);
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_signed_invoice_totals_line_extension(
-    signed: *mut FfiSignedInvoice,
-) -> FfiResult<f64> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(signed.totals().line_extension())
-}
+ffi_handle_getter!(
+    fatoora_signed_invoice_totals_line_extension,
+    FfiSignedInvoice,
+    SignedInvoice,
+    "signed",
+    f64,
+    |signed| signed.totals().line_extension()
+);
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_signed_invoice_totals_allowance_total(
-    signed: *mut FfiSignedInvoice,
-) -> FfiResult<f64> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(signed.totals().allowance_total())
-}
+ffi_handle_getter!(
+    fatoora_signed_invoice_totals_allowance_total,
+    FfiSignedInvoice,
+    SignedInvoice,
+    "signed",
+    f64,
+    |signed| signed.totals().allowance_total()
+);
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_signed_invoice_totals_charge_total(
-    signed: *mut FfiSignedInvoice,
-) -> FfiResult<f64> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(signed.totals().charge_total())
-}
+ffi_handle_getter!(
+    fatoora_signed_invoice_totals_charge_total,
+    FfiSignedInvoice,
+    SignedInvoice,
+    "signed",
+    f64,
+    |signed| signed.totals().charge_total()
+);
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_signed_invoice_totals_taxable_amount(
-    signed: *mut FfiSignedInvoice,
-) -> FfiResult<f64> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(signed.totals().taxable_amount())
-}
+ffi_handle_getter!(
+    fatoora_signed_invoice_totals_taxable_amount,
+    FfiSignedInvoice,
+    SignedInvoice,
+    "signed",
+    f64,
+    |signed| signed.totals().taxable_amount()
+);
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_invoice_flags(invoice: *mut FfiFinalizedInvoice) -> FfiResult<u8> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(flags_to_bits(invoice.data().flags()))
-}
+ffi_handle_getter!(
+    fatoora_invoice_flags,
+    FfiFinalizedInvoice,
+    FinalizedInvoice,
+    "invoice",
+    u8,
+    |invoice| flags_to_bits(invoice.data().flags())
+);
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_signed_invoice_flags(signed: *mut FfiSignedInvoice) -> FfiResult<u8> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(flags_to_bits(signed.data().flags()))
-}
+ffi_handle_getter!(
+    fatoora_signed_invoice_flags,
+    FfiSignedInvoice,
+    SignedInvoice,
+    "signed",
+    u8,
+    |signed| flags_to_bits(signed.data().flags())
+);
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_to_xml(invoice: *mut FfiFinalizedInvoice) -> FfiResult<FfiString> {
-    let invoice = match unsafe { invoice.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("invoice handle is null".to_string()),
-    };
-    let invoice = match borrow_handle::<FinalizedInvoice>(invoice.ptr, "invoice") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
     match invoice.to_xml() {
         Ok(xml) => FfiResult::ok(FfiString::from(xml)),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(ffi_error_from_xml(err)),
+    }
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_invoice_hash_base64(
+    invoice: *mut FfiFinalizedInvoice,
+) -> FfiResult<FfiString> {
+    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+    match invoice.hash_base64() {
+        Ok(hash) => FfiResult::ok(FfiString::from(hash)),
+        Err(err) => FfiResult::err(ffi_error_from_signing(err)),
     }
 }
 
@@ -2040,15 +1669,7 @@ pub unsafe extern "C" fn fatoora_invoice_to_xml(invoice: *mut FfiFinalizedInvoic
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_free(invoice: *mut FfiFinalizedInvoice) {
-    if invoice.is_null() {
-        return;
-    }
-    let invoice = unsafe { &mut *invoice };
-    if invoice.ptr.is_null() {
-        return;
-    }
-    unsafe { drop(Box::from_raw(invoice.ptr as *mut fatoora_core::invoice::FinalizedInvoice)) };
-    invoice.ptr = std::ptr::null_mut();
+    ffi_handle_free!(invoice, FinalizedInvoice);
 }
 
 #[unsafe(no_mangle)]
@@ -2058,19 +1679,13 @@ pub unsafe extern "C" fn fatoora_signer_from_pem(
     cert_pem: *const c_char,
     key_pem: *const c_char,
 ) -> FfiResult<FfiSigner> {
-    let cert_pem = match required_string(cert_pem, "cert pem") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let key_pem = match required_string(key_pem, "key pem") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let cert_pem = ffi_required_string!(cert_pem, "cert pem");
+    let key_pem = ffi_required_string!(key_pem, "key pem");
     match InvoiceSigner::from_pem(&cert_pem, &key_pem) {
         Ok(signer) => FfiResult::ok(FfiSigner {
             ptr: Box::into_raw(Box::new(signer)) as *mut std::os::raw::c_void,
         }),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(ffi_error_from_signing(err)),
     }
 }
 
@@ -2084,7 +1699,7 @@ pub unsafe extern "C" fn fatoora_signer_from_der(
     key_len: usize,
 ) -> FfiResult<FfiSigner> {
     if cert_der.is_null() || key_der.is_null() {
-        return FfiResult::err("null der pointers".to_string());
+        return FfiResult::err(ffi_error_invalid_input("null der pointers"));
     }
     let cert = unsafe { std::slice::from_raw_parts(cert_der, cert_len) };
     let key = unsafe { std::slice::from_raw_parts(key_der, key_len) };
@@ -2092,7 +1707,7 @@ pub unsafe extern "C" fn fatoora_signer_from_der(
         Ok(signer) => FfiResult::ok(FfiSigner {
             ptr: Box::into_raw(Box::new(signer)) as *mut std::os::raw::c_void,
         }),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(ffi_error_from_signing(err)),
     }
 }
 
@@ -2100,15 +1715,7 @@ pub unsafe extern "C" fn fatoora_signer_from_der(
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signer_free(signer: *mut FfiSigner) {
-    if signer.is_null() {
-        return;
-    }
-    let signer = unsafe { &mut *signer };
-    if signer.ptr.is_null() {
-        return;
-    }
-    unsafe { drop(Box::from_raw(signer.ptr as *mut InvoiceSigner)) };
-    signer.ptr = std::ptr::null_mut();
+    ffi_handle_free!(signer, InvoiceSigner);
 }
 
 #[unsafe(no_mangle)]
@@ -2118,32 +1725,15 @@ pub unsafe extern "C" fn fatoora_invoice_sign(
     invoice: *mut FfiFinalizedInvoice,
     signer: *mut FfiSigner,
 ) -> FfiResult<FfiSignedInvoice> {
-    if invoice.is_null() {
-        return FfiResult::err("invoice handle is null".to_string());
-    }
-    let invoice_handle = unsafe { &mut *invoice };
-    let invoice = match take_handle::<fatoora_core::invoice::FinalizedInvoice>(
-        &mut invoice_handle.ptr,
-        "invoice",
-    ) {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let invoice = ffi_take_handle!(invoice, "invoice", FinalizedInvoice);
 
-    let signer = match unsafe { signer.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signer handle is null".to_string()),
-    };
-    let signer = match borrow_handle::<InvoiceSigner>(signer.ptr, "signer") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let signer = ffi_borrow!(signer, "signer", InvoiceSigner);
 
     match invoice.sign(signer) {
         Ok(signed) => FfiResult::ok(FfiSignedInvoice {
             ptr: Box::into_raw(Box::new(signed)) as *mut std::os::raw::c_void,
         }),
-        Err(err) => FfiResult::err(err.to_string()),
+        Err(err) => FfiResult::err(ffi_error_from_signing(err)),
     }
 }
 
@@ -2151,14 +1741,7 @@ pub unsafe extern "C" fn fatoora_invoice_sign(
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signed_invoice_xml(signed: *mut FfiSignedInvoice) -> FfiResult<FfiString> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     FfiResult::ok(FfiString::from(signed.xml().to_string()))
 }
 
@@ -2166,14 +1749,7 @@ pub unsafe extern "C" fn fatoora_signed_invoice_xml(signed: *mut FfiSignedInvoic
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signed_invoice_qr(signed: *mut FfiSignedInvoice) -> FfiResult<FfiString> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     FfiResult::ok(FfiString::from(signed.qr_code().to_string()))
 }
 
@@ -2181,14 +1757,7 @@ pub unsafe extern "C" fn fatoora_signed_invoice_qr(signed: *mut FfiSignedInvoice
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signed_invoice_uuid(signed: *mut FfiSignedInvoice) -> FfiResult<FfiString> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     FfiResult::ok(FfiString::from(signed.uuid().to_string()))
 }
 
@@ -2196,29 +1765,470 @@ pub unsafe extern "C" fn fatoora_signed_invoice_uuid(signed: *mut FfiSignedInvoi
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signed_invoice_hash(signed: *mut FfiSignedInvoice) -> FfiResult<FfiString> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     FfiResult::ok(FfiString::from(signed.invoice_hash().to_string()))
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signed_invoice_hash_base64(
+    signed: *mut FfiSignedInvoice,
+) -> FfiResult<FfiString> {
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+    match signed.hash_base64() {
+        Ok(hash) => FfiResult::ok(FfiString::from(hash)),
+        Err(err) => FfiResult::err(ffi_error_from_signing(err)),
+    }
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_invoice_seller(
+    invoice: *mut FfiFinalizedInvoice,
+) -> FfiResult<FfiParty> {
+    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+    let seller = PartyOwned::from(invoice.data().seller());
+    FfiResult::ok(FfiParty {
+        ptr: Box::into_raw(Box::new(seller)) as *mut std::os::raw::c_void,
+    })
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_invoice_buyer(
+    invoice: *mut FfiFinalizedInvoice,
+) -> FfiResult<FfiParty> {
+    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+    let buyer = invoice.data().buyer().map(PartyOwned::from);
+    FfiResult::ok(FfiParty {
+        ptr: optional_handle(buyer),
+    })
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_invoice_note(
+    invoice: *mut FfiFinalizedInvoice,
+) -> FfiResult<FfiInvoiceNote> {
+    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+    let note = invoice.data().note().cloned();
+    FfiResult::ok(FfiInvoiceNote {
+        ptr: optional_handle(note),
+    })
+}
+
+fn invoice_type_parts(invoice_type: &InvoiceType) -> (FfiInvoiceTypeKind, FfiInvoiceSubType, Option<OriginalInvoiceRef>, Option<String>) {
+    match invoice_type {
+        InvoiceType::Tax(sub) => (FfiInvoiceTypeKind::Tax, (*sub).into(), None, None),
+        InvoiceType::Prepayment(sub) => (FfiInvoiceTypeKind::Prepayment, (*sub).into(), None, None),
+        InvoiceType::CreditNote(sub, reference, reason) => (
+            FfiInvoiceTypeKind::CreditNote,
+            (*sub).into(),
+            Some(reference.clone()),
+            Some(reason.clone()),
+        ),
+        InvoiceType::DebitNote(sub, reference, reason) => (
+            FfiInvoiceTypeKind::DebitNote,
+            (*sub).into(),
+            Some(reference.clone()),
+            Some(reason.clone()),
+        ),
+    }
+}
+
+ffi_handle_getter!(
+    fatoora_invoice_type_kind,
+    FfiFinalizedInvoice,
+    FinalizedInvoice,
+    "invoice",
+    u8,
+    |invoice| {
+        let (kind, _, _, _) = invoice_type_parts(invoice.data().invoice_type());
+        kind as u8
+    }
+);
+
+ffi_handle_getter!(
+    fatoora_invoice_sub_type,
+    FfiFinalizedInvoice,
+    FinalizedInvoice,
+    "invoice",
+    u8,
+    |invoice| {
+        let (_, sub_type, _, _) = invoice_type_parts(invoice.data().invoice_type());
+        sub_type as u8
+    }
+);
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_invoice_original_ref(
+    invoice: *mut FfiFinalizedInvoice,
+) -> FfiResult<FfiOriginalInvoiceRef> {
+    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+    let (_, _, reference, _) = invoice_type_parts(invoice.data().invoice_type());
+    FfiResult::ok(FfiOriginalInvoiceRef {
+        ptr: optional_handle(reference),
+    })
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_invoice_original_reason(
+    invoice: *mut FfiFinalizedInvoice,
+) -> FfiResult<FfiString> {
+    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+    let (_, _, _, reason) = invoice_type_parts(invoice.data().invoice_type());
+    FfiResult::ok(optional_str_to_ffi(reason.as_deref()))
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signed_invoice_seller(
+    signed: *mut FfiSignedInvoice,
+) -> FfiResult<FfiParty> {
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+    let seller = PartyOwned::from(signed.data().seller());
+    FfiResult::ok(FfiParty {
+        ptr: Box::into_raw(Box::new(seller)) as *mut std::os::raw::c_void,
+    })
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signed_invoice_buyer(
+    signed: *mut FfiSignedInvoice,
+) -> FfiResult<FfiParty> {
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+    let buyer = signed.data().buyer().map(PartyOwned::from);
+    FfiResult::ok(FfiParty {
+        ptr: optional_handle(buyer),
+    })
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signed_invoice_note(
+    signed: *mut FfiSignedInvoice,
+) -> FfiResult<FfiInvoiceNote> {
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+    let note = signed.data().note().cloned();
+    FfiResult::ok(FfiInvoiceNote {
+        ptr: optional_handle(note),
+    })
+}
+
+ffi_handle_getter!(
+    fatoora_signed_invoice_type_kind,
+    FfiSignedInvoice,
+    SignedInvoice,
+    "signed",
+    u8,
+    |signed| {
+        let (kind, _, _, _) = invoice_type_parts(signed.data().invoice_type());
+        kind as u8
+    }
+);
+
+ffi_handle_getter!(
+    fatoora_signed_invoice_sub_type,
+    FfiSignedInvoice,
+    SignedInvoice,
+    "signed",
+    u8,
+    |signed| {
+        let (_, sub_type, _, _) = invoice_type_parts(signed.data().invoice_type());
+        sub_type as u8
+    }
+);
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signed_invoice_original_ref(
+    signed: *mut FfiSignedInvoice,
+) -> FfiResult<FfiOriginalInvoiceRef> {
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+    let (_, _, reference, _) = invoice_type_parts(signed.data().invoice_type());
+    FfiResult::ok(FfiOriginalInvoiceRef {
+        ptr: optional_handle(reference),
+    })
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signed_invoice_original_reason(
+    signed: *mut FfiSignedInvoice,
+) -> FfiResult<FfiString> {
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+    let (_, _, _, reason) = invoice_type_parts(signed.data().invoice_type());
+    FfiResult::ok(optional_str_to_ffi(reason.as_deref()))
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_party_free(party: *mut FfiParty) {
+    ffi_handle_free!(party, PartyOwned);
+}
+
+ffi_handle_getter!(
+    fatoora_party_name,
+    FfiParty,
+    PartyOwned,
+    "party",
+    FfiString,
+    |party| FfiString::from(party.name.to_string())
+);
+
+ffi_handle_getter!(
+    fatoora_party_address,
+    FfiParty,
+    PartyOwned,
+    "party",
+    FfiAddress,
+    |party| {
+        let address = party.address.clone();
+        FfiAddress {
+            ptr: Box::into_raw(Box::new(address)) as *mut std::os::raw::c_void,
+        }
+    }
+);
+
+ffi_handle_getter!(
+    fatoora_party_vat_id,
+    FfiParty,
+    PartyOwned,
+    "party",
+    FfiVatId,
+    |party| {
+        let vat = party.vat_id.clone();
+        FfiVatId {
+            ptr: optional_handle(vat),
+        }
+    }
+);
+
+ffi_handle_getter!(
+    fatoora_party_other_id,
+    FfiParty,
+    PartyOwned,
+    "party",
+    FfiOtherId,
+    |party| {
+        let other = party.other_id.clone();
+        FfiOtherId {
+            ptr: optional_handle(other),
+        }
+    }
+);
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_address_free(address: *mut FfiAddress) {
+    ffi_handle_free!(address, Address);
+}
+
+ffi_handle_getter!(
+    fatoora_address_country_code,
+    FfiAddress,
+    Address,
+    "address",
+    FfiString,
+    |address| FfiString::from(address.country_code().to_string())
+);
+
+ffi_handle_getter!(
+    fatoora_address_city,
+    FfiAddress,
+    Address,
+    "address",
+    FfiString,
+    |address| FfiString::from(address.city().to_string())
+);
+
+ffi_handle_getter!(
+    fatoora_address_street,
+    FfiAddress,
+    Address,
+    "address",
+    FfiString,
+    |address| FfiString::from(address.street().to_string())
+);
+
+ffi_handle_getter!(
+    fatoora_address_additional_street,
+    FfiAddress,
+    Address,
+    "address",
+    FfiString,
+    |address| optional_str_to_ffi(address.additional_street())
+);
+
+ffi_handle_getter!(
+    fatoora_address_building_number,
+    FfiAddress,
+    Address,
+    "address",
+    FfiString,
+    |address| FfiString::from(address.building_number().to_string())
+);
+
+ffi_handle_getter!(
+    fatoora_address_additional_number,
+    FfiAddress,
+    Address,
+    "address",
+    FfiString,
+    |address| optional_str_to_ffi(address.additional_number())
+);
+
+ffi_handle_getter!(
+    fatoora_address_postal_code,
+    FfiAddress,
+    Address,
+    "address",
+    FfiString,
+    |address| FfiString::from(address.postal_code().to_string())
+);
+
+ffi_handle_getter!(
+    fatoora_address_subdivision,
+    FfiAddress,
+    Address,
+    "address",
+    FfiString,
+    |address| optional_str_to_ffi(address.subdivision())
+);
+
+ffi_handle_getter!(
+    fatoora_address_district,
+    FfiAddress,
+    Address,
+    "address",
+    FfiString,
+    |address| optional_str_to_ffi(address.district())
+);
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_vat_id_free(vat: *mut FfiVatId) {
+    ffi_handle_free!(vat, VatId);
+}
+
+ffi_handle_getter!(
+    fatoora_vat_id_value,
+    FfiVatId,
+    VatId,
+    "vat id",
+    FfiString,
+    |vat| FfiString::from(vat.as_str().to_string())
+);
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_other_id_free(other: *mut FfiOtherId) {
+    ffi_handle_free!(other, OtherId);
+}
+
+ffi_handle_getter!(
+    fatoora_other_id_value,
+    FfiOtherId,
+    OtherId,
+    "other id",
+    FfiString,
+    |other| FfiString::from(other.as_str().to_string())
+);
+
+ffi_handle_getter!(
+    fatoora_other_id_scheme,
+    FfiOtherId,
+    OtherId,
+    "other id",
+    FfiString,
+    |other| optional_str_to_ffi(other.scheme_id())
+);
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_invoice_note_free(note: *mut FfiInvoiceNote) {
+    ffi_handle_free!(note, InvoiceNote);
+}
+
+ffi_handle_getter!(
+    fatoora_invoice_note_language,
+    FfiInvoiceNote,
+    InvoiceNote,
+    "invoice note",
+    FfiString,
+    |note| FfiString::from(note.language().to_string())
+);
+
+ffi_handle_getter!(
+    fatoora_invoice_note_text,
+    FfiInvoiceNote,
+    InvoiceNote,
+    "invoice note",
+    FfiString,
+    |note| FfiString::from(note.text().to_string())
+);
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_original_invoice_ref_free(reference: *mut FfiOriginalInvoiceRef) {
+    ffi_handle_free!(reference, OriginalInvoiceRef);
+}
+
+ffi_handle_getter!(
+    fatoora_original_invoice_ref_id,
+    FfiOriginalInvoiceRef,
+    OriginalInvoiceRef,
+    "original ref",
+    FfiString,
+    |reference| FfiString::from(reference.id().to_string())
+);
+
+ffi_handle_getter!(
+    fatoora_original_invoice_ref_uuid,
+    FfiOriginalInvoiceRef,
+    OriginalInvoiceRef,
+    "original ref",
+    FfiString,
+    |reference| optional_str_to_ffi(reference.uuid())
+);
+
+ffi_handle_getter!(
+    fatoora_original_invoice_ref_issue_date,
+    FfiOriginalInvoiceRef,
+    OriginalInvoiceRef,
+    "original ref",
+    FfiString,
+    |reference| {
+        let date = reference.issue_date().map(|value| value.to_string());
+        optional_str_to_ffi(date.as_deref())
+    }
+);
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signed_invoice_xml_base64(signed: *mut FfiSignedInvoice) -> FfiResult<FfiString> {
-    let signed = match unsafe { signed.as_mut() } {
-        Some(handle) => handle,
-        None => return FfiResult::err("signed invoice handle is null".to_string()),
-    };
-    let signed = match borrow_handle::<SignedInvoice>(signed.ptr, "signed") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     FfiResult::ok(FfiString::from(signed.to_xml_base64()))
 }
 
@@ -2226,15 +2236,7 @@ pub unsafe extern "C" fn fatoora_signed_invoice_xml_base64(signed: *mut FfiSigne
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signed_invoice_free(signed: *mut FfiSignedInvoice) {
-    if signed.is_null() {
-        return;
-    }
-    let signed = unsafe { &mut *signed };
-    if signed.ptr.is_null() {
-        return;
-    }
-    unsafe { drop(Box::from_raw(signed.ptr as *mut SignedInvoice)) };
-    signed.ptr = std::ptr::null_mut();
+    ffi_handle_free!(signed, SignedInvoice);
 }
 
 #[cfg(test)]
@@ -2487,7 +2489,7 @@ mod ffi_zatca_tests {
             assert!(pcsid_result.ok);
             let mut pcsid = pcsid_result.value;
 
-            let report_result = fatoora_zatca_report_simplified_invoice(
+            let mut report_result = fatoora_zatca_report_simplified_invoice(
                 &mut ffi_client,
                 &mut ffi_simplified,
                 &mut pcsid,
@@ -2495,7 +2497,7 @@ mod ffi_zatca_tests {
                 cstr("ar").as_ptr(),
             );
             assert!(report_result.ok);
-            fatoora_string_free(report_result.value);
+            fatoora_validation_response_free(&mut report_result.value);
 
             let standard =
                 build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Standard), &signer);
@@ -2503,7 +2505,7 @@ mod ffi_zatca_tests {
                 ptr: Box::into_raw(Box::new(standard)) as *mut c_void,
             };
 
-            let clear_result = fatoora_zatca_clear_standard_invoice(
+            let mut clear_result = fatoora_zatca_clear_standard_invoice(
                 &mut ffi_client,
                 &mut ffi_standard,
                 &mut pcsid,
@@ -2511,7 +2513,7 @@ mod ffi_zatca_tests {
                 std::ptr::null(),
             );
             assert!(clear_result.ok);
-            fatoora_string_free(clear_result.value);
+            fatoora_validation_response_free(&mut clear_result.value);
 
             let ccsid_result = fatoora_csid_compliance_new(
                 FfiEnvironment::NonProduction,
@@ -2523,10 +2525,10 @@ mod ffi_zatca_tests {
             assert!(ccsid_result.ok);
             let mut ccsid = ccsid_result.value;
 
-            let compliance_result =
+            let mut compliance_result =
                 fatoora_zatca_check_compliance(&mut ffi_client, &mut ffi_simplified, &mut ccsid);
             assert!(compliance_result.ok);
-            fatoora_string_free(compliance_result.value);
+            fatoora_validation_response_free(&mut compliance_result.value);
 
             fatoora_signed_invoice_free(&mut ffi_simplified);
             fatoora_signed_invoice_free(&mut ffi_standard);

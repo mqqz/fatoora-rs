@@ -263,6 +263,13 @@ pub fn invoice_hash_base64(doc: &Document) -> Result<String, SigningError> {
     Ok(invoice_hash_b64)
 }
 
+pub(crate) fn invoice_hash_base64_from_xml(xml: &str) -> Result<String, SigningError> {
+    let doc = Parser::default()
+        .parse_string(xml)
+        .map_err(|e| SigningError::SigningError(format!("XML parse error: {e:?}")))?;
+    invoice_hash_base64(&doc)
+}
+
 fn signing_time_from_doc(doc: &Document) -> Result<chrono::DateTime<chrono::Utc>, SigningError> {
     let ctx = xpath::Context::new(doc)
         .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;

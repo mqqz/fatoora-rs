@@ -34,25 +34,46 @@ typedef struct { FfiCsr csr; FfiSigningKey key; } FfiCsrBundle;
 typedef struct { void* ptr; } FfiZatcaClient;
 typedef struct { void* ptr; } FfiCsidCompliance;
 typedef struct { void* ptr; } FfiCsidProduction;
+typedef struct { void* ptr; } FfiValidationResponse;
+typedef struct { void* ptr; } FfiValidationResults;
+typedef struct { void* ptr; } FfiValidationMessage;
+typedef struct { void* ptr; } FfiAddress;
+typedef struct { void* ptr; } FfiParty;
+typedef struct { void* ptr; } FfiVatId;
+typedef struct { void* ptr; } FfiOtherId;
+typedef struct { void* ptr; } FfiInvoiceNote;
+typedef struct { void* ptr; } FfiOriginalInvoiceRef;
+typedef struct { int code; char* message; } FfiError;
 
-typedef struct { _Bool ok; FfiInvoiceBuilder value; char* error; } FfiResult_FfiInvoiceBuilder;
-typedef struct { _Bool ok; FfiFinalizedInvoice value; char* error; } FfiResult_FfiFinalizedInvoice;
-typedef struct { _Bool ok; FfiSignedInvoice value; char* error; } FfiResult_FfiSignedInvoice;
-typedef struct { _Bool ok; FfiSigner value; char* error; } FfiResult_FfiSigner;
-typedef struct { _Bool ok; FfiString value; char* error; } FfiResult_FfiString;
-typedef struct { _Bool ok; FfiCsrProperties value; char* error; } FfiResult_FfiCsrProperties;
-typedef struct { _Bool ok; FfiCsr value; char* error; } FfiResult_FfiCsr;
-typedef struct { _Bool ok; FfiSigningKey value; char* error; } FfiResult_FfiSigningKey;
-typedef struct { _Bool ok; FfiCsrBundle value; char* error; } FfiResult_FfiCsrBundle;
-typedef struct { _Bool ok; FfiZatcaClient value; char* error; } FfiResult_FfiZatcaClient;
-typedef struct { _Bool ok; FfiCsidCompliance value; char* error; } FfiResult_FfiCsidCompliance;
-typedef struct { _Bool ok; FfiCsidProduction value; char* error; } FfiResult_FfiCsidProduction;
-typedef struct { _Bool ok; _Bool value; char* error; } FfiResult_bool;
-typedef struct { _Bool ok; unsigned long long value; char* error; } FfiResult_u64;
-typedef struct { _Bool ok; unsigned char value; char* error; } FfiResult_u8;
-typedef struct { _Bool ok; double value; char* error; } FfiResult_f64;
+typedef struct { _Bool ok; FfiInvoiceBuilder value; FfiError* error; } FfiResult_FfiInvoiceBuilder;
+typedef struct { _Bool ok; FfiFinalizedInvoice value; FfiError* error; } FfiResult_FfiFinalizedInvoice;
+typedef struct { _Bool ok; FfiSignedInvoice value; FfiError* error; } FfiResult_FfiSignedInvoice;
+typedef struct { _Bool ok; FfiSigner value; FfiError* error; } FfiResult_FfiSigner;
+typedef struct { _Bool ok; FfiString value; FfiError* error; } FfiResult_FfiString;
+typedef struct { _Bool ok; FfiCsrProperties value; FfiError* error; } FfiResult_FfiCsrProperties;
+typedef struct { _Bool ok; FfiCsr value; FfiError* error; } FfiResult_FfiCsr;
+typedef struct { _Bool ok; FfiSigningKey value; FfiError* error; } FfiResult_FfiSigningKey;
+typedef struct { _Bool ok; FfiCsrBundle value; FfiError* error; } FfiResult_FfiCsrBundle;
+typedef struct { _Bool ok; FfiZatcaClient value; FfiError* error; } FfiResult_FfiZatcaClient;
+typedef struct { _Bool ok; FfiCsidCompliance value; FfiError* error; } FfiResult_FfiCsidCompliance;
+typedef struct { _Bool ok; FfiCsidProduction value; FfiError* error; } FfiResult_FfiCsidProduction;
+typedef struct { _Bool ok; FfiValidationResponse value; FfiError* error; } FfiResult_FfiValidationResponse;
+typedef struct { _Bool ok; FfiValidationResults value; FfiError* error; } FfiResult_FfiValidationResults;
+typedef struct { _Bool ok; FfiValidationMessage value; FfiError* error; } FfiResult_FfiValidationMessage;
+typedef struct { _Bool ok; FfiAddress value; FfiError* error; } FfiResult_FfiAddress;
+typedef struct { _Bool ok; FfiParty value; FfiError* error; } FfiResult_FfiParty;
+typedef struct { _Bool ok; FfiVatId value; FfiError* error; } FfiResult_FfiVatId;
+typedef struct { _Bool ok; FfiOtherId value; FfiError* error; } FfiResult_FfiOtherId;
+typedef struct { _Bool ok; FfiInvoiceNote value; FfiError* error; } FfiResult_FfiInvoiceNote;
+typedef struct { _Bool ok; FfiOriginalInvoiceRef value; FfiError* error; } FfiResult_FfiOriginalInvoiceRef;
+typedef struct { _Bool ok; _Bool value; FfiError* error; } FfiResult_bool;
+typedef struct { _Bool ok; unsigned long long value; FfiError* error; } FfiResult_u64;
+typedef struct { _Bool ok; unsigned char value; FfiError* error; } FfiResult_u8;
+typedef struct { _Bool ok; double value; FfiError* error; } FfiResult_f64;
 
-void fatoora_error_free(char* error);
+void fatoora_error_free(FfiError* error);
+int fatoora_error_code(FfiError* error);
+FfiString fatoora_error_message(FfiError* error);
 void fatoora_string_free(FfiString value);
 
 FfiConfig* fatoora_config_new(int env);
@@ -115,25 +136,48 @@ FfiResult_FfiCsidProduction fatoora_zatca_renew_csid(
     const char* otp,
     const char* accept_language
 );
-FfiResult_FfiString fatoora_zatca_check_compliance(
+FfiResult_FfiValidationResponse fatoora_zatca_check_compliance(
     FfiZatcaClient* client,
     FfiSignedInvoice* invoice,
     FfiCsidCompliance* ccsid
 );
-FfiResult_FfiString fatoora_zatca_report_simplified_invoice(
+FfiResult_FfiValidationResponse fatoora_zatca_report_simplified_invoice(
     FfiZatcaClient* client,
     FfiSignedInvoice* invoice,
     FfiCsidProduction* pcsid,
     _Bool clearance_status,
     const char* accept_language
 );
-FfiResult_FfiString fatoora_zatca_clear_standard_invoice(
+FfiResult_FfiValidationResponse fatoora_zatca_clear_standard_invoice(
     FfiZatcaClient* client,
     FfiSignedInvoice* invoice,
     FfiCsidProduction* pcsid,
     _Bool clearance_status,
     const char* accept_language
 );
+
+void fatoora_validation_response_free(FfiValidationResponse* response);
+FfiResult_FfiString fatoora_validation_response_reporting_status(FfiValidationResponse* response);
+FfiResult_FfiString fatoora_validation_response_clearance_status(FfiValidationResponse* response);
+FfiResult_FfiString fatoora_validation_response_qr_seller_status(FfiValidationResponse* response);
+FfiResult_FfiString fatoora_validation_response_qr_buyer_status(FfiValidationResponse* response);
+FfiResult_FfiValidationResults fatoora_validation_response_results(FfiValidationResponse* response);
+
+void fatoora_validation_results_free(FfiValidationResults* results);
+FfiResult_FfiString fatoora_validation_results_status(FfiValidationResults* results);
+FfiResult_u64 fatoora_validation_results_info_len(FfiValidationResults* results);
+FfiResult_u64 fatoora_validation_results_warning_len(FfiValidationResults* results);
+FfiResult_u64 fatoora_validation_results_error_len(FfiValidationResults* results);
+FfiResult_FfiValidationMessage fatoora_validation_results_info_message(FfiValidationResults* results, unsigned long long index);
+FfiResult_FfiValidationMessage fatoora_validation_results_warning_message(FfiValidationResults* results, unsigned long long index);
+FfiResult_FfiValidationMessage fatoora_validation_results_error_message(FfiValidationResults* results, unsigned long long index);
+
+void fatoora_validation_message_free(FfiValidationMessage* message);
+FfiResult_FfiString fatoora_validation_message_type(FfiValidationMessage* message);
+FfiResult_FfiString fatoora_validation_message_code(FfiValidationMessage* message);
+FfiResult_FfiString fatoora_validation_message_category(FfiValidationMessage* message);
+FfiResult_FfiString fatoora_validation_message_text(FfiValidationMessage* message);
+FfiResult_FfiString fatoora_validation_message_status(FfiValidationMessage* message);
 
 FfiResult_bool fatoora_validate_xml_str(FfiConfig* cfg, const char* xml);
 FfiResult_bool fatoora_validate_xml_file(FfiConfig* cfg, const char* path);
@@ -265,7 +309,16 @@ FfiResult_u8 fatoora_invoice_flags(FfiFinalizedInvoice* invoice);
 FfiResult_u8 fatoora_signed_invoice_flags(FfiSignedInvoice* signed);
 
 FfiResult_FfiString fatoora_invoice_to_xml(FfiFinalizedInvoice* invoice);
+FfiResult_FfiString fatoora_invoice_hash_base64(FfiFinalizedInvoice* invoice);
 void fatoora_invoice_free(FfiFinalizedInvoice* invoice);
+
+FfiResult_FfiParty fatoora_invoice_seller(FfiFinalizedInvoice* invoice);
+FfiResult_FfiParty fatoora_invoice_buyer(FfiFinalizedInvoice* invoice);
+FfiResult_FfiInvoiceNote fatoora_invoice_note(FfiFinalizedInvoice* invoice);
+FfiResult_u8 fatoora_invoice_type_kind(FfiFinalizedInvoice* invoice);
+FfiResult_u8 fatoora_invoice_sub_type(FfiFinalizedInvoice* invoice);
+FfiResult_FfiOriginalInvoiceRef fatoora_invoice_original_ref(FfiFinalizedInvoice* invoice);
+FfiResult_FfiString fatoora_invoice_original_reason(FfiFinalizedInvoice* invoice);
 
 FfiResult_FfiSigner fatoora_signer_from_pem(const char* cert_pem, const char* key_pem);
 FfiResult_FfiSigner fatoora_signer_from_der(const unsigned char* cert_der, uintptr_t cert_len, const unsigned char* key_der, uintptr_t key_len);
@@ -277,7 +330,48 @@ FfiResult_FfiString fatoora_signed_invoice_xml_base64(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_qr(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_uuid(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_hash(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_hash_base64(FfiSignedInvoice* signed);
+FfiResult_FfiParty fatoora_signed_invoice_seller(FfiSignedInvoice* signed);
+FfiResult_FfiParty fatoora_signed_invoice_buyer(FfiSignedInvoice* signed);
+FfiResult_FfiInvoiceNote fatoora_signed_invoice_note(FfiSignedInvoice* signed);
+FfiResult_u8 fatoora_signed_invoice_type_kind(FfiSignedInvoice* signed);
+FfiResult_u8 fatoora_signed_invoice_sub_type(FfiSignedInvoice* signed);
+FfiResult_FfiOriginalInvoiceRef fatoora_signed_invoice_original_ref(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_original_reason(FfiSignedInvoice* signed);
 void fatoora_signed_invoice_free(FfiSignedInvoice* signed);
+
+void fatoora_party_free(FfiParty* party);
+FfiResult_FfiString fatoora_party_name(FfiParty* party);
+FfiResult_FfiAddress fatoora_party_address(FfiParty* party);
+FfiResult_FfiVatId fatoora_party_vat_id(FfiParty* party);
+FfiResult_FfiOtherId fatoora_party_other_id(FfiParty* party);
+
+void fatoora_address_free(FfiAddress* address);
+FfiResult_FfiString fatoora_address_country_code(FfiAddress* address);
+FfiResult_FfiString fatoora_address_city(FfiAddress* address);
+FfiResult_FfiString fatoora_address_street(FfiAddress* address);
+FfiResult_FfiString fatoora_address_additional_street(FfiAddress* address);
+FfiResult_FfiString fatoora_address_building_number(FfiAddress* address);
+FfiResult_FfiString fatoora_address_additional_number(FfiAddress* address);
+FfiResult_FfiString fatoora_address_postal_code(FfiAddress* address);
+FfiResult_FfiString fatoora_address_subdivision(FfiAddress* address);
+FfiResult_FfiString fatoora_address_district(FfiAddress* address);
+
+void fatoora_vat_id_free(FfiVatId* vat);
+FfiResult_FfiString fatoora_vat_id_value(FfiVatId* vat);
+
+void fatoora_other_id_free(FfiOtherId* other);
+FfiResult_FfiString fatoora_other_id_value(FfiOtherId* other);
+FfiResult_FfiString fatoora_other_id_scheme(FfiOtherId* other);
+
+void fatoora_invoice_note_free(FfiInvoiceNote* note);
+FfiResult_FfiString fatoora_invoice_note_language(FfiInvoiceNote* note);
+FfiResult_FfiString fatoora_invoice_note_text(FfiInvoiceNote* note);
+
+void fatoora_original_invoice_ref_free(FfiOriginalInvoiceRef* reference);
+FfiResult_FfiString fatoora_original_invoice_ref_id(FfiOriginalInvoiceRef* reference);
+FfiResult_FfiString fatoora_original_invoice_ref_uuid(FfiOriginalInvoiceRef* reference);
+FfiResult_FfiString fatoora_original_invoice_ref_issue_date(FfiOriginalInvoiceRef* reference);
 """
 
 
@@ -320,6 +414,9 @@ def _load_cdef() -> str:
     if header is None:
         return _CDEF
     try:
+        header_text = Path(header).read_text(encoding="utf-8")
+        if "FfiValidationResponse" not in header_text or "fatoora_invoice_seller" not in header_text:
+            return _CDEF
         return _CDEF_PREAMBLE + _cdef_from_header(header)
     except OSError:
         return _CDEF

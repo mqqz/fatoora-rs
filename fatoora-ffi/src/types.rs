@@ -41,6 +41,15 @@ impl From<FfiInvoiceSubType> for InvoiceSubType {
     }
 }
 
+impl From<InvoiceSubType> for FfiInvoiceSubType {
+    fn from(value: InvoiceSubType) -> Self {
+        match value {
+            InvoiceSubType::Standard => FfiInvoiceSubType::Standard,
+            InvoiceSubType::Simplified => FfiInvoiceSubType::Simplified,
+        }
+    }
+}
+
 #[repr(C)]
 pub enum FfiInvoiceTypeKind {
     Tax,
@@ -144,6 +153,51 @@ pub struct FfiCsidCompliance {
 
 #[repr(C)]
 pub struct FfiCsidProduction {
+    pub ptr: *mut c_void,
+}
+
+#[repr(C)]
+pub struct FfiAddress {
+    pub ptr: *mut c_void,
+}
+
+#[repr(C)]
+pub struct FfiParty {
+    pub ptr: *mut c_void,
+}
+
+#[repr(C)]
+pub struct FfiVatId {
+    pub ptr: *mut c_void,
+}
+
+#[repr(C)]
+pub struct FfiOtherId {
+    pub ptr: *mut c_void,
+}
+
+#[repr(C)]
+pub struct FfiInvoiceNote {
+    pub ptr: *mut c_void,
+}
+
+#[repr(C)]
+pub struct FfiOriginalInvoiceRef {
+    pub ptr: *mut c_void,
+}
+
+#[repr(C)]
+pub struct FfiValidationResponse {
+    pub ptr: *mut c_void,
+}
+
+#[repr(C)]
+pub struct FfiValidationResults {
+    pub ptr: *mut c_void,
+}
+
+#[repr(C)]
+pub struct FfiValidationMessage {
     pub ptr: *mut c_void,
 }
 

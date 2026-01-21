@@ -4,7 +4,9 @@ use super::{
     InvoiceType, LineItems, QrPayload, QrResult, Seller, ValidationError, ValidationIssue,
     ValidationKind, VatCategory,
 };
-use crate::invoice::sign::{InvoiceSigner, SignedProperties, SigningError};
+use crate::invoice::sign::{
+    InvoiceSigner, SignedProperties, SigningError, invoice_hash_base64_from_xml,
+};
 use chrono::{DateTime, Utc};
 use iso_currency::Currency;
 
@@ -281,6 +283,18 @@ impl FinalizedInvoice {
         &self.totals
     }
 
+    /// Compute the base64 invoice hash for this finalized invoice.
+    ///
+    /// # Errors
+    /// Returns [`SigningError`] if XML serialization, parsing, or hashing fails.
+    pub fn hash_base64(&self) -> Result<String, SigningError> {
+        use crate::invoice::xml::ToXml;
+        let xml = self
+            .to_xml()
+            .map_err(|e| SigningError::SigningError(e.to_string()))?;
+        invoice_hash_base64_from_xml(&xml)
+    }
+
     /// Sign the invoice with the provided signer.
     ///
     /// # Errors
@@ -339,6 +353,14 @@ impl SignedInvoice {
 
     pub fn invoice_hash(&self) -> &str {
         self.signed_properties.invoice_hash()
+    }
+
+    /// Compute the base64 invoice hash for the underlying finalized invoice.
+    ///
+    /// # Errors
+    /// Returns [`SigningError`] if XML serialization, parsing, or hashing fails.
+    pub fn hash_base64(&self) -> Result<String, SigningError> {
+        self.finalized.hash_base64()
     }
 
     pub fn signature(&self) -> &str {

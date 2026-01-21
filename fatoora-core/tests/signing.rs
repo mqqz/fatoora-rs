@@ -152,6 +152,26 @@ fn invoice_hash_base64_decodes_to_32_bytes() {
     assert_eq!(decoded.len(), 32);
 }
 
+#[test]
+fn finalized_invoice_hash_base64_matches_document_hash() {
+    let invoice = common::dummy_finalized_invoice();
+    let xml = invoice.to_xml().expect("unsigned xml");
+    let doc = Parser::default().parse_string(&xml).expect("parse xml");
+    let expected = invoice_hash_base64(&doc).expect("hash");
+    let actual = invoice.hash_base64().expect("hash");
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn signed_invoice_hash_base64_matches_finalized_invoice() {
+    let (signer, _key) = build_test_signer();
+    let invoice = common::dummy_finalized_invoice();
+    let expected = invoice.hash_base64().expect("hash");
+    let signed = invoice.sign(&signer).expect("sign invoice");
+    let actual = signed.hash_base64().expect("hash");
+    assert_eq!(expected, actual);
+}
+
 fn build_test_cert(key: &SigningKey) -> Vec<u8> {
     let serial_number = SerialNumber::from(1u32);
     let validity = Validity::from_now(Duration::new(3600, 0)).expect("validity");
