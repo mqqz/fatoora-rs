@@ -1,4 +1,5 @@
 use std::ffi::CString;
+use std::path::Path;
 
 use fatoora_ffi::*;
 
@@ -314,7 +315,7 @@ fn invalid_utf8_returns_error() {
     unsafe {
         let invalid = [0xff, 0x00];
         let ptr = invalid.as_ptr() as *const std::os::raw::c_char;
-        let result = fatoora_csr_properties_parse(ptr);
+        let result = fatoora_csr_properties_from_str(ptr);
         assert!(!result.ok);
         if !result.error.is_null() {
             fatoora_error_free(result.error);
@@ -348,9 +349,9 @@ fn null_handles_return_error() {
 }
 
 #[test]
-fn config_with_xsd_null_uses_default() {
+fn config_new_returns_handle() {
     unsafe {
-        let config = fatoora_config_with_xsd(FfiEnvironment::NonProduction, std::ptr::null());
+        let config = fatoora_config_new(FfiEnvironment::NonProduction);
         assert!(!config.is_null());
         fatoora_config_free(config);
     }
@@ -381,6 +382,23 @@ fn signing_key_from_der_null_errors() {
         let result = fatoora_signing_key_from_der(std::ptr::null(), 0);
         assert!(!result.ok);
         if !result.error.is_null() {
+            fatoora_error_free(result.error);
+        }
+    }
+}
+
+#[test]
+fn parse_finalized_invoice_from_file() {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../fatoora-core/tests/fixtures/invoices/sample-simplified-invoice.xml");
+    unsafe {
+        let result =
+            fatoora_parse_finalized_invoice_xml_file(cstr(path.to_string_lossy().as_ref()).as_ptr());
+        assert!(result.ok);
+        if result.ok {
+            let mut invoice = result.value;
+            fatoora_invoice_free(&mut invoice);
+        } else if !result.error.is_null() {
             fatoora_error_free(result.error);
         }
     }

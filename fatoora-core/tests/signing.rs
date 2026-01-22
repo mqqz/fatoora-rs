@@ -27,7 +27,8 @@ const CAC_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:CommonAggrega
 fn sign_invoice_emits_signature_and_qr() {
     let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
-    let csr_config = CsrProperties::parse_csr_config(&config_path).expect("csr config");
+    let csr_props = std::fs::read_to_string(&config_path).expect("read csr config");
+    let csr_config = CsrProperties::from_properties_str(&csr_props).expect("csr config");
     let (_csr, signer_key) = csr_config
         .build_with_rng(EnvironmentType::NonProduction)
         .expect("csr build");
@@ -179,7 +180,8 @@ fn build_test_cert(key: &SigningKey) -> Vec<u8> {
 fn build_test_signing_material() -> (SigningKey, Vec<u8>, Vec<u8>) {
     let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
-    let csr_config = CsrProperties::parse_csr_config(&config_path).expect("csr config");
+    let csr_props = std::fs::read_to_string(&config_path).expect("read csr config");
+    let csr_config = CsrProperties::from_properties_str(&csr_props).expect("csr config");
     let (_csr, signer_key) = csr_config
         .build_with_rng(EnvironmentType::NonProduction)
         .expect("csr build");

@@ -11,6 +11,7 @@ use chrono::{NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Utc};
 use iso_currency::Currency;
 use isocountry::CountryCode;
 use libxml::{parser::Parser, tree::Document, xpath};
+use std::path::Path;
 use thiserror::Error;
 
 /// Errors emitted while parsing XML invoices.
@@ -47,6 +48,20 @@ pub fn parse_finalized_invoice_xml(xml: &str) -> Result<FinalizedInvoice, ParseE
     parse_finalized_invoice_doc(&doc)
 }
 
+/// Parse a finalized invoice from an XML file path.
+///
+/// # Errors
+/// Returns [`ParseError`] if the file cannot be read or the XML is invalid.
+pub fn parse_finalized_invoice_xml_file(
+    path: impl AsRef<Path>,
+) -> Result<FinalizedInvoice, ParseError> {
+    let path = path.as_ref();
+    let xml = std::fs::read_to_string(path).map_err(|e| {
+        ParseError::XmlParse(format!("failed to read {}: {e}", path.display()))
+    })?;
+    parse_finalized_invoice_xml(&xml)
+}
+
 
 /// Parse a signed invoice from XML string.
 ///
@@ -62,6 +77,18 @@ pub fn parse_signed_invoice_xml(xml: &str) -> Result<SignedInvoice, ParseError> 
         .sign_with_bundle(signing, xml.to_string())
         .map_err(|e| ParseError::XmlParse(format!("{e:?}")))?;
     Ok(signed)
+}
+
+/// Parse a signed invoice from an XML file path.
+///
+/// # Errors
+/// Returns [`ParseError`] if the file cannot be read or the XML is invalid.
+pub fn parse_signed_invoice_xml_file(path: impl AsRef<Path>) -> Result<SignedInvoice, ParseError> {
+    let path = path.as_ref();
+    let xml = std::fs::read_to_string(path).map_err(|e| {
+        ParseError::XmlParse(format!("failed to read {}: {e}", path.display()))
+    })?;
+    parse_signed_invoice_xml(&xml)
 }
 
 

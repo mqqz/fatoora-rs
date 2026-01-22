@@ -7,9 +7,9 @@ Use this table to track public Rust API items and their equivalents in the FFI a
 | `Error` | Omitted (errors via `FfiError`) | `FfiError` (binding error type) |
 | `config::EnvironmentType` | `FfiEnvironment` | `Environment` |
 | `config::EnvironmentParseError` | Omitted (internal) | Omitted |
-| `config::Config` | `fatoora_config_new`, `fatoora_config_with_xsd`, `FfiConfig` | `Config` |
+| `config::Config` | `fatoora_config_new`, `FfiConfig` | `Config` |
 | `csr::CsrError` | Omitted (errors via `FfiError`) | Omitted |
-| `csr::CsrProperties` | `fatoora_csr_properties_parse`, `FfiCsrProperties` | `CsrProperties` |
+| `csr::CsrProperties` | `fatoora_csr_properties_from_str`, `fatoora_csr_properties_parse`, `FfiCsrProperties` | `CsrProperties` |
 | `csr::ToBase64String` | Omitted (internal) | Omitted |
 | `invoice::InvoiceBuilder` | `fatoora_invoice_builder_*`, `FfiInvoiceBuilder` | `InvoiceBuilder` |
 | `invoice::FinalizedInvoice` | `fatoora_invoice_to_xml`, `FfiFinalizedInvoice` | `Invoice` |

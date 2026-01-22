@@ -77,10 +77,10 @@ FfiString fatoora_error_message(FfiError* error);
 void fatoora_string_free(FfiString value);
 
 FfiConfig* fatoora_config_new(int env);
-FfiConfig* fatoora_config_with_xsd(int env, const char* path);
 void fatoora_config_free(FfiConfig* cfg);
 
 FfiResult_FfiCsrProperties fatoora_csr_properties_parse(const char* path);
+FfiResult_FfiCsrProperties fatoora_csr_properties_from_str(const char* properties);
 void fatoora_csr_properties_free(FfiCsrProperties* props);
 
 FfiResult_FfiSigningKey fatoora_signing_key_from_pem(const char* pem);
@@ -268,7 +268,9 @@ FfiResult_FfiFinalizedInvoice fatoora_invoice_builder_build(FfiInvoiceBuilder* b
 void fatoora_invoice_builder_free(FfiInvoiceBuilder* builder);
 
 FfiResult_FfiFinalizedInvoice fatoora_parse_finalized_invoice_xml(const char* xml);
+FfiResult_FfiFinalizedInvoice fatoora_parse_finalized_invoice_xml_file(const char* path);
 FfiResult_FfiSignedInvoice fatoora_parse_signed_invoice_xml(const char* xml);
+FfiResult_FfiSignedInvoice fatoora_parse_signed_invoice_xml_file(const char* path);
 
 FfiResult_u64 fatoora_invoice_line_item_count(FfiFinalizedInvoice* invoice);
 FfiResult_u64 fatoora_signed_invoice_line_item_count(FfiSignedInvoice* signed);

@@ -23,6 +23,7 @@ use fatoora_core::api::{
 use fatoora_core::csr::{CsrProperties, ToBase64String};
 use fatoora_core::invoice::sign::InvoiceSigner;
 use fatoora_core::invoice::xml::ToXml;
+use fatoora_core::invoice::xml::parse::{parse_finalized_invoice_xml, parse_signed_invoice_xml};
 use fatoora_core::invoice::validation::validate_xml_invoice_from_str;
 
 mod error;
@@ -271,25 +272,6 @@ pub unsafe extern "C" fn fatoora_config_new(env: FfiEnvironment) -> *mut FfiConf
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_config_with_xsd(
-    env: FfiEnvironment,
-    path: *const c_char,
-) -> *mut FfiConfig {
-    let config = if path.is_null() {
-        Config::new(env.into())
-    } else {
-        let path = unsafe { CStr::from_ptr(path) }.to_string_lossy().to_string();
-        Config::with_xsd_path(env.into(), path)
-    };
-    let handle = FfiConfig {
-        ptr: Box::into_raw(Box::new(config)) as *mut std::os::raw::c_void,
-    };
-    Box::into_raw(Box::new(handle))
-}
-
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_config_free(config: *mut FfiConfig) {
     if !config.is_null() {
         let config = unsafe { Box::from_raw(config) };
@@ -302,9 +284,35 @@ pub unsafe extern "C" fn fatoora_config_free(config: *mut FfiConfig) {
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_csr_properties_parse(path: *const c_char) -> FfiResult<FfiCsrProperties> {
+pub unsafe extern "C" fn fatoora_csr_properties_from_str(
+    properties: *const c_char,
+) -> FfiResult<FfiCsrProperties> {
+    let properties = ffi_required_string!(properties, "csr properties");
+    match CsrProperties::from_properties_str(&properties) {
+        Ok(props) => FfiResult::ok(FfiCsrProperties {
+            ptr: Box::into_raw(Box::new(props)) as *mut std::os::raw::c_void,
+        }),
+        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
+    }
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_csr_properties_parse(
+    path: *const c_char,
+) -> FfiResult<FfiCsrProperties> {
     let path = ffi_required_string!(path, "csr properties path");
-    match CsrProperties::parse_csr_config(std::path::Path::new(&path)) {
+    let contents = match std::fs::read_to_string(&path) {
+        Ok(value) => value,
+        Err(err) => {
+            return FfiResult::err(FfiErrorDetails::new(
+                FfiErrorKind::Io,
+                format!("failed to read {path}: {err}"),
+            ))
+        }
+    };
+    match CsrProperties::from_properties_str(&contents) {
         Ok(props) => FfiResult::ok(FfiCsrProperties {
             ptr: Box::into_raw(Box::new(props)) as *mut std::os::raw::c_void,
         }),
@@ -1240,11 +1248,59 @@ pub unsafe extern "C" fn fatoora_parse_finalized_invoice_xml(
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_parse_finalized_invoice_xml_file(
+    path: *const c_char,
+) -> FfiResult<FfiFinalizedInvoice> {
+    let path = ffi_required_string!(path, "invoice xml path");
+    let contents = match std::fs::read_to_string(&path) {
+        Ok(value) => value,
+        Err(err) => {
+            return FfiResult::err(FfiErrorDetails::new(
+                FfiErrorKind::Io,
+                format!("failed to read {path}: {err}"),
+            ))
+        }
+    };
+    match parse_finalized_invoice_xml(&contents) {
+        Ok(invoice) => FfiResult::ok(FfiFinalizedInvoice {
+            ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
+        }),
+        Err(err) => FfiResult::err(ffi_error_from_parse(err)),
+    }
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_parse_signed_invoice_xml(
     xml: *const c_char,
 ) -> FfiResult<FfiSignedInvoice> {
     let xml = ffi_required_string!(xml, "xml");
     match fatoora_core::invoice::xml::parse::parse_signed_invoice_xml(&xml) {
+        Ok(invoice) => FfiResult::ok(FfiSignedInvoice {
+            ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
+        }),
+        Err(err) => FfiResult::err(ffi_error_from_parse(err)),
+    }
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_parse_signed_invoice_xml_file(
+    path: *const c_char,
+) -> FfiResult<FfiSignedInvoice> {
+    let path = ffi_required_string!(path, "signed invoice xml path");
+    let contents = match std::fs::read_to_string(&path) {
+        Ok(value) => value,
+        Err(err) => {
+            return FfiResult::err(FfiErrorDetails::new(
+                FfiErrorKind::Io,
+                format!("failed to read {path}: {err}"),
+            ))
+        }
+    };
+    match parse_signed_invoice_xml(&contents) {
         Ok(invoice) => FfiResult::ok(FfiSignedInvoice {
             ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
         }),
@@ -2372,7 +2428,8 @@ mod ffi_zatca_tests {
     fn build_csr() -> CertReq {
         let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("../fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties");
-        let csr_config = CsrProperties::parse_csr_config(&config_path).expect("csr config");
+        let csr_props = std::fs::read_to_string(&config_path).expect("read csr config");
+        let csr_config = CsrProperties::from_properties_str(&csr_props).expect("csr config");
         let (csr, _key) = csr_config
             .build_with_rng(EnvironmentType::NonProduction)
             .expect("csr build");
@@ -2449,7 +2506,8 @@ mod ffi_zatca_tests {
     fn build_test_signer() -> InvoiceSigner {
         let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("../fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties");
-        let csr_config = CsrProperties::parse_csr_config(&config_path).expect("csr config");
+        let csr_props = std::fs::read_to_string(&config_path).expect("read csr config");
+        let csr_config = CsrProperties::from_properties_str(&csr_props).expect("csr config");
         let (_csr, signer_key) = csr_config
             .build_with_rng(EnvironmentType::NonProduction)
             .expect("csr build");
@@ -2723,7 +2781,8 @@ mod ffi_coverage_tests {
     fn build_test_signer() -> (Vec<u8>, Vec<u8>) {
         let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("../fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties");
-        let csr_config = CsrProperties::parse_csr_config(&config_path).expect("csr config");
+        let csr_props = std::fs::read_to_string(&config_path).expect("read csr config");
+        let csr_config = CsrProperties::from_properties_str(&csr_props).expect("csr config");
         let (_csr, signer_key) = csr_config
             .build_with_rng(EnvironmentType::NonProduction)
             .expect("csr build");
@@ -2777,14 +2836,9 @@ mod ffi_coverage_tests {
 
     #[test]
     fn config_and_validation_paths() {
-        let default_xsd = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../fatoora-core/assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd");
         unsafe {
             let config = fatoora_config_new(FfiEnvironment::NonProduction);
             assert!(!config.is_null());
-            let config_with_xsd =
-                fatoora_config_with_xsd(FfiEnvironment::NonProduction, cstr(default_xsd.to_string_lossy().as_ref()).as_ptr());
-            assert!(!config_with_xsd.is_null());
 
             let invalid = fatoora_validate_xml_str(config, cstr("<Invoice>").as_ptr());
             assert!(!invalid.ok);
@@ -2793,7 +2847,6 @@ mod ffi_coverage_tests {
             }
 
             fatoora_config_free(config);
-            fatoora_config_free(config_with_xsd);
         }
     }
 
@@ -2802,7 +2855,8 @@ mod ffi_coverage_tests {
         let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("../fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties");
         unsafe {
-            let props = fatoora_csr_properties_parse(cstr(config_path.to_string_lossy().as_ref()).as_ptr());
+            let props =
+                fatoora_csr_properties_parse(cstr(config_path.to_string_lossy().as_ref()).as_ptr());
             assert!(props.ok);
             let mut props_handle = props.value;
 
@@ -3158,7 +3212,9 @@ mod ffi_coverage_tests {
 
             let csr_props_path = Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("../fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties");
-            let props = fatoora_csr_properties_parse(cstr(csr_props_path.to_string_lossy().as_ref()).as_ptr());
+            let props_contents =
+                std::fs::read_to_string(&csr_props_path).expect("read csr config");
+            let props = fatoora_csr_properties_from_str(cstr(&props_contents).as_ptr());
             assert!(props.ok);
             let mut props_handle = props.value;
             let bundle = fatoora_csr_build_with_rng(&mut props_handle, FfiEnvironment::NonProduction);

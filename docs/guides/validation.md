@@ -20,8 +20,8 @@ Validation workflows for UBL invoices and schema checks.
     ```
 
 ## Notes
-- Validation uses the XSD path from `Config::xsd_ubl_path`. Use `Config::with_xsd_path` (or
-  `Config.with_xsd_path` in Python) to point at a custom UBL schema.
+- Validation uses the bundled UBL schema at
+  `assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd`.
 - The environment only affects validation if you choose a different schema per environment.
 
 See also: [Invoice Validation Reference](../reference/invoice-validation.md)

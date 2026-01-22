@@ -7,9 +7,11 @@
 #ifndef FATOORA_DOC_CSR_PROPS
 #define FATOORA_DOC_CSR_PROPS "path/to/csr.properties"
 #endif
+
 int main(void) {
     const char *csr_props_path = FATOORA_DOC_CSR_PROPS;
-    struct FfiResult_FfiCsrProperties props = fatoora_csr_properties_parse(csr_props_path);
+    struct FfiResult_FfiCsrProperties props =
+        fatoora_csr_properties_parse(csr_props_path);
     if (!props.ok) {
         /* handle error */
         return 1;

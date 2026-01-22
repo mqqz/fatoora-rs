@@ -39,8 +39,7 @@ This page captures the current public surface, a proposed target shape, and issu
 
 ## Final API Checklist
 - Core public API exposes only crate-owned types (no external crate types in signatures).
-- Core uses string/bytes inputs for CSR/signing and avoids filesystem I/O in public API.
-- Core removes filesystem-based helpers from the public API to avoid confusion.
+- Core uses string/bytes inputs for CSR/signing and also provides `_file` helpers.
 - Country code, currency code, and timestamp are string wrappers with validation at construction.
 - Remove custom XSD inputs entirely; Config always uses bundled schemas.
 - `Config` uses bundled XSD only; no custom XSD inputs in public API.
@@ -51,7 +50,7 @@ This page captures the current public surface, a proposed target shape, and issu
 - FFI uses `FfiResult<T>` everywhere; no panics cross the boundary.
 - FFI exports include all accessors (totals, parties, validation response) and headers match Rust.
 - FFI constructors avoid long parameter lists; prefer config handles + setters.
-- No FFI functions require filesystem access; accept strings/bytes instead.
+- FFI provides both string/bytes and `_file` helpers for CSR and invoice parsing.
 - FFI types are `#[repr(C)]`, opaque handles only, no generics/trait objects.
 
 ## Proposed Signature List (Core)
@@ -64,7 +63,7 @@ This list is intentionally minimal and string/bytes-only at the public boundary.
 
 ### csr
 - `pub struct CsrProperties { ... }`
-- `impl CsrProperties { pub fn new(...fields...) -> Result<Self, Error>; pub fn from_properties_str(s: &str) -> Result<Self, Error>; }`
+- `impl CsrProperties { pub fn new(...fields...) -> Result<Self, Error>; pub fn from_properties_str(s: &str) -> Result<Self, Error>; pub fn parse_csr_config(path: &Path) -> Result<Self, Error>; }`
 - `pub struct Csr { ... }`
 - `impl Csr { pub fn to_der_bytes(&self) -> Vec<u8>; pub fn to_pem_string(&self) -> String; pub fn to_base64(&self) -> String; pub fn to_pem_base64(&self) -> String; }`
 - `pub struct SigningKey { ... }`
@@ -74,6 +73,7 @@ This list is intentionally minimal and string/bytes-only at the public boundary.
 
 ### invoice model
 - `pub struct CountryCode(String); pub struct CurrencyCode(String); pub struct Timestamp(String)`
+  - Timestamp format: ZATCA ISO format (UTC `YYYY-MM-DDTHH:MM:SSZ`).
 - `pub struct Address { ... }`
 - `pub struct VatId(String); pub struct OtherId { ... }`
 - `pub struct InvoiceNote { ... }`
@@ -97,7 +97,9 @@ This list is intentionally minimal and string/bytes-only at the public boundary.
 - `impl InvoiceSigner { pub fn from_pem(cert_pem: &str, key_pem: &str) -> Result<Self, Error>; pub fn from_der(cert_der: &[u8], key_der: &[u8]) -> Result<Self, Error>; pub fn sign(&self, invoice: FinalizedInvoice) -> Result<SignedInvoice, Error>; pub fn sign_xml(&self, xml: &str) -> Result<SignedInvoice, Error>; }`
 - `pub fn invoice_hash_base64_from_xml(xml: &str) -> Result<String, Error>;`
 - `pub fn parse_finalized_invoice_xml(xml: &str) -> Result<FinalizedInvoice, Error>;`
+- `pub fn parse_finalized_invoice_xml_file(path: impl AsRef<Path>) -> Result<FinalizedInvoice, Error>;`
 - `pub fn parse_signed_invoice_xml(xml: &str) -> Result<SignedInvoice, Error>;`
+- `pub fn parse_signed_invoice_xml_file(path: impl AsRef<Path>) -> Result<SignedInvoice, Error>;`
 - `pub fn validate_xml_invoice(xml: &str, config: &Config) -> Result<(), Error>;`
 
 ### api client
@@ -111,11 +113,11 @@ Names are illustrative; exact naming can follow `fatoora_` prefix rules.
 
 ### config
 - `FfiConfig* fatoora_config_new(FfiEnvironment env);`
-- `FfiConfig* fatoora_config_with_xsd_source(FfiEnvironment env, FfiXsdSource source);`
 - `void fatoora_config_free(FfiConfig*);`
 
 ### csr + key
 - `FfiResult_FfiCsrProperties fatoora_csr_properties_from_str(const char* s);`
+- `FfiResult_FfiCsrProperties fatoora_csr_properties_parse(const char* path);`
 - `FfiResult_FfiSigningKey fatoora_signing_key_from_pem(const char* pem);`
 - `FfiResult_FfiSigningKey fatoora_signing_key_from_der(const uint8_t* der, size_t len);`
 - `FfiResult_FfiString fatoora_signing_key_to_pem(FfiSigningKey* key);`
@@ -155,7 +157,9 @@ Names are illustrative; exact naming can follow `fatoora_` prefix rules.
 - `FfiResult_FfiSignedInvoice fatoora_invoice_sign(FfiFinalizedInvoice*, FfiSigner*);`
 - `FfiResult_FfiSignedInvoice fatoora_invoice_sign_xml(FfiSigner*, const char* xml);`
 - `FfiResult_FfiSignedInvoice fatoora_parse_signed_invoice_xml(const char* xml);`
+- `FfiResult_FfiSignedInvoice fatoora_parse_signed_invoice_xml_file(const char* path);`
 - `FfiResult_FfiFinalizedInvoice fatoora_parse_finalized_invoice_xml(const char* xml);`
+- `FfiResult_FfiFinalizedInvoice fatoora_parse_finalized_invoice_xml_file(const char* path);`
 
 ### validation
 - `FfiResult_bool fatoora_validate_xml_str(FfiConfig*, const char* xml);`
@@ -179,9 +183,7 @@ Names are illustrative; exact naming can follow `fatoora_` prefix rules.
   - Missing totals, party/address getters, validation response accessors in `fatoora-ffi/include/fatoora_ffi.h` vs `fatoora-ffi/src/lib.rs`.
 - FFI builder constructor is too large and brittle:
   - `fatoora_invoice_builder_new(...)` has many params in `fatoora-ffi/src/lib.rs`.
-- FFI still relies on filesystem:
-  - `fatoora_config_with_xsd` and `fatoora_csr_properties_parse` in `fatoora-ffi/src/lib.rs`.
-  - `CsrProperties::parse_csr_config` in `fatoora-core/src/csr.rs`.
+- FFI filesystem helpers should be limited to CSR properties and invoice XML parsing.
 - Inconsistent invoice-type exposure:
   - FFI uses `FfiInvoiceTypeKind`/`FfiInvoiceSubType` but getters return `u8` and are not exported in headers.
 - Validation response accessors missing in headers:

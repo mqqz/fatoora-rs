@@ -1,6 +1,6 @@
 //! Configuration and environment selection.
 use serde::{Deserialize, Serialize};
-use std::{path::{Path, PathBuf}, str::FromStr};
+use std::str::FromStr;
 use thiserror::Error;
 
 /// ZATCA environment selection for API endpoints.
@@ -82,32 +82,16 @@ impl EnvironmentType {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Config {
     env: EnvironmentType,
-    xsd_ubl_path: PathBuf,
 }
 
 impl Config {
-    /// Create a config using the bundled UBL XSD path.
+    /// Create a config using the bundled UBL XSD.
     pub fn new(env: EnvironmentType) -> Self {
-        Self {
-            env,
-            xsd_ubl_path: default_xsd_path(),
-        }
-    }
-
-    /// Create a config with a custom UBL XSD path.
-    pub fn with_xsd_path(env: EnvironmentType, xsd_ubl_path: impl Into<PathBuf>) -> Self {
-        Self {
-            env,
-            xsd_ubl_path: xsd_ubl_path.into(),
-        }
+        Self { env }
     }
 
     pub fn env(&self) -> EnvironmentType {
         self.env
-    }
-
-    pub fn xsd_ubl_path(&self) -> &Path {
-        &self.xsd_ubl_path
     }
 }
 
@@ -116,12 +100,6 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             env: EnvironmentType::NonProduction,
-            xsd_ubl_path: default_xsd_path(),
         }
     }
-}
-
-fn default_xsd_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd")
 }

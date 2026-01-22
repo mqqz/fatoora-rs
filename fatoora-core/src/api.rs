@@ -1694,7 +1694,8 @@ mod tests {
     fn build_csr() -> CertReq {
         let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
-        let csr_config = CsrProperties::parse_csr_config(&config_path).expect("csr config");
+        let csr_props = std::fs::read_to_string(&config_path).expect("read csr config");
+        let csr_config = CsrProperties::from_properties_str(&csr_props).expect("csr config");
         let (csr, _key) = csr_config
             .build_with_rng(EnvironmentType::NonProduction)
             .expect("csr build");

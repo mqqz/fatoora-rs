@@ -149,12 +149,6 @@ class Config:
         bindings = _FfiBindings.instance()
         self._handle = bindings.lib.fatoora_config_new(int(self.env))
 
-    @classmethod
-    def with_xsd_path(cls, env: Environment, path: str) -> "Config":
-        bindings = _FfiBindings.instance()
-        handle = bindings.lib.fatoora_config_with_xsd(int(env), _as_bytes(path))
-        return cls(env=env, _handle=handle)
-
     def validate_xml(self, xml: str) -> bool:
         return validate_xml_str(self, xml)
 
@@ -279,7 +273,9 @@ class CsrProperties:
     @classmethod
     def parse(cls, path: str) -> "CsrProperties":
         bindings = _FfiBindings.instance()
-        result = bindings.lib.fatoora_csr_properties_parse(_as_bytes(path))
+        with open(path, "r", encoding="utf-8") as handle:
+            contents = handle.read()
+        result = bindings.lib.fatoora_csr_properties_from_str(_as_bytes(contents))
         handle = _wrap_handle(
             bindings.ffi,
             "FfiCsrProperties",
@@ -1571,9 +1567,31 @@ def parse_invoice_xml(xml: str) -> Invoice:
     return Invoice(handle)
 
 
+def parse_invoice_xml_file(path: str) -> Invoice:
+    bindings = _FfiBindings.instance()
+    result = bindings.lib.fatoora_parse_finalized_invoice_xml_file(_as_bytes(path))
+    handle = _wrap_handle(
+        bindings.ffi,
+        "FfiFinalizedInvoice",
+        _result_or_raise(bindings.ffi, bindings.lib, result),
+    )
+    return Invoice(handle)
+
+
 def parse_signed_invoice_xml(xml: str) -> SignedInvoice:
     bindings = _FfiBindings.instance()
     result = bindings.lib.fatoora_parse_signed_invoice_xml(_as_bytes(xml))
+    handle = _wrap_handle(
+        bindings.ffi,
+        "FfiSignedInvoice",
+        _result_or_raise(bindings.ffi, bindings.lib, result),
+    )
+    return SignedInvoice(handle)
+
+
+def parse_signed_invoice_xml_file(path: str) -> SignedInvoice:
+    bindings = _FfiBindings.instance()
+    result = bindings.lib.fatoora_parse_signed_invoice_xml_file(_as_bytes(path))
     handle = _wrap_handle(
         bindings.ffi,
         "FfiSignedInvoice",

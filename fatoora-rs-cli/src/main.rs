@@ -17,7 +17,6 @@ use fatoora_core::{
 };
 use k256::pkcs8::{EncodePrivateKey, LineEnding};
 use serde_json::json;
-use std::path::Path;
 use x509_cert::der::EncodePem;
 
 #[derive(Parser)]
@@ -57,8 +56,6 @@ enum Commands {
     Validate {
         #[arg(long, help = "Path to invoice XML")]
         invoice: String,
-        #[arg(long, help = "Path to UBL XSD schema root invoice file")]
-        xsd_path: Option<String>,
     },
     Qr {
         #[arg(long, help = "Path to signed invoice XML")]
@@ -92,7 +89,9 @@ fn main() -> Result<()> {
             generated_csr,
             pem,
         } => {
-            let csr_config = CsrProperties::parse_csr_config(Path::new(&csr_config))
+            let csr_contents = std::fs::read_to_string(&csr_config)
+                .with_context(|| format!("failed to read CSR config from {csr_config}"))?;
+            let csr_config = CsrProperties::from_properties_str(&csr_contents)
                 .context("failed to parse CSR config")?;
             let (csr, signer) = csr_config
                 .build_with_rng(EnvironmentType::NonProduction)
@@ -174,34 +173,8 @@ fn main() -> Result<()> {
                 println!("{signed_xml}");
             }
         }
-        Commands::Validate { invoice, xsd_path } => {
-            let config = match xsd_path {
-                Some(path) => {
-                    let path_ref = Path::new(&path);
-                    if !path_ref.exists() {
-                        bail!(
-                            "XSD path not found: {path}. Provide a valid path via --xsd-path."
-                        );
-                    }
-                    fatoora_core::config::Config::with_xsd_path(
-                        EnvironmentType::NonProduction,
-                        path_ref,
-                    )
-                }
-                None => {
-                    let default_path = resolve_xsd_path();
-                    if !default_path.exists() {
-                        bail!(
-                            "XSD not found at default location: {}. Provide --xsd-path.",
-                            default_path.display()
-                        );
-                    }
-                    fatoora_core::config::Config::with_xsd_path(
-                        EnvironmentType::NonProduction,
-                        default_path,
-                    )
-                }
-            };
+        Commands::Validate { invoice } => {
+            let config = fatoora_core::config::Config::new(EnvironmentType::NonProduction);
             let xml = std::fs::read_to_string(&invoice)
                 .with_context(|| format!("failed to read invoice file {invoice}"))?;
             validate_xml_invoice_from_str(&xml, &config)
@@ -252,17 +225,4 @@ fn main() -> Result<()> {
     }
 
     Ok(())
-}
-
-fn resolve_xsd_path() -> std::path::PathBuf {
-    let mut path = std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::new());
-    if let Some(dir) = path.parent() {
-        path = dir.to_path_buf();
-    }
-    path.join("assets")
-        .join("schemas")
-        .join("UBL2.1")
-        .join("xsd")
-        .join("maindoc")
-        .join("UBL-Invoice-2.1.xsd")
 }

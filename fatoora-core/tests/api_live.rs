@@ -90,7 +90,8 @@ async fn check_compliance_with_live_ccsid() {
     let otp = "123345";
     let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
-    let csr_config = CsrProperties::parse_csr_config(&config_path).expect("csr config");
+    let csr_props = std::fs::read_to_string(&config_path).expect("read csr config");
+    let csr_config = CsrProperties::from_properties_str(&csr_props).expect("csr config");
     let (csr, signer_key) = csr_config
         .build_with_rng(EnvironmentType::NonProduction)
         .expect("csr build");
@@ -125,7 +126,8 @@ async fn report_invoice_with_live_pcsid() {
 
     let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
-    let csr_config = CsrProperties::parse_csr_config(&config_path).expect("csr config");
+    let csr_props = std::fs::read_to_string(&config_path).expect("read csr config");
+    let csr_config = CsrProperties::from_properties_str(&csr_props).expect("csr config");
 
     let key_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/pkeys/test_zatca_pkey.der");
@@ -191,7 +193,8 @@ async fn renew_csid_returns_request_id() {
     let otp = "123456";
     let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
-    let csr_config = CsrProperties::parse_csr_config(&config_path).expect("csr config");
+    let csr_props = std::fs::read_to_string(&config_path).expect("read csr config");
+    let csr_config = CsrProperties::from_properties_str(&csr_props).expect("csr config");
 
     let key_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/pkeys/test_zatca_pkey.der");
@@ -231,7 +234,8 @@ async fn clear_invoice_with_live_pcsid() {
 
     let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
-    let csr_config = CsrProperties::parse_csr_config(&config_path).expect("csr config");
+    let csr_props = std::fs::read_to_string(&config_path).expect("read csr config");
+    let csr_config = CsrProperties::from_properties_str(&csr_props).expect("csr config");
 
     let key_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/pkeys/test_zatca_pkey.der");

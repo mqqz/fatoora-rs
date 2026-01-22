@@ -28,7 +28,8 @@ fn test_parse_csr_config() {
 fn test_generate_csr() {
     let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
-    let csr_config = CsrProperties::parse_csr_config(&config_path).unwrap();
+    let csr_props = std::fs::read_to_string(&config_path).unwrap();
+    let csr_config = CsrProperties::from_properties_str(&csr_props).unwrap();
 
     let env = EnvironmentType::from_str("non_production")
         .map_err(|e| CsrError::Validation {
@@ -98,7 +99,8 @@ fn test_generate_csr() {
 fn test_csr_matches_zatca_sdk() {
     let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
-    let csr_config = CsrProperties::parse_csr_config(&config_path).unwrap();
+    let csr_props = std::fs::read_to_string(&config_path).unwrap();
+    let csr_config = CsrProperties::from_properties_str(&csr_props).unwrap();
     let env = EnvironmentType::from_str("production")
         .map_err(|e| CsrError::Validation {
             message: e.to_string(),

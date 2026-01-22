@@ -44,7 +44,6 @@ typedef FfiZatcaClient ZatcaClient;
 #define address_free fatoora_address_free
 #define config_free fatoora_config_free
 #define config_new fatoora_config_new
-#define config_with_xsd fatoora_config_with_xsd
 #define csid_compliance_free fatoora_csid_compliance_free
 #define csid_compliance_new fatoora_csid_compliance_new
 #define csid_compliance_request_id fatoora_csid_compliance_request_id
@@ -55,6 +54,7 @@ typedef FfiZatcaClient ZatcaClient;
 #define csr_build_with_rng fatoora_csr_build_with_rng
 #define csr_free fatoora_csr_free
 #define csr_properties_free fatoora_csr_properties_free
+#define csr_properties_from_str fatoora_csr_properties_from_str
 #define csr_properties_parse fatoora_csr_properties_parse
 #define csr_to_base64 fatoora_csr_to_base64
 #define csr_to_pem_base64 fatoora_csr_to_pem_base64
@@ -93,7 +93,9 @@ typedef FfiZatcaClient ZatcaClient;
 #define original_invoice_ref_free fatoora_original_invoice_ref_free
 #define other_id_free fatoora_other_id_free
 #define parse_finalized_invoice_xml fatoora_parse_finalized_invoice_xml
+#define parse_finalized_invoice_xml_file fatoora_parse_finalized_invoice_xml_file
 #define parse_signed_invoice_xml fatoora_parse_signed_invoice_xml
+#define parse_signed_invoice_xml_file fatoora_parse_signed_invoice_xml_file
 #define party_free fatoora_party_free
 #define signed_invoice_buyer fatoora_signed_invoice_buyer
 #define signed_invoice_free fatoora_signed_invoice_free

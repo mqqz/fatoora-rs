@@ -64,7 +64,8 @@ Rust
 use fatoora_core::config::EnvironmentType;
 use fatoora_core::csr::CsrProperties;
 
-let props = CsrProperties::parse_csr_config("csr.properties".as_ref())?;
+let props_text = std::fs::read_to_string("csr.properties")?;
+let props = CsrProperties::from_properties_str(&props_text)?;
 let (csr, key) = props.build_with_rng(EnvironmentType::NonProduction)?;
 let csr_pem = csr.to_pem(Default::default())?;
 let key_pem = key.to_pkcs8_pem(Default::default())?;

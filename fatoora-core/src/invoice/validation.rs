@@ -5,6 +5,7 @@ use libxml::{
     parser::Parser,
     schemas::{SchemaParserContext, SchemaValidationContext},
 };
+use std::path::PathBuf;
 use thiserror::Error;
 
 pub type ValidationResult = Result<(), XmlValidationError>;
@@ -22,10 +23,16 @@ pub enum XmlValidationError {
     SchemaValidation { errors: Vec<StructuredError> },
 }
 
-fn build_validation_context(config: &Config) -> Result<SchemaValidationContext, XmlValidationError> {
-    let xsd_path = config.xsd_ubl_path().to_str().ok_or_else(|| {
+fn bundled_xsd_path() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd")
+}
+
+fn build_validation_context(_config: &Config) -> Result<SchemaValidationContext, XmlValidationError> {
+    let xsd_path_buf = bundled_xsd_path();
+    let xsd_path = xsd_path_buf.to_str().ok_or_else(|| {
         XmlValidationError::InvalidXsdPath {
-            path: config.xsd_ubl_path().display().to_string(),
+            path: xsd_path_buf.display().to_string(),
         }
     })?;
 

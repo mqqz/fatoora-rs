@@ -7,7 +7,7 @@ use java_properties::read;
 use k256::{Secp256k1, ecdsa::SigningKey};
 use std::{
     fs::File,
-    io::BufReader,
+    io::{BufReader, Cursor},
     path::{self, PathBuf},
     str::FromStr,
     vec,
@@ -123,7 +123,7 @@ impl EnvironmentType {
 /// use fatoora_core::config::EnvironmentType;
 /// use fatoora_core::csr::CsrProperties;
 ///
-/// let props = CsrProperties::parse_csr_config("csr.properties".as_ref())?;
+/// let props = CsrProperties::from_properties_str("csr.common.name=example")?;
 /// let (csr, _key) = props.build_with_rng(EnvironmentType::NonProduction)?;
 /// # let _ = csr;
 /// use fatoora_core::csr::CsrError;
@@ -226,6 +226,43 @@ impl CsrProperties {
         let signer: ecdsa::SigningKey<Secp256k1> = self.generate_signer();
         let csr = self.build(&signer, env)?;
         Ok((csr, signer))
+    }
+
+    /// Parse a CSR properties string.
+    ///
+    /// # Errors
+    /// Returns [`CsrError`] when the properties cannot be read or required fields are missing.
+    pub fn from_properties_str(properties: &str) -> Result<CsrProperties, CsrError> {
+        let pathbuf = path::PathBuf::from("<properties>");
+        let cursor = Cursor::new(properties.as_bytes());
+        let dst_map = read(cursor).map_err(|e| CsrError::PropertiesRead {
+            path: pathbuf.clone(),
+            source: e,
+        })?;
+
+        let req = |key: &str| -> Result<String, CsrError> {
+            dst_map
+                .get(key)
+                .map(|s| s.to_string())
+                .ok_or_else(|| CsrError::MissingProperty {
+                    path: pathbuf.clone(),
+                    key: key.to_string(),
+                })
+        };
+
+        let csr = CsrProperties::new(
+            req("csr.common.name")?,
+            req("csr.serial.number")?,
+            req("csr.organization.identifier")?,
+            req("csr.organization.unit.name")?,
+            req("csr.organization.name")?,
+            req("csr.country.name")?,
+            req("csr.invoice.type")?,
+            req("csr.location.address")?,
+            req("csr.industry.business.category")?,
+        )?;
+
+        Ok(csr)
     }
 
     /// Parse a CSR properties file.

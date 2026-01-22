@@ -8,8 +8,8 @@ pub fn main() {
 
     let csr_props_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
-    let props = CsrProperties::parse_csr_config(csr_props_path.as_path())
-        .expect("parse csr props");
+    let csr_props = std::fs::read_to_string(&csr_props_path).expect("read csr props");
+    let props = CsrProperties::from_properties_str(&csr_props).expect("parse csr props");
     let (csr, key) = props
         .build_with_rng(EnvironmentType::NonProduction)
         .expect("build csr");

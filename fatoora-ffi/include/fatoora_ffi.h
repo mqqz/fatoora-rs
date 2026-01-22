@@ -267,13 +267,13 @@ struct FfiConfig *fatoora_config_new(enum FfiEnvironment env);
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiConfig *fatoora_config_with_xsd(enum FfiEnvironment env, const char *path);
+void fatoora_config_free(struct FfiConfig *config);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-void fatoora_config_free(struct FfiConfig *config);
+struct FfiResult_FfiCsrProperties fatoora_csr_properties_from_str(const char *properties);
 
 /**
  * # Safety
@@ -621,7 +621,19 @@ struct FfiResult_FfiFinalizedInvoice fatoora_parse_finalized_invoice_xml(const c
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
+struct FfiResult_FfiFinalizedInvoice fatoora_parse_finalized_invoice_xml_file(const char *path);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
 struct FfiResult_FfiSignedInvoice fatoora_parse_signed_invoice_xml(const char *xml);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_FfiSignedInvoice fatoora_parse_signed_invoice_xml_file(const char *path);
 
 /**
  * # Safety

@@ -1,7 +1,8 @@
 use chrono::TimeZone;
 use fatoora_core::invoice::xml::ToXml;
 use fatoora_core::invoice::xml::parse::{
-    ParseError, parse_finalized_invoice_xml, parse_signed_invoice_xml,
+    ParseError, parse_finalized_invoice_xml, parse_finalized_invoice_xml_file,
+    parse_signed_invoice_xml, parse_signed_invoice_xml_file,
 };
 use fatoora_core::invoice::{
     Address, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, OriginalInvoiceRef, Party,
@@ -91,6 +92,14 @@ fn parse_sample_simplified_invoice() {
 }
 
 #[test]
+fn parse_sample_simplified_invoice_from_file() {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/invoices/sample-simplified-invoice.xml");
+    let invoice = parse_finalized_invoice_xml_file(&path).expect("parse invoice");
+    assert_eq!(invoice.data().id(), "SME00010");
+}
+
+#[test]
 fn parse_signed_invoice_from_fixture() {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/invoices/sample-simplified-invoice.xml");
@@ -133,6 +142,14 @@ fn parse_signed_invoice_from_fixture() {
 
     let serialized = signed.to_xml().expect("serialize signed invoice");
     assert_eq!(serialized.trim(), xml.trim());
+}
+
+#[test]
+fn parse_signed_invoice_from_file() {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/invoices/sample-simplified-invoice.xml");
+    let signed = parse_signed_invoice_xml_file(&path).expect("parse signed invoice");
+    assert_eq!(signed.data().id(), "SME00010");
 }
 
 #[test]
