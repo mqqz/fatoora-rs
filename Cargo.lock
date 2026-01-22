@@ -915,7 +915,6 @@ dependencies = [
  "iso_currency",
  "isocountry",
  "k256",
- "serde_json",
  "tokio",
  "x509-cert",
 ]

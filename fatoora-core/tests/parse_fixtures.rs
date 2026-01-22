@@ -1,5 +1,5 @@
 use fatoora_core::invoice::xml::parse::{
-    parse_finalized_invoice_xml_file, parse_signed_invoice_xml_file,
+    parse_finalized_invoice_xml, parse_signed_invoice_xml,
 };
 use std::path::{Path, PathBuf};
 
@@ -17,6 +17,11 @@ fn collect_xml_files(dir: &Path) -> Vec<PathBuf> {
     files
 }
 
+fn read_xml(path: &Path) -> String {
+    std::fs::read_to_string(path)
+        .unwrap_or_else(|e| panic!("failed to read {:?}: {e:?}", path))
+}
+
 #[test]
 fn parse_standard_and_simplified_invoices() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/invoices");
@@ -31,9 +36,10 @@ fn parse_standard_and_simplified_invoices() {
     assert!(!files.is_empty(), "no invoice fixtures found");
 
     for file in files {
-        parse_finalized_invoice_xml_file(&file)
+        let xml = read_xml(&file);
+        parse_finalized_invoice_xml(&xml)
             .unwrap_or_else(|e| panic!("failed to parse {:?}: {e:?}", file));
-        parse_signed_invoice_xml_file(&file)
+        parse_signed_invoice_xml(&xml)
             .unwrap_or_else(|e| panic!("failed to parse signed {:?}: {e:?}", file));
     }
 }
@@ -56,7 +62,8 @@ fn parse_credit_debit_invoices() {
     assert!(!files.is_empty(), "no credit/debit fixtures found");
 
     for file in files {
-        let invoice = parse_finalized_invoice_xml_file(&file)
+        let xml = read_xml(&file);
+        let invoice = parse_finalized_invoice_xml(&xml)
             .unwrap_or_else(|e| panic!("failed to parse {:?}: {e:?}", file));
         match invoice.data().invoice_type() {
             fatoora_core::invoice::InvoiceType::CreditNote(_, original, _)
@@ -65,7 +72,7 @@ fn parse_credit_debit_invoices() {
             }
             _ => panic!("expected credit/debit invoice type for {:?}", file),
         }
-        parse_signed_invoice_xml_file(&file)
+        parse_signed_invoice_xml(&xml)
             .unwrap_or_else(|e| panic!("failed to parse signed {:?}: {e:?}", file));
     }
 }

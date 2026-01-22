@@ -2,7 +2,7 @@ mod common;
 
 use fatoora_core::config::EnvironmentType;
 use fatoora_core::csr::CsrProperties;
-use fatoora_core::invoice::sign::{InvoiceSigner, SigningError, invoice_hash_base64};
+use fatoora_core::invoice::sign::{InvoiceSigner, SigningError};
 use fatoora_core::invoice::xml::ToXml;
 use base64ct::{Base64, Encoding};
 use k256::ecdsa::SigningKey;
@@ -145,21 +145,9 @@ fn sign_xml_emits_signature_and_signing_time() {
 #[test]
 fn invoice_hash_base64_decodes_to_32_bytes() {
     let invoice = common::dummy_finalized_invoice();
-    let xml = invoice.to_xml().expect("unsigned xml");
-    let doc = Parser::default().parse_string(&xml).expect("parse xml");
-    let hash_b64 = invoice_hash_base64(&doc).expect("hash");
+    let hash_b64 = invoice.hash_base64().expect("hash");
     let decoded = Base64::decode_vec(&hash_b64).expect("decode b64");
     assert_eq!(decoded.len(), 32);
-}
-
-#[test]
-fn finalized_invoice_hash_base64_matches_document_hash() {
-    let invoice = common::dummy_finalized_invoice();
-    let xml = invoice.to_xml().expect("unsigned xml");
-    let doc = Parser::default().parse_string(&xml).expect("parse xml");
-    let expected = invoice_hash_base64(&doc).expect("hash");
-    let actual = invoice.hash_base64().expect("hash");
-    assert_eq!(expected, actual);
 }
 
 #[test]

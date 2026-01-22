@@ -11,12 +11,11 @@ use fatoora_core::{
     config::EnvironmentType,
     csr::{CsrProperties, ToBase64String},
     invoice::{
-        sign::invoice_hash_base64, validation::validate_xml_invoice_from_file,
-        xml::parse::parse_signed_invoice_xml,
+        validation::validate_xml_invoice_from_str,
+        xml::parse::{parse_finalized_invoice_xml, parse_signed_invoice_xml},
     },
 };
 use k256::pkcs8::{EncodePrivateKey, LineEnding};
-use libxml::parser::Parser as XmlParser;
 use serde_json::json;
 use std::path::Path;
 use x509_cert::der::EncodePem;
@@ -203,7 +202,9 @@ fn main() -> Result<()> {
                     )
                 }
             };
-            validate_xml_invoice_from_file(Path::new(&invoice), &config)
+            let xml = std::fs::read_to_string(&invoice)
+                .with_context(|| format!("failed to read invoice file {invoice}"))?;
+            validate_xml_invoice_from_str(&xml, &config)
                 .map_err(|error| anyhow::anyhow!("XML validation failed: {error}"))?;
             println!("OK");
         }
@@ -217,10 +218,12 @@ fn main() -> Result<()> {
         Commands::GenerateHash { invoice } => {
             let xml = std::fs::read_to_string(&invoice)
                 .with_context(|| format!("failed to read invoice file {invoice}"))?;
-            let doc = XmlParser::default()
-                .parse_string(&xml)
-                .with_context(|| format!("failed to parse XML from {invoice}"))?;
-            let hash = invoice_hash_base64(&doc)?;
+            let hash = match parse_signed_invoice_xml(&xml) {
+                Ok(signed) => signed.hash_base64()?,
+                Err(_) => parse_finalized_invoice_xml(&xml)
+                    .with_context(|| format!("failed to parse invoice XML from {invoice}"))?
+                    .hash_base64()?,
+            };
             println!("{hash}");
         }
         Commands::InvoiceRequest {

@@ -1,3 +1,14 @@
+//! FFI helper macros to keep ABI functions consistent and boilerplate-light.
+//!
+//! Usage:
+//! - Use `ffi_borrow!` / `ffi_borrow_mut!` for handle access.
+//! - Use `ffi_required_string!` for required `*const c_char` arguments.
+//! - Use `ffi_handle_getter!` for getters that return `FfiResult<T>`.
+//! - Use `ffi_take_handle!` for consuming handles (e.g. builder `build`).
+//! - Use `ffi_handle_free!` for free functions.
+//!
+//! This keeps all FFI null checks and error mapping uniform.
+
 macro_rules! ffi_require_handle {
     ($ptr:expr, $label:literal) => {{
         match unsafe { $ptr.as_mut() } {
@@ -80,13 +91,11 @@ macro_rules! ffi_take_handle {
         }
     }};
 }
-//! FFI helper macros to keep ABI functions consistent and boilerplate-light.
-//!
-//! Usage:
-//! - Use `ffi_borrow!`/`ffi_borrow_mut!` for handle access.
-//! - Use `ffi_required_string!` for required `*const c_char` arguments.
-//! - Use `ffi_handle_getter!` for getters that return `FfiResult<T>`.
-//! - Use `ffi_take_handle!` for consuming handles (e.g. builder build).
-//! - Use `ffi_handle_free!` for free functions.
-//!
-//! This keeps all FFI null checks and error mapping uniform.
+
+pub(crate) use ffi_borrow;
+pub(crate) use ffi_borrow_mut;
+pub(crate) use ffi_handle_free;
+pub(crate) use ffi_handle_getter;
+pub(crate) use ffi_require_handle;
+pub(crate) use ffi_required_string;
+pub(crate) use ffi_take_handle;

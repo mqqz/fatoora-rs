@@ -1,18 +1,16 @@
 mod common;
 
 use fatoora_core::config::Config;
-use fatoora_core::invoice::validation::{
-    validate_xml_invoice_from_file, validate_xml_invoice_from_str,
-};
+use fatoora_core::invoice::validation::validate_xml_invoice_from_str;
 use fatoora_core::invoice::xml::ToXml;
-use std::path::Path;
 
 #[test]
 fn test_validate_xml_invoice() {
     let config = Config::default();
-    let xml_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+    let xml_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/invoices/sample-simplified-invoice.xml");
-    let result = validate_xml_invoice_from_file(&xml_path, &config);
+    let xml = std::fs::read_to_string(&xml_path).expect("read xml");
+    let result = validate_xml_invoice_from_str(&xml, &config);
     match result {
         Ok(_) => (),
         Err(error) => panic!("XML validation failed: {error}"),

@@ -158,9 +158,6 @@ class Config:
     def validate_xml(self, xml: str) -> bool:
         return validate_xml_str(self, xml)
 
-    def validate_xml_file(self, path: str) -> bool:
-        return validate_xml_file(self, path)
-
     def close(self) -> None:
         if self._handle:
             _FfiBindings.instance().lib.fatoora_config_free(self._handle)
@@ -1124,6 +1121,41 @@ class SignedInvoice:
             bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
         )
 
+    def signature(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_signature(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def public_key(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_public_key(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def cert_hash(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_cert_hash(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def signed_props_hash(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_signed_props_hash(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def signing_time(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_signing_time(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
     def seller(self) -> Party:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_signed_invoice_seller(self._handle)
@@ -1555,11 +1587,6 @@ def validate_xml_str(config: Config, xml: str) -> bool:
     result = bindings.lib.fatoora_validate_xml_str(config._handle, _as_bytes(xml))
     return bool(_result_or_raise(bindings.ffi, bindings.lib, result))
 
-
-def validate_xml_file(config: Config, path: str) -> bool:
-    bindings = _FfiBindings.instance()
-    result = bindings.lib.fatoora_validate_xml_file(config._handle, _as_bytes(path))
-    return bool(_result_or_raise(bindings.ffi, bindings.lib, result))
 
 
 @dataclass

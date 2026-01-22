@@ -92,8 +92,8 @@ mod tests {
         let err: Error = ParseError::MissingField("uuid").into();
         assert!(matches!(err, Error::Parse(_)));
 
-        let err: Error = XmlValidationError::InvalidXmlPath {
-            path: "bad".into(),
+        let err: Error = XmlValidationError::XmlParse {
+            message: "bad".into(),
         }
         .into();
         assert!(matches!(err, Error::XmlValidation(_)));
@@ -108,3 +108,6 @@ mod tests {
         assert!(matches!(err, Error::Csr(_)));
     }
 }
+
+#[cfg(test)]
+mod fixture_hash_sign;

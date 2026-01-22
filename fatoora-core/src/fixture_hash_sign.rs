@@ -1,6 +1,8 @@
 use libxml::{parser::Parser, xpath};
 use std::path::{Path, PathBuf};
 
+use crate::invoice::sign::invoice_hash_base64;
+
 const CBC_NS: &str =
     "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2";
 const CAC_NS: &str =
@@ -40,25 +42,12 @@ fn fixture_invoices_match_hash_digest() {
             "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:SignedInfo/ds:Reference[@Id='invoiceSignedData']/ds:DigestValue",
             "invoiceSignedData DigestValue",
         );
-        let actual_invoice_digest =
-            fatoora_core::invoice::sign::invoice_hash_base64(&doc).expect("invoice hash");
+        let actual_invoice_digest = invoice_hash_base64(&doc).expect("invoice hash");
         assert_eq!(
             expected_invoice_digest, actual_invoice_digest,
             "invoice hash mismatch for {}",
             file.display()
         );
-        // TODO somehow make sure our serialised signed properties match the fixture
-        // let expected_signed_props_digest = xpath_text(
-        //     &ctx,
-        //     "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:SignedInfo/ds:Reference[@URI='#xadesSignedProperties']/ds:DigestValue",
-        //     "SignedProperties DigestValue",
-        // );
-        // let actual_signed_props_digest = signed_properties_hash_from_xml(&doc);
-        // assert_eq!(
-        //     expected_signed_props_digest, actual_signed_props_digest,
-        //     "signed properties hash mismatch for {}",
-        //     file.display()
-        // );
     }
 }
 

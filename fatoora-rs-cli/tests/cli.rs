@@ -2,11 +2,9 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::str::FromStr;
 
-use fatoora_core::invoice::sign::invoice_hash_base64;
-use fatoora_core::invoice::xml::parse::parse_signed_invoice_xml_file;
+use fatoora_core::invoice::xml::parse::parse_signed_invoice_xml;
 use k256::ecdsa::SigningKey;
 use k256::pkcs8::EncodePrivateKey;
-use libxml::parser::Parser as XmlParser;
 use x509_cert::builder::{Builder, CertificateBuilder, profile};
 use x509_cert::der::EncodePem;
 use x509_cert::name::Name;
@@ -203,10 +201,8 @@ fn qr_command_outputs_payload() {
 fn generate_hash_outputs_expected() {
     let fixture = signed_invoice_fixture();
     let xml = std::fs::read_to_string(&fixture).expect("read fixture");
-    let doc = XmlParser::default()
-        .parse_string(&xml)
-        .expect("parse fixture XML");
-    let expected = invoice_hash_base64(&doc).expect("compute hash");
+    let signed = parse_signed_invoice_xml(&xml).expect("parse signed invoice");
+    let expected = signed.hash_base64().expect("compute hash");
 
     let output = Command::new(cli_exe())
         .args(["generate-hash", "--invoice"])
@@ -226,7 +222,8 @@ fn generate_hash_outputs_expected() {
 #[test]
 fn invoice_request_emits_json_payload() {
     let fixture = signed_invoice_fixture();
-    let signed = parse_signed_invoice_xml_file(&fixture).expect("parse signed invoice");
+    let xml = std::fs::read_to_string(&fixture).expect("read xml");
+    let signed = parse_signed_invoice_xml(&xml).expect("parse signed invoice");
 
     let output = Command::new(cli_exe())
         .args(["invoice-request", "--invoice"])

@@ -183,10 +183,8 @@ pub fn ffi_error_from_parse(err: ParseError) -> FfiErrorDetails {
 
 pub fn ffi_error_from_validation(err: XmlValidationError) -> FfiErrorDetails {
     let kind = match err {
-        XmlValidationError::FileNotFound { .. } => FfiErrorKind::NotFound,
         XmlValidationError::InvalidXsdPath { .. } => FfiErrorKind::InvalidInput,
         XmlValidationError::SchemaParse { .. } => FfiErrorKind::Parse,
-        XmlValidationError::InvalidXmlPath { .. } => FfiErrorKind::InvalidInput,
         XmlValidationError::XmlParse { .. } => FfiErrorKind::Xml,
         XmlValidationError::SchemaValidation { .. } => FfiErrorKind::Validation,
     };

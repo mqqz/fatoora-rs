@@ -240,23 +240,8 @@ impl InvoiceSigner {
 }
 
 // TODO this pattern (hash -> base64) is repeated, (Use base64 func for that)
-/// Compute the base64 invoice hash from a parsed XML document.
-///
-/// # Examples
-/// ```rust,no_run
-/// use libxml::parser::Parser;
-/// use fatoora_core::invoice::sign::invoice_hash_base64;
-///
-/// let xml = std::fs::read_to_string("invoice.xml")?;
-/// let doc = Parser::default().parse_string(&xml)?;
-/// let hash = invoice_hash_base64(&doc)?;
-/// # let _ = hash;
-/// # Ok::<(), Box<dyn std::error::Error>>(())
-/// ```
-///
-/// # Errors
-/// Returns [`SigningError`] if canonicalization or hashing fails.
-pub fn invoice_hash_base64(doc: &Document) -> Result<String, SigningError> {
+// Internal helper: compute the base64 invoice hash from a parsed XML document.
+pub(crate) fn invoice_hash_base64(doc: &Document) -> Result<String, SigningError> {
     let canonicalized = canonicalize_invoice(doc)?;
     let hash = Sha256::digest(canonicalized.as_bytes());
     let invoice_hash_b64 = Base64::encode_string(&hash);
@@ -268,6 +253,24 @@ pub(crate) fn invoice_hash_base64_from_xml(xml: &str) -> Result<String, SigningE
         .parse_string(xml)
         .map_err(|e| SigningError::SigningError(format!("XML parse error: {e:?}")))?;
     invoice_hash_base64(&doc)
+}
+
+/// Compute the base64 invoice hash from an XML string.
+///
+/// # Examples
+/// ```rust,no_run
+/// use fatoora_core::invoice::sign::invoice_hash_base64_from_xml_str;
+///
+/// let xml = std::fs::read_to_string("invoice.xml")?;
+/// let hash = invoice_hash_base64_from_xml_str(&xml)?;
+/// # let _ = hash;
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
+///
+/// # Errors
+/// Returns [`SigningError`] if parsing, canonicalization, or hashing fails.
+pub fn invoice_hash_base64_from_xml_str(xml: &str) -> Result<String, SigningError> {
+    invoice_hash_base64_from_xml(xml)
 }
 
 fn signing_time_from_doc(doc: &Document) -> Result<chrono::DateTime<chrono::Utc>, SigningError> {

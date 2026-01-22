@@ -124,7 +124,6 @@ typedef FfiZatcaClient ZatcaClient;
 #define signing_key_from_pem fatoora_signing_key_from_pem
 #define signing_key_to_pem fatoora_signing_key_to_pem
 #define string_free fatoora_string_free
-#define validate_xml_file fatoora_validate_xml_file
 #define validate_xml_str fatoora_validate_xml_str
 #define validation_message_free fatoora_validation_message_free
 #define validation_response_free fatoora_validation_response_free

@@ -30,7 +30,6 @@ from .api import (
     ZatcaClient,
     parse_invoice_xml,
     parse_signed_invoice_xml,
-    validate_xml_file,
     validate_xml_str,
 )
 from .errors import (
@@ -82,7 +81,6 @@ __all__ = [
     "ZatcaClient",
     "parse_invoice_xml",
     "parse_signed_invoice_xml",
-    "validate_xml_file",
     "validate_xml_str",
     "FatooraError",
     "FfiError",

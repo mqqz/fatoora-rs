@@ -180,7 +180,6 @@ FfiResult_FfiString fatoora_validation_message_text(FfiValidationMessage* messag
 FfiResult_FfiString fatoora_validation_message_status(FfiValidationMessage* message);
 
 FfiResult_bool fatoora_validate_xml_str(FfiConfig* cfg, const char* xml);
-FfiResult_bool fatoora_validate_xml_file(FfiConfig* cfg, const char* path);
 
 FfiResult_FfiInvoiceBuilder fatoora_invoice_builder_new(
     int invoice_type_kind,
@@ -331,6 +330,11 @@ FfiResult_FfiString fatoora_signed_invoice_qr(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_uuid(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_hash(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_hash_base64(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_signature(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_public_key(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_cert_hash(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_signed_props_hash(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_signing_time(FfiSignedInvoice* signed);
 FfiResult_FfiParty fatoora_signed_invoice_seller(FfiSignedInvoice* signed);
 FfiResult_FfiParty fatoora_signed_invoice_buyer(FfiSignedInvoice* signed);
 FfiResult_FfiInvoiceNote fatoora_signed_invoice_note(FfiSignedInvoice* signed);

@@ -2,7 +2,7 @@
 use std::ffi::CStr;
 use std::os::raw::c_char;
 
-use chrono::{TimeZone, Utc};
+use chrono::{SecondsFormat, TimeZone, Utc};
 use iso_currency::Currency;
 use isocountry::CountryCode;
 use k256::ecdsa::SigningKey;
@@ -23,10 +23,9 @@ use fatoora_core::api::{
 use fatoora_core::csr::{CsrProperties, ToBase64String};
 use fatoora_core::invoice::sign::InvoiceSigner;
 use fatoora_core::invoice::xml::ToXml;
-use fatoora_core::invoice::validation::{validate_xml_invoice_from_file, validate_xml_invoice_from_str};
+use fatoora_core::invoice::validation::validate_xml_invoice_from_str;
 
 mod error;
-#[macro_use]
 mod macros;
 mod types;
 
@@ -35,6 +34,10 @@ pub use error::{
     ffi_error_from_csr, ffi_error_from_invoice, ffi_error_from_parse, ffi_error_from_qr,
     ffi_error_from_signing, ffi_error_from_validation, ffi_error_from_xml,
     ffi_error_internal, ffi_error_invalid_input,
+};
+use crate::macros::{
+    ffi_borrow, ffi_borrow_mut, ffi_handle_free, ffi_handle_getter, ffi_require_handle,
+    ffi_required_string, ffi_take_handle,
 };
 pub use types::{
     FfiConfig, FfiEnvironment, FfiFinalizedInvoice, FfiInvoiceBuilder, FfiInvoiceSubType,
@@ -100,7 +103,7 @@ fn message_list_len(list: &MessageList) -> usize {
     }
 }
 
-fn message_list_get<'a>(list: &'a MessageList, index: usize) -> Option<&'a ValidationMessage> {
+fn message_list_get(list: &MessageList, index: usize) -> Option<&ValidationMessage> {
     match list {
         MessageList::One(message) => (index == 0).then_some(message),
         MessageList::Many(values) => values.get(index),
@@ -933,23 +936,6 @@ pub unsafe extern "C" fn fatoora_validate_xml_str(
     }
 }
 
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_validate_xml_file(
-    config: *mut FfiConfig,
-    path: *const c_char,
-) -> FfiResult<bool> {
-    let config = match borrow_config(config) {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let path = ffi_required_string!(path, "xml path");
-    match validate_xml_invoice_from_file(std::path::Path::new(&path), config) {
-        Ok(()) => FfiResult::ok(true),
-        Err(err) => FfiResult::err(ffi_error_from_validation(err)),
-    }
-}
 
 #[unsafe(no_mangle)]
 /// # Safety
@@ -1781,6 +1767,57 @@ pub unsafe extern "C" fn fatoora_signed_invoice_hash_base64(
         Err(err) => FfiResult::err(ffi_error_from_signing(err)),
     }
 }
+
+ffi_handle_getter!(
+    fatoora_signed_invoice_signature,
+    FfiSignedInvoice,
+    SignedInvoice,
+    "signed",
+    FfiString,
+    |signed| FfiString::from(signed.signature().to_string())
+);
+
+ffi_handle_getter!(
+    fatoora_signed_invoice_public_key,
+    FfiSignedInvoice,
+    SignedInvoice,
+    "signed",
+    FfiString,
+    |signed| FfiString::from(signed.public_key().to_string())
+);
+
+ffi_handle_getter!(
+    fatoora_signed_invoice_cert_hash,
+    FfiSignedInvoice,
+    SignedInvoice,
+    "signed",
+    FfiString,
+    |signed| FfiString::from(signed.signed_properties().cert_hash().to_string())
+);
+
+ffi_handle_getter!(
+    fatoora_signed_invoice_signed_props_hash,
+    FfiSignedInvoice,
+    SignedInvoice,
+    "signed",
+    FfiString,
+    |signed| FfiString::from(signed.signed_properties().signed_props_hash().to_string())
+);
+
+ffi_handle_getter!(
+    fatoora_signed_invoice_signing_time,
+    FfiSignedInvoice,
+    SignedInvoice,
+    "signed",
+    FfiString,
+    |signed| {
+        let time = signed
+            .signed_properties()
+            .signing_time()
+            .to_rfc3339_opts(SecondsFormat::Secs, true);
+        FfiString::from(time)
+    }
+);
 
 #[unsafe(no_mangle)]
 /// # Safety
@@ -2748,12 +2785,6 @@ mod ffi_coverage_tests {
             let config_with_xsd =
                 fatoora_config_with_xsd(FfiEnvironment::NonProduction, cstr(default_xsd.to_string_lossy().as_ref()).as_ptr());
             assert!(!config_with_xsd.is_null());
-
-            let missing = fatoora_validate_xml_file(config, cstr("missing.xml").as_ptr());
-            assert!(!missing.ok);
-            if !missing.error.is_null() {
-                fatoora_error_free(missing.error);
-            }
 
             let invalid = fatoora_validate_xml_str(config, cstr("<Invoice>").as_ptr());
             assert!(!invalid.ok);

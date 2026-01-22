@@ -502,12 +502,6 @@ struct FfiResult_bool fatoora_validate_xml_str(struct FfiConfig *config, const c
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_bool fatoora_validate_xml_file(struct FfiConfig *config, const char *path);
-
-/**
- * # Safety
- * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
- */
 struct FfiResult_FfiInvoiceBuilder fatoora_invoice_builder_new(enum FfiInvoiceTypeKind invoice_type_kind,
                                                                enum FfiInvoiceSubType invoice_sub_type,
                                                                const char *id,

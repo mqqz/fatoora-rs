@@ -312,7 +312,7 @@ fn credit_note_roundtrip() {
 #[test]
 fn invalid_utf8_returns_error() {
     unsafe {
-        let invalid = vec![0xff, 0x00];
+        let invalid = [0xff, 0x00];
         let ptr = invalid.as_ptr() as *const std::os::raw::c_char;
         let result = fatoora_csr_properties_parse(ptr);
         assert!(!result.ok);
