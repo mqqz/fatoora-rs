@@ -1,0 +1,15 @@
+# FFI Workflow
+
+Use this when adding or changing any public capability exposed via the C ABI.
+
+## Steps
+1. Add or change the public API in `fatoora-core`.
+2. Expose it in `fatoora-ffi` (prefer the macros in `fatoora-ffi/src/macros.rs`).
+3. Regenerate headers (`FATOORA_CBINDGEN=1 cargo build -p fatoora-ffi --release`).
+4. Update language bindings (Python, C/C++) to wrap the new symbols.
+5. Add or update binding tests.
+
+## FFI Conventions
+- Use opaque handles and `*_free` functions for ownership.
+- Return `FfiResult<T>` everywhere and map errors via `FfiErrorKind`.
+- Avoid filesystem access in the FFI; accept strings/bytes from callers.

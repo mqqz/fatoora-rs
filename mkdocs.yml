@@ -1,0 +1,58 @@
+site_name: fatoora-rs
+site_description: Unofficial toolkit for ZATCA Phase 1/2 compliant e-invoicing
+repo_name: mqqz/fatoora-rs
+repo_url: https://github.com/mqqz/fatoora-rs
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+  font:
+    text: Inter
+
+nav:
+  - Home: index.md
+  - Guides:
+      - Getting Started: guides/getting-started.md
+      - CSR Generation: guides/csr.md
+      - Invoice Signing: guides/invoice-signing.md
+      - Validation: guides/validation.md
+      - QR Codes: guides/qr.md
+      - ZATCA API Client: guides/api.md
+      - CLI: guides/cli.md
+      - Python Bindings: guides/python-bindings.md
+      - C/C++ Bindings: guides/c-bindings.md
+      - Guide Template: guides/example-template.md
+  - Reference:
+      - Core: reference/core.md
+      - Configuration: reference/configuration.md
+      - CSR: reference/csr.md
+      - Invoice:
+          - Model: reference/invoice-model.md
+          - Signing: reference/invoice-signing.md
+          - Validation: reference/invoice-validation.md
+          - XML: reference/xml.md
+          - XML and Schemas: reference/xml-and-schemas.md
+          - QR: reference/qr.md
+      - API Client: reference/api-client.md
+      - FFI: reference/ffi.md
+      - Errors: reference/errors.md
+  - Development:
+      - Overview: development/index.md
+      - API Audit: development/api-audit.md
+      - FFI Workflow: development/ffi-workflow.md
+      - FFI Parity Workflow: development/ffi-parity.md
+      - API Parity Matrix: development/api-parity.md
+  - Benchmarks: benchmarks.md
+  - Contributing: contributing.md
+  - Security: security.md
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight

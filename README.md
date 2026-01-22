@@ -21,7 +21,8 @@ An *unofficial* open-source toolkit for everything you'd need for ZATCA (Zakat, 
 `fatoora-rs` is not affiliated, associated, authorized, endorsed by, or in any way officially connected with ZATCA (Zakat, Tax and Customs Authority), or any of its subsidiaries or its affiliates. The official ZATCA website can be found at https://zatca.gov.sa.
 
 ## Documentation
-Check out [docs.rs](https://docs.rs/fatoora-core/latest/fatoora_core/) for the rust core library documentation.
+- Rust API: [docs.rs](https://docs.rs/fatoora-core/latest/fatoora_core/)
+- Project docs: see `docs/` (MkDocs site)
 
 ## Features
 
@@ -35,15 +36,23 @@ Everything done by the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloa
 *But we do it faster and better* e.g. ~190x faster invoice hashing than ZATCA's SDK (see [`bench/`](https://github.com/mqqz/fatoora-rs/blob/main/bench/cli/results/hash_bench.md))
 
 ## Dependencies
-XML parsing/manipulation is done internally with `libxml2`, so you might need to install it if you haven't already see [here](https://github.com/KWARC/rust-libxml?tab=readme-ov-file#installation-prerequisites) for relevant instructions.
+XML parsing/manipulation is done internally with `libxml2`, so you might need to install it if you haven't already. See [here](https://github.com/KWARC/rust-libxml?tab=readme-ov-file#installation-prerequisites) for relevant instructions.
+
+C headers are generated in `fatoora-ffi/include/`, with grouped headers under `fatoora/` (e.g., `fatoora/config.h`).
 
 ## Installation
-The rust library can be added with `cargo add fatoora-core`.
+The Rust library can be added with `cargo add fatoora-core`.
 
 The cli tool can also be installed with `cargo`: 
 ```
 cargo install fatoora-rs-cli
 ```
+
+Python bindings:
+```
+pip install fatoora-rs
+```
+Python modules mirror the Rust core layout (e.g., `fatoora.config`, `fatoora.csr`, `fatoora.invoice`, `fatoora.sign`).
 
 ## Usage/Examples
 
@@ -59,6 +68,17 @@ let props = CsrProperties::parse_csr_config("csr.properties".as_ref())?;
 let (csr, key) = props.build_with_rng(EnvironmentType::NonProduction)?;
 let csr_pem = csr.to_pem(Default::default())?;
 let key_pem = key.to_pkcs8_pem(Default::default())?;
+```
+
+Python
+```python
+from fatoora.config import Environment
+from fatoora.csr import CsrProperties
+
+props = CsrProperties.parse("csr.properties")
+bundle = props.build_with_rng(Environment.NON_PRODUCTION)
+csr_pem = bundle.csr.to_pem_base64()
+key_pem = bundle.key.to_pem()
 ```
 
 CLI
@@ -93,10 +113,11 @@ fatoora-rs-cli sign --invoice invoice.xml --cert cert.pem --key key.pem --signed
 Rust
 ```rust
 use fatoora_core::config::Config;
-use fatoora_core::invoice::validation::validate_xml_invoice_from_file;
+use fatoora_core::invoice::validation::validate_xml_invoice_from_str;
 
 let config = Config::new(fatoora_core::config::EnvironmentType::NonProduction);
-validate_xml_invoice_from_file("invoice.xml".as_ref(), &config)?;
+let xml = std::fs::read_to_string("invoice.xml")?;
+validate_xml_invoice_from_str(&xml, &config)?;
 ```
 
 CLI
@@ -128,12 +149,11 @@ fatoora-rs-cli qr --invoice signed.xml
 
 Rust
 ```rust
-use fatoora_core::invoice::sign::invoice_hash_base64;
-use libxml::parser::Parser;
+use fatoora_core::invoice::xml::parse::parse_finalized_invoice_xml;
 
 let xml = std::fs::read_to_string("invoice.xml")?;
-let doc = Parser::default().parse_string(&xml)?;
-let hash = invoice_hash_base64(&doc)?;
+let invoice = parse_finalized_invoice_xml(&xml)?;
+let hash = invoice.hash_base64()?;
 ```
 
 CLI
