@@ -15,7 +15,7 @@ ccsid = CsidCompliance.new(
     Environment.NON_PRODUCTION,
     "binary_security_token",
     "secret",
-    1234567890,
+    "1234567890",
 )
 hash_b64 = signed.hash_base64()
 assert hash_b64
