@@ -3,10 +3,9 @@
 Core data types for building invoices.
 
 ## Builders and views
-- `RequiredInvoiceFields` holds the minimum set of inputs needed to build an invoice (type, IDs,
+- `InvoiceBuilder` starts with the invoice type and uses setters to supply required fields (IDs,
   timestamps, currency, previous hash, counter, seller, line items, payment means, VAT category).
-- `InvoiceBuilder` lets you add optional fields (buyer, note, allowance/charge, flags) and then
-  `build()` a validated invoice.
+  It then `build()`s a validated invoice.
 - `FinalizedInvoice` stores validated invoice data plus computed totals and supports hashing and
   XML serialization.
 - `SignedInvoice` wraps a finalized invoice with signed XML, QR payload, and signature metadata.
@@ -17,7 +16,8 @@ Core data types for building invoices.
 - `InvoiceType` and `InvoiceSubType` define whether the invoice is tax/prepayment/credit/debit and
   whether it is simplified or standard.
 - `VatCategory` represents VAT category for line items (standard, zero, exempt, out of scope).
-- `Address` uses `isocountry::CountryCode` for ISO country codes and holds postal fields.
+- `Address` uses the crate-owned `CountryCode` string wrapper (validated ISO-3166) and holds
+  postal fields.
 - `Party`, `Seller`, and `Buyer` model the trading parties with validated IDs and address data.
 - `VatId` validates VAT identifiers; `OtherId` stores additional IDs with optional scheme IDs.
 - `InvoiceNote` stores a localized note (language + text).
@@ -25,11 +25,9 @@ Core data types for building invoices.
 
 ## Line items and totals
 - `LineItem` is an invoice line with quantity, unit, pricing, VAT, and computed totals.
-- `LineItemFields` computes totals from quantity and unit price.
-- `LineItemTotalsFields` accepts a provided total amount and derives VAT.
-- `LineItemPartsFields` accepts full parts and validates totals for consistency.
 - `LineItems` is a `Vec<LineItem>` alias used by the builder.
-- `InvoiceData` is the core invoice model backing `FinalizedInvoice`/`SignedInvoice`.
+- `InvoiceData` is the core invoice model backing `FinalizedInvoice`/`SignedInvoice`, including
+  string-validated `InvoiceTimestamp` (ZATCA ISO UTC `YYYY-MM-DDTHH:MM:SSZ`) and `CurrencyCode`.
 - `InvoiceTotalsData` contains aggregated totals (line extension, tax, allowance, charge).
 
 ## Validation types

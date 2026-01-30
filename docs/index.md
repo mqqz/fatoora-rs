@@ -10,24 +10,26 @@ An unofficial open-source toolkit for ZATCA (Saudi Arabia) Phase 1 and 2 complia
 === "Rust"
     ```rust
     use fatoora_core::config::EnvironmentType;
-    use fatoora_core::csr::CsrProperties;
+    use fatoora_core::csr::{CsrProperties, SigningKey};
 
     let props_text = std::fs::read_to_string("csr.properties")?;
     let props = CsrProperties::from_properties_str(&props_text)?;
-    let (csr, key) = props.build_with_rng(EnvironmentType::NonProduction)?;
-    let csr_pem = csr.to_pem(Default::default())?;
-    let key_pem = key.to_pkcs8_pem(Default::default())?;
+    let key = SigningKey::generate();
+    let csr = props.build(&key, EnvironmentType::NonProduction)?;
+    let csr_pem = csr.to_pem()?;
+    let key_pem = key.to_pem()?;
     ```
 
 === "Python"
     ```python
     from fatoora.config import Environment
-    from fatoora.csr import CsrProperties
+    from fatoora.csr import CsrProperties, SigningKey
 
-    props = CsrProperties.parse("csr.properties")
-    bundle = props.build_with_rng(Environment.NON_PRODUCTION)
-    csr_pem = bundle.csr.to_pem_base64()
-    key_pem = bundle.key.to_pem()
+    props = CsrProperties.parse_file("csr.properties")
+    key = SigningKey.generate()
+    csr = props.build(key, Environment.NON_PRODUCTION)
+    csr_pem = csr.to_pem_base64()
+    key_pem = key.to_pem()
     ```
 
 === "CLI"

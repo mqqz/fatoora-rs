@@ -23,7 +23,7 @@ This guide covers creating CSRs and private keys using the Rust core and CLI.
   `csr.common.name`, `csr.serial.number`, `csr.organization.identifier`,
   `csr.organization.unit.name`, `csr.organization.name`, `csr.country.name`,
   `csr.invoice.type`, `csr.location.address`, and `csr.industry.business.category`.
-- Use `CsrProperties::parse_csr_config` for a file-based helper.
+- Use `CsrProperties::parse_csr_config_file` for a file-based helper.
 - Output includes the CSR plus its private key. Choose PEM or base64 DER depending on your target
   workflow.
 

@@ -38,7 +38,7 @@ Everything done by the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloa
 ## Dependencies
 XML parsing/manipulation is done internally with `libxml2`, so you might need to install it if you haven't already. See [here](https://github.com/KWARC/rust-libxml?tab=readme-ov-file#installation-prerequisites) for relevant instructions.
 
-C headers are generated in `fatoora-ffi/include/`, with grouped headers under `fatoora/` (e.g., `fatoora/config.h`).
+C headers are generated in `fatoora-ffi/include/`, with grouped headers under `fatoora/` (e.g., `fatoora/config.h`). Do not edit these generated headers manually; update the Rust sources and re-run the build to regenerate them.
 
 ## Installation
 The Rust library can be added with `cargo add fatoora-core`.
@@ -62,24 +62,26 @@ Python modules mirror the Rust core layout (e.g., `fatoora.config`, `fatoora.csr
 Rust
 ```rust
 use fatoora_core::config::EnvironmentType;
-use fatoora_core::csr::CsrProperties;
+use fatoora_core::csr::{CsrProperties, SigningKey};
 
 let props_text = std::fs::read_to_string("csr.properties")?;
 let props = CsrProperties::from_properties_str(&props_text)?;
-let (csr, key) = props.build_with_rng(EnvironmentType::NonProduction)?;
-let csr_pem = csr.to_pem(Default::default())?;
-let key_pem = key.to_pkcs8_pem(Default::default())?;
+let key = SigningKey::generate();
+let csr = props.build(&key, EnvironmentType::NonProduction)?;
+let csr_pem = csr.to_pem()?;
+let key_pem = key.to_pem()?;
 ```
 
 Python
 ```python
 from fatoora.config import Environment
-from fatoora.csr import CsrProperties
+from fatoora.csr import CsrProperties, SigningKey
 
-props = CsrProperties.parse("csr.properties")
-bundle = props.build_with_rng(Environment.NON_PRODUCTION)
-csr_pem = bundle.csr.to_pem_base64()
-key_pem = bundle.key.to_pem()
+props = CsrProperties.parse_file("csr.properties")
+key = SigningKey.generate()
+csr = props.build(key, Environment.NON_PRODUCTION)
+csr_pem = csr.to_pem_base64()
+key_pem = key.to_pem()
 ```
 
 CLI

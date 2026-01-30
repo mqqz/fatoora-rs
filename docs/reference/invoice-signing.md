@@ -15,6 +15,8 @@
 - `SignedInvoice::public_key`
 - `SignedInvoice::signed_properties`
 
+Note: `SignedProperties::signing_time` is a string in `YYYY-MM-DDTHH:MM:SS` format (UTC).
+
 ## Workflow
 - For full Rust flows, build an invoice, call `FinalizedInvoice::hash_base64` (or `SignedInvoice::hash_base64`),
   then sign with `InvoiceSigner` to obtain a `SignedInvoice` with QR and signed XML.

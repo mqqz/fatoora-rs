@@ -6,9 +6,12 @@ The C ABI is provided by the `fatoora-ffi` crate and can be used from C or C++.
 - Most handles are opaque pointers and must be freed with their corresponding `*_free` functions.
 - Strings returned by the FFI should be freed with `fatoora_string_free`.
 - Errors are returned as `FfiError` handles; use `fatoora_error_message` and `fatoora_error_code`, then free with `fatoora_error_free`.
+- Invoice builder timestamps are strings in ZATCA ISO UTC format (`YYYY-MM-DDTHH:MM:SSZ`), and
+  country/currency codes are validated strings.
 - ZATCA API responses are opaque handles with getter functions (no JSON payloads).
 - Signed invoice metadata can be read via `fatoora_signed_invoice_signature`, `fatoora_signed_invoice_public_key`,
   `fatoora_signed_invoice_cert_hash`, `fatoora_signed_invoice_signed_props_hash`, and `fatoora_signed_invoice_signing_time`.
+  `fatoora_signed_invoice_signing_time` returns a `YYYY-MM-DDTHH:MM:SS` UTC string.
 - Module headers are available under `fatoora/` (e.g., `fatoora/config.h`, `fatoora/invoice.h`, `fatoora/api.h`).
 
 ## Minimal C example (validation)
