@@ -3,10 +3,9 @@ mod common;
 use base64ct::{Base64, Encoding};
 use fatoora_core::api::ZatcaClient;
 use fatoora_core::config::{Config, EnvironmentType};
-use fatoora_core::csr::CsrProperties;
+use fatoora_core::csr::{CsrProperties, SigningKey};
 use std::path::Path;
-use x509_cert::der::Decode;
-use x509_cert::request::CertReq;
+use fatoora_core::csr::Csr;
 
 fn should_skip_network_tests() -> bool {
     match std::env::var("SKIP_ZATCA_LIVE_API") {
@@ -28,7 +27,7 @@ async fn post_compliance_csid_sandbox() {
         Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/csrs/test_zatca_en1.csr");
     let csr_b64 = std::fs::read_to_string(csr_path).expect("read CSR");
     let csr_der = Base64::decode_vec(csr_b64.trim()).expect("decode CSR base64");
-    let csr = CertReq::from_der(&csr_der).expect("parse CSR");
+    let csr = Csr::from_der(&csr_der).expect("parse CSR");
 
     let client = ZatcaClient::new(Config::default()).expect("client builds");
 
@@ -58,7 +57,7 @@ async fn post_production_csid_sandbox() {
         Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/csrs/test_zatca_en1.csr");
     let csr_b64 = std::fs::read_to_string(csr_path).expect("read CSR");
     let csr_der = Base64::decode_vec(csr_b64.trim()).expect("decode CSR base64");
-    let csr = CertReq::from_der(&csr_der).expect("parse CSR");
+    let csr = Csr::from_der(&csr_der).expect("parse CSR");
     let client = ZatcaClient::new(Config::default()).expect("client builds");
     let compliance_response = client
         .post_csr_for_ccsid(&csr, otp)
@@ -92,8 +91,9 @@ async fn check_compliance_with_live_ccsid() {
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
     let csr_props = std::fs::read_to_string(&config_path).expect("read csr config");
     let csr_config = CsrProperties::from_properties_str(&csr_props).expect("csr config");
-    let (csr, signer_key) = csr_config
-        .build_with_rng(EnvironmentType::NonProduction)
+    let signer_key = SigningKey::generate();
+    let csr = csr_config
+        .build(&signer_key, EnvironmentType::NonProduction)
         .expect("csr build");
     let client = ZatcaClient::new(Config::default()).expect("client");
     let ccsid_response = client
@@ -122,8 +122,6 @@ async fn report_invoice_with_live_pcsid() {
         return;
     }
     // csr generation
-    use k256::pkcs8::DecodePrivateKey;
-
     let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
     let csr_props = std::fs::read_to_string(&config_path).expect("read csr config");
@@ -131,8 +129,7 @@ async fn report_invoice_with_live_pcsid() {
 
     let key_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/pkeys/test_zatca_pkey.der");
-    let zatca_pkey =
-        k256::ecdsa::SigningKey::from_pkcs8_der(&std::fs::read(key_path).unwrap()).unwrap();
+    let zatca_pkey = SigningKey::from_der(&std::fs::read(key_path).unwrap()).unwrap();
     let csr = csr_config
         .build(&zatca_pkey, EnvironmentType::NonProduction)
         .unwrap();
@@ -188,8 +185,6 @@ async fn renew_csid_returns_request_id() {
     if should_skip_network_tests() {
         return;
     }
-    use k256::pkcs8::DecodePrivateKey;
-
     let otp = "123456";
     let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
@@ -198,8 +193,7 @@ async fn renew_csid_returns_request_id() {
 
     let key_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/pkeys/test_zatca_pkey.der");
-    let zatca_pkey =
-        k256::ecdsa::SigningKey::from_pkcs8_der(&std::fs::read(key_path).unwrap()).unwrap();
+    let zatca_pkey = SigningKey::from_der(&std::fs::read(key_path).unwrap()).unwrap();
     let csr = csr_config
         .build(&zatca_pkey, EnvironmentType::NonProduction)
         .unwrap();
@@ -230,8 +224,6 @@ async fn clear_invoice_with_live_pcsid() {
     if should_skip_network_tests() {
         return;
     }
-    use k256::pkcs8::DecodePrivateKey;
-
     let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
     let csr_props = std::fs::read_to_string(&config_path).expect("read csr config");
@@ -239,8 +231,7 @@ async fn clear_invoice_with_live_pcsid() {
 
     let key_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/pkeys/test_zatca_pkey.der");
-    let zatca_pkey =
-        k256::ecdsa::SigningKey::from_pkcs8_der(&std::fs::read(key_path).unwrap()).unwrap();
+    let zatca_pkey = SigningKey::from_der(&std::fs::read(key_path).unwrap()).unwrap();
     let csr = csr_config
         .build(&zatca_pkey, EnvironmentType::NonProduction)
         .unwrap();
@@ -258,18 +249,15 @@ async fn clear_invoice_with_live_pcsid() {
 
     let signer = common::signer_from_csid(pcsid_response.binary_security_token(), &zatca_pkey);
     let invoice = {
-        use chrono::TimeZone;
         use fatoora_core::invoice::{
-            Address, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, OtherId, Party,
-            RequiredInvoiceFields, SellerRole, VatCategory,
+            Address, CountryCode, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, OtherId,
+            Party, SellerRole, VatCategory,
         };
-        use iso_currency::Currency;
-        use isocountry::CountryCode;
 
         let seller = Party::<SellerRole>::new(
             "Acme Inc".into(),
             Address {
-                country_code: CountryCode::SAU,
+                country_code: CountryCode::parse("SAU").expect("country code"),
                 city: "Riyadh".into(),
                 street: "King Fahd".into(),
                 additional_street: None,
@@ -284,37 +272,32 @@ async fn clear_invoice_with_live_pcsid() {
         )
         .expect("valid seller");
 
-        let line_items = vec![LineItem::new(fatoora_core::invoice::LineItemFields {
-            description: "Item".into(),
-            quantity: 1.0,
-            unit_code: "PCE".into(),
-            unit_price: 100.0,
-            vat_rate: 15.0,
-            vat_category: VatCategory::Standard,
-        })];
+        let line_items = vec![LineItem::new(
+            "Item",
+            1.0,
+            "PCE",
+            100.0,
+            15.0,
+            VatCategory::Standard,
+        )];
 
-        let issue_datetime = chrono::NaiveDate::from_ymd_opt(2024, 1, 1)
-            .unwrap()
-            .and_hms_opt(12, 30, 0)
-            .unwrap();
-
-        InvoiceBuilder::new(RequiredInvoiceFields {
-            invoice_type: InvoiceType::Tax(InvoiceSubType::Standard),
-            id: "INV-0-1".into(),
-            uuid: "8e6000cf-1a98-4174-b3e7-b5d5954bc10d".into(),
-            issue_datetime: chrono::Utc.from_utc_datetime(&issue_datetime),
-            currency: Currency::SAR,
-            previous_invoice_hash:
-                "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ=="
-                    .into(),
-            invoice_counter: 0,
-            seller,
-            line_items,
-            payment_means_code: "10".into(),
-            vat_category: VatCategory::Standard,
-        })
-        .build()
-        .expect("build invoice")
+        let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Standard));
+        builder
+            .set_id("INV-0-1")
+            .set_uuid("8e6000cf-1a98-4174-b3e7-b5d5954bc10d")
+            .set_issue_datetime("2024-01-01T12:30:00Z")
+            .set_currency("SAR")
+            .set_previous_invoice_hash(
+                "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
+            )
+            .set_invoice_counter(0)
+            .set_seller(seller)
+            .set_payment_means_code("10")
+            .set_vat_category(VatCategory::Standard);
+        for item in line_items {
+            builder.add_line_item(item);
+        }
+        builder.build().expect("build invoice")
     };
 
     let signed_invoice = invoice.sign(&signer).expect("sign invoice with live pcsid");

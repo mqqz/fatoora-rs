@@ -1,12 +1,12 @@
 mod common;
 
 use fatoora_core::config::EnvironmentType;
-use fatoora_core::csr::CsrProperties;
+use fatoora_core::csr::{CsrProperties, SigningKey as CoreSigningKey};
 use fatoora_core::invoice::sign::{InvoiceSigner, SigningError};
 use fatoora_core::invoice::xml::ToXml;
 use base64ct::{Base64, Encoding};
-use k256::ecdsa::SigningKey;
-use k256::pkcs8::EncodePrivateKey;
+use k256::ecdsa::SigningKey as K256SigningKey;
+use k256::pkcs8::DecodePrivateKey;
 use libxml::parser::Parser;
 use libxml::xpath;
 use std::path::Path;
@@ -29,13 +29,15 @@ fn sign_invoice_emits_signature_and_qr() {
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
     let csr_props = std::fs::read_to_string(&config_path).expect("read csr config");
     let csr_config = CsrProperties::from_properties_str(&csr_props).expect("csr config");
-    let (_csr, signer_key) = csr_config
-        .build_with_rng(EnvironmentType::NonProduction)
+    let signer_key = CoreSigningKey::generate();
+    let _csr = csr_config
+        .build(&signer_key, EnvironmentType::NonProduction)
         .expect("csr build");
-    let key_der = signer_key.to_pkcs8_der().expect("key der");
-    let cert_der = build_test_cert(&signer_key);
+    let key_der = signer_key.to_der().expect("key der");
+    let k256_key = K256SigningKey::from_pkcs8_der(&key_der).expect("key der");
+    let cert_der = build_test_cert(&k256_key);
 
-    let signer = InvoiceSigner::from_der(&cert_der, key_der.as_bytes()).expect("signer");
+    let signer = InvoiceSigner::from_der(&cert_der, &key_der).expect("signer");
     let signed = common::dummy_finalized_invoice()
         .sign(&signer)
         .expect("sign invoice");
@@ -161,7 +163,7 @@ fn signed_invoice_hash_base64_matches_finalized_invoice() {
     assert_eq!(expected, actual);
 }
 
-fn build_test_cert(key: &SigningKey) -> Vec<u8> {
+fn build_test_cert(key: &K256SigningKey) -> Vec<u8> {
     let serial_number = SerialNumber::from(1u32);
     let validity = Validity::from_now(Duration::new(3600, 0)).expect("validity");
     let subject = Name::from_str("CN=Test,O=Fatoora,C=SA").expect("subject");
@@ -177,20 +179,22 @@ fn build_test_cert(key: &SigningKey) -> Vec<u8> {
     cert.to_der().expect("cert der")
 }
 
-fn build_test_signing_material() -> (SigningKey, Vec<u8>, Vec<u8>) {
+fn build_test_signing_material() -> (CoreSigningKey, Vec<u8>, Vec<u8>) {
     let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
     let csr_props = std::fs::read_to_string(&config_path).expect("read csr config");
     let csr_config = CsrProperties::from_properties_str(&csr_props).expect("csr config");
-    let (_csr, signer_key) = csr_config
-        .build_with_rng(EnvironmentType::NonProduction)
+    let signer_key = CoreSigningKey::generate();
+    let _csr = csr_config
+        .build(&signer_key, EnvironmentType::NonProduction)
         .expect("csr build");
-    let key_der = signer_key.to_pkcs8_der().expect("key der").as_bytes().to_vec();
-    let cert_der = build_test_cert(&signer_key);
+    let key_der = signer_key.to_der().expect("key der");
+    let k256_key = K256SigningKey::from_pkcs8_der(&key_der).expect("key der");
+    let cert_der = build_test_cert(&k256_key);
     (signer_key, key_der, cert_der)
 }
 
-fn build_test_signer() -> (InvoiceSigner, SigningKey) {
+fn build_test_signer() -> (InvoiceSigner, CoreSigningKey) {
     let (signer_key, key_der, cert_der) = build_test_signing_material();
     let signer = InvoiceSigner::from_der(&cert_der, &key_der).expect("signer");
     (signer, signer_key)

@@ -2,14 +2,12 @@
 use crate::invoice::sign::SignedProperties;
 use crate::invoice::xml::constants::{CAC_NS, CBC_NS, DS_NS, INVOICE_NS, XADES_NS};
 use crate::invoice::{
-    Address, FinalizedInvoice, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem,
-    LineItemPartsFields,
-    OriginalInvoiceRef, OtherId, Party, SellerRole, SignedInvoice, VatCategory,
+    Address, CountryCode, CurrencyCode, FinalizedInvoice, InvoiceBuilder, InvoiceDate,
+    InvoiceSubType, InvoiceTimestamp, InvoiceType, LineItem, OriginalInvoiceRef, OtherId, Party,
+    SellerRole, SignedInvoice, VatCategory,
 };
 use base64ct::{Base64, Encoding};
-use chrono::{NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Utc};
-use iso_currency::Currency;
-use isocountry::CountryCode;
+use chrono::{NaiveDateTime, NaiveTime};
 use libxml::{parser::Parser, tree::Document, xpath};
 use std::path::Path;
 use thiserror::Error;
@@ -118,9 +116,9 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
     )?;
 
     let issue_datetime = parse_datetime(&issue_date, &issue_time)?;
-    let currency = Currency::from_code(&currency_code).ok_or(ParseError::InvalidValue {
+    CurrencyCode::parse(&currency_code).map_err(|_| ParseError::InvalidValue {
         field: "DocumentCurrencyCode",
-        value: currency_code,
+        value: currency_code.clone(),
     })?;
     let original_ref = if invoice_type_code == "381" || invoice_type_code == "383" {
         Some(parse_original_ref(&ctx)?)
@@ -163,23 +161,24 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
                 value: invoice_counter_str,
             })?;
 
-    let mut builder = InvoiceBuilder::new(crate::invoice::RequiredInvoiceFields {
-        invoice_type,
-        id,
-        uuid,
-        issue_datetime,
-        currency,
-        previous_invoice_hash,
-        invoice_counter,
-        seller,
-        line_items,
-        payment_means_code,
-        vat_category,
-    });
+    let mut builder = InvoiceBuilder::new(invoice_type);
+    builder
+        .set_id(id)
+        .set_uuid(uuid)
+        .set_issue_datetime(issue_datetime)
+        .set_currency(currency_code)
+        .set_previous_invoice_hash(previous_invoice_hash)
+        .set_invoice_counter(invoice_counter)
+        .set_seller(seller)
+        .set_payment_means_code(payment_means_code)
+        .set_vat_category(vat_category);
+    for item in line_items {
+        builder.add_line_item(item);
+    }
     if let Some(note) = xpath_text_optional(&ctx, "/ubl:Invoice/cbc:Note")? {
         let language = xpath_text_optional(&ctx, "/ubl:Invoice/cbc:Note/@languageID")?
             .unwrap_or_else(|| "en".to_string());
-        builder.note(crate::invoice::InvoiceNote {
+        builder.set_note(crate::invoice::InvoiceNote {
             language,
             text: note,
         });
@@ -239,7 +238,7 @@ fn parse_signed_properties(doc: &Document) -> Result<SignedProperties, ParseErro
             field: "SigningTime",
             value: format!("{signing_time} ({e:?})"),
         })?;
-    let signing_time = chrono::DateTime::from_naive_utc_and_offset(signing_time, Utc);
+    let signing_time = signing_time.format("%Y-%m-%dT%H:%M:%S").to_string();
 
     let cert_hash = xpath_text_required(
         &ctx,
@@ -334,11 +333,9 @@ fn parse_original_ref(ctx: &xpath::Context) -> Result<OriginalInvoiceRef, ParseE
         ctx,
         "/ubl:Invoice/cac:BillingReference/cac:InvoiceDocumentReference/cbc:IssueDate",
     )? {
-        let date = NaiveDate::parse_from_str(&issue_date, "%Y-%m-%d").map_err(|e| {
-            ParseError::InvalidValue {
-                field: "BillingReferenceIssueDate",
-                value: format!("{issue_date} ({e:?})"),
-            }
+        let date = InvoiceDate::parse(&issue_date).map_err(|e| ParseError::InvalidValue {
+            field: "BillingReferenceIssueDate",
+            value: e.to_string(),
         })?;
         original = original.with_issue_date(date);
     }
@@ -406,7 +403,7 @@ fn parse_address(ctx: &xpath::Context) -> Result<Address, ParseError> {
         "/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cac:Country/cbc:IdentificationCode",
         "SellerCountry",
     )?;
-    let country_code = CountryCode::for_alpha2(&country).map_err(|_| ParseError::InvalidValue {
+    let country_code = CountryCode::parse(&country).map_err(|_| ParseError::InvalidValue {
         field: "SellerCountry",
         value: country,
     })?;
@@ -534,8 +531,8 @@ fn parse_line_items(ctx: &xpath::Context) -> Result<Vec<LineItem>, ParseError> {
                 value: vat_amount,
             })?;
 
-        let line_item = LineItem::try_from_parts(LineItemPartsFields {
-            description: name,
+        let line_item = LineItem::try_from_parts(
+            name,
             quantity,
             unit_code,
             unit_price,
@@ -543,7 +540,7 @@ fn parse_line_items(ctx: &xpath::Context) -> Result<Vec<LineItem>, ParseError> {
             vat_rate,
             vat_amount,
             vat_category,
-        })
+        )
         .map_err(|err| ParseError::InvalidValue {
             field: "LineItem",
             value: err.to_string(),
@@ -555,19 +552,24 @@ fn parse_line_items(ctx: &xpath::Context) -> Result<Vec<LineItem>, ParseError> {
     Ok(items)
 }
 
-fn parse_datetime(date: &str, time: &str) -> Result<chrono::DateTime<Utc>, ParseError> {
-    let date =
-        NaiveDate::parse_from_str(date, "%Y-%m-%d").map_err(|e| ParseError::InvalidValue {
-            field: "IssueDate",
-            value: format!("{date} ({e:?})"),
-        })?;
-    let time =
-        NaiveTime::parse_from_str(time, "%H:%M:%S").map_err(|e| ParseError::InvalidValue {
-            field: "IssueTime",
-            value: format!("{time} ({e:?})"),
-        })?;
-    let naive = NaiveDateTime::new(date, time);
-    Ok(Utc.from_utc_datetime(&naive))
+fn parse_datetime(date: &str, time: &str) -> Result<String, ParseError> {
+    let time = NaiveTime::parse_from_str(time, "%H:%M:%S").map_err(|e| ParseError::InvalidValue {
+        field: "IssueTime",
+        value: format!("{time} ({e:?})"),
+    })?;
+    let combined = format!("{date}T{}Z", time.format("%H:%M:%S"));
+    let naive = NaiveDateTime::parse_from_str(&combined, "%Y-%m-%dT%H:%M:%SZ").map_err(|e| {
+        ParseError::InvalidValue {
+            field: "IssueDateTime",
+            value: format!("{combined} ({e:?})"),
+        }
+    })?;
+    let timestamp = naive.format("%Y-%m-%dT%H:%M:%SZ").to_string();
+    InvoiceTimestamp::parse(&timestamp).map_err(|e| ParseError::InvalidValue {
+        field: "IssueDateTime",
+        value: e.to_string(),
+    })?;
+    Ok(timestamp)
 }
 
 fn build_context(doc: &Document) -> Result<xpath::Context, ParseError> {

@@ -223,7 +223,7 @@ impl<'a> InvoiceTotals<'a> {
             .unwrap_or_default();
 
         Self {
-            currency: data.currency.code(),
+            currency: data.currency.as_str(),
             vat_percent,
             vat_category: &data.vat_category,
             totals: inv.totals(),
@@ -462,7 +462,7 @@ impl<'a> Serialize for InvoiceDocumentReferenceXml<'a> {
             st.serialize_field("cbc:UUID", uuid)?;
         }
         if let Some(issue_date) = self.0.issue_date() {
-            st.serialize_field("cbc:IssueDate", &issue_date.to_string())?;
+            st.serialize_field("cbc:IssueDate", issue_date.as_str())?;
         }
         st.end()
     }
@@ -927,7 +927,8 @@ impl<'a> Serialize for AddressXml<'a> {
         }
         st.serialize_field("cbc:CityName", &a.city)?;
         st.serialize_field("cbc:PostalZone", &a.postal_code)?;
-        st.serialize_field("cac:Country", &CountryXml(a.country_code.alpha2()))?;
+        let alpha2 = a.country_code.alpha2();
+        st.serialize_field("cac:Country", &CountryXml(&alpha2))?;
 
         st.end()
     }
@@ -967,14 +968,14 @@ impl<'a> Serialize for InvoiceLineXml<'a> {
             "cbc:LineExtensionAmount",
             &currency_amount(
                 "cbc:LineExtensionAmount",
-                invoice.currency.code(),
+                invoice.currency.as_str(),
                 li.total_amount,
             ),
         )?;
         st.serialize_field(
             "cac:TaxTotal",
             &invoice_line_tax_total(
-                invoice.currency.code(),
+                invoice.currency.as_str(),
                 li.vat_amount,
                 li.total_amount + li.vat_amount,
             ),
@@ -985,7 +986,7 @@ impl<'a> Serialize for InvoiceLineXml<'a> {
         )?;
         st.serialize_field(
             "cac:Price",
-            &invoice_line_price(invoice.currency.code(), li.unit_price),
+            &invoice_line_price(invoice.currency.as_str(), li.unit_price),
         )?;
 
         st.end()
@@ -1095,14 +1096,8 @@ impl<'a, T: InvoiceView + ?Sized> Serialize for InvoiceXml<'a, T> {
         root.serialize_field("cbc:ProfileID", "reporting:1.0")?;
         root.serialize_field("cbc:ID", &data.id)?;
         root.serialize_field("cbc:UUID", &data.uuid)?;
-        root.serialize_field(
-            "cbc:IssueDate",
-            &data.issue_datetime.date_naive().to_string(),
-        )?;
-        root.serialize_field(
-            "cbc:IssueTime",
-            &data.issue_datetime.time().format("%H:%M:%S").to_string(),
-        )?;
+        root.serialize_field("cbc:IssueDate", data.issue_datetime.date_str())?;
+        root.serialize_field("cbc:IssueTime", data.issue_datetime.time_str())?;
 
         // ---- invoice type ----
         root.serialize_field("cbc:InvoiceTypeCode", &InvoiceTypeView(&data.invoice_type))?;
@@ -1236,18 +1231,15 @@ mod tests {
     #[allow(unused_imports)]
     use super::*;
     use crate::invoice::{
-        Address, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, Party,
-        RequiredInvoiceFields, SellerRole, VatCategory,
+        Address, CountryCode, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, Party,
+        SellerRole, VatCategory,
     };
-    use chrono::TimeZone;
-    use iso_currency::Currency;
-    use isocountry::CountryCode;
     #[test]
     fn test_invoice_xml_serialization() {
         let seller = Party::<SellerRole>::new(
             "Acme Inc".into(),
             Address {
-                country_code: CountryCode::SAU,
+                country_code: CountryCode::parse("SAU").expect("country code"),
                 city: "Riyadh".into(),
                 street: "King Fahd".into(),
                 additional_street: None,
@@ -1262,37 +1254,21 @@ mod tests {
         )
         .expect("valid seller");
 
-        let line_item = LineItem {
-            description: "Item".into(),
-            quantity: 1.0,
-            unit_code: "PCE".into(),
-            unit_price: 100.0,
-            total_amount: 100.0,
-            vat_rate: 15.0,
-            vat_amount: 15.0,
-            vat_category: VatCategory::Standard,
-        };
+        let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
 
-        let issue_datetime = chrono::NaiveDate::from_ymd_opt(2024, 1, 1)
-            .unwrap()
-            .and_hms_opt(12, 30, 0)
-            .unwrap();
-
-        let invoice = InvoiceBuilder::new(RequiredInvoiceFields {
-            invoice_type: InvoiceType::Tax(InvoiceSubType::Simplified),
-            id: "INV-1".into(),
-            uuid: "uuid-123".into(),
-            issue_datetime: chrono::Utc.from_utc_datetime(&issue_datetime),
-            currency: Currency::SAR,
-            previous_invoice_hash: "".into(),
-            invoice_counter: 0,
-            seller,
-            line_items: vec![line_item],
-            payment_means_code: "10".into(),
-            vat_category: VatCategory::Standard,
-        })
-        .build()
-        .expect("build invoice");
+        let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified));
+        builder
+            .set_id("INV-1")
+            .set_uuid("uuid-123")
+            .set_issue_datetime("2024-01-01T12:30:00Z")
+            .set_currency("SAR")
+            .set_previous_invoice_hash("hash")
+            .set_invoice_counter(0)
+            .set_seller(seller)
+            .set_payment_means_code("10")
+            .set_vat_category(VatCategory::Standard)
+            .add_line_item(line_item);
+        let invoice = builder.build().expect("build invoice");
         let xml_result = invoice.to_xml().unwrap();
         println!("{xml_result:?}");
 

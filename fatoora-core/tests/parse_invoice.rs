@@ -1,15 +1,12 @@
-use chrono::TimeZone;
 use fatoora_core::invoice::xml::ToXml;
 use fatoora_core::invoice::xml::parse::{
     ParseError, parse_finalized_invoice_xml, parse_finalized_invoice_xml_file,
     parse_signed_invoice_xml, parse_signed_invoice_xml_file,
 };
 use fatoora_core::invoice::{
-    Address, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, OriginalInvoiceRef, Party,
-    RequiredInvoiceFields, SellerRole, VatCategory,
+    Address, CountryCode, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, OriginalInvoiceRef,
+    Party, SellerRole, VatCategory,
 };
-use iso_currency::Currency;
-use isocountry::CountryCode;
 use std::path::Path;
 
 #[test]
@@ -22,15 +19,8 @@ fn parse_sample_simplified_invoice() {
 
     assert_eq!(data.id(), "SME00010");
     assert_eq!(data.uuid(), "8e6000cf-1a98-4174-b3e7-b5d5954bc10d");
-    assert_eq!(
-        data.issue_datetime().date_naive().to_string(),
-        "2022-08-17"
-    );
-    assert_eq!(
-        data.issue_datetime().time().format("%H:%M:%S").to_string(),
-        "17:41:08"
-    );
-    assert_eq!(data.currency().code(), "SAR");
+    assert_eq!(data.issue_datetime().as_str(), "2022-08-17T17:41:08Z");
+    assert_eq!(data.currency().as_str(), "SAR");
     assert_eq!(
         data.previous_invoice_hash(),
         "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ=="
@@ -59,7 +49,7 @@ fn parse_sample_simplified_invoice() {
     assert_eq!(address.building_number(), "2322");
     assert!(address.city().contains("Riyadh"));
     assert_eq!(address.postal_code(), "23333");
-    assert_eq!(address.country_code().alpha2(), "SA");
+    assert_eq!(address.country_code().as_str(), "SAU");
 
     let totals = invoice.totals();
     assert_eq!(totals.line_extension(), 201.0);
@@ -117,12 +107,7 @@ fn parse_signed_invoice_from_fixture() {
     assert!(signed.zatca_key_signature().is_some());
 
     let props = signed.signed_properties();
-    assert_eq!(
-        props
-            .signing_time()
-            .to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
-        "2025-07-22T15:51:28Z"
-    );
+    assert_eq!(props.signing_time(), "2025-07-22T15:51:28");
     assert_eq!(
         props.cert_hash(),
         "ZDMwMmI0MTE1NzVjOTU2NTk4YzVlODhhYmI0ODU2NDUyNTU2YTVhYjhhMDFmN2FjYjk1YTA2OWQ0NjY2MjQ4NQ=="
@@ -203,7 +188,7 @@ fn credit_note_serializes_billing_reference_and_reason() {
     let seller = Party::<SellerRole>::new(
         "Acme Inc".into(),
         Address {
-            country_code: CountryCode::SAU,
+            country_code: CountryCode::parse("SAU").expect("country code"),
             city: "Riyadh".into(),
             street: "King Fahd".into(),
             additional_street: None,
@@ -218,43 +203,30 @@ fn credit_note_serializes_billing_reference_and_reason() {
     )
     .expect("valid seller");
 
-    let line_item = LineItem::new(fatoora_core::invoice::LineItemFields {
-        description: "Item".into(),
-        quantity: 1.0,
-        unit_code: "PCE".into(),
-        unit_price: 100.0,
-        vat_rate: 15.0,
-        vat_category: VatCategory::Standard,
-    });
-
-    let issue_datetime = chrono::NaiveDate::from_ymd_opt(2024, 1, 1)
-        .unwrap()
-        .and_hms_opt(12, 30, 0)
-        .unwrap();
+    let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
 
     let original = OriginalInvoiceRef::new("INV-ORIG")
         .with_uuid("uuid-orig")
-        .with_issue_date(chrono::NaiveDate::from_ymd_opt(2023, 12, 31).unwrap());
+        .with_issue_date_str("2023-12-31")
+        .expect("issue date");
 
-    let invoice = InvoiceBuilder::new(RequiredInvoiceFields {
-        invoice_type: InvoiceType::CreditNote(
-            InvoiceSubType::Standard,
-            original,
-            "pricing correction".into(),
-        ),
-        id: "CR-1".into(),
-        uuid: "uuid-cr-1".into(),
-        issue_datetime: chrono::Utc.from_utc_datetime(&issue_datetime),
-        currency: Currency::SAR,
-        previous_invoice_hash: "hash".into(),
-        invoice_counter: 0,
-        seller,
-        line_items: vec![line_item],
-        payment_means_code: "10".into(),
-        vat_category: VatCategory::Standard,
-    })
-    .build()
-    .expect("build credit note");
+    let mut builder = InvoiceBuilder::new(InvoiceType::CreditNote(
+        InvoiceSubType::Standard,
+        original,
+        "pricing correction".into(),
+    ));
+    builder
+        .set_id("CR-1")
+        .set_uuid("uuid-cr-1")
+        .set_issue_datetime("2024-01-01T12:30:00Z")
+        .set_currency("SAR")
+        .set_previous_invoice_hash("hash")
+        .set_invoice_counter(0)
+        .set_seller(seller)
+        .set_payment_means_code("10")
+        .set_vat_category(VatCategory::Standard)
+        .add_line_item(line_item);
+    let invoice = builder.build().expect("build credit note");
 
     let xml = invoice.to_xml().expect("serialize credit note");
     assert!(xml.contains("<cac:BillingReference>"));

@@ -222,19 +222,16 @@ mod tests {
     use crate::invoice::sign::SignedProperties;
     use crate::invoice::xml::ToXml;
     use crate::invoice::{
-        Address, FinalizedInvoice, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, Party,
-        RequiredInvoiceFields, SellerRole, VatCategory,
+        Address, CountryCode, FinalizedInvoice, InvoiceBuilder, InvoiceSubType, InvoiceType,
+        LineItem, Party, SellerRole, VatCategory,
     };
     use base64ct::{Base64, Encoding};
-    use chrono::TimeZone;
-    use iso_currency::Currency;
-    use isocountry::CountryCode;
 
     fn sample_invoice() -> FinalizedInvoice {
         let seller = Party::<SellerRole>::new(
             "Acme Inc".into(),
             Address {
-                country_code: CountryCode::SAU,
+                country_code: CountryCode::parse("SAU").expect("country code"),
                 city: "Riyadh".into(),
                 street: "King Fahd".into(),
                 additional_street: None,
@@ -249,37 +246,21 @@ mod tests {
         )
         .expect("valid seller");
 
-        let line_item = LineItem {
-            description: "Item".into(),
-            quantity: 1.0,
-            unit_code: "PCE".into(),
-            unit_price: 100.0,
-            total_amount: 100.0,
-            vat_rate: 15.0,
-            vat_amount: 15.0,
-            vat_category: VatCategory::Standard,
-        };
+        let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
 
-        let issue_datetime = chrono::NaiveDate::from_ymd_opt(2024, 1, 1)
-            .unwrap()
-            .and_hms_opt(12, 30, 0)
-            .unwrap();
-
-        InvoiceBuilder::new(RequiredInvoiceFields {
-            invoice_type: InvoiceType::Tax(InvoiceSubType::Simplified),
-            id: "INV-1".into(),
-            uuid: "uuid-123".into(),
-            issue_datetime: chrono::Utc.from_utc_datetime(&issue_datetime),
-            currency: Currency::SAR,
-            previous_invoice_hash: "".into(),
-            invoice_counter: 0,
-            seller,
-            line_items: vec![line_item],
-            payment_means_code: "10".into(),
-            vat_category: VatCategory::Standard,
-        })
-        .build()
-        .expect("build sample invoice")
+        let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified));
+        builder
+            .set_id("INV-1")
+            .set_uuid("uuid-123")
+            .set_issue_datetime("2024-01-01T12:30:00Z")
+            .set_currency("SAR")
+            .set_previous_invoice_hash("hash")
+            .set_invoice_counter(0)
+            .set_seller(seller)
+            .set_payment_means_code("10")
+            .set_vat_category(VatCategory::Standard)
+            .add_line_item(line_item);
+        builder.build().expect("build sample invoice")
     }
 
     fn decode_tlv(bytes: &[u8]) -> Vec<(u8, Vec<u8>)> {

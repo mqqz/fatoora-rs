@@ -17,7 +17,7 @@ pub async fn main() {
 
     let ccsid = CsidCredentials::<Compliance>::new(
         EnvironmentType::NonProduction,
-        Some(1234567890),
+        Some("1234567890".to_string()),
         "binary_security_token",
         "secret",
     );

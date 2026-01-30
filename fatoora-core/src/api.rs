@@ -2,11 +2,9 @@
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use x509_cert::request::CertReq;
-
 use crate::{
     config::{Config, EnvironmentType},
-    csr::ToBase64String,
+    csr::Csr,
     invoice::SignedInvoice,
 };
 use std::marker::PhantomData;
@@ -23,7 +21,7 @@ pub enum ZatcaError {
     #[error("Server error: {0:?}")]
     ServerError(ServerErrorResponse),
     #[error("HTTP client error: {0}")]
-    Http(#[from] reqwest::Error),
+    Http(String),
     #[error("Client state error: {0}")]
     ClientState(String),
 }
@@ -233,15 +231,15 @@ impl ServerErrorResponse {
 ///
 /// let creds = CsidCredentials::<Compliance>::new(
 ///     EnvironmentType::NonProduction,
-///     Some(1234567890123),             // requestID field
-///     "TUlJQ1BUQ0NBZU9nQXdJQkFnS....", // binarySecurityToken field
-///     "Dehvg1fc8GF6Jwt5bOxXwC6en....", // secret field 
+///     Some("1234567890123".to_string()), // requestID field
+///     "TUlJQ1BUQ0NBZU9nQXdJQkFnS....",   // binarySecurityToken field
+///     "Dehvg1fc8GF6Jwt5bOxXwC6en....",   // secret field 
 /// );
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct CsidCredentials<T> {
     env: EnvironmentType,
-    request_id: Option<u64>,
+    request_id: Option<String>,
     binary_security_token: String,
     secret: String,
     #[serde(skip)]
@@ -252,7 +250,7 @@ impl<T> CsidCredentials<T> {
     /// Create credential bundle for ZATCA requests.
     pub fn new(
         env: EnvironmentType,
-        request_id: Option<u64>,
+        request_id: Option<String>,
         binary_security_token: impl Into<String>,
         secret: impl Into<String>,
     ) -> Self {
@@ -269,8 +267,8 @@ impl<T> CsidCredentials<T> {
         self.env
     }
 
-    pub fn request_id(&self) -> Option<u64> {
-        self.request_id
+    pub fn request_id(&self) -> Option<&str> {
+        self.request_id.as_deref()
     }
 
     pub fn binary_security_token(&self) -> &str {
@@ -285,7 +283,8 @@ impl<T> CsidCredentials<T> {
 #[derive(Debug, Deserialize)]
 struct CsidResponseBody {
     #[serde(rename = "requestID")]
-    request_id: Option<u64>,
+    #[serde(deserialize_with = "deserialize_request_id")]
+    request_id: Option<String>,
     #[serde(rename = "binarySecurityToken")]
     binary_security_token: String,
     secret: String,
@@ -295,6 +294,21 @@ struct CsidResponseBody {
     #[allow(dead_code)]
     #[serde(rename = "dispositionMessage")]
     disposition_message: Option<String>,
+}
+
+fn deserialize_request_id<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let value: Option<serde_json::Value> = Option::deserialize(deserializer)?;
+    match value {
+        None => Ok(None),
+        Some(serde_json::Value::String(value)) => Ok(Some(value)),
+        Some(serde_json::Value::Number(value)) => Ok(Some(value.to_string())),
+        Some(other) => Err(serde::de::Error::custom(format!(
+            "invalid requestID type: {other}"
+        ))),
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -311,7 +325,9 @@ impl ZatcaClient {
     /// # Errors
     /// Returns [`ZatcaError::Http`] if the HTTP client cannot be built.
     pub fn new(config: Config) -> Result<Self, ZatcaError> {
-        let client = Client::builder().build().map_err(ZatcaError::Http)?;
+        let client = Client::builder()
+            .build()
+            .map_err(|e| ZatcaError::Http(e.to_string()))?;
         let base_url = std::env::var("FATOORA_ZATCA_BASE_URL")
             .ok()
             .map(|value| {
@@ -373,7 +389,10 @@ impl ZatcaClient {
             _ => request = request.header("accept-language", "en")
         }
 
-        let response = request.send().await?;
+        let response = request
+            .send()
+            .await
+            .map_err(|e| ZatcaError::Http(e.to_string()))?;
         let status = response.status();
         let body = response.text().await.unwrap_or_default();
 
@@ -465,7 +484,10 @@ impl ZatcaClient {
             _ => request = request.header("accept-language", "en"),
         }
 
-        let response = request.send().await?;
+        let response = request
+            .send()
+            .await
+            .map_err(|e| ZatcaError::Http(e.to_string()))?;
         let status = response.status();
         let body = response.text().await.unwrap_or_default();
 
@@ -540,7 +562,8 @@ impl ZatcaClient {
             )
             .json(&payload)
             .send()
-            .await?;
+            .await
+            .map_err(|e| ZatcaError::Http(e.to_string()))?;
 
         let status = response.status();
         let body = response.text().await.unwrap_or_default();
@@ -586,11 +609,11 @@ impl ZatcaClient {
     /// Returns [`ZatcaError`] if the request fails or the response cannot be parsed.
     pub async fn post_csr_for_ccsid(
         &self,
-        csr: &CertReq,
+        csr: &Csr,
         otp: &str,
     ) -> Result<CsidCredentials<Compliance>, ZatcaError> {
         let encoded_csr = csr
-            .to_pem_base64_string()
+            .to_pem_base64()
             .map_err(|e| ZatcaError::InvalidResponse(e.to_string()))?;
         let csr_payload = serde_json::json!({ "csr": encoded_csr });
         let url = self.build_endpoint("compliance");
@@ -603,7 +626,8 @@ impl ZatcaClient {
             .header("Content-Type", "application/json")
             .json(&csr_payload)
             .send()
-            .await?;
+            .await
+            .map_err(|e| ZatcaError::Http(e.to_string()))?;
         let status = response.status();
 
         if !status.is_success() {
@@ -655,7 +679,8 @@ impl ZatcaClient {
             )
             .json(&payload)
             .send()
-            .await?;
+            .await
+            .map_err(|e| ZatcaError::Http(e.to_string()))?;
         let status = response.status();
 
         if !status.is_success() {
@@ -686,13 +711,13 @@ impl ZatcaClient {
     pub async fn renew_csid(
         &self,
         pcsid: &CsidCredentials<Production>,
-        csr: &CertReq,
+        csr: &Csr,
         otp: &str,
         accept_language: Option<&str>,
     ) -> Result<CsidCredentials<Production>, ZatcaError> {
         self.ensure_env(pcsid)?;
         let encoded_csr = csr
-            .to_pem_base64_string()
+            .to_pem_base64()
             .map_err(|e| ZatcaError::InvalidResponse(e.to_string()))?;
         let csr_payload = serde_json::json!({ "csr": encoded_csr });
         let url = self.build_endpoint("production/csids");
@@ -714,7 +739,10 @@ impl ZatcaClient {
             _ => request = request.header("accept-language", "en"),
         }
 
-        let response = request.send().await?;
+        let response = request
+            .send()
+            .await
+            .map_err(|e| ZatcaError::Http(e.to_string()))?;
         let status = response.status();
         let body = response.text().await.unwrap_or_default();
 
@@ -786,15 +814,12 @@ mod tests {
     use crate::{
         csr::CsrProperties,
         invoice::{
-            sign::SignedProperties, xml::ToXml, Address, InvoiceBuilder, InvoiceSubType,
-            InvoiceType, LineItem, Party, RequiredInvoiceFields, SellerRole, VatCategory,
+            sign::SignedProperties, xml::ToXml, Address, CountryCode, InvoiceBuilder,
+            InvoiceSubType, InvoiceType, LineItem, Party, SellerRole, VatCategory,
         },
     };
     use base64ct::{Base64, Encoding};
-    use chrono::TimeZone;
     use httpmock::{Method::PATCH, Method::POST, MockServer};
-    use isocountry::CountryCode;
-    use iso_currency::Currency;
     use std::path::Path;
 
     #[test]
@@ -882,7 +907,7 @@ mod tests {
             RenewalResponseBody::Wrapped { value } => value,
             RenewalResponseBody::Direct(value) => value,
         };
-        assert_eq!(value.request_id, Some(1234567890));
+        assert_eq!(value.request_id.as_deref(), Some("1234567890"));
         assert_eq!(value.binary_security_token, "token");
         assert_eq!(value.secret, "secret");
     }
@@ -912,12 +937,12 @@ mod tests {
     fn csid_credentials_new_stores_env() {
         let creds = CsidCredentials::<Compliance>::new(
             EnvironmentType::Simulation,
-            Some(10),
+            Some("10".into()),
             "token",
             "secret",
         );
         assert_eq!(creds.env(), EnvironmentType::Simulation);
-        assert_eq!(creds.request_id, Some(10));
+        assert_eq!(creds.request_id(), Some("10"));
     }
 
     #[test]
@@ -1260,19 +1285,19 @@ mod tests {
                 .post_csr_for_ccsid(&csr, "123456")
                 .await
                 .expect("ccsid");
-            assert_eq!(ccsid.request_id(), Some(42));
+            assert_eq!(ccsid.request_id(), Some("42"));
 
             let pcsid = client
                 .post_ccsid_for_pcsid(&ccsid)
                 .await
                 .expect("pcsid");
-            assert_eq!(pcsid.request_id(), Some(77));
+            assert_eq!(pcsid.request_id(), Some("77"));
 
             let renewed = client
                 .renew_csid(&pcsid, &csr, "123456", Some("ar"))
                 .await
                 .expect("renew");
-            assert_eq!(renewed.request_id(), Some(88));
+            assert_eq!(renewed.request_id(), Some("88"));
 
             csr_mock.assert();
             pcsid_mock.assert();
@@ -1578,7 +1603,7 @@ mod tests {
 
             let ccsid = CsidCredentials::new(
                 EnvironmentType::NonProduction,
-                Some(10),
+                Some("10".into()),
                 "token",
                 "secret",
             );
@@ -1587,7 +1612,7 @@ mod tests {
 
             let pcsid = CsidCredentials::new(
                 EnvironmentType::NonProduction,
-                Some(11),
+                Some("11".into()),
                 "token",
                 "secret",
             );
@@ -1632,7 +1657,7 @@ mod tests {
             );
             let pcsid = CsidCredentials::new(
                 EnvironmentType::NonProduction,
-                Some(1),
+                Some("1".into()),
                 "token",
                 "secret",
             );
@@ -1679,7 +1704,7 @@ mod tests {
 
             let ccsid = CsidCredentials::new(
                 EnvironmentType::NonProduction,
-                Some(10),
+                Some("10".into()),
                 "token",
                 "secret",
             );
@@ -1691,22 +1716,22 @@ mod tests {
         });
     }
 
-    fn build_csr() -> CertReq {
+    fn build_csr() -> Csr {
         let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
         let csr_props = std::fs::read_to_string(&config_path).expect("read csr config");
         let csr_config = CsrProperties::from_properties_str(&csr_props).expect("csr config");
-        let (csr, _key) = csr_config
-            .build_with_rng(EnvironmentType::NonProduction)
-            .expect("csr build");
-        csr
+        let key = crate::csr::SigningKey::generate();
+        csr_config
+            .build(&key, EnvironmentType::NonProduction)
+            .expect("csr build")
     }
 
     fn build_signed_invoice(invoice_type: InvoiceType) -> SignedInvoice {
         let seller = Party::<SellerRole>::new(
             "Acme Inc".into(),
             Address {
-                country_code: CountryCode::SAU,
+                country_code: CountryCode::parse("SAU").expect("country code"),
                 city: "Riyadh".into(),
                 street: "King Fahd".into(),
                 additional_street: None,
@@ -1721,35 +1746,21 @@ mod tests {
         )
         .expect("seller");
 
-        let line_item = LineItem::new(crate::invoice::LineItemFields {
-            description: "Item".into(),
-            quantity: 1.0,
-            unit_code: "PCE".into(),
-            unit_price: 100.0,
-            vat_rate: 15.0,
-            vat_category: VatCategory::Standard,
-        });
+        let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
 
-        let issue_datetime = chrono::NaiveDate::from_ymd_opt(2024, 1, 1)
-            .unwrap()
-            .and_hms_opt(12, 30, 0)
-            .unwrap();
-
-        let invoice = InvoiceBuilder::new(RequiredInvoiceFields {
-            invoice_type,
-            id: "INV-TEST-1".into(),
-            uuid: "uuid-test-1".into(),
-            issue_datetime: chrono::Utc.from_utc_datetime(&issue_datetime),
-            currency: Currency::SAR,
-            previous_invoice_hash: "".into(),
-            invoice_counter: 0,
-            seller,
-            line_items: vec![line_item],
-            payment_means_code: "10".into(),
-            vat_category: VatCategory::Standard,
-        })
-        .build()
-        .expect("build invoice");
+        let mut builder = InvoiceBuilder::new(invoice_type);
+        builder
+            .set_id("INV-TEST-1")
+            .set_uuid("uuid-test-1")
+            .set_issue_datetime("2024-01-01T12:30:00Z")
+            .set_currency("SAR")
+            .set_previous_invoice_hash("hash")
+            .set_invoice_counter(0)
+            .set_seller(seller)
+            .set_payment_means_code("10")
+            .set_vat_category(VatCategory::Standard)
+            .add_line_item(line_item);
+        let invoice = builder.build().expect("build invoice");
 
         let signed_xml = invoice.to_xml().expect("serialize invoice");
         let public_key_b64 = Base64::encode_string(b"pk");

@@ -1,16 +1,15 @@
 use fatoora_core::invoice::{
     Address, InvoiceBuilder, InvoiceError, InvoiceField, InvoiceSubType, InvoiceType, LineItem,
-    LineItemPartsFields, LineItemTotalsFields, RequiredInvoiceFields, ValidationKind, VatCategory,
+    ValidationKind, VatCategory,
 };
 use fatoora_core::invoice::{OtherId, Party, SellerRole};
-use iso_currency::Currency;
-use isocountry::CountryCode;
+use fatoora_core::invoice::CountryCode;
 
 fn dummy_seller() -> Party<SellerRole> {
     Party::<SellerRole>::new(
         "Acme Inc".into(),
         Address {
-            country_code: CountryCode::SAU,
+        country_code: CountryCode::parse("SAU").expect("country code"),
             city: "Riyadh".into(),
             street: "King Fahd".into(),
             additional_street: None,
@@ -28,20 +27,18 @@ fn dummy_seller() -> Party<SellerRole> {
 
 #[test]
 fn build_reports_missing_required_fields() {
-    let issue_datetime = chrono::Utc::now();
-    let builder = InvoiceBuilder::new(RequiredInvoiceFields {
-        invoice_type: InvoiceType::Tax(InvoiceSubType::Simplified),
-        id: "  ".into(),
-        uuid: "".into(),
-        issue_datetime,
-        currency: Currency::SAR,
-        previous_invoice_hash: "".into(),
-        invoice_counter: 0,
-        seller: dummy_seller(),
-        line_items: Vec::new(),
-        payment_means_code: "   ".into(),
-        vat_category: VatCategory::Standard,
-    });
+    let issue_datetime = "2024-01-01T12:30:00Z";
+    let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified));
+    builder
+        .set_id("  ")
+        .set_uuid("")
+        .set_issue_datetime(issue_datetime)
+        .set_currency("SAR")
+        .set_previous_invoice_hash("")
+        .set_invoice_counter(0)
+        .set_seller(dummy_seller())
+        .set_payment_means_code("   ")
+        .set_vat_category(VatCategory::Standard);
 
     let err = builder.build().expect_err("expected validation error");
     let InvoiceError::Validation(validation) = err else {
@@ -51,35 +48,35 @@ fn build_reports_missing_required_fields() {
     let fields: Vec<_> = validation.issues.iter().map(|i| i.field).collect();
     assert!(fields.contains(&InvoiceField::Id));
     assert!(fields.contains(&InvoiceField::Uuid));
+    assert!(fields.contains(&InvoiceField::PreviousInvoiceHash));
     assert!(fields.contains(&InvoiceField::PaymentMeansCode));
     assert!(fields.contains(&InvoiceField::LineItems));
 }
 
 #[test]
 fn build_reports_invalid_line_items() {
-    let issue_datetime = chrono::Utc::now();
-    let line_item = LineItem::from_totals(LineItemTotalsFields {
-            description: "".into(),
-            quantity: -1.0,
-            unit_code: "".into(),
-            unit_price: -1.0,
-            total_amount: -1.0,
-            vat_rate: 15.0,
-            vat_category: VatCategory::Standard,
-        });
-    let builder = InvoiceBuilder::new(RequiredInvoiceFields {
-        invoice_type: InvoiceType::Tax(InvoiceSubType::Simplified),
-        id: "INV-1".into(),
-        uuid: "uuid-1".into(),
-        issue_datetime,
-        currency: Currency::SAR,
-        previous_invoice_hash: "hash".into(),
-        invoice_counter: 0,
-        seller: dummy_seller(),
-        line_items: vec![line_item],
-        payment_means_code: "10".into(),
-        vat_category: VatCategory::Standard,
-    });
+    let issue_datetime = "2024-01-01T12:30:00Z";
+    let line_item = LineItem::from_totals(
+        "",
+        -1.0,
+        "",
+        -1.0,
+        -1.0,
+        15.0,
+        VatCategory::Standard,
+    );
+    let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified));
+    builder
+        .set_id("INV-1")
+        .set_uuid("uuid-1")
+        .set_issue_datetime(issue_datetime)
+        .set_currency("SAR")
+        .set_previous_invoice_hash("hash")
+        .set_invoice_counter(0)
+        .set_seller(dummy_seller())
+        .set_payment_means_code("10")
+        .set_vat_category(VatCategory::Standard)
+        .add_line_item(line_item);
 
     let err = builder.build().expect_err("expected validation error");
     let InvoiceError::Validation(validation) = err else {
@@ -130,16 +127,16 @@ fn build_reports_invalid_line_items() {
 
 #[test]
 fn line_item_try_from_parts_reports_mismatch() {
-    let err = LineItem::try_from_parts(LineItemPartsFields {
-        description: "Item".into(),
-        quantity: 1.0,
-        unit_code: "PCE".into(),
-        unit_price: 100.0,
-        total_amount: 100.0,
-        vat_rate: 15.0,
-        vat_amount: 10.0,
-        vat_category: VatCategory::Standard,
-    })
+    let err = LineItem::try_from_parts(
+        "Item",
+        1.0,
+        "PCE",
+        100.0,
+        100.0,
+        15.0,
+        10.0,
+        VatCategory::Standard,
+    )
     .expect_err("expected mismatch error");
 
     assert!(err.issues.iter().any(|issue| {

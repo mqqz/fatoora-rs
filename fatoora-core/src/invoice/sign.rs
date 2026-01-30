@@ -41,7 +41,7 @@ pub struct SignedProperties {
     pub(crate) serial: String,
     pub(crate) cert_hash: String,
     pub(crate) signed_props_hash: String,
-    pub(crate) signing_time: chrono::DateTime<chrono::Utc>,
+    pub(crate) signing_time: String,
     pub(crate) zatca_key_signature: Option<String>,
 }
 
@@ -78,8 +78,8 @@ impl SignedProperties {
         &self.signed_props_hash
     }
 
-    pub fn signing_time(&self) -> chrono::DateTime<chrono::Utc> {
-        self.signing_time
+    pub fn signing_time(&self) -> &str {
+        &self.signing_time
     }
 
     // TODO can't think of a better name
@@ -128,7 +128,9 @@ impl SignedProperties {
             serial: "test".to_string(),
             cert_hash: "test".to_string(),
             signed_props_hash: "test".to_string(),
-            signing_time: chrono::Utc::now(),
+            signing_time: chrono::Utc::now()
+                .format("%Y-%m-%dT%H:%M:%S")
+                .to_string(),
             zatca_key_signature: zatca_key_signature.map(|s| s.to_string()),
         }
     }
@@ -273,7 +275,7 @@ pub fn invoice_hash_base64_from_xml_str(xml: &str) -> Result<String, SigningErro
     invoice_hash_base64_from_xml(xml)
 }
 
-fn signing_time_from_doc(doc: &Document) -> Result<chrono::DateTime<chrono::Utc>, SigningError> {
+fn signing_time_from_doc(doc: &Document) -> Result<String, SigningError> {
     let ctx = xpath::Context::new(doc)
         .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
     ctx.register_namespace("cbc", CBC_NS)
@@ -290,10 +292,7 @@ fn signing_time_from_doc(doc: &Document) -> Result<chrono::DateTime<chrono::Utc>
             .map_err(|e| {
                 SigningError::SigningError(format!("Invalid signing time '{signing_time}': {e:?}"))
             })?;
-        return Ok(chrono::DateTime::from_naive_utc_and_offset(
-            parsed,
-            chrono::Utc,
-        ));
+        return Ok(parsed.format("%Y-%m-%dT%H:%M:%S").to_string());
     }
 
     let issue_date = xpath_text_value(&ctx, "//cbc:IssueDate", "issue date")?;
@@ -305,10 +304,7 @@ fn signing_time_from_doc(doc: &Document) -> Result<chrono::DateTime<chrono::Utc>
         SigningError::SigningError(format!("Invalid issue time '{issue_time}': {e:?}"))
     })?;
     let naive = chrono::NaiveDateTime::new(date, time);
-    Ok(chrono::DateTime::from_naive_utc_and_offset(
-        naive,
-        chrono::Utc,
-    ))
+    Ok(naive.format("%Y-%m-%dT%H:%M:%S").to_string())
 }
 
 fn canonicalize_invoice(doc: &Document) -> Result<String, SigningError> {
@@ -433,7 +429,7 @@ fn serial_bytes_to_decimal_string(bytes: &[u8]) -> String {
 }
 
 fn signed_properties_xml(
-    signing_time: &chrono::DateTime<chrono::Utc>,
+    signing_time: &str,
     cert_hash_b64: &str,
     issuer: &str,
     serial: &str,
@@ -459,7 +455,7 @@ fn signed_properties_xml(
             "\n{indent:>16}</xades:SignedProperties>",
         ),
         indent = "",
-        signing_time = &format_signing_time(signing_time),
+        signing_time = signing_time,
         digest_value = cert_hash_b64,
         x509_issuer_name = issuer,
         x509_serial_number = serial,
@@ -501,10 +497,6 @@ fn public_key_base64(key: &SigningKey) -> String {
             .to_der()
             .unwrap(),
     )
-}
-
-fn format_signing_time(time: &chrono::DateTime<chrono::Utc>) -> String {
-    time.format("%Y-%m-%dT%H:%M:%S").to_string()
 }
 
 fn ensure_signature_structure(doc: &mut Document) -> Result<(), SigningError> {
@@ -610,12 +602,11 @@ fn apply_signed_properties_values(
 
 fn apply_signed_properties_values_raw(
     doc: &mut Document,
-    signing_time: &chrono::DateTime<chrono::Utc>,
+    signing_time: &str,
     cert_hash_b64: &str,
     issuer: &str,
     serial: &str,
 ) -> Result<(), SigningError> {
-    let signing_time = format_signing_time(signing_time);
     let ctx = xpath::Context::new(doc)
         .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
     register_namespaces(&ctx)?;
@@ -770,7 +761,6 @@ fn register_namespaces(ctx: &xpath::Context) -> Result<(), SigningError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::TimeZone;
     use k256::ecdsa::SigningKey;
     use std::str::FromStr;
     use x509_cert::{
@@ -832,12 +822,7 @@ mod tests {
             "SerialNumber",
         );
 
-        let signing_time =
-            chrono::NaiveDateTime::parse_from_str(&signing_time_value, "%Y-%m-%dT%H:%M:%S")
-                .expect("parse signing time");
-        let signing_time = chrono::DateTime::from_naive_utc_and_offset(signing_time, chrono::Utc);
-
-        let rebuilt = signed_properties_xml(&signing_time, &cert_hash, &issuer, &serial);
+        let rebuilt = signed_properties_xml(&signing_time_value, &cert_hash, &issuer, &serial);
 
         assert!(rebuilt.contains("xmlns:xades=\"http://uri.etsi.org/01903/v1.3.2#\""));
         assert!(rebuilt.contains("xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\""));
@@ -870,7 +855,7 @@ mod tests {
     #[test]
     fn apply_signed_properties_values_updates_expected_nodes() {
         let mut doc = load_sample_doc();
-        let signing_time = chrono::Utc.with_ymd_and_hms(2024, 2, 2, 10, 30, 0).unwrap();
+        let signing_time = "2024-02-02T10:30:00".to_string();
         apply_signed_properties_values_raw(
             &mut doc,
             &signing_time,
@@ -923,10 +908,9 @@ mod tests {
         let issue_time = xml_text(&ctx, "//cbc:IssueTime", "IssueTime");
         let date = chrono::NaiveDate::parse_from_str(&issue_date, "%Y-%m-%d").unwrap();
         let time = chrono::NaiveTime::parse_from_str(&issue_time, "%H:%M:%S").unwrap();
-        let expected = chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(
-            chrono::NaiveDateTime::new(date, time),
-            chrono::Utc,
-        );
+        let expected = chrono::NaiveDateTime::new(date, time)
+            .format("%Y-%m-%dT%H:%M:%S")
+            .to_string();
 
         let actual = signing_time_from_doc(&doc).expect("signing time");
         assert_eq!(actual, expected);
@@ -942,7 +926,7 @@ mod tests {
             "//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]",
         );
 
-        let signing_time = chrono::Utc.with_ymd_and_hms(2024, 1, 1, 12, 30, 0).unwrap();
+        let signing_time = "2024-01-01T12:30:00".to_string();
         let signing = SignedProperties {
             invoice_hash: "invoice_hash_b64".to_string(),
             signature: "signature_b64".to_string(),
@@ -1081,7 +1065,7 @@ mod tests {
 
     #[test]
     fn signed_properties_hash_base64_matches_manual_digest() {
-        let signing_time = chrono::Utc.with_ymd_and_hms(2024, 2, 2, 10, 30, 0).unwrap();
+        let signing_time = "2024-02-02T10:30:00";
         let digest_value = "digest";
         let issuer = "issuer";
         let serial = "123";
@@ -1111,11 +1095,6 @@ mod tests {
         assert_eq!(actual, expected);
     }
 
-    #[test]
-    fn format_signing_time_matches_expected_layout() {
-        let time = chrono::Utc.with_ymd_and_hms(2024, 1, 2, 3, 4, 5).unwrap();
-        assert_eq!(format_signing_time(&time), "2024-01-02T03:04:05");
-    }
 
     fn build_test_cert(key: &SigningKey) -> Certificate {
         let serial_number = SerialNumber::from(1u32);

@@ -4,16 +4,14 @@ mod qr;
 pub mod sign;
 pub mod validation;
 pub mod xml;
-pub use builder::{
-    FinalizedInvoice, InvoiceBuilder, InvoiceView, RequiredInvoiceFields, SignedInvoice,
-};
+pub use builder::{FinalizedInvoice, InvoiceBuilder, InvoiceView, SignedInvoice};
 pub use qr::{QrCodeError, QrPayload, QrResult};
 
 #[allow(unused_imports)]
 use bitflags::bitflags;
-use chrono::{DateTime, Utc};
-use iso_currency::Currency;
-use isocountry::{CountryCode, CountryCodeParseErr};
+use chrono::{NaiveDate, NaiveDateTime};
+use iso_currency::Currency as IsoCurrency;
+use isocountry::CountryCode as IsoCountryCode;
 use std::marker::PhantomData;
 use std::str::FromStr;
 use thiserror::Error;
@@ -27,7 +25,13 @@ pub enum InvoiceError {
     #[error(transparent)]
     Validation(#[from] ValidationError),
     #[error("Invalid country code: {0}")]
-    InvalidCountryCode(#[from] CountryCodeParseErr),
+    InvalidCountryCode(String),
+    #[error("Invalid currency code: {0}")]
+    InvalidCurrencyCode(String),
+    #[error("Invalid invoice timestamp: {0}")]
+    InvalidTimestamp(String),
+    #[error("Invalid invoice date: {0}")]
+    InvalidIssueDate(String),
     #[error("Missing VAT ID for seller")]
     MissingVatForSeller,
     #[error("Missing Buyer ID for buyer")]
@@ -63,8 +67,14 @@ pub struct ValidationIssue {
 pub enum InvoiceField {
     Id,
     Uuid,
+    IssueDateTime,
+    Currency,
+    PreviousInvoiceHash,
+    InvoiceCounter,
+    Seller,
     LineItems,
     PaymentMeansCode,
+    VatCategory,
     LineItemDescription,
     LineItemUnitCode,
     LineItemQuantity,
@@ -83,6 +93,206 @@ pub enum ValidationKind {
     InvalidFormat,
     OutOfRange,
     Mismatch,
+}
+
+/// Country code wrapper with ISO validation.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub struct CountryCode(String);
+
+impl CountryCode {
+    pub fn parse<S: Into<String>>(s: S) -> Result<Self> {
+        let value = s.into().trim().to_uppercase();
+        let normalized = match value.len() {
+            2 => IsoCountryCode::for_alpha2(&value)
+                .map_err(|_| InvoiceError::InvalidCountryCode(value.clone()))?
+                .alpha3()
+                .to_string(),
+            3 => IsoCountryCode::for_alpha3(&value)
+                .map_err(|_| InvoiceError::InvalidCountryCode(value.clone()))?
+                .alpha3()
+                .to_string(),
+            _ => return Err(InvoiceError::InvalidCountryCode(value)),
+        };
+        Ok(Self(normalized))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    pub(crate) fn alpha2(&self) -> String {
+        IsoCountryCode::for_alpha3(self.as_str())
+            .expect("validated country code")
+            .alpha2()
+            .to_string()
+    }
+}
+
+impl AsRef<str> for CountryCode {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl FromStr for CountryCode {
+    type Err = InvoiceError;
+    fn from_str(s: &str) -> Result<Self> {
+        CountryCode::parse(s)
+    }
+}
+
+impl TryFrom<String> for CountryCode {
+    type Error = InvoiceError;
+    fn try_from(value: String) -> Result<Self> {
+        CountryCode::parse(value)
+    }
+}
+
+impl TryFrom<&str> for CountryCode {
+    type Error = InvoiceError;
+    fn try_from(value: &str) -> Result<Self> {
+        CountryCode::parse(value)
+    }
+}
+
+/// Currency code wrapper with ISO validation.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub struct CurrencyCode(String);
+
+impl CurrencyCode {
+    pub fn parse<S: Into<String>>(s: S) -> Result<Self> {
+        let value = s.into().trim().to_uppercase();
+        IsoCurrency::from_code(&value)
+            .ok_or_else(|| InvoiceError::InvalidCurrencyCode(value.clone()))?;
+        Ok(Self(value))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl AsRef<str> for CurrencyCode {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl FromStr for CurrencyCode {
+    type Err = InvoiceError;
+    fn from_str(s: &str) -> Result<Self> {
+        CurrencyCode::parse(s)
+    }
+}
+
+impl TryFrom<String> for CurrencyCode {
+    type Error = InvoiceError;
+    fn try_from(value: String) -> Result<Self> {
+        CurrencyCode::parse(value)
+    }
+}
+
+impl TryFrom<&str> for CurrencyCode {
+    type Error = InvoiceError;
+    fn try_from(value: &str) -> Result<Self> {
+        CurrencyCode::parse(value)
+    }
+}
+
+/// Invoice timestamp in ZATCA ISO format (UTC `YYYY-MM-DDTHH:MM:SSZ`).
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub struct InvoiceTimestamp(String);
+
+impl InvoiceTimestamp {
+    pub fn parse<S: Into<String>>(s: S) -> Result<Self> {
+        let value = s.into().trim().to_string();
+        let parsed = NaiveDateTime::parse_from_str(&value, "%Y-%m-%dT%H:%M:%SZ")
+            .map_err(|_| InvoiceError::InvalidTimestamp(value.clone()))?;
+        Ok(Self(parsed.format("%Y-%m-%dT%H:%M:%SZ").to_string()))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    pub(crate) fn date_str(&self) -> &str {
+        &self.0[..10]
+    }
+
+    pub(crate) fn time_str(&self) -> &str {
+        &self.0[11..19]
+    }
+}
+
+impl AsRef<str> for InvoiceTimestamp {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl FromStr for InvoiceTimestamp {
+    type Err = InvoiceError;
+    fn from_str(s: &str) -> Result<Self> {
+        InvoiceTimestamp::parse(s)
+    }
+}
+
+impl TryFrom<String> for InvoiceTimestamp {
+    type Error = InvoiceError;
+    fn try_from(value: String) -> Result<Self> {
+        InvoiceTimestamp::parse(value)
+    }
+}
+
+impl TryFrom<&str> for InvoiceTimestamp {
+    type Error = InvoiceError;
+    fn try_from(value: &str) -> Result<Self> {
+        InvoiceTimestamp::parse(value)
+    }
+}
+
+/// Invoice date in `YYYY-MM-DD` format.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub struct InvoiceDate(String);
+
+impl InvoiceDate {
+    pub fn parse<S: Into<String>>(s: S) -> Result<Self> {
+        let value = s.into().trim().to_string();
+        let parsed = NaiveDate::parse_from_str(&value, "%Y-%m-%d")
+            .map_err(|_| InvoiceError::InvalidIssueDate(value.clone()))?;
+        Ok(Self(parsed.format("%Y-%m-%d").to_string()))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl AsRef<str> for InvoiceDate {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl FromStr for InvoiceDate {
+    type Err = InvoiceError;
+    fn from_str(s: &str) -> Result<Self> {
+        InvoiceDate::parse(s)
+    }
+}
+
+impl TryFrom<String> for InvoiceDate {
+    type Error = InvoiceError;
+    fn try_from(value: String) -> Result<Self> {
+        InvoiceDate::parse(value)
+    }
+}
+
+impl TryFrom<&str> for InvoiceDate {
+    type Error = InvoiceError;
+    fn try_from(value: &str) -> Result<Self> {
+        InvoiceDate::parse(value)
+    }
 }
 
 /// Postal address for parties.
@@ -284,12 +494,12 @@ impl PartyRole for BuyerRole {}
 /// # Examples
 /// ```rust
 /// use fatoora_core::invoice::{Party, SellerRole, Address, OtherId};
-/// use isocountry::CountryCode;
+/// use fatoora_core::invoice::CountryCode;
 ///
 /// let seller = Party::<SellerRole>::new(
 ///     "Acme Inc".into(),
 ///     Address {
-///         country_code: CountryCode::SAU,
+///         country_code: CountryCode::parse("SAU")?,
 ///         city: "Riyadh".into(),
 ///         street: "King Fahd".into(),
 ///         additional_street: None,
@@ -417,7 +627,7 @@ pub enum InvoiceSubType {
 pub struct OriginalInvoiceRef {
     id: String,
     uuid: Option<String>,
-    issue_date: Option<chrono::NaiveDate>,
+    issue_date: Option<InvoiceDate>,
 }
 
 impl OriginalInvoiceRef {
@@ -434,9 +644,14 @@ impl OriginalInvoiceRef {
         self
     }
 
-    pub fn with_issue_date(mut self, issue_date: chrono::NaiveDate) -> Self {
+    pub fn with_issue_date(mut self, issue_date: InvoiceDate) -> Self {
         self.issue_date = Some(issue_date);
         self
+    }
+
+    pub fn with_issue_date_str(mut self, issue_date: impl Into<String>) -> Result<Self> {
+        self.issue_date = Some(InvoiceDate::parse(issue_date)?);
+        Ok(self)
     }
 
     pub fn id(&self) -> &str {
@@ -447,8 +662,8 @@ impl OriginalInvoiceRef {
         self.uuid.as_deref()
     }
 
-    pub fn issue_date(&self) -> Option<chrono::NaiveDate> {
-        self.issue_date
+    pub fn issue_date(&self) -> Option<&InvoiceDate> {
+        self.issue_date.as_ref()
     }
 }
 
@@ -501,16 +716,9 @@ pub enum VatCategory {
 ///
 /// # Examples
 /// ```rust
-/// use fatoora_core::invoice::{LineItem, LineItemFields, VatCategory};
+/// use fatoora_core::invoice::{LineItem, VatCategory};
 ///
-/// let item = LineItem::new(LineItemFields {
-///     description: "Item".into(),
-///     quantity: 2.0,
-///     unit_code: "PCE".into(),
-///     unit_price: 50.0,
-///     vat_rate: 15.0,
-///     vat_category: VatCategory::Standard,
-/// });
+/// let item = LineItem::new("Item", 2.0, "PCE", 50.0, 15.0, VatCategory::Standard);
 /// assert_eq!(item.total_amount(), 100.0);
 /// ```
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -525,104 +733,48 @@ pub struct LineItem {
     vat_category: VatCategory,
 }
 
-/// Fields for creating a line item with computed totals.
-#[derive(Debug, Clone, PartialEq)]
-pub struct LineItemFields {
-    pub description: String,
-    pub quantity: f64,
-    pub unit_code: String,
-    pub unit_price: f64,
-    pub vat_rate: f64,
-    pub vat_category: VatCategory,
-}
-
-/// Fields for creating a line item with provided totals.
-///
-/// # Examples
-/// ```rust
-/// use fatoora_core::invoice::{LineItem, LineItemTotalsFields, VatCategory};
-///
-/// let item = LineItem::from_totals(LineItemTotalsFields {
-///     description: "Item".into(),
-///     quantity: 1.0,
-///     unit_code: "PCE".into(),
-///     unit_price: 100.0,
-///     total_amount: 100.0,
-///     vat_rate: 15.0,
-///     vat_category: VatCategory::Standard,
-/// });
-/// assert_eq!(item.vat_amount(), 15.0);
-/// ```
-#[derive(Debug, Clone, PartialEq)]
-pub struct LineItemTotalsFields {
-    pub description: String,
-    pub quantity: f64,
-    pub unit_code: String,
-    pub unit_price: f64,
-    pub total_amount: f64,
-    pub vat_rate: f64,
-    pub vat_category: VatCategory,
-}
-
-/// Fields for creating a line item from fully specified parts.
-///
-/// # Examples
-/// ```rust
-/// use fatoora_core::invoice::{LineItem, LineItemPartsFields, VatCategory};
-///
-/// let item = LineItem::try_from_parts(LineItemPartsFields {
-///     description: "Item".into(),
-///     quantity: 1.0,
-///     unit_code: "PCE".into(),
-///     unit_price: 100.0,
-///     total_amount: 100.0,
-///     vat_rate: 15.0,
-///     vat_amount: 15.0,
-///     vat_category: VatCategory::Standard,
-/// })?;
-/// # let _ = item;
-/// use fatoora_core::invoice::ValidationError;
-/// # Ok::<(), ValidationError>(())
-/// ```
-#[derive(Debug, Clone, PartialEq)]
-pub struct LineItemPartsFields {
-    pub description: String,
-    pub quantity: f64,
-    pub unit_code: String,
-    pub unit_price: f64,
-    pub total_amount: f64,
-    pub vat_rate: f64,
-    pub vat_amount: f64,
-    pub vat_category: VatCategory,
-}
-
 impl LineItem {
-    pub fn new(fields: LineItemFields) -> Self {
-        let total_amount = Self::calculate_total_amount(fields.quantity, fields.unit_price);
-        let vat_amount = Self::calculate_vat_amount(total_amount, fields.vat_rate);
+    pub fn new(
+        description: impl Into<String>,
+        quantity: f64,
+        unit_code: impl Into<String>,
+        unit_price: f64,
+        vat_rate: f64,
+        vat_category: VatCategory,
+    ) -> Self {
+        let total_amount = Self::calculate_total_amount(quantity, unit_price);
+        let vat_amount = Self::calculate_vat_amount(total_amount, vat_rate);
         Self {
-            description: fields.description,
-            quantity: fields.quantity,
-            unit_code: fields.unit_code,
-            unit_price: fields.unit_price,
+            description: description.into(),
+            quantity,
+            unit_code: unit_code.into(),
+            unit_price,
             total_amount,
-            vat_rate: fields.vat_rate,
+            vat_rate,
             vat_amount,
-            vat_category: fields.vat_category,
+            vat_category,
         }
     }
 
-    pub fn from_totals(fields: LineItemTotalsFields) -> Self {
-        let vat_amount = Self::calculate_vat_amount(fields.total_amount, fields.vat_rate);
+    pub fn from_totals(
+        description: impl Into<String>,
+        quantity: f64,
+        unit_code: impl Into<String>,
+        unit_price: f64,
+        total_amount: f64,
+        vat_rate: f64,
+        vat_category: VatCategory,
+    ) -> Self {
+        let vat_amount = Self::calculate_vat_amount(total_amount, vat_rate);
         Self {
-            description: fields.description,
-            quantity: fields.quantity,
-            unit_code: fields.unit_code,
-            unit_price: fields.unit_price,
-            total_amount: fields.total_amount,
-            vat_rate: fields.vat_rate,
+            description: description.into(),
+            quantity,
+            unit_code: unit_code.into(),
+            unit_price,
+            total_amount,
+            vat_rate,
             vat_amount,
-            vat_category: fields.vat_category,
+            vat_category,
         }
     }
 
@@ -631,21 +783,28 @@ impl LineItem {
     /// # Errors
     /// Returns [`ValidationError`] if totals do not match computed values.
     pub fn try_from_parts(
-        fields: LineItemPartsFields,
+        description: impl Into<String>,
+        quantity: f64,
+        unit_code: impl Into<String>,
+        unit_price: f64,
+        total_amount: f64,
+        vat_rate: f64,
+        vat_amount: f64,
+        vat_category: VatCategory,
     ) -> std::result::Result<Self, ValidationError> {
         const EPSILON: f64 = 0.01;
-        let expected_total = Self::calculate_total_amount(fields.quantity, fields.unit_price);
-        let expected_vat = Self::calculate_vat_amount(fields.total_amount, fields.vat_rate);
+        let expected_total = Self::calculate_total_amount(quantity, unit_price);
+        let expected_vat = Self::calculate_vat_amount(total_amount, vat_rate);
 
         let mut issues = Vec::new();
-        if (expected_total - fields.total_amount).abs() > EPSILON {
+        if (expected_total - total_amount).abs() > EPSILON {
             issues.push(ValidationIssue {
                 field: InvoiceField::LineItemTotalAmount,
                 kind: ValidationKind::Mismatch,
                 line_item_index: None,
             });
         }
-        if (expected_vat - fields.vat_amount).abs() > EPSILON {
+        if (expected_vat - vat_amount).abs() > EPSILON {
             issues.push(ValidationIssue {
                 field: InvoiceField::LineItemVatAmount,
                 kind: ValidationKind::Mismatch,
@@ -657,14 +816,14 @@ impl LineItem {
         }
 
         Ok(Self {
-            description: fields.description,
-            quantity: fields.quantity,
-            unit_code: fields.unit_code,
-            unit_price: fields.unit_price,
-            total_amount: fields.total_amount,
-            vat_rate: fields.vat_rate,
-            vat_amount: fields.vat_amount,
-            vat_category: fields.vat_category,
+            description: description.into(),
+            quantity,
+            unit_code: unit_code.into(),
+            unit_price,
+            total_amount,
+            vat_rate,
+            vat_amount,
+            vat_category,
         })
     }
 
@@ -713,16 +872,16 @@ impl LineItem {
 ///
 /// # Examples
 /// ```rust
-/// use fatoora_core::invoice::{LineItem, LineItemFields, LineItems, VatCategory};
+/// use fatoora_core::invoice::{LineItem, LineItems, VatCategory};
 ///
-/// let items: LineItems = vec![LineItem::new(LineItemFields {
-///     description: "Item".into(),
-///     quantity: 1.0,
-///     unit_code: "PCE".into(),
-///     unit_price: 100.0,
-///     vat_rate: 15.0,
-///     vat_category: VatCategory::Standard,
-/// })];
+/// let items: LineItems = vec![LineItem::new(
+///     "Item",
+///     1.0,
+///     "PCE",
+///     100.0,
+///     15.0,
+///     VatCategory::Standard,
+/// )];
 /// assert_eq!(items.len(), 1);
 /// ```
 pub type LineItems = Vec<LineItem>;
@@ -763,8 +922,8 @@ pub struct InvoiceData {
     invoice_type: InvoiceType,
     id: String,
     uuid: String,
-    issue_datetime: DateTime<Utc>,
-    currency: Currency, // currently no separate tax/invoice currency
+    issue_datetime: InvoiceTimestamp,
+    currency: CurrencyCode, // currently no separate tax/invoice currency
     previous_invoice_hash: String,
     invoice_counter: u64,
     note: Option<InvoiceNote>,
@@ -794,11 +953,11 @@ impl InvoiceData {
         &self.uuid
     }
 
-    pub fn issue_datetime(&self) -> &DateTime<Utc> {
+    pub fn issue_datetime(&self) -> &InvoiceTimestamp {
         &self.issue_datetime
     }
 
-    pub fn currency(&self) -> &Currency {
+    pub fn currency(&self) -> &CurrencyCode {
         &self.currency
     }
 
@@ -893,11 +1052,11 @@ impl InvoiceData {
     }
 
     pub(crate) fn issue_date_string(&self) -> String {
-        self.issue_datetime.date_naive().to_string()
+        self.issue_datetime.date_str().to_string()
     }
 
     pub(crate) fn issue_time_string(&self) -> String {
-        self.issue_datetime.time().format("%H:%M:%S").to_string()
+        self.issue_datetime.time_str().to_string()
     }
 
     pub(crate) fn format_amount(amount: f64) -> String {

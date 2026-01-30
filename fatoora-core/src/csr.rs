@@ -4,10 +4,10 @@ use base64ct::{Base64, Encoding};
 use ecdsa;
 use fatoora_derive::Validate;
 use java_properties::read;
-use k256::{Secp256k1, ecdsa::SigningKey};
+use k256::{Secp256k1, ecdsa::SigningKey as K256SigningKey};
+use k256::pkcs8::{DecodePrivateKey, EncodePrivateKey, LineEnding as KeyLineEnding};
 use std::{
-    fs::File,
-    io::{BufReader, Cursor},
+    io::Cursor,
     path::{self, PathBuf},
     str::FromStr,
     vec,
@@ -16,8 +16,8 @@ use thiserror::Error;
 use x509_cert::{
     builder::{Builder, RequestBuilder},
     der::{
-        Encode, EncodePem, Error as DerError, Length, Result as DerResult, Writer, asn1,
-        pem::LineEnding,
+        Decode, Encode, EncodePem, Error as DerError, Length, Result as DerResult, Writer, asn1,
+        pem::LineEnding as CsrLineEnding,
     },
     ext::{
         AsExtension, Extension,
@@ -64,6 +64,12 @@ pub enum CsrError {
 
     #[error("failed to build CSR: {message}")]
     CsrBuild { message: String },
+
+    #[error("failed to decode signing key: {message}")]
+    KeyDecode { message: String },
+
+    #[error("failed to encode signing key: {message}")]
+    KeyEncode { message: String },
 
     #[error("failed DER encoding for {context}: {source}")]
     DerEncode {
@@ -116,6 +122,122 @@ impl EnvironmentType {
     }
 }
 
+/// Wrapper for CSR signing keys.
+#[derive(Debug, Clone)]
+pub struct SigningKey {
+    inner: K256SigningKey,
+}
+
+impl SigningKey {
+    pub fn generate() -> Self {
+        Self {
+            inner: ecdsa::SigningKey::<Secp256k1>::generate(),
+        }
+    }
+
+    pub fn from_der(der: &[u8]) -> Result<Self, CsrError> {
+        let inner = K256SigningKey::from_pkcs8_der(der).map_err(|e| CsrError::KeyDecode {
+            message: e.to_string(),
+        })?;
+        Ok(Self { inner })
+    }
+
+    pub fn from_pem(pem: &str) -> Result<Self, CsrError> {
+        let inner = K256SigningKey::from_pkcs8_pem(pem).map_err(|e| CsrError::KeyDecode {
+            message: e.to_string(),
+        })?;
+        Ok(Self { inner })
+    }
+
+    pub fn to_der(&self) -> Result<Vec<u8>, CsrError> {
+        let doc = self
+            .inner
+            .to_pkcs8_der()
+            .map_err(|e: k256::pkcs8::Error| CsrError::KeyEncode {
+                message: e.to_string(),
+            })?;
+        Ok(doc.as_bytes().to_vec())
+    }
+
+    pub fn to_pem(&self) -> Result<String, CsrError> {
+        let pem = self
+            .inner
+            .to_pkcs8_pem(KeyLineEnding::LF)
+            .map_err(|e: k256::pkcs8::Error| CsrError::KeyEncode {
+                message: e.to_string(),
+            })?;
+        Ok(pem.to_string())
+    }
+
+    pub(crate) fn inner(&self) -> &K256SigningKey {
+        &self.inner
+    }
+}
+
+/// Wrapper for certificate signing requests.
+#[derive(Debug, Clone)]
+pub struct Csr {
+    inner: CertReq,
+}
+
+impl Csr {
+    pub fn from_der(der: &[u8]) -> Result<Self, CsrError> {
+        let inner = CertReq::from_der(der).map_err(|e| CsrError::DerEncode {
+            context: "certificate request (DER)",
+            source: e,
+        })?;
+        Ok(Self { inner })
+    }
+
+    pub fn to_der(&self) -> Result<Vec<u8>, CsrError> {
+        let der_bytes = self.inner.to_der().map_err(|e| CsrError::DerEncode {
+            context: "certificate request",
+            source: e,
+        })?;
+        Ok(der_bytes)
+    }
+
+    pub fn to_pem(&self) -> Result<String, CsrError> {
+        let pem = self
+            .inner
+            .to_pem(CsrLineEnding::LF)
+            .map_err(|e| CsrError::DerEncode {
+                context: "certificate request (PEM)",
+                source: e,
+            })?;
+        Ok(pem)
+    }
+
+    pub fn to_base64(&self) -> Result<String, CsrError> {
+        let der_bytes = self.to_der()?;
+        Ok(Base64::encode_string(&der_bytes))
+    }
+
+    pub fn to_pem_base64(&self) -> Result<String, CsrError> {
+        let pem = self.to_pem()?;
+        Ok(Base64::encode_string(pem.as_bytes()))
+    }
+
+    pub fn subject_string(&self) -> String {
+        self.inner.info.subject.to_string()
+    }
+
+    pub fn extension_values_der(&self) -> Vec<Vec<u8>> {
+        self.inner
+            .info
+            .attributes
+            .iter()
+            .flat_map(|attr| attr.values.iter())
+            .filter_map(|value| value.to_der().ok())
+            .collect()
+    }
+
+    #[allow(dead_code)]
+    pub(crate) fn inner(&self) -> &CertReq {
+        &self.inner
+    }
+}
+
 /// CSR properties parsed from the SDK properties file.
 ///
 /// # Examples
@@ -124,7 +246,8 @@ impl EnvironmentType {
 /// use fatoora_core::csr::CsrProperties;
 ///
 /// let props = CsrProperties::from_properties_str("csr.common.name=example")?;
-/// let (csr, _key) = props.build_with_rng(EnvironmentType::NonProduction)?;
+/// let key = fatoora_core::csr::SigningKey::generate();
+/// let csr = props.build(&key, EnvironmentType::NonProduction)?;
 /// # let _ = csr;
 /// use fatoora_core::csr::CsrError;
 /// # Ok::<(), CsrError>(())
@@ -183,15 +306,11 @@ impl CsrProperties {
         Ok(SubjectAltName::from(vec![dir_name]))
     }
 
-    fn generate_signer(&self) -> ecdsa::SigningKey<Secp256k1> {
-        ecdsa::SigningKey::<Secp256k1>::generate()
-    }
-
     /// Build a CSR using the provided signer.
     ///
     /// # Errors
     /// Returns [`CsrError`] when subject or extension generation fails.
-    pub fn build(&self, signer: &SigningKey, env: EnvironmentType) -> Result<CertReq, CsrError> {
+    pub fn build(&self, signer: &SigningKey, env: EnvironmentType) -> Result<Csr, CsrError> {
         let subject = self.generate_subject()?;
         let asn1_extension = self.generate_template_name_extension(env)?;
         let san_extension = self.generate_san_extension()?;
@@ -212,20 +331,11 @@ impl CsrProperties {
                 message: e.to_string(),
             })?;
         csr_builder
-            .build::<_, ecdsa::der::Signature<_>>(signer)
+            .build::<_, ecdsa::der::Signature<_>>(signer.inner())
             .map_err(|e| CsrError::CsrBuild {
                 message: e.to_string(),
             })
-    }
-
-    /// Generate a CSR and a new signing key.
-    ///
-    /// # Errors
-    /// Returns [`CsrError`] when CSR generation fails.
-    pub fn build_with_rng(&self, env: EnvironmentType) -> Result<(CertReq, SigningKey), CsrError> {
-        let signer: ecdsa::SigningKey<Secp256k1> = self.generate_signer();
-        let csr = self.build(&signer, env)?;
-        Ok((csr, signer))
+            .map(|inner| Csr { inner })
     }
 
     /// Parse a CSR properties string.
@@ -265,43 +375,26 @@ impl CsrProperties {
         Ok(csr)
     }
 
+    /// Parse a CSR properties string.
+    ///
+    /// # Errors
+    /// Returns [`CsrError`] when the properties cannot be read or required fields are missing.
+    pub fn parse_csr_config(properties: &str) -> Result<CsrProperties, CsrError> {
+        Self::from_properties_str(properties)
+    }
+
     /// Parse a CSR properties file.
     ///
     /// # Errors
     /// Returns [`CsrError`] when the file cannot be read or required fields are missing.
-    pub fn parse_csr_config(csr_path: &path::Path) -> Result<CsrProperties, CsrError> {
-        let pathbuf = csr_path.to_path_buf();
-        let file = File::open(csr_path).map_err(|e| CsrError::Io {
+    pub fn parse_csr_config_file(csr_path: impl AsRef<path::Path>) -> Result<CsrProperties, CsrError> {
+        let path = csr_path.as_ref();
+        let pathbuf = path.to_path_buf();
+        let contents = std::fs::read_to_string(path).map_err(|e| CsrError::Io {
             path: pathbuf.clone(),
             source: e,
         })?;
-        let dst_map = read(BufReader::new(file)).map_err(|e| CsrError::PropertiesRead {
-            path: pathbuf.clone(),
-            source: e,
-        })?;
-
-        let req = |key: &str| -> Result<String, CsrError> {
-            dst_map
-                .get(key)
-                .map(|s| s.to_string())
-                .ok_or_else(|| CsrError::MissingProperty {
-                    path: pathbuf.clone(),
-                    key: key.to_string(),
-                })
-        };
-
-        let csr = CsrProperties::new(
-            req("csr.common.name")?,
-            req("csr.serial.number")?,
-            req("csr.organization.identifier")?,
-            req("csr.organization.unit.name")?,
-            req("csr.organization.name")?,
-            req("csr.country.name")?,
-            req("csr.invoice.type")?,
-            req("csr.location.address")?,
-            req("csr.industry.business.category")?,
-        )?;
-
+        let csr = CsrProperties::from_properties_str(&contents)?;
         Ok(csr)
     }
 }
@@ -309,31 +402,5 @@ impl CsrProperties {
 impl From<String> for CsrError {
     fn from(message: String) -> Self {
         CsrError::Validation { message }
-    }
-}
-
-/// Encode to base64 string.
-pub trait ToBase64String {
-    fn to_base64_string(&self) -> Result<String, CsrError>;
-    fn to_pem_base64_string(&self) -> Result<String, CsrError>;
-}
-
-impl ToBase64String for CertReq {
-    fn to_base64_string(&self) -> Result<String, CsrError> {
-        let der_bytes = self.to_der().map_err(|e| CsrError::DerEncode {
-            context: "certificate request",
-            source: e,
-        })?;
-        Ok(Base64::encode_string(&der_bytes))
-    }
-
-    fn to_pem_base64_string(&self) -> Result<String, CsrError> {
-        let pem = self
-            .to_pem(LineEnding::LF)
-            .map_err(|e| CsrError::DerEncode {
-                context: "certificate request (PEM)",
-                source: e,
-            })?;
-        Ok(Base64::encode_string(pem.as_bytes()))
     }
 }

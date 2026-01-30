@@ -1,23 +1,22 @@
 use base64ct::{Base64, Encoding};
 use fatoora_core::config::EnvironmentType;
-use fatoora_core::csr::{CsrError, CsrProperties};
-use k256::pkcs8::DecodePrivateKey;
+use fatoora_core::csr::{CsrError, CsrProperties, SigningKey};
 use std::path::Path;
 use std::str::FromStr;
-use x509_cert::der::Encode;
 
 #[test]
 fn test_parse_csr_config() {
     let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
-    let csr_config = CsrProperties::parse_csr_config(&config_path).unwrap();
+    let csr_config = CsrProperties::parse_csr_config_file(&config_path).unwrap();
     let env = EnvironmentType::from_str("non_production")
         .map_err(|e| CsrError::Validation {
             message: e.to_string(),
         })
         .unwrap();
-    let (csr, _key) = csr_config.build_with_rng(env).unwrap();
-    let subject_str = csr.info.subject.to_string();
+    let key = SigningKey::generate();
+    let csr = csr_config.build(&key, env).unwrap();
+    let subject_str = csr.subject_string();
     assert!(subject_str.contains("C=SA"));
     assert!(subject_str.contains("OU=Riyadh Branch"));
     assert!(subject_str.contains("O=Maximum Speed Tech Supply LTD"));
@@ -36,22 +35,16 @@ fn test_generate_csr() {
             message: e.to_string(),
         })
         .unwrap();
-    let (csr, _key) = csr_config.build_with_rng(env).unwrap();
+    let key = SigningKey::generate();
+    let csr = csr_config.build(&key, env).unwrap();
 
-    let der = csr
-        .to_der()
-        .map_err(|e| CsrError::DerEncode {
-            context: "certificate request (test_generate_csr)",
-            source: e,
-        })
-        .unwrap();
+    let der = csr.to_der().unwrap();
     assert!(!der.is_empty(), "CSR DER must not be empty");
 
     let b64 = Base64::encode_string(&der);
     assert!(!b64.is_empty(), "CSR Base64 must not be empty");
 
-    let info = &csr.info;
-    let exts = info.attributes.iter().flat_map(|attr| attr.values.iter());
+    let exts = csr.extension_values_der();
 
     let mut found_san = false;
     let mut found_template = false;
@@ -59,8 +52,7 @@ fn test_generate_csr() {
     const SAN_OID_DER: &[u8] = b"\x06\x03\x55\x1D\x11";
     const TEMPLATE_OID_DER: &[u8] = b"\x2b\x06\x01\x04\x01\x82\x37\x14\x02";
 
-    for val in exts {
-        let encoded = val.to_der().unwrap_or_default();
+    for encoded in exts {
         if encoded.windows(SAN_OID_DER.len()).any(|w| w == SAN_OID_DER) {
             found_san = true;
         }
@@ -84,7 +76,7 @@ fn test_generate_csr() {
         "CSR must include the template name extension (OID 1.3.6.1.4.1.311.20.2)"
     );
 
-    let subject_str = info.subject.to_string();
+    let subject_str = csr.subject_string();
     assert!(
         subject_str.contains("C=SA"),
         "Subject must contain country code 'SA' (got {subject_str})"
@@ -108,8 +100,7 @@ fn test_csr_matches_zatca_sdk() {
         .unwrap();
     let key_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/pkeys/test_zatca_pkey.der");
-    let zatca_pkey = k256::ecdsa::SigningKey::from_pkcs8_der(&std::fs::read(key_path).unwrap())
-        .unwrap();
+    let zatca_pkey = SigningKey::from_der(&std::fs::read(key_path).unwrap()).unwrap();
 
     let _csr = csr_config.build(&zatca_pkey, env).unwrap();
     // let generated_b64 = csr.to_base64_string().unwrap();
