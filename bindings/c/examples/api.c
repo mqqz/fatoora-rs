@@ -40,7 +40,7 @@ int main(void) {
     fatoora_string_free(hash.value);
 
     struct FfiResult_FfiCsidCompliance ccsid =
-        fatoora_csid_compliance_new(FfiEnvironment_NonProduction, true, 1234567890,
+        fatoora_csid_compliance_new(FfiEnvironment_NonProduction, 1234567890,
                                     "binary_security_token", "secret");
     if (!ccsid.ok) {
         /* handle error */
