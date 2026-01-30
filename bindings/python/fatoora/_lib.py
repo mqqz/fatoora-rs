@@ -30,7 +30,6 @@ typedef struct { char* ptr; } FfiString;
 typedef struct { void* ptr; } FfiCsrProperties;
 typedef struct { void* ptr; } FfiCsr;
 typedef struct { void* ptr; } FfiSigningKey;
-typedef struct { FfiCsr csr; FfiSigningKey key; } FfiCsrBundle;
 typedef struct { void* ptr; } FfiZatcaClient;
 typedef struct { void* ptr; } FfiCsidCompliance;
 typedef struct { void* ptr; } FfiCsidProduction;
@@ -43,6 +42,8 @@ typedef struct { void* ptr; } FfiVatId;
 typedef struct { void* ptr; } FfiOtherId;
 typedef struct { void* ptr; } FfiInvoiceNote;
 typedef struct { void* ptr; } FfiOriginalInvoiceRef;
+typedef struct { unsigned char* ptr; uintptr_t len; } FfiBytes;
+typedef struct { FfiBytes* ptr; uintptr_t len; } FfiBytesList;
 typedef struct { int code; char* message; } FfiError;
 
 typedef struct { _Bool ok; FfiInvoiceBuilder value; FfiError* error; } FfiResult_FfiInvoiceBuilder;
@@ -53,7 +54,6 @@ typedef struct { _Bool ok; FfiString value; FfiError* error; } FfiResult_FfiStri
 typedef struct { _Bool ok; FfiCsrProperties value; FfiError* error; } FfiResult_FfiCsrProperties;
 typedef struct { _Bool ok; FfiCsr value; FfiError* error; } FfiResult_FfiCsr;
 typedef struct { _Bool ok; FfiSigningKey value; FfiError* error; } FfiResult_FfiSigningKey;
-typedef struct { _Bool ok; FfiCsrBundle value; FfiError* error; } FfiResult_FfiCsrBundle;
 typedef struct { _Bool ok; FfiZatcaClient value; FfiError* error; } FfiResult_FfiZatcaClient;
 typedef struct { _Bool ok; FfiCsidCompliance value; FfiError* error; } FfiResult_FfiCsidCompliance;
 typedef struct { _Bool ok; FfiCsidProduction value; FfiError* error; } FfiResult_FfiCsidProduction;
@@ -66,6 +66,12 @@ typedef struct { _Bool ok; FfiVatId value; FfiError* error; } FfiResult_FfiVatId
 typedef struct { _Bool ok; FfiOtherId value; FfiError* error; } FfiResult_FfiOtherId;
 typedef struct { _Bool ok; FfiInvoiceNote value; FfiError* error; } FfiResult_FfiInvoiceNote;
 typedef struct { _Bool ok; FfiOriginalInvoiceRef value; FfiError* error; } FfiResult_FfiOriginalInvoiceRef;
+typedef struct { _Bool ok; FfiBytes value; FfiError* error; } FfiResult_FfiBytes;
+typedef struct { _Bool ok; FfiBytesList value; FfiError* error; } FfiResult_FfiBytesList;
+typedef struct { _Bool ok; int value; FfiError* error; } FfiResult_FfiEnvironment;
+typedef struct { _Bool ok; int value; FfiError* error; } FfiResult_FfiInvoiceTypeKind;
+typedef struct { _Bool ok; int value; FfiError* error; } FfiResult_FfiInvoiceSubType;
+typedef struct { _Bool ok; int value; FfiError* error; } FfiResult_FfiVatCategory;
 typedef struct { _Bool ok; _Bool value; FfiError* error; } FfiResult_bool;
 typedef struct { _Bool ok; unsigned long long value; FfiError* error; } FfiResult_u64;
 typedef struct { _Bool ok; unsigned char value; FfiError* error; } FfiResult_u8;
@@ -75,23 +81,33 @@ void fatoora_error_free(FfiError* error);
 int fatoora_error_code(FfiError* error);
 FfiString fatoora_error_message(FfiError* error);
 void fatoora_string_free(FfiString value);
+void fatoora_bytes_free(FfiBytes value);
+void fatoora_bytes_list_free(FfiBytesList value);
 
 FfiConfig* fatoora_config_new(int env);
+FfiResult_FfiEnvironment fatoora_config_env(FfiConfig* cfg);
 void fatoora_config_free(FfiConfig* cfg);
 
-FfiResult_FfiCsrProperties fatoora_csr_properties_parse(const char* path);
+FfiResult_FfiCsrProperties fatoora_csr_properties_parse(const char* properties);
+FfiResult_FfiCsrProperties fatoora_csr_properties_parse_file(const char* path);
 FfiResult_FfiCsrProperties fatoora_csr_properties_from_str(const char* properties);
 void fatoora_csr_properties_free(FfiCsrProperties* props);
 
 FfiResult_FfiSigningKey fatoora_signing_key_from_pem(const char* pem);
 FfiResult_FfiSigningKey fatoora_signing_key_from_der(const unsigned char* der, uintptr_t len);
+FfiResult_FfiSigningKey fatoora_signing_key_generate(void);
 FfiResult_FfiString fatoora_signing_key_to_pem(FfiSigningKey* key);
+FfiResult_FfiBytes fatoora_signing_key_to_der(FfiSigningKey* key);
 void fatoora_signing_key_free(FfiSigningKey* key);
 
-FfiResult_FfiCsrBundle fatoora_csr_build_with_rng(FfiCsrProperties* props, int env);
+FfiResult_FfiCsr fatoora_csr_from_der(const unsigned char* der, uintptr_t len);
 FfiResult_FfiCsr fatoora_csr_build(FfiCsrProperties* props, FfiSigningKey* key, int env);
 FfiResult_FfiString fatoora_csr_to_base64(FfiCsr* csr);
 FfiResult_FfiString fatoora_csr_to_pem_base64(FfiCsr* csr);
+FfiResult_FfiBytes fatoora_csr_to_der(FfiCsr* csr);
+FfiResult_FfiString fatoora_csr_to_pem(FfiCsr* csr);
+FfiResult_FfiString fatoora_csr_subject_string(FfiCsr* csr);
+FfiResult_FfiBytesList fatoora_csr_extension_values_der(FfiCsr* csr);
 void fatoora_csr_free(FfiCsr* csr);
 
 FfiResult_FfiZatcaClient fatoora_zatca_client_new(FfiConfig* cfg);
@@ -99,20 +115,20 @@ void fatoora_zatca_client_free(FfiZatcaClient* client);
 
 FfiResult_FfiCsidCompliance fatoora_csid_compliance_new(
     int env,
-    _Bool has_request_id,
-    unsigned long long request_id,
+    const char* request_id,
     const char* token,
     const char* secret
 );
 FfiResult_FfiCsidProduction fatoora_csid_production_new(
     int env,
-    _Bool has_request_id,
-    unsigned long long request_id,
+    const char* request_id,
     const char* token,
     const char* secret
 );
-FfiResult_u64 fatoora_csid_compliance_request_id(FfiCsidCompliance* creds);
-FfiResult_u64 fatoora_csid_production_request_id(FfiCsidProduction* creds);
+FfiResult_FfiString fatoora_csid_compliance_request_id(FfiCsidCompliance* creds);
+FfiResult_FfiString fatoora_csid_production_request_id(FfiCsidProduction* creds);
+FfiResult_FfiEnvironment fatoora_csid_compliance_env(FfiCsidCompliance* creds);
+FfiResult_FfiEnvironment fatoora_csid_production_env(FfiCsidProduction* creds);
 FfiResult_FfiString fatoora_csid_compliance_token(FfiCsidCompliance* creds);
 FfiResult_FfiString fatoora_csid_compliance_secret(FfiCsidCompliance* creds);
 FfiResult_FfiString fatoora_csid_production_token(FfiCsidProduction* creds);
@@ -184,32 +200,35 @@ FfiResult_bool fatoora_validate_xml_str(FfiConfig* cfg, const char* xml);
 FfiResult_FfiInvoiceBuilder fatoora_invoice_builder_new(
     int invoice_type_kind,
     int invoice_sub_type,
-    const char* id,
-    const char* uuid,
-    long long issue_timestamp,
-    unsigned int issue_nanos,
-    const char* currency_code,
-    const char* previous_invoice_hash,
-    unsigned long long invoice_counter,
-    const char* payment_means_code,
-    int vat_category,
-    const char* seller_name,
-    const char* seller_country_code,
-    const char* seller_city,
-    const char* seller_street,
-    const char* seller_additional_street,
-    const char* seller_building_number,
-    const char* seller_additional_number,
-    const char* seller_postal_code,
-    const char* seller_subdivision,
-    const char* seller_district,
-    const char* seller_vat_id,
-    const char* seller_other_id,
-    const char* seller_other_id_scheme,
     const char* original_invoice_id,
     const char* original_invoice_uuid,
     const char* original_invoice_issue_date,
     const char* original_invoice_reason
+);
+
+FfiResult_bool fatoora_invoice_builder_set_id(FfiInvoiceBuilder* builder, const char* id);
+FfiResult_bool fatoora_invoice_builder_set_uuid(FfiInvoiceBuilder* builder, const char* uuid);
+FfiResult_bool fatoora_invoice_builder_set_issue_datetime(FfiInvoiceBuilder* builder, const char* issue_timestamp);
+FfiResult_bool fatoora_invoice_builder_set_currency(FfiInvoiceBuilder* builder, const char* currency_code);
+FfiResult_bool fatoora_invoice_builder_set_previous_hash(FfiInvoiceBuilder* builder, const char* hash);
+FfiResult_bool fatoora_invoice_builder_set_invoice_counter(FfiInvoiceBuilder* builder, unsigned long long counter);
+FfiResult_bool fatoora_invoice_builder_set_payment_means_code(FfiInvoiceBuilder* builder, const char* payment_means_code);
+FfiResult_bool fatoora_invoice_builder_set_vat_category(FfiInvoiceBuilder* builder, int vat_category);
+FfiResult_bool fatoora_invoice_builder_set_seller(
+    FfiInvoiceBuilder* builder,
+    const char* name,
+    const char* country_code,
+    const char* city,
+    const char* street,
+    const char* additional_street,
+    const char* building_number,
+    const char* additional_number,
+    const char* postal_code,
+    const char* subdivision,
+    const char* district,
+    const char* vat_id,
+    const char* other_id_value,
+    const char* other_id_scheme
 );
 
 FfiResult_bool fatoora_invoice_builder_add_line_item(
@@ -252,14 +271,6 @@ FfiResult_bool fatoora_invoice_builder_set_allowance(
 );
 
 FfiResult_bool fatoora_invoice_builder_set_flags(
-    FfiInvoiceBuilder* builder,
-    unsigned char flags
-);
-FfiResult_bool fatoora_invoice_builder_enable_flags(
-    FfiInvoiceBuilder* builder,
-    unsigned char flags
-);
-FfiResult_bool fatoora_invoice_builder_disable_flags(
     FfiInvoiceBuilder* builder,
     unsigned char flags
 );
@@ -309,6 +320,18 @@ FfiResult_f64 fatoora_signed_invoice_totals_taxable_amount(FfiSignedInvoice* sig
 FfiResult_u8 fatoora_invoice_flags(FfiFinalizedInvoice* invoice);
 FfiResult_u8 fatoora_signed_invoice_flags(FfiSignedInvoice* signed);
 
+FfiResult_FfiString fatoora_invoice_id(FfiFinalizedInvoice* invoice);
+FfiResult_FfiString fatoora_invoice_uuid(FfiFinalizedInvoice* invoice);
+FfiResult_FfiString fatoora_invoice_issue_datetime(FfiFinalizedInvoice* invoice);
+FfiResult_FfiString fatoora_invoice_currency(FfiFinalizedInvoice* invoice);
+FfiResult_FfiString fatoora_invoice_previous_hash(FfiFinalizedInvoice* invoice);
+FfiResult_u64 fatoora_invoice_counter(FfiFinalizedInvoice* invoice);
+FfiResult_FfiString fatoora_invoice_payment_means_code(FfiFinalizedInvoice* invoice);
+FfiResult_FfiVatCategory fatoora_invoice_vat_category(FfiFinalizedInvoice* invoice);
+FfiResult_FfiString fatoora_invoice_allowance_reason(FfiFinalizedInvoice* invoice);
+FfiResult_f64 fatoora_invoice_level_charge(FfiFinalizedInvoice* invoice);
+FfiResult_f64 fatoora_invoice_level_discount(FfiFinalizedInvoice* invoice);
+
 FfiResult_FfiString fatoora_invoice_to_xml(FfiFinalizedInvoice* invoice);
 FfiResult_FfiString fatoora_invoice_hash_base64(FfiFinalizedInvoice* invoice);
 void fatoora_invoice_free(FfiFinalizedInvoice* invoice);
@@ -316,8 +339,8 @@ void fatoora_invoice_free(FfiFinalizedInvoice* invoice);
 FfiResult_FfiParty fatoora_invoice_seller(FfiFinalizedInvoice* invoice);
 FfiResult_FfiParty fatoora_invoice_buyer(FfiFinalizedInvoice* invoice);
 FfiResult_FfiInvoiceNote fatoora_invoice_note(FfiFinalizedInvoice* invoice);
-FfiResult_u8 fatoora_invoice_type_kind(FfiFinalizedInvoice* invoice);
-FfiResult_u8 fatoora_invoice_sub_type(FfiFinalizedInvoice* invoice);
+FfiResult_FfiInvoiceTypeKind fatoora_invoice_type_kind(FfiFinalizedInvoice* invoice);
+FfiResult_FfiInvoiceSubType fatoora_invoice_sub_type(FfiFinalizedInvoice* invoice);
 FfiResult_FfiOriginalInvoiceRef fatoora_invoice_original_ref(FfiFinalizedInvoice* invoice);
 FfiResult_FfiString fatoora_invoice_original_reason(FfiFinalizedInvoice* invoice);
 
@@ -334,14 +357,25 @@ FfiResult_FfiString fatoora_signed_invoice_hash(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_hash_base64(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_signature(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_public_key(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_zatca_key_signature(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_cert_hash(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_signed_props_hash(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_signing_time(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_id(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_issue_datetime(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_currency(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_previous_hash(FfiSignedInvoice* signed);
+FfiResult_u64 fatoora_signed_invoice_counter(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_payment_means_code(FfiSignedInvoice* signed);
+FfiResult_FfiVatCategory fatoora_signed_invoice_vat_category(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_allowance_reason(FfiSignedInvoice* signed);
+FfiResult_f64 fatoora_signed_invoice_level_charge(FfiSignedInvoice* signed);
+FfiResult_f64 fatoora_signed_invoice_level_discount(FfiSignedInvoice* signed);
 FfiResult_FfiParty fatoora_signed_invoice_seller(FfiSignedInvoice* signed);
 FfiResult_FfiParty fatoora_signed_invoice_buyer(FfiSignedInvoice* signed);
 FfiResult_FfiInvoiceNote fatoora_signed_invoice_note(FfiSignedInvoice* signed);
-FfiResult_u8 fatoora_signed_invoice_type_kind(FfiSignedInvoice* signed);
-FfiResult_u8 fatoora_signed_invoice_sub_type(FfiSignedInvoice* signed);
+FfiResult_FfiInvoiceTypeKind fatoora_signed_invoice_type_kind(FfiSignedInvoice* signed);
+FfiResult_FfiInvoiceSubType fatoora_signed_invoice_sub_type(FfiSignedInvoice* signed);
 FfiResult_FfiOriginalInvoiceRef fatoora_signed_invoice_original_ref(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_original_reason(FfiSignedInvoice* signed);
 void fatoora_signed_invoice_free(FfiSignedInvoice* signed);

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from enum import IntEnum
 from typing import Any, Optional
 
@@ -106,6 +105,31 @@ def _decode_optional_string(ffi, lib, value) -> Optional[str]:
     return raw.decode("utf-8") if raw else None
 
 
+def _decode_bytes(ffi, lib, value) -> bytes:
+    if not value.ptr:
+        lib.fatoora_bytes_free(value)
+        return b""
+    data = bytes(ffi.buffer(value.ptr, int(value.len)))
+    lib.fatoora_bytes_free(value)
+    return data
+
+
+def _decode_bytes_list(ffi, lib, value) -> list[bytes]:
+    if not value.ptr:
+        lib.fatoora_bytes_list_free(value)
+        return []
+    items = ffi.cast("FfiBytes *", value.ptr)
+    out: list[bytes] = []
+    for idx in range(int(value.len)):
+        item = items[idx]
+        if not item.ptr:
+            out.append(b"")
+            continue
+        out.append(bytes(ffi.buffer(item.ptr, int(item.len))))
+    lib.fatoora_bytes_list_free(value)
+    return out
+
+
 def _result_or_raise(ffi, lib, result, value_attr: str = "value"):
     if not result.ok:
         message, code = _decode_error(ffi, lib, result.error)
@@ -151,6 +175,11 @@ class Config:
 
     def validate_xml(self, xml: str) -> bool:
         return validate_xml_str(self, xml)
+
+    def env_value(self) -> Environment:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_config_env(self._handle)
+        return Environment(int(_result_or_raise(bindings.ffi, bindings.lib, result)))
 
     def close(self) -> None:
         if self._handle:
@@ -244,10 +273,28 @@ class SigningKey:
         )
         return cls(handle)
 
+    @classmethod
+    def generate(cls) -> "SigningKey":
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signing_key_generate()
+        handle = _wrap_handle(
+            bindings.ffi,
+            "FfiSigningKey",
+            _result_or_raise(bindings.ffi, bindings.lib, result),
+        )
+        return cls(handle)
+
     def to_pem(self) -> str:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_signing_key_to_pem(self._handle)
         return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def to_der(self) -> bytes:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signing_key_to_der(self._handle)
+        return _decode_bytes(
             bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
         )
 
@@ -271,11 +318,9 @@ class CsrProperties:
     _handle: Optional[Any] = None
 
     @classmethod
-    def parse(cls, path: str) -> "CsrProperties":
+    def from_properties_str(cls, properties: str) -> "CsrProperties":
         bindings = _FfiBindings.instance()
-        with open(path, "r", encoding="utf-8") as handle:
-            contents = handle.read()
-        result = bindings.lib.fatoora_csr_properties_from_str(_as_bytes(contents))
+        result = bindings.lib.fatoora_csr_properties_from_str(_as_bytes(properties))
         handle = _wrap_handle(
             bindings.ffi,
             "FfiCsrProperties",
@@ -283,13 +328,27 @@ class CsrProperties:
         )
         return cls(handle)
 
-    def build_with_rng(self, env: Environment) -> "CsrBundle":
+    @classmethod
+    def parse(cls, properties: str) -> "CsrProperties":
         bindings = _FfiBindings.instance()
-        result = bindings.lib.fatoora_csr_build_with_rng(self._handle, int(env))
-        bundle = _result_or_raise(bindings.ffi, bindings.lib, result)
-        csr = Csr(_wrap_handle(bindings.ffi, "FfiCsr", bundle.csr))
-        key = SigningKey(_wrap_handle(bindings.ffi, "FfiSigningKey", bundle.key))
-        return CsrBundle(csr=csr, key=key)
+        result = bindings.lib.fatoora_csr_properties_parse(_as_bytes(properties))
+        handle = _wrap_handle(
+            bindings.ffi,
+            "FfiCsrProperties",
+            _result_or_raise(bindings.ffi, bindings.lib, result),
+        )
+        return cls(handle)
+
+    @classmethod
+    def parse_file(cls, path: str) -> "CsrProperties":
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_csr_properties_parse_file(_as_bytes(path))
+        handle = _wrap_handle(
+            bindings.ffi,
+            "FfiCsrProperties",
+            _result_or_raise(bindings.ffi, bindings.lib, result),
+        )
+        return cls(handle)
 
     def build(self, key: SigningKey, env: Environment) -> "Csr":
         bindings = _FfiBindings.instance()
@@ -320,6 +379,18 @@ class CsrProperties:
 class Csr:
     _handle: Any
 
+    @classmethod
+    def from_der(cls, der: bytes) -> "Csr":
+        bindings = _FfiBindings.instance()
+        buf = bytes(der)
+        result = bindings.lib.fatoora_csr_from_der(buf, len(buf))
+        handle = _wrap_handle(
+            bindings.ffi,
+            "FfiCsr",
+            _result_or_raise(bindings.ffi, bindings.lib, result),
+        )
+        return cls(handle)
+
     def to_base64(self) -> str:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_csr_to_base64(self._handle)
@@ -331,6 +402,34 @@ class Csr:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_csr_to_pem_base64(self._handle)
         return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def to_der(self) -> bytes:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_csr_to_der(self._handle)
+        return _decode_bytes(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def to_pem(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_csr_to_pem(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def subject_string(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_csr_subject_string(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def extension_values_der(self) -> list[bytes]:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_csr_extension_values_der(self._handle)
+        return _decode_bytes_list(
             bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
         )
 
@@ -349,12 +448,6 @@ class Csr:
         self.close()
 
 
-@dataclass(frozen=True)
-class CsrBundle:
-    csr: Csr
-    key: SigningKey
-
-
 @dataclass
 class CsidCompliance:
     _handle: Any
@@ -365,14 +458,12 @@ class CsidCompliance:
         env: Environment,
         token: str,
         secret: str,
-        request_id: Optional[int] = None,
+        request_id: Optional[str] = None,
     ) -> "CsidCompliance":
         bindings = _FfiBindings.instance()
-        has_request_id = request_id is not None
         result = bindings.lib.fatoora_csid_compliance_new(
             int(env),
-            bool(has_request_id),
-            int(request_id or 0),
+            _opt_cstr(bindings.ffi, request_id),
             _as_bytes(token),
             _as_bytes(secret),
         )
@@ -383,10 +474,17 @@ class CsidCompliance:
         )
         return cls(handle)
 
-    def request_id(self) -> int:
+    def request_id(self) -> str:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_csid_compliance_request_id(self._handle)
-        return int(_result_or_raise(bindings.ffi, bindings.lib, result))
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def env(self) -> Environment:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_csid_compliance_env(self._handle)
+        return Environment(int(_result_or_raise(bindings.ffi, bindings.lib, result)))
 
     def token(self) -> str:
         bindings = _FfiBindings.instance()
@@ -427,14 +525,12 @@ class CsidProduction:
         env: Environment,
         token: str,
         secret: str,
-        request_id: Optional[int] = None,
+        request_id: Optional[str] = None,
     ) -> "CsidProduction":
         bindings = _FfiBindings.instance()
-        has_request_id = request_id is not None
         result = bindings.lib.fatoora_csid_production_new(
             int(env),
-            bool(has_request_id),
-            int(request_id or 0),
+            _opt_cstr(bindings.ffi, request_id),
             _as_bytes(token),
             _as_bytes(secret),
         )
@@ -445,10 +541,17 @@ class CsidProduction:
         )
         return cls(handle)
 
-    def request_id(self) -> int:
+    def request_id(self) -> str:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_csid_production_request_id(self._handle)
-        return int(_result_or_raise(bindings.ffi, bindings.lib, result))
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def env(self) -> Environment:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_csid_production_env(self._handle)
+        return Environment(int(_result_or_raise(bindings.ffi, bindings.lib, result)))
 
     def token(self) -> str:
         bindings = _FfiBindings.instance()
@@ -1075,6 +1178,13 @@ class ZatcaClient:
 class SignedInvoice:
     _handle: Any
 
+    def id(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_id(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
     def xml(self) -> str:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_signed_invoice_xml(self._handle)
@@ -1103,6 +1213,62 @@ class SignedInvoice:
             bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
         )
 
+    def issue_datetime(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_issue_datetime(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def currency(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_currency(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def previous_invoice_hash(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_previous_hash(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def invoice_counter(self) -> int:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_counter(self._handle)
+        return int(_result_or_raise(bindings.ffi, bindings.lib, result))
+
+    def payment_means_code(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_payment_means_code(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def vat_category(self) -> VatCategory:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_vat_category(self._handle)
+        value = int(_result_or_raise(bindings.ffi, bindings.lib, result))
+        return VatCategory(value)
+
+    def invoice_level_charge(self) -> float:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_level_charge(self._handle)
+        return float(_result_or_raise(bindings.ffi, bindings.lib, result))
+
+    def invoice_level_discount(self) -> float:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_level_discount(self._handle)
+        return float(_result_or_raise(bindings.ffi, bindings.lib, result))
+
+    def allowance_reason(self) -> Optional[str]:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_allowance_reason(self._handle)
+        return _decode_optional_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
     def invoice_hash(self) -> str:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_signed_invoice_hash(self._handle)
@@ -1128,6 +1294,13 @@ class SignedInvoice:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_signed_invoice_public_key(self._handle)
         return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def zatca_key_signature(self) -> Optional[str]:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_zatca_key_signature(self._handle)
+        return _decode_optional_string(
             bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
         )
 
@@ -1343,6 +1516,76 @@ class SignedInvoice:
 @dataclass
 class Invoice:
     _handle: Any
+
+    def id(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_id(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def uuid(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_uuid(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def issue_datetime(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_issue_datetime(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def currency(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_currency(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def previous_invoice_hash(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_previous_hash(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def invoice_counter(self) -> int:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_counter(self._handle)
+        return int(_result_or_raise(bindings.ffi, bindings.lib, result))
+
+    def payment_means_code(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_payment_means_code(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def vat_category(self) -> VatCategory:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_vat_category(self._handle)
+        value = int(_result_or_raise(bindings.ffi, bindings.lib, result))
+        return VatCategory(value)
+
+    def invoice_level_charge(self) -> float:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_level_charge(self._handle)
+        return float(_result_or_raise(bindings.ffi, bindings.lib, result))
+
+    def invoice_level_discount(self) -> float:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_level_discount(self._handle)
+        return float(_result_or_raise(bindings.ffi, bindings.lib, result))
+
+    def allowance_reason(self) -> Optional[str]:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_allowance_reason(self._handle)
+        return _decode_optional_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
 
     def xml(self) -> str:
         bindings = _FfiBindings.instance()
@@ -1616,64 +1859,15 @@ class InvoiceBuilder:
         cls,
         invoice_type: InvoiceTypeKind,
         invoice_subtype: InvoiceSubType,
-        invoice_id: str,
-        uuid: str,
-        issue_datetime: datetime,
-        currency_code: str,
-        previous_invoice_hash: str,
-        invoice_counter: int,
-        payment_means_code: str,
-        vat_category: VatCategory,
-        seller_name: str,
-        seller_country_code: str,
-        seller_city: str,
-        seller_street: str,
-        seller_building_number: str,
-        seller_postal_code: str,
-        seller_vat_id: str,
-        seller_additional_street: Optional[str] = None,
-        seller_additional_number: Optional[str] = None,
-        seller_subdivision: Optional[str] = None,
-        seller_district: Optional[str] = None,
-        seller_other_id: Optional[str] = None,
-        seller_other_id_scheme: Optional[str] = None,
         original_invoice_id: Optional[str] = None,
         original_invoice_uuid: Optional[str] = None,
         original_invoice_issue_date: Optional[str] = None,
         original_invoice_reason: Optional[str] = None,
     ) -> "InvoiceBuilder":
-        if issue_datetime.tzinfo is None:
-            issue_datetime = issue_datetime.replace(tzinfo=timezone.utc)
-        issue_datetime = issue_datetime.astimezone(timezone.utc)
-        seconds = int(issue_datetime.timestamp())
-        nanos = int(issue_datetime.microsecond * 1000)
-
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_invoice_builder_new(
             int(invoice_type),
             int(invoice_subtype),
-            _as_bytes(invoice_id),
-            _as_bytes(uuid),
-            seconds,
-            nanos,
-            _as_bytes(currency_code),
-            _as_bytes(previous_invoice_hash),
-            int(invoice_counter),
-            _as_bytes(payment_means_code),
-            int(vat_category),
-            _as_bytes(seller_name),
-            _as_bytes(seller_country_code),
-            _as_bytes(seller_city),
-            _as_bytes(seller_street),
-            _opt_cstr(bindings.ffi, seller_additional_street),
-            _as_bytes(seller_building_number),
-            _opt_cstr(bindings.ffi, seller_additional_number),
-            _as_bytes(seller_postal_code),
-            _opt_cstr(bindings.ffi, seller_subdivision),
-            _opt_cstr(bindings.ffi, seller_district),
-            _as_bytes(seller_vat_id),
-            _opt_cstr(bindings.ffi, seller_other_id),
-            _opt_cstr(bindings.ffi, seller_other_id_scheme),
             _opt_cstr(bindings.ffi, original_invoice_id),
             _opt_cstr(bindings.ffi, original_invoice_uuid),
             _opt_cstr(bindings.ffi, original_invoice_issue_date),
@@ -1685,6 +1879,97 @@ class InvoiceBuilder:
             _result_or_raise(bindings.ffi, bindings.lib, result),
         )
         return cls(handle)
+
+    def set_id(self, invoice_id: str) -> None:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_builder_set_id(
+            self._handle, _as_bytes(invoice_id)
+        )
+        _result_or_raise(bindings.ffi, bindings.lib, result)
+
+    def set_uuid(self, uuid: str) -> None:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_builder_set_uuid(
+            self._handle, _as_bytes(uuid)
+        )
+        _result_or_raise(bindings.ffi, bindings.lib, result)
+
+    def set_issue_datetime(self, issue_datetime: str) -> None:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_builder_set_issue_datetime(
+            self._handle, _as_bytes(issue_datetime)
+        )
+        _result_or_raise(bindings.ffi, bindings.lib, result)
+
+    def set_currency(self, currency_code: str) -> None:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_builder_set_currency(
+            self._handle, _as_bytes(currency_code)
+        )
+        _result_or_raise(bindings.ffi, bindings.lib, result)
+
+    def set_previous_invoice_hash(self, previous_invoice_hash: str) -> None:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_builder_set_previous_hash(
+            self._handle, _as_bytes(previous_invoice_hash)
+        )
+        _result_or_raise(bindings.ffi, bindings.lib, result)
+
+    def set_invoice_counter(self, invoice_counter: int) -> None:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_builder_set_invoice_counter(
+            self._handle, int(invoice_counter)
+        )
+        _result_or_raise(bindings.ffi, bindings.lib, result)
+
+    def set_payment_means_code(self, payment_means_code: str) -> None:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_builder_set_payment_means_code(
+            self._handle, _as_bytes(payment_means_code)
+        )
+        _result_or_raise(bindings.ffi, bindings.lib, result)
+
+    def set_vat_category(self, vat_category: VatCategory) -> None:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_builder_set_vat_category(
+            self._handle, int(vat_category)
+        )
+        _result_or_raise(bindings.ffi, bindings.lib, result)
+
+    def set_seller(
+        self,
+        name: str,
+        country_code: str,
+        city: str,
+        street: str,
+        building_number: str,
+        postal_code: str,
+        vat_id: str,
+        additional_street: Optional[str] = None,
+        additional_number: Optional[str] = None,
+        subdivision: Optional[str] = None,
+        district: Optional[str] = None,
+        other_id: Optional[str] = None,
+        other_id_scheme: Optional[str] = None,
+    ) -> None:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_builder_set_seller(
+            self._handle,
+            _as_bytes(name),
+            _as_bytes(country_code),
+            _as_bytes(city),
+            _as_bytes(street),
+            _opt_cstr(bindings.ffi, additional_street),
+            _as_bytes(building_number),
+            _opt_cstr(bindings.ffi, additional_number),
+            _as_bytes(postal_code),
+            _opt_cstr(bindings.ffi, subdivision),
+            _opt_cstr(bindings.ffi, district),
+            _as_bytes(vat_id),
+            _opt_cstr(bindings.ffi, other_id),
+            _opt_cstr(bindings.ffi, other_id_scheme),
+        )
+        _result_or_raise(bindings.ffi, bindings.lib, result)
 
     def add_line_item(
         self,
@@ -1763,20 +2048,6 @@ class InvoiceBuilder:
     def set_flags(self, flags: int) -> None:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_invoice_builder_set_flags(
-            self._handle, flags
-        )
-        _result_or_raise(bindings.ffi, bindings.lib, result)
-
-    def enable_flags(self, flags: int) -> None:
-        bindings = _FfiBindings.instance()
-        result = bindings.lib.fatoora_invoice_builder_enable_flags(
-            self._handle, flags
-        )
-        _result_or_raise(bindings.ffi, bindings.lib, result)
-
-    def disable_flags(self, flags: int) -> None:
-        bindings = _FfiBindings.instance()
-        result = bindings.lib.fatoora_invoice_builder_disable_flags(
             self._handle, flags
         )
         _result_or_raise(bindings.ffi, bindings.lib, result)

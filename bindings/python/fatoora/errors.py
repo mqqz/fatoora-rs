@@ -16,9 +16,8 @@ class FfiErrorKind(IntEnum):
     IO = 6
     NETWORK = 7
     UNAUTHORIZED = 8
-    NOT_FOUND = 9
-    INTERNAL = 10
-    API = 11
+    INTERNAL = 9
+    API = 10
 
 
 class FfiError(FatooraError):
@@ -62,10 +61,6 @@ class UnauthorizedError(FfiError):
     pass
 
 
-class NotFoundError(FfiError):
-    pass
-
-
 class InternalError(FfiError):
     pass
 
@@ -84,7 +79,6 @@ def error_class_for_code(code: int | None) -> type[FfiError]:
         FfiErrorKind.IO: IoError,
         FfiErrorKind.NETWORK: NetworkError,
         FfiErrorKind.UNAUTHORIZED: UnauthorizedError,
-        FfiErrorKind.NOT_FOUND: NotFoundError,
         FfiErrorKind.INTERNAL: InternalError,
         FfiErrorKind.API: ApiError,
     }
