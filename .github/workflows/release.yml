@@ -1,0 +1,159 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release-cli:
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            ext: ""
+            lib_ext: so
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            ext: ""
+            lib_ext: dylib
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            ext: ".exe"
+            lib_ext: dll
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Rust
+        run: rustup update stable
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            .
+
+      - name: Install libxml2 (vcpkg)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg $env:VCPKG_ROOT
+          & $env:VCPKG_ROOT\bootstrap-vcpkg.bat
+          & $env:VCPKG_ROOT\vcpkg.exe install libxml2:x64-windows
+        env:
+          VCPKG_ROOT: ${{ runner.temp }}\vcpkg
+
+      - name: Build CLI
+        env:
+          VCPKG_ROOT: ${{ runner.temp }}\vcpkg
+          VCPKGRS_DYNAMIC: "1"
+        run: cargo build -p fatoora-rs-cli --release --target ${{ matrix.target }}
+
+      - name: Package CLI (unix)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/fatoora-rs-cli dist/fatoora-rs-cli-${{ matrix.target }}
+
+      - name: Package CLI (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item target/${{ matrix.target }}/release/fatoora-rs-cli.exe dist/fatoora-rs-cli-${{ matrix.target }}.exe
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+
+  release-ffi:
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            ext: ""
+            lib_ext: so
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            ext: ""
+            lib_ext: dylib
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            ext: ".exe"
+            lib_ext: dll
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Rust
+        run: rustup update stable
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            .
+
+      - name: Install libxml2 (vcpkg)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg $env:VCPKG_ROOT
+          & $env:VCPKG_ROOT\bootstrap-vcpkg.bat
+          & $env:VCPKG_ROOT\vcpkg.exe install libxml2:x64-windows
+        env:
+          VCPKG_ROOT: ${{ runner.temp }}\vcpkg
+
+      - name: Build FFI
+        env:
+          VCPKG_ROOT: ${{ runner.temp }}\vcpkg
+          VCPKGRS_DYNAMIC: "1"
+        run: cargo build -p fatoora-ffi --release --target ${{ matrix.target }}
+
+      - name: Package FFI (unix)
+        if: runner.os != 'Windows'
+        run: |
+          pkg=fatoora-ffi-${{ matrix.target }}
+          mkdir -p dist/$pkg/include
+          cp target/${{ matrix.target }}/release/libfatoora_ffi.${{ matrix.lib_ext }} dist/$pkg/
+          cp fatoora-ffi/include/fatoora_ffi.h dist/$pkg/include/
+          cp fatoora-ffi/include/fatoora.h dist/$pkg/include/
+          cp LICENSE dist/$pkg/
+          cp README.md dist/$pkg/README.md
+          tar -czf dist/${pkg}.tar.gz -C dist/$pkg .
+
+      - name: Package FFI (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $pkg = "fatoora-ffi-${{ matrix.target }}"
+          New-Item -ItemType Directory -Force -Path "dist\\$pkg\\include" | Out-Null
+          Copy-Item "target\\${{ matrix.target }}\\release\\fatoora_ffi.dll" "dist\\$pkg\\"
+          if (Test-Path "target\\${{ matrix.target }}\\release\\fatoora_ffi.dll.lib") {
+            Copy-Item "target\\${{ matrix.target }}\\release\\fatoora_ffi.dll.lib" "dist\\$pkg\\"
+          } elseif (Test-Path "target\\${{ matrix.target }}\\release\\fatoora_ffi.lib") {
+            Copy-Item "target\\${{ matrix.target }}\\release\\fatoora_ffi.lib" "dist\\$pkg\\"
+          }
+          Copy-Item "fatoora-ffi\\include\\fatoora_ffi.h" "dist\\$pkg\\include\\"
+          Copy-Item "fatoora-ffi\\include\\fatoora.h" "dist\\$pkg\\include\\"
+          Copy-Item "LICENSE" "dist\\$pkg\\"
+          Copy-Item "README.md" "dist\\$pkg\\README.md"
+          Compress-Archive -Path "dist\\$pkg\\*" -DestinationPath "dist\\$pkg.zip"
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*

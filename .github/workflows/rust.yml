@@ -5,8 +5,6 @@ on:
     branches: ["**"]
   push:
     branches: ["**"]
-    tags:
-      - "v*"
 
 jobs:
   coverage:
@@ -55,68 +53,3 @@ jobs:
           cargo publish -p fatoora-core --locked
           cargo publish -p fatoora-ffi --locked
           cargo publish -p fatoora-rs-cli --locked
-
-  release-cli:
-    runs-on: ${{ matrix.os }}
-    permissions:
-      contents: write
-    needs: coverage
-    if: startsWith(github.ref, 'refs/tags/v')
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            ext: ""
-          - os: macos-latest
-            target: aarch64-apple-darwin
-            ext: ""
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            ext: ".exe"
-
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Install Rust
-        run: rustup update stable
-      - name: Cache cargo
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: |
-            .
-
-      - name: Install libxml2 (vcpkg)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          git clone https://github.com/microsoft/vcpkg $env:VCPKG_ROOT
-          & $env:VCPKG_ROOT\bootstrap-vcpkg.bat
-          & $env:VCPKG_ROOT\vcpkg.exe install libxml2:x64-windows
-        env:
-          VCPKG_ROOT: ${{ runner.temp }}\vcpkg
-
-      - name: Build CLI
-        env:
-          VCPKG_ROOT: ${{ runner.temp }}\vcpkg
-          VCPKGRS_DYNAMIC: "1"
-        run: cargo build -p fatoora-rs-cli --release --target ${{ matrix.target }}
-
-      - name: Package CLI (unix)
-        if: runner.os != 'Windows'
-        run: |
-          mkdir -p dist
-          cp target/${{ matrix.target }}/release/fatoora-rs-cli dist/fatoora-rs-cli-${{ matrix.target }}
-
-      - name: Package CLI (windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path dist | Out-Null
-          Copy-Item target/${{ matrix.target }}/release/fatoora-rs-cli.exe dist/fatoora-rs-cli-${{ matrix.target }}.exe
-
-      - name: Upload Release Assets
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*
