@@ -1,16 +1,7 @@
 use std::path::PathBuf;
 use std::process::Command;
-use std::str::FromStr;
-
+use base64ct::{Base64, Encoding};
 use fatoora_core::invoice::xml::parse::parse_signed_invoice_xml;
-use k256::ecdsa::SigningKey;
-use k256::pkcs8::EncodePrivateKey;
-use x509_cert::builder::{Builder, CertificateBuilder, profile};
-use x509_cert::der::EncodePem;
-use x509_cert::name::Name;
-use x509_cert::serial_number::SerialNumber;
-use x509_cert::spki::{EncodePublicKey, SubjectPublicKeyInfo};
-use x509_cert::time::Validity;
 
 fn cli_exe() -> &'static str {
     env!("CARGO_BIN_EXE_fatoora-rs-cli")
@@ -36,18 +27,6 @@ fn signed_invoice_fixture() -> PathBuf {
         .join("sample-simplified-invoice.xml")
 }
 
-fn xsd_invoice_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("fatoora-core")
-        .join("assets")
-        .join("schemas")
-        .join("UBL2.1")
-        .join("xsd")
-        .join("maindoc")
-        .join("UBL-Invoice-2.1.xsd")
-}
-
 fn unique_temp_path(prefix: &str) -> PathBuf {
     let mut path = std::env::temp_dir();
     let nonce = std::time::SystemTime::now()
@@ -58,20 +37,24 @@ fn unique_temp_path(prefix: &str) -> PathBuf {
     path
 }
 
-fn build_test_cert_pem(key: &SigningKey) -> String {
-    let serial_number = SerialNumber::from(1u32);
-    let validity = Validity::from_now(std::time::Duration::new(3600, 0)).expect("validity");
-    let subject = Name::from_str("CN=Test,O=Fatoora,C=SA").expect("subject");
-    let profile = profile::cabf::Root::new(false, subject).expect("profile");
-    let public_key = key.verifying_key();
-    let spki_der = public_key.to_public_key_der().expect("public key der");
-    let pub_key = SubjectPublicKeyInfo::try_from(spki_der.as_bytes()).expect("spki");
-    let builder = CertificateBuilder::new(profile, serial_number, validity, pub_key)
-        .expect("builder");
-    let cert = builder
-        .build::<_, k256::ecdsa::DerSignature>(key)
-        .expect("certificate");
-    cert.to_pem(Default::default()).expect("cert pem")
+fn cert_fixture_base64() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("fatoora-core")
+        .join("tests")
+        .join("fixtures")
+        .join("certs")
+        .join("zatca_cert_b64.txt")
+}
+
+fn key_fixture_der() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("fatoora-core")
+        .join("tests")
+        .join("fixtures")
+        .join("pkeys")
+        .join("test_zatca_pkey.der")
 }
 
 #[test]
@@ -117,8 +100,6 @@ fn validate_command_reports_ok() {
             "validate",
             "--invoice",
             fixture.to_str().unwrap(),
-            "--xsd-path",
-            xsd_invoice_path().to_str().unwrap(),
         ])
         .output()
         .expect("run validate command");
@@ -135,18 +116,16 @@ fn validate_command_reports_ok() {
 #[test]
 fn sign_command_outputs_signed_invoice() {
     let fixture = signed_invoice_fixture();
-    let key = SigningKey::generate();
-    let key_pem = key
-        .to_pkcs8_pem(k256::pkcs8::LineEnding::LF)
-        .expect("key pem")
-        .to_string();
-    let cert_pem = build_test_cert_pem(&key);
-
     let key_path = unique_temp_path("sign-key");
     let cert_path = unique_temp_path("sign-cert");
     let signed_path = unique_temp_path("signed-invoice");
-    std::fs::write(&key_path, key_pem.as_bytes()).expect("write key");
-    std::fs::write(&cert_path, cert_pem.as_bytes()).expect("write cert");
+    let cert_b64 = std::fs::read_to_string(cert_fixture_base64()).expect("read cert b64");
+    let inner_b64 = Base64::decode_vec(cert_b64.trim()).expect("decode cert wrapper");
+    let inner_b64_str = std::str::from_utf8(&inner_b64).expect("decode cert inner b64");
+    let cert_der = Base64::decode_vec(inner_b64_str.trim()).expect("decode cert der");
+    let key_der = std::fs::read(key_fixture_der()).expect("read key der");
+    std::fs::write(&key_path, &key_der).expect("write key");
+    std::fs::write(&cert_path, &cert_der).expect("write cert");
 
     let output = Command::new(cli_exe())
         .args([
@@ -157,6 +136,10 @@ fn sign_command_outputs_signed_invoice() {
             cert_path.to_str().unwrap(),
             "--key",
             key_path.to_str().unwrap(),
+            "--cert-format",
+            "der",
+            "--key-format",
+            "der",
             "--signed-invoice",
             signed_path.to_str().unwrap(),
         ])

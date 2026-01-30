@@ -9,15 +9,13 @@ use base64ct::{Base64, Encoding};
 use clap::{Parser, Subcommand, ValueEnum};
 use fatoora_core::{
     config::EnvironmentType,
-    csr::{CsrProperties, ToBase64String},
+    csr::CsrProperties,
     invoice::{
         validation::validate_xml_invoice_from_str,
         xml::parse::{parse_finalized_invoice_xml, parse_signed_invoice_xml},
     },
 };
-use k256::pkcs8::{EncodePrivateKey, LineEnding};
 use serde_json::json;
-use x509_cert::der::EncodePem;
 
 #[derive(Parser)]
 #[command(name = "fatoora")]
@@ -93,28 +91,25 @@ fn main() -> Result<()> {
                 .with_context(|| format!("failed to read CSR config from {csr_config}"))?;
             let csr_config = CsrProperties::from_properties_str(&csr_contents)
                 .context("failed to parse CSR config")?;
-            let (csr, signer) = csr_config
-                .build_with_rng(EnvironmentType::NonProduction)
+            let signer = fatoora_core::csr::SigningKey::generate();
+            let csr = csr_config
+                .build(&signer, EnvironmentType::NonProduction)
                 .context("failed to generate CSR")?;
 
             let csr_output = if pem {
-                csr.to_pem(LineEnding::LF)
-                    .context("failed to encode CSR as PEM")?
+                csr.to_pem().context("failed to encode CSR as PEM")?
             } else {
-                csr.to_base64_string()
+                csr.to_base64()
                     .context("failed to encode CSR as base64")?
             };
 
             let key_output = if pem {
-                signer
-                    .to_pkcs8_pem(LineEnding::LF)
-                    .context("failed to encode private key as PEM")?
-                    .to_string()
+                signer.to_pem().context("failed to encode private key as PEM")?
             } else {
                 let der = signer
-                    .to_pkcs8_der()
+                    .to_der()
                     .context("failed to encode private key as DER")?;
-                Base64::encode_string(der.as_bytes())
+                Base64::encode_string(&der)
             };
 
             if let Some(path) = generated_csr {
