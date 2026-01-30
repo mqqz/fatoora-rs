@@ -3,7 +3,6 @@
 //! Usage:
 //! - Use `ffi_borrow!` / `ffi_borrow_mut!` for handle access.
 //! - Use `ffi_required_string!` for required `*const c_char` arguments.
-//! - Use `ffi_handle_getter!` for getters that return `FfiResult<T>`.
 //! - Use `ffi_take_handle!` for consuming handles (e.g. builder `build`).
 //! - Use `ffi_handle_free!` for free functions.
 //!
@@ -50,6 +49,12 @@ macro_rules! ffi_required_string {
             Err(message) => return FfiResult::err(message),
         }
     }};
+    ($ptr:expr, $label:expr) => {{
+        match required_string($ptr, $label.as_ref()) {
+            Ok(value) => value,
+            Err(message) => return FfiResult::err(message),
+        }
+    }};
 }
 
 macro_rules! ffi_handle_free {
@@ -61,19 +66,6 @@ macro_rules! ffi_handle_free {
             }
         }
     }};
-}
-
-macro_rules! ffi_handle_getter {
-    ($name:ident, $ffi_ty:ty, $inner_ty:ty, $label:literal, $ret:ty, |$arg:ident| $body:expr) => {
-        #[unsafe(no_mangle)]
-        /// # Safety
-        /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-        pub unsafe extern "C" fn $name(handle: *mut $ffi_ty) -> FfiResult<$ret> {
-            let value = ffi_borrow!(handle, $label, $inner_ty);
-            let $arg: &$inner_ty = value;
-            FfiResult::ok({ $body })
-        }
-    };
 }
 
 macro_rules! ffi_take_handle {
@@ -95,7 +87,6 @@ macro_rules! ffi_take_handle {
 pub(crate) use ffi_borrow;
 pub(crate) use ffi_borrow_mut;
 pub(crate) use ffi_handle_free;
-pub(crate) use ffi_handle_getter;
 pub(crate) use ffi_require_handle;
 pub(crate) use ffi_required_string;
 pub(crate) use ffi_take_handle;

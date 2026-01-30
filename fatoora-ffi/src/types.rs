@@ -9,11 +9,11 @@ pub struct FfiConfig {
     pub ptr: *mut c_void,
 }
 
-#[repr(C)]
+#[repr(i32)]
 pub enum FfiEnvironment {
-    NonProduction,
-    Simulation,
-    Production,
+    NonProduction = 0,
+    Simulation = 1,
+    Production = 2,
 }
 
 impl From<FfiEnvironment> for EnvironmentType {
@@ -26,10 +26,20 @@ impl From<FfiEnvironment> for EnvironmentType {
     }
 }
 
-#[repr(C)]
+impl From<EnvironmentType> for FfiEnvironment {
+    fn from(env: EnvironmentType) -> Self {
+        match env {
+            EnvironmentType::NonProduction => FfiEnvironment::NonProduction,
+            EnvironmentType::Simulation => FfiEnvironment::Simulation,
+            EnvironmentType::Production => FfiEnvironment::Production,
+        }
+    }
+}
+
+#[repr(i32)]
 pub enum FfiInvoiceSubType {
-    Standard,
-    Simplified,
+    Standard = 0,
+    Simplified = 1,
 }
 
 impl From<FfiInvoiceSubType> for InvoiceSubType {
@@ -50,20 +60,20 @@ impl From<InvoiceSubType> for FfiInvoiceSubType {
     }
 }
 
-#[repr(C)]
+#[repr(i32)]
 pub enum FfiInvoiceTypeKind {
-    Tax,
-    Prepayment,
-    CreditNote,
-    DebitNote,
+    Tax = 0,
+    Prepayment = 1,
+    CreditNote = 2,
+    DebitNote = 3,
 }
 
-#[repr(C)]
+#[repr(i32)]
 pub enum FfiVatCategory {
-    Exempt,
-    Standard,
-    Zero,
-    OutOfScope,
+    Exempt = 0,
+    Standard = 1,
+    Zero = 2,
+    OutOfScope = 3,
 }
 
 impl From<FfiVatCategory> for VatCategory {
@@ -77,17 +87,41 @@ impl From<FfiVatCategory> for VatCategory {
     }
 }
 
+impl From<VatCategory> for FfiVatCategory {
+    fn from(value: VatCategory) -> Self {
+        match value {
+            VatCategory::Exempt => FfiVatCategory::Exempt,
+            VatCategory::Standard => FfiVatCategory::Standard,
+            VatCategory::Zero => FfiVatCategory::Zero,
+            VatCategory::OutOfScope => FfiVatCategory::OutOfScope,
+        }
+    }
+}
+
 #[repr(C)]
 pub struct FfiString {
     pub ptr: *mut std::os::raw::c_char,
 }
 
+#[repr(C)]
+pub struct FfiBytes {
+    pub ptr: *mut u8,
+    pub len: usize,
+}
+
+#[repr(C)]
+pub struct FfiBytesList {
+    pub ptr: *mut FfiBytes,
+    pub len: usize,
+}
+
 impl From<String> for FfiString {
     fn from(value: String) -> Self {
-        let c = CString::new(value).unwrap_or_else(|_| {
-            CString::new("ffi string").expect("ffi string CString")
-        });
-        FfiString { ptr: c.into_raw() }
+        let c = CString::new(value).ok();
+        match c {
+            Some(value) => FfiString { ptr: value.into_raw() },
+            None => FfiString { ptr: std::ptr::null_mut() },
+        }
     }
 }
 
@@ -133,12 +167,6 @@ pub struct FfiCsr {
 #[repr(C)]
 pub struct FfiSigningKey {
     pub ptr: *mut c_void,
-}
-
-#[repr(C)]
-pub struct FfiCsrBundle {
-    pub csr: FfiCsr,
-    pub key: FfiSigningKey,
 }
 
 #[repr(C)]

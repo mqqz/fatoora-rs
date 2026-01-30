@@ -4,3 +4,6 @@ namespaces = ["fatoora"]
 
 [enum]
 prefix_with_name = true
+
+[export]
+include = ["FfiInvoiceFlag"]

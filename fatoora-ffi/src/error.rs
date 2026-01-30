@@ -4,29 +4,14 @@ use std::os::raw::c_char;
 use crate::types::FfiString;
 use fatoora_core::api::ZatcaError;
 use fatoora_core::csr::CsrError;
-use fatoora_core::invoice::{
-    InvoiceError, QrCodeError,
-};
+use fatoora_core::invoice::{InvoiceError, QrCodeError};
 use fatoora_core::invoice::sign::SigningError;
 use fatoora_core::invoice::validation::XmlValidationError;
 use fatoora_core::invoice::xml::InvoiceXmlError;
 use fatoora_core::invoice::xml::parse::ParseError;
+use fatoora_core::{Error as CoreError, ErrorKind};
 
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum FfiErrorKind {
-    InvalidInput = 1,
-    Validation = 2,
-    Parse = 3,
-    Xml = 4,
-    Crypto = 5,
-    Io = 6,
-    Network = 7,
-    Unauthorized = 8,
-    NotFound = 9,
-    Internal = 10,
-    Api = 11,
-}
+pub type FfiErrorKind = ErrorKind;
 
 #[repr(C)]
 pub struct FfiError {
@@ -66,15 +51,13 @@ impl<T> FfiResult<T> {
     }
 
     pub fn err(details: FfiErrorDetails) -> Self {
-        let c = std::ffi::CString::new(details.message).unwrap_or_else(|_| {
-            std::ffi::CString::new("ffi error").expect("ffi error CString")
-        });
+        let c = std::ffi::CString::new(details.message).ok();
         Self {
             ok: false,
             value: unsafe { std::mem::zeroed() },
             error: Box::into_raw(Box::new(FfiError {
                 code: details.kind as i32,
-                message: c.into_raw(),
+                message: c.map(|value| value.into_raw()).unwrap_or(std::ptr::null_mut()),
             })),
         }
     }
@@ -114,7 +97,10 @@ pub unsafe extern "C" fn fatoora_error_message(error: *mut FfiError) -> FfiStrin
         return FfiString { ptr: std::ptr::null_mut() };
     }
     let cstr = unsafe { std::ffi::CStr::from_ptr(message) };
-    FfiString::from(cstr.to_string_lossy().to_string())
+    match cstr.to_str() {
+        Ok(value) => FfiString::from(value.to_string()),
+        Err(_) => FfiString { ptr: std::ptr::null_mut() },
+    }
 }
 
 pub fn ffi_error_invalid_input(message: impl Into<String>) -> FfiErrorDetails {
@@ -125,82 +111,40 @@ pub fn ffi_error_internal(message: impl Into<String>) -> FfiErrorDetails {
     FfiErrorDetails::new(FfiErrorKind::Internal, message)
 }
 
+pub fn ffi_error_from_core(err: CoreError) -> FfiErrorDetails {
+    FfiErrorDetails::new(err.kind(), err.message().to_string())
+}
+
 pub fn ffi_error_from_csr(err: CsrError) -> FfiErrorDetails {
-    let kind = match err {
-        CsrError::Io { .. } => FfiErrorKind::Io,
-        CsrError::PropertiesRead { .. } => FfiErrorKind::Parse,
-        CsrError::MissingProperty { .. } => FfiErrorKind::InvalidInput,
-        CsrError::InvalidSubject { .. } => FfiErrorKind::InvalidInput,
-        CsrError::InvalidSan { .. } => FfiErrorKind::InvalidInput,
-        CsrError::RequestBuild { .. } => FfiErrorKind::Crypto,
-        CsrError::AddExtension { .. } => FfiErrorKind::Crypto,
-        CsrError::CsrBuild { .. } => FfiErrorKind::Crypto,
-        CsrError::DerEncode { .. } => FfiErrorKind::Crypto,
-        CsrError::Validation { .. } => FfiErrorKind::Validation,
-    };
-    FfiErrorDetails::new(kind, err.to_string())
+    ffi_error_from_core(err.into())
 }
 
 pub fn ffi_error_from_invoice(err: InvoiceError) -> FfiErrorDetails {
-    let kind = match err {
-        InvoiceError::Validation(_) => FfiErrorKind::Validation,
-        InvoiceError::InvalidCountryCode(_) => FfiErrorKind::InvalidInput,
-        InvoiceError::MissingVatForSeller => FfiErrorKind::InvalidInput,
-        InvoiceError::MissingBuyerId => FfiErrorKind::InvalidInput,
-        InvoiceError::InvalidVatFormat => FfiErrorKind::InvalidInput,
-    };
-    FfiErrorDetails::new(kind, err.to_string())
+    ffi_error_from_core(err.into())
 }
 
 pub fn ffi_error_from_signing(err: SigningError) -> FfiErrorDetails {
-    FfiErrorDetails::new(FfiErrorKind::Crypto, err.to_string())
+    ffi_error_from_core(err.into())
 }
 
 pub fn ffi_error_from_qr(err: QrCodeError) -> FfiErrorDetails {
-    let kind = match err {
-        QrCodeError::MissingSellerName => FfiErrorKind::InvalidInput,
-        QrCodeError::MissingSellerVat => FfiErrorKind::InvalidInput,
-        QrCodeError::ValueTooLong { .. } => FfiErrorKind::InvalidInput,
-        QrCodeError::EncodedTooLong { .. } => FfiErrorKind::InvalidInput,
-        QrCodeError::Xml(_) => FfiErrorKind::Xml,
-    };
-    FfiErrorDetails::new(kind, err.to_string())
+    ffi_error_from_core(err.into())
 }
 
 pub fn ffi_error_from_xml(err: InvoiceXmlError) -> FfiErrorDetails {
-    FfiErrorDetails::new(FfiErrorKind::Xml, err.to_string())
+    ffi_error_from_core(err.into())
 }
 
 pub fn ffi_error_from_parse(err: ParseError) -> FfiErrorDetails {
-    let kind = match err {
-        ParseError::XmlParse(_) => FfiErrorKind::Xml,
-        ParseError::XPath(_) => FfiErrorKind::Parse,
-        ParseError::MissingField(_) => FfiErrorKind::InvalidInput,
-        ParseError::InvalidValue { .. } => FfiErrorKind::InvalidInput,
-    };
-    FfiErrorDetails::new(kind, err.to_string())
+    ffi_error_from_core(err.into())
 }
 
 pub fn ffi_error_from_validation(err: XmlValidationError) -> FfiErrorDetails {
-    let kind = match err {
-        XmlValidationError::InvalidXsdPath { .. } => FfiErrorKind::InvalidInput,
-        XmlValidationError::SchemaParse { .. } => FfiErrorKind::Parse,
-        XmlValidationError::XmlParse { .. } => FfiErrorKind::Xml,
-        XmlValidationError::SchemaValidation { .. } => FfiErrorKind::Validation,
-    };
-    FfiErrorDetails::new(kind, err.to_string())
+    ffi_error_from_core(err.into())
 }
 
 pub fn ffi_error_from_api(err: ZatcaError) -> FfiErrorDetails {
-    let kind = match err {
-        ZatcaError::NetworkError(_) => FfiErrorKind::Network,
-        ZatcaError::InvalidResponse(_) => FfiErrorKind::Parse,
-        ZatcaError::Unauthorized(_) => FfiErrorKind::Unauthorized,
-        ZatcaError::ServerError(_) => FfiErrorKind::Api,
-        ZatcaError::Http(_) => FfiErrorKind::Network,
-        ZatcaError::ClientState(_) => FfiErrorKind::Internal,
-    };
-    FfiErrorDetails::new(kind, err.to_string())
+    ffi_error_from_core(err.into())
 }
 
 #[cfg(test)]

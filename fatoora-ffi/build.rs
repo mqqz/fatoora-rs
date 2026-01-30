@@ -20,7 +20,7 @@ fn main() {
     };
 
     match cbindgen::Builder::new()
-        .with_crate(crate_dir)
+        .with_crate(&crate_dir)
         .with_config(config)
         .generate()
     {
