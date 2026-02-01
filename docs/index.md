@@ -13,7 +13,11 @@ This library was born out of the frustration involved in working with the ZATCA 
 
 ## Features
 
-## Installation
+- ZATCA phase 1 + 2 compliance (incl. all invoice sub/types)
+- Fast and efficient
+- Well-documented
+- Easy-to-use
+
 
 ## Quick Start
 
@@ -27,6 +31,31 @@ The main core library (`fatoora-core`) is written in Rust with a C FFI that allo
     - Rust (using the `fatoora-core` crate)
     - C/C++ (directly through the FFI shared library)
     - Python (wrapper library over the FFI)
+
+## Installation
+
+=== "Rust"
+    ```bash
+    cargo add fatoora-core
+    ```
+
+=== "Python"
+    ```bash
+    pip install fatoora-rs
+    ```
+
+=== "C (FFI)"
+    Download the precompiled ffi library and headers for your platform from [github releases](https://github.com/mqqz/fatoora-rs/releases)
+
+=== "CLI"
+    You can either install the binary using `cargo install`:
+    ```bash
+    cargo install fatoora-rs-cli
+    ```
+    Or alternatively grab the precompiled binary for your platform from [github releases](https://github.com/mqqz/fatoora-rs/releases)
+
+
+## Basic Usage
 
 === "Rust"
     ```rust
@@ -57,6 +86,12 @@ The main core library (`fatoora-core`) is written in Rust with a C FFI that allo
     ```bash
     fatoora-rs-cli csr --csr-config csr.properties --generated-csr csr.pem --private-key key.pem --pem
     ```
+
+## Current Limitations
+    - Multithreaded usage is unsupported/untested, so use at your own risk
+    - Only tested on sandbox, due to the difficulty of accessing the production environment
+    - Test suite needs more edge cases
+    - Invoice valdiation only covers the basic UBL format, no specific ZATCA/KSA rules yet.
 
 ## Where to Go Next
 - [Getting Started](guides/getting-started.md)
