@@ -37,6 +37,7 @@ fatoora = ["*.so", "*.dylib", "*.dll"]
 [tool.cibuildwheel]
 build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
 skip = "*-musllinux_*"
+package-dir = "bindings/python"
 test-command = "python -c \"import fatoora; print(fatoora.__all__)\""
 
 [tool.cibuildwheel.linux]

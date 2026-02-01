@@ -93,7 +93,7 @@ jobs:
       - name: Build wheels
         env:
           CIBW_PROJECT_DIR: ${{ github.workspace }}
-          CIBW_PACKAGE_DIR: ${{ github.workspace }}/bindings/python
+          CIBW_CONFIG_FILE: ${{ github.workspace }}/bindings/python/pyproject.toml
         run: python -m cibuildwheel --output-dir bindings/dist
 
       - name: Upload artifacts
