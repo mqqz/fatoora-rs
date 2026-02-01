@@ -8,6 +8,7 @@ from pathlib import Path
 
 from setuptools import setup
 from setuptools.command.build_py import build_py as _build_py
+from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
 
 class build_py(_build_py):
@@ -39,4 +40,11 @@ class build_py(_build_py):
         return "libfatoora_ffi.so"
 
 
-setup(cmdclass={"build_py": build_py})
+class bdist_wheel(_bdist_wheel):
+    def finalize_options(self) -> None:
+        super().finalize_options()
+        # Force a platform wheel since we bundle a shared library.
+        self.root_is_pure = False
+
+
+setup(cmdclass={"build_py": build_py, "bdist_wheel": bdist_wheel})
