@@ -92,8 +92,8 @@ jobs:
 
       - name: Build wheels
         env:
-          CIBW_PROJECT_DIR: .
-          CIBW_PACKAGE_DIR: bindings/python
+          CIBW_PROJECT_DIR: ${{ github.workspace }}
+          CIBW_PACKAGE_DIR: ${{ github.workspace }}/bindings/python
         run: python -m cibuildwheel --output-dir bindings/dist
 
       - name: Upload artifacts
