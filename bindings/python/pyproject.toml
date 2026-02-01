@@ -49,7 +49,7 @@ before-build = "cargo build -p fatoora-ffi --release"
 
 [tool.cibuildwheel.windows]
 before-all = "powershell -Command \"if (!(Test-Path C:\\\\vcpkg\\\\vcpkg.exe)) { git clone https://github.com/microsoft/vcpkg C:\\\\vcpkg; C:\\\\vcpkg\\\\bootstrap-vcpkg.bat }; C:\\\\vcpkg\\\\vcpkg.exe install libxml2:x64-windows\""
-environment = "VCPKG_ROOT=C:\\\\vcpkg VCPKG_DEFAULT_TRIPLET=x64-windows"
+environment = "VCPKG_ROOT=C:\\\\vcpkg VCPKG_DEFAULT_TRIPLET=x64-windows VCPKGRS_DYNAMIC=1"
 before-build = "cargo build -p fatoora-ffi --release"
 
 [tool.ruff.lint.per-file-ignores]
