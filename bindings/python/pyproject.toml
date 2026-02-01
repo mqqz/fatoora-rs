@@ -36,10 +36,12 @@ fatoora = ["*.so", "*.dylib", "*.dll"]
 
 [tool.cibuildwheel]
 build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
-skip = "pp* *-musllinux_*"
+skip = "*-musllinux_*"
 test-command = "python -c \"import fatoora; print(fatoora.__all__)\""
 
 [tool.cibuildwheel.linux]
+before-all = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+environment = "CARGO_HOME=/root/.cargo PATH=/root/.cargo/bin:$PATH"
 before-build = "cargo build -p fatoora-ffi --release"
 
 [tool.cibuildwheel.macos]
