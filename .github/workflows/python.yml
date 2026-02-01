@@ -92,15 +92,15 @@ jobs:
 
       - name: Build wheels
         env:
-          CIBW_PROJECT_DIR: bindings/python
-        working-directory: bindings/python
-        run: python -m cibuildwheel --output-dir ../dist
+          CIBW_PROJECT_DIR: .
+          CIBW_PACKAGE_DIR: bindings/python
+        run: python -m cibuildwheel --output-dir bindings/dist
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: python-dist-${{ matrix.os }}
-          path: dist/*
+          path: bindings/dist/*
 
   publish:
     runs-on: ubuntu-latest
