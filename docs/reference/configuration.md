@@ -1,16 +1,31 @@
 # Configuration
 
-Configuration types and environment selection.
+Environment selection used by the API client and validation helpers.
 
-## Types
-- `EnvironmentType` selects the ZATCA environment (`NonProduction`, `Simulation`, `Production`) and
-  provides `as_str()` and `endpoint_url()` helpers. It also controls CSR template selection.
-- `EnvironmentParseError` is returned by `EnvironmentType::from_str` for invalid inputs.
-- `Config` stores the environment used by API requests and validation.
-  Construct with `Config::new(env)`.
+## Symbols
+
+=== "Rust"
+    - `EnvironmentType::from_str(env: &str) -> Result<EnvironmentType, EnvironmentParseError>` — parse `non_production`, `simulation`, `production`.
+    - `EnvironmentType::as_str(&self) -> &'static str` — lowercase string form.
+    - `EnvironmentType::endpoint_url(&self) -> &'static str` — base URL for ZATCA API.
+    - `Config::new(env: EnvironmentType) -> Config` — construct config for an environment.
+    - `Config::env(&self) -> EnvironmentType` — read the environment.
+    - `Config::default() -> Config` — defaults to `NonProduction`.
+
+=== "Python"
+    - `Environment` — enum with `NON_PRODUCTION`, `SIMULATION`, `PRODUCTION`.
+    - `Config(env: Environment = Environment.NON_PRODUCTION)` — create config handle.
+    - `Config.env_value() -> Environment` — read environment from FFI handle.
+    - `Config.validate_xml(xml: str) -> bool` — convenience wrapper for XML validation.
+
+=== "C (FFI)"
+    - `FfiEnvironment` — enum for environments.
+    - `fatoora_config_new(env: FfiEnvironment) -> FfiResult_FfiConfig` — allocate config.
+    - `fatoora_config_env(config: FfiConfig*) -> FfiResult_FfiEnvironment` — read environment.
+    - `fatoora_config_free(config: FfiConfig*) -> void` — release config.
 
 ## Behavior
-- `Config::new` and `Config::default` use the bundled UBL schema at
-  `assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd`.
+- The config only holds the environment. XML validation always uses the bundled XSD in
+  `fatoora-core/assets` (see `invoice-validation` and `xml-and-schemas`).
 
 See also: [Getting Started Guide](../guides/getting-started.md)

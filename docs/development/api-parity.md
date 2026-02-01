@@ -15,6 +15,7 @@ Status values:
 | `EnvironmentType::endpoint_url` | — | — | Omitted (intentional) | Not exposed to bindings. |
 | `EnvironmentParseError` | — | — | Omitted (intentional) | Errors normalized via `FfiErrorKind`. |
 | `Config::new` | `fatoora_config_new` | `Config` | Done |  |
+| `Config::default` | — | — | Omitted (intentional) | `Config` defaults to NonProduction in Rust. |
 | `Config::env` | `fatoora_config_env` | `Config.env_value` | Done | Python method reads from FFI handle. |
 
 ## csr
@@ -103,7 +104,10 @@ Status values:
 | `InvoiceBuilder::set_note` | `fatoora_invoice_builder_set_note` | `InvoiceBuilder.set_note` | Done |  |
 | `InvoiceBuilder::set_allowance` | `fatoora_invoice_builder_set_allowance` | `InvoiceBuilder.set_allowance` | Done |  |
 | `InvoiceBuilder::add_line_item` | `fatoora_invoice_builder_add_line_item` | `InvoiceBuilder.add_line_item` | Done |  |
-| `InvoiceBuilder::set_flags` | `fatoora_invoice_builder_set_flags` | `InvoiceBuilder.set_flags` | Done |  |
+| `InvoiceBuilder::flags` | `fatoora_invoice_builder_set_flags` | `InvoiceBuilder.set_flags` | Done | Rust uses `flags(...)` setter. |
+| `InvoiceBuilder::invoice_level_charge` | — | — | Missing (yet to be added) | Not exposed in bindings. |
+| `InvoiceBuilder::invoice_level_discount` | — | — | Missing (yet to be added) | Not exposed in bindings. |
+| `InvoiceBuilder::allowance_reason` | — | — | Missing (yet to be added) | Not exposed in bindings. |
 | `InvoiceBuilder::build` | `fatoora_invoice_builder_build` | `InvoiceBuilder.build` | Done |  |
 | `FinalizedInvoice::data` | `fatoora_invoice_*` accessors | — | Done | Accessed via per-field FFI getters. |
 | `FinalizedInvoice::totals` | `fatoora_invoice_totals_*` | `Invoice.totals` | Done |  |
@@ -127,7 +131,15 @@ Status values:
 | Core public API item | FFI symbol(s) | Python symbol | Status | Notes |
 | --- | --- | --- | --- | --- |
 | `SigningError` | — | — | Omitted (intentional) | Errors normalized via `FfiErrorKind`. |
-| `SignedProperties` accessors | — | — | Omitted (intentional) | Accessed via signed invoice getters. |
+| `SignedProperties::invoice_hash` | `fatoora_signed_invoice_hash` | `SignedInvoice.invoice_hash` | Done | Accessed via signed invoice getters. |
+| `SignedProperties::signature` | `fatoora_signed_invoice_signature` | `SignedInvoice.signature` | Done | Accessed via signed invoice getters. |
+| `SignedProperties::public_key` | `fatoora_signed_invoice_public_key` | `SignedInvoice.public_key` | Done | Accessed via signed invoice getters. |
+| `SignedProperties::zatca_key_signature` | `fatoora_signed_invoice_zatca_key_signature` | `SignedInvoice.zatca_key_signature` | Done | Accessed via signed invoice getters. |
+| `SignedProperties::cert_hash` | `fatoora_signed_invoice_cert_hash` | `SignedInvoice.cert_hash` | Done | Accessed via signed invoice getters. |
+| `SignedProperties::signed_props_hash` | `fatoora_signed_invoice_signed_props_hash` | `SignedInvoice.signed_props_hash` | Done | Accessed via signed invoice getters. |
+| `SignedProperties::signing_time` | `fatoora_signed_invoice_signing_time` | `SignedInvoice.signing_time` | Done | Accessed via signed invoice getters. |
+| `SignedProperties::issuer` | — | — | Missing (yet to be added) | Not exposed in bindings. |
+| `SignedProperties::serial` | — | — | Missing (yet to be added) | Not exposed in bindings. |
 | `InvoiceSigner::from_der` | `fatoora_signer_from_der` | `Signer.from_der` | Done |  |
 | `InvoiceSigner::from_pem` | `fatoora_signer_from_pem` | `Signer.from_pem` | Done |  |
 | `InvoiceSigner::sign_xml` | — | — | Missing (yet to be added) |  |

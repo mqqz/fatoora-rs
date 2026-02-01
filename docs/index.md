@@ -5,7 +5,28 @@ An unofficial open-source toolkit for ZATCA (Saudi Arabia) Phase 1 and 2 complia
 !!! note
     This project is in active early development and the public API may evolve.
 
+## Why 
+
+This library was born out of the frustration involved in working with the ZATCA ecosystem; The official documentation is fragmented, too high-level at best or just totally vague. The official CLI is slow, restrictive, and difficult to integrate into real-world workflow, and existing third-party libraries tend to be incomplete, poorly documented, or built around narrow assumptions that do not generalise well.
+
+`fatoora-rs` aims to remove this overhead by handling ZATCA specific details in a predictable and reliable way. By abstracting away compliance quirks and low-level details, development effort can stay focused on business logic and product concerns, where it actually matters.
+
+## Features
+
+## Installation
+
 ## Quick Start
+
+There are two main ways to interact with `fatoora-rs`. Either through:
+
+- **The Command Line Interaface (CLI)**:
+This CLI aims to be a *lighter, efficient and ergonomic* replacement to the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloadSDK) CLI tool.
+
+- **Code Libraries**:
+The main core library (`fatoora-core`) is written in Rust with a C FFI that allows interopability with many languages:
+    - Rust (using the `fatoora-core` crate)
+    - C/C++ (directly through the FFI shared library)
+    - Python (wrapper library over the FFI)
 
 === "Rust"
     ```rust

@@ -2,6 +2,19 @@
 
 Notes for contributors and maintainers. End-user usage is documented in the Guides.
 
+## Why
+This project exists because the official SDK and documentation were not meeting day-to-day needs. Common tasks felt harder than they should be: the API surface was inconsistent, error handling was unclear, and examples rarely matched real workflows. Fatoora started as an effort to build a clean, predictable SDK with solid defaults, thorough tests, and bindings that behave the same across languages.
+
+We prioritize:
+- A small, well-typed core API with explicit errors.
+- A stable FFI layer for bindings and long-term compatibility.
+- Docs and examples that reflect the actual behavior, not just happy paths.
+
+## Quick Start
+There are two main ways to use `fatoora-rs`:
+- **CLI**: Best for quick validation, local workflows, and CI scripts. See the Guides for install and usage examples.
+- **Library**: Use the Rust crate directly, or use language bindings that wrap the shared FFI. This is the right choice for integrating into applications or services.
+
 ## Build the FFI shared library
 ```bash
 cargo build -p fatoora-ffi --release

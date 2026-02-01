@@ -1,33 +1,52 @@
 # Errors
 
-Error types used across the core library and CLI.
+Error types used across the core library, FFI, and Python bindings.
 
-## Core errors
-- `Error` is the top-level wrapper that converts from invoice, signing, QR, XML, validation, CSR,
-  and API client errors.
+## Symbols
 
-## Invoice errors
-- `InvoiceError` includes validation failures, invalid country/VAT formats, and missing buyer/seller
-  identifiers.
-- `ValidationError` wraps a list of `ValidationIssue` values.
-- `ValidationIssue` identifies the field, validation kind, and optional line item index.
-- `InvoiceField` enumerates validated invoice fields (IDs, line items, payment means, etc.).
-- `ValidationKind` classifies issues (missing, empty, invalid format, out of range, mismatch).
+=== "Rust"
+    - `ErrorKind` — stable error codes shared with FFI.
+    - `Error` — unified core error with `kind()` and `message()`.
+    - `InvoiceError` — invoice validation and ID format issues.
+    - `ValidationError` — list of `ValidationIssue` entries.
+    - `CsrError` — CSR parsing/build/encoding failures.
+    - `SigningError` — signing, canonicalization, or key/cert failures.
+    - `XmlValidationError` — schema and XML validation failures.
+    - `InvoiceXmlError` — XML serialization errors.
+    - `ParseError` — XML parsing and field extraction errors.
+    - `ZatcaError` — API client errors.
 
-## CSR errors
-- `CsrError` reports property parsing failures, missing required keys, invalid subject/SAN,
-  encoding issues, and CSR build errors.
+=== "Python"
+    - `FatooraError` — base exception.
+    - `FfiError` — wraps FFI failures and includes `code`/`kind`.
+    - `InvalidInputError`
+    - `ValidationError`
+    - `ParseError`
+    - `XmlError`
+    - `CryptoError`
+    - `IoError`
+    - `NetworkError`
+    - `UnauthorizedError`
+    - `InternalError`
+    - `ApiError`
 
-## Signing errors
-- `SigningError` wraps signing, XML parsing, canonicalization, and certificate/key parsing errors.
+=== "C (FFI)"
+    - `FfiErrorKind` — numeric codes matching `ErrorKind`.
+    - `FfiError` — `{ code, message }` error handle.
+    - `fatoora_error_code(error: FfiError*) -> int`
+    - `fatoora_error_message(error: FfiError*) -> FfiString`
+    - `fatoora_error_free(error: FfiError*) -> void`
 
-## Validation errors
-- `XmlValidationError` reports invalid schema paths, schema parsing errors, XML parse failures, and
-  schema validation errors.
-
-## API client errors
-- `ZatcaError` reports HTTP failures, invalid responses, unauthorized/server errors, and client
-  state errors.
-- `UnauthorizedResponse` and `ServerErrorResponse` represent error bodies returned by ZATCA.
+## Mapping (FFI -> Python)
+- `InvalidInput` -> `InvalidInputError`
+- `Validation` -> `ValidationError`
+- `Parse` -> `ParseError`
+- `Xml` -> `XmlError`
+- `Crypto` -> `CryptoError`
+- `Io` -> `IoError`
+- `Network` -> `NetworkError`
+- `Unauthorized` -> `UnauthorizedError`
+- `Internal` -> `InternalError`
+- `Api` -> `ApiError`
 
 See also: [Core Reference](core.md)
