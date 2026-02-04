@@ -40,8 +40,8 @@ skip = "*-musllinux_*"
 test-command = "python -c \"import fatoora; print(fatoora.__all__)\""
 
 [tool.cibuildwheel.linux]
-before-all = "yum -y install libxml2-devel pkgconfig clang-libs llvm-devel glibc-headers glibc-devel gcc gcc-c++ kernel-headers libstdc++-devel && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
-environment = "CARGO_HOME=/root/.cargo PATH=/root/.cargo/bin:$PATH PKG_CONFIG_PATH=/usr/lib64/pkgconfig:/usr/local/lib/pkgconfig LIBCLANG_PATH=/usr/lib64"
+before-all = "yum -y install libxml2-devel pkgconfig clang clang-libs llvm-devel glibc-headers glibc-devel gcc gcc-c++ kernel-headers libstdc++-devel && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+environment = "CARGO_HOME=/root/.cargo PATH=/root/.cargo/bin:$PATH PKG_CONFIG_PATH=/usr/lib64/pkgconfig:/usr/local/lib/pkgconfig LIBCLANG_PATH=/usr/lib64 BINDGEN_EXTRA_CLANG_ARGS=--sysroot=/usr"
 before-build = "cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/Cargo.toml"
 
 [tool.cibuildwheel.macos]
@@ -49,7 +49,7 @@ before-build = "cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/C
 
 [tool.cibuildwheel.windows]
 before-all = "powershell -Command \"if (!(Test-Path $env:VCPKG_INSTALLATION_ROOT)) { Write-Error 'VCPKG_INSTALLATION_ROOT is not set on this runner.'; exit 1 }; & $env:VCPKG_INSTALLATION_ROOT\\\\vcpkg.exe install libxml2:x64-windows --x-buildtype=release; if (!(Test-Path 'C:\\\\Program Files\\\\LLVM\\\\bin\\\\libclang.dll')) { Write-Error 'libclang.dll not found at C:\\\\Program Files\\\\LLVM\\\\bin. Install LLVM on the runner or set LIBCLANG_PATH.'; exit 1 }\""
-environment = "VCPKG_ROOT=C:\\\\vcpkg VCPKG_DEFAULT_TRIPLET=x64-windows VCPKGRS_DYNAMIC=1 LIBCLANG_PATH=C:\\\\PROGRA~1\\\\LLVM\\\\bin VCPKG_BUILD_TYPE=release"
+environment = "VCPKG_ROOT=C:\\\\vcpkg VCPKG_DEFAULT_TRIPLET=x64-windows VCPKGRS_DYNAMIC=1 LIBCLANG_PATH=C:\\\\PROGRA~1\\\\LLVM\\\\bin VCPKG_BUILD_TYPE=release VCPKG_LIBXML2_INCLUDE=C:\\\\vcpkg\\\\installed\\\\x64-windows\\\\include VCPKG_LIBXML2_LIB=C:\\\\vcpkg\\\\installed\\\\x64-windows\\\\lib"
 before-build = "powershell -Command \"C:\\\\vcpkg\\\\vcpkg.exe list | Select-String libxml2\" && cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/Cargo.toml"
 
 [tool.ruff.lint.per-file-ignores]
