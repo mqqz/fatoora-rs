@@ -95,11 +95,15 @@ jobs:
         run: |
           rm -rf bindings/python/_cargo_ws
           mkdir -p bindings/python/_cargo_ws
-          rsync -a --delete \
-            --exclude '.git' \
-            --exclude 'target' \
-            --exclude 'bindings/python/_cargo_ws' \
-            ./ bindings/python/_cargo_ws/
+          if command -v rsync >/dev/null 2>&1; then
+            rsync -a --delete \
+              --exclude '.git' \
+              --exclude 'target' \
+              --exclude 'bindings/python/_cargo_ws' \
+              ./ bindings/python/_cargo_ws/
+          else
+            tar --exclude='.git' --exclude='target' --exclude='bindings/python/_cargo_ws' -cf - . | tar -C bindings/python/_cargo_ws -xf -
+          fi
 
       - name: Build wheels
         working-directory: bindings/python
