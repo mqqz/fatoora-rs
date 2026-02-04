@@ -13,7 +13,7 @@ from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
 class build_py(_build_py):
     def run(self) -> None:
-        repo_root = Path(__file__).resolve().parents[2]
+        repo_root = Path(os.environ.get("FATOORA_REPO_ROOT", Path(__file__).resolve().parents[2]))
         target_dir = repo_root / "target" / "release"
 
         subprocess.check_call(
