@@ -1,17 +1,34 @@
+<h1 align="center">  
+  🇸🇦 fatoora-rs 🧾 
+  </br>
+  <a href="https://github.com/mqqz/fatoora-rs">
+    <img src="https://github.com/mqqz/fatoora-rs/blob/main/docs/assets/images/crab-logo.webp" height=150px alt="fatoora-rs-logo">
+  </a>
+</h1>
+<p align="center">
+<a target="_blank" href="https://choosealicense.com/licenses/mit"><img src="https://img.shields.io/badge/License-MIT-green.svg"/></a> 
+<a href="https://codecov.io/gh/mqqz/fatoora-rs"><img src="https://codecov.io/gh/mqqz/fatoora-rs/graph/badge.svg?token=JRI6609XU6"/></a>
+</p>
+<p align="center">
+<a href="https://mosadhan.com/fatoora-rs">🌐 Homepage</a> &nbsp;&bull;&nbsp;
+<a href="#features">Features</a> &nbsp;&bull;&nbsp;
+<a href="#installation">Installation</a> &nbsp;&bull;&nbsp;
+<a href="#examples">Examples</a> &nbsp;&bull;&nbsp;
+<a href="#documentation">Documentation</a>
+</p>
 
-# `fatoora-rs`
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
-[![codecov](https://codecov.io/gh/mqqz/fatoora-rs/graph/badge.svg?token=JRI6609XU6)](https://codecov.io/gh/mqqz/fatoora-rs) 
-[![Crates.io Version](https://img.shields.io/crates/v/fatoora-core?logo=rust&label=fatoora-core)](https://crates.io/crates/fatoora-core)
-[![Crates.io Version](https://img.shields.io/crates/v/fatoora-rs-cli?logo=rust&label=fatoora-rs-cli)](https://crates.io/crates/fatoora-rs-cli)
-[![Crates.io Version](https://img.shields.io/crates/v/fatoora-derive?logo=rust&label=fatoora-derive)](https://crates.io/crates/fatoora-derive)
-[![PyPi Version](https://img.shields.io/pypi/v/fatoora-rs?logo=python)](https://pypi.org/project/fatoora-rs/)
+#
 
-An *unofficial* open-source toolkit for everything you'd need for ZATCA (Zakat, Tax and Customs Authority of Saudi Arabia) Phase 1 and 2 compliant e-invoicing 
+An *unofficial* open-source toolkit for everything you'd need for ZATCA (Zakat, Tax and Customs Authority of Saudi Arabia) Phase 1 and 2 compliant e-invoicing.
 
-...with bindings and support for many programming languages (so far only C/C++ and Python).
+With bindings and support for many programming languages:
+- Rust <a href="https://crates.io/crates/fatoora-core"><img src="https://img.shields.io/crates/v/fatoora-core?logo=rust&label=fatoora-core" alt="fatoora-core Crates.io Version"/></a>
+  
+- Python <a href="https://pypi.org/project/fatoora-rs/"><img src="https://img.shields.io/pypi/v/fatoora-rs?logo=python" alt="PyPi Version"/></a>
 
-...*and also built in Rust btw*
+- C/C++ (through the C FFI see ![releases](https://github.com/mqqz/fatoora-rs/releases))
+
+- Also, a Command Line Interface (CLI) Tool  <a href="https://crates.io/crates/fatoora-rs-cli"><img src="https://img.shields.io/crates/v/fatoora-rs-cli?logo=rust&label=fatoora-rs-cli" alt="fatoora-rs-cli Crates.io Version"/></a>
 
 > `fatoora-rs` is in active early development. While the core functionality is usable, the public API is still evolving and may change as the project matures.
 > We strive to maintain good test coverage and stability, but users should be aware that some rough edges may remain. 
@@ -21,8 +38,7 @@ An *unofficial* open-source toolkit for everything you'd need for ZATCA (Zakat, 
 `fatoora-rs` is not affiliated, associated, authorized, endorsed by, or in any way officially connected with ZATCA (Zakat, Tax and Customs Authority), or any of its subsidiaries or its affiliates. The official ZATCA website can be found at https://zatca.gov.sa.
 
 ## Documentation
-- Rust API: [docs.rs](https://docs.rs/fatoora-core/latest/fatoora_core/)
-- Project docs: see `docs/` (MkDocs site)
+Checkout the [homepage](https://mosadhan.com/fatoora-rs), also the Rust API at [docs.rs](https://docs.rs/fatoora-core/latest/fatoora_core/) may prove useful.
 
 ## Features
 
@@ -54,7 +70,7 @@ pip install fatoora-rs
 ```
 Python modules mirror the Rust core layout (e.g., `fatoora.config`, `fatoora.csr`, `fatoora.invoice`, `fatoora.sign`).
 
-## Usage/Examples
+## Examples
 
 <details>
 <summary>CSR Generation</summary>
