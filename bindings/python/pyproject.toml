@@ -48,8 +48,8 @@ before-build = "cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/C
 before-build = "cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/Cargo.toml"
 
 [tool.cibuildwheel.windows]
-before-all = "powershell -Command \"if (!(Test-Path C:\\\\vcpkg\\\\vcpkg.exe)) { git clone https://github.com/microsoft/vcpkg C:\\\\vcpkg; C:\\\\vcpkg\\\\bootstrap-vcpkg.bat }; C:\\\\vcpkg\\\\vcpkg.exe install libxml2:x64-windows llvm:x64-windows\""
-environment = "VCPKG_ROOT=C:\\\\vcpkg VCPKG_DEFAULT_TRIPLET=x64-windows VCPKGRS_DYNAMIC=1 LIBCLANG_PATH=C:\\\\vcpkg\\\\installed\\\\x64-windows\\\\bin VCPKG_BUILD_TYPE=release"
+before-all = "powershell -Command \"if (!(Test-Path $env:VCPKG_INSTALLATION_ROOT)) { Write-Error 'VCPKG_INSTALLATION_ROOT is not set on this runner.'; exit 1 }; & $env:VCPKG_INSTALLATION_ROOT\\\\vcpkg.exe install libxml2:x64-windows --x-buildtype=release; if (!(Test-Path 'C:\\\\Program Files\\\\LLVM\\\\bin\\\\libclang.dll')) { Write-Error 'libclang.dll not found at C:\\\\Program Files\\\\LLVM\\\\bin. Install LLVM on the runner or set LIBCLANG_PATH.'; exit 1 }\""
+environment = "VCPKG_ROOT=%VCPKG_INSTALLATION_ROOT% VCPKG_DEFAULT_TRIPLET=x64-windows VCPKGRS_DYNAMIC=1 LIBCLANG_PATH=C:\\\\Program Files\\\\LLVM\\\\bin VCPKG_BUILD_TYPE=release"
 before-build = "powershell -Command \"C:\\\\vcpkg\\\\vcpkg.exe list | Select-String libxml2\" && cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/Cargo.toml"
 
 [tool.ruff.lint.per-file-ignores]
