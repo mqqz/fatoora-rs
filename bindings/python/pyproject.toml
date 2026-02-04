@@ -40,8 +40,8 @@ skip = "*-musllinux_*"
 test-command = "python -c \"import fatoora; print(fatoora.__all__)\""
 
 [tool.cibuildwheel.linux]
-before-all = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
-environment = "CARGO_HOME=/root/.cargo PATH=/root/.cargo/bin:$PATH"
+before-all = "yum -y install libxml2-devel pkgconfig && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+environment = "CARGO_HOME=/root/.cargo PATH=/root/.cargo/bin:$PATH PKG_CONFIG_PATH=/usr/lib64/pkgconfig:/usr/local/lib/pkgconfig"
 before-build = "cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/Cargo.toml"
 
 [tool.cibuildwheel.macos]
@@ -50,7 +50,7 @@ before-build = "cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/C
 [tool.cibuildwheel.windows]
 before-all = "powershell -Command \"if (!(Test-Path C:\\\\vcpkg\\\\vcpkg.exe)) { git clone https://github.com/microsoft/vcpkg C:\\\\vcpkg; C:\\\\vcpkg\\\\bootstrap-vcpkg.bat }; C:\\\\vcpkg\\\\vcpkg.exe install libxml2:x64-windows\""
 environment = "VCPKG_ROOT=C:\\\\vcpkg VCPKG_DEFAULT_TRIPLET=x64-windows VCPKGRS_DYNAMIC=1"
-before-build = "cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/Cargo.toml"
+before-build = "powershell -Command \"C:\\\\vcpkg\\\\vcpkg.exe list | Select-String libxml2\" && cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/Cargo.toml"
 
 [tool.ruff.lint.per-file-ignores]
 # Ignore E402 (module level import not at top of file) in examples
