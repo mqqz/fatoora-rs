@@ -909,11 +909,8 @@ version = "0.1.2"
 dependencies = [
  "base64ct",
  "cbindgen",
- "chrono",
  "fatoora-core",
  "httpmock",
- "iso_currency",
- "isocountry",
  "k256",
  "tokio",
  "x509-cert",
@@ -927,10 +924,7 @@ dependencies = [
  "base64ct",
  "clap",
  "fatoora-core",
- "k256",
- "libxml",
  "serde_json",
- "x509-cert",
 ]
 
 [[package]]
