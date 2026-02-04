@@ -40,7 +40,7 @@ skip = "*-musllinux_*"
 test-command = "python -c \"import fatoora; print(fatoora.__all__)\""
 
 [tool.cibuildwheel.linux]
-before-all = "yum -y install libxml2-devel pkgconfig clang-libs llvm-devel glibc-headers && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+before-all = "yum -y install libxml2-devel pkgconfig clang-libs llvm-devel glibc-headers glibc-devel && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
 environment = "CARGO_HOME=/root/.cargo PATH=/root/.cargo/bin:$PATH PKG_CONFIG_PATH=/usr/lib64/pkgconfig:/usr/local/lib/pkgconfig LIBCLANG_PATH=/usr/lib64"
 before-build = "cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/Cargo.toml"
 
