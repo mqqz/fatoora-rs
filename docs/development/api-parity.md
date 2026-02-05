@@ -66,25 +66,25 @@ Status values:
 | `LineItem::{new,from_totals,try_from_parts}` | — | — | Omitted (intentional) | Constructed via builder setters in FFI/Python. |
 | `LineItem` accessors | `fatoora_*_invoice_line_item_*` | `InvoiceLineItem` | Done |  |
 | `InvoiceFlags` | `FfiInvoiceFlag` + `fatoora_*_flags` | `InvoiceFlag` | Done | Exposed as bitset. |
-| `InvoiceData` | — | — | Omitted (intentional) | Use per-field accessors on `Invoice`/`SignedInvoice`. |
-| `InvoiceData::invoice_type` | `fatoora_*_invoice_type_kind/sub_type` | `Invoice.invoice_type_kind/sub_type`, `SignedInvoice.invoice_type_kind/sub_type` | Done |  |
-| `InvoiceData::id` | `fatoora_invoice_id` / `fatoora_signed_invoice_id` | `Invoice.id` / `SignedInvoice.id` | Done |  |
-| `InvoiceData::uuid` | `fatoora_invoice_uuid` / `fatoora_signed_invoice_uuid` | `Invoice.uuid` / `SignedInvoice.uuid` | Done |  |
-| `InvoiceData::issue_datetime` | `fatoora_invoice_issue_datetime` / `fatoora_signed_invoice_issue_datetime` | `Invoice.issue_datetime` / `SignedInvoice.issue_datetime` | Done |  |
-| `InvoiceData::currency` | `fatoora_invoice_currency` / `fatoora_signed_invoice_currency` | `Invoice.currency` / `SignedInvoice.currency` | Done |  |
-| `InvoiceData::previous_invoice_hash` | `fatoora_invoice_previous_hash` / `fatoora_signed_invoice_previous_hash` | `Invoice.previous_invoice_hash` / `SignedInvoice.previous_invoice_hash` | Done |  |
-| `InvoiceData::invoice_counter` | `fatoora_invoice_counter` / `fatoora_signed_invoice_counter` | `Invoice.invoice_counter` / `SignedInvoice.invoice_counter` | Done |  |
-| `InvoiceData::note` | `fatoora_invoice_note` / `fatoora_signed_invoice_note` | `Invoice.note`, `SignedInvoice.note` | Done |  |
-| `InvoiceData::seller` | `fatoora_invoice_seller` / `fatoora_signed_invoice_seller` | `Invoice.seller`, `SignedInvoice.seller` | Done |  |
-| `InvoiceData::buyer` | `fatoora_invoice_buyer` / `fatoora_signed_invoice_buyer` | `Invoice.buyer`, `SignedInvoice.buyer` | Done |  |
-| `InvoiceData::line_items` | `fatoora_*_invoice_line_item_*` + count | `Invoice.line_items`, `SignedInvoice.line_items` | Done |  |
-| `InvoiceData::payment_means_code` | `fatoora_invoice_payment_means_code` / `fatoora_signed_invoice_payment_means_code` | `Invoice.payment_means_code` / `SignedInvoice.payment_means_code` | Done |  |
-| `InvoiceData::vat_category` | `fatoora_invoice_vat_category` / `fatoora_signed_invoice_vat_category` | `Invoice.vat_category` / `SignedInvoice.vat_category` | Done |  |
-| `InvoiceData::flags` | `fatoora_invoice_flags` / `fatoora_signed_invoice_flags` | `Invoice.flags/flags_raw`, `SignedInvoice.flags/flags_raw` | Done |  |
+| `InvoiceData` | — | — | Omitted (intentional) | Use per-field accessors on `FinalizedInvoice`/`SignedInvoice`. |
+| `InvoiceData::invoice_type` | `fatoora_*_invoice_type_kind/sub_type` | `FinalizedInvoice.invoice_type_kind/sub_type`, `SignedInvoice.invoice_type_kind/sub_type` | Done |  |
+| `InvoiceData::id` | `fatoora_invoice_id` / `fatoora_signed_invoice_id` | `FinalizedInvoice.id` / `SignedInvoice.id` | Done |  |
+| `InvoiceData::uuid` | `fatoora_invoice_uuid` / `fatoora_signed_invoice_uuid` | `FinalizedInvoice.uuid` / `SignedInvoice.uuid` | Done |  |
+| `InvoiceData::issue_datetime` | `fatoora_invoice_issue_datetime` / `fatoora_signed_invoice_issue_datetime` | `FinalizedInvoice.issue_datetime` / `SignedInvoice.issue_datetime` | Done |  |
+| `InvoiceData::currency` | `fatoora_invoice_currency` / `fatoora_signed_invoice_currency` | `FinalizedInvoice.currency` / `SignedInvoice.currency` | Done |  |
+| `InvoiceData::previous_invoice_hash` | `fatoora_invoice_previous_hash` / `fatoora_signed_invoice_previous_hash` | `FinalizedInvoice.previous_invoice_hash` / `SignedInvoice.previous_invoice_hash` | Done |  |
+| `InvoiceData::invoice_counter` | `fatoora_invoice_counter` / `fatoora_signed_invoice_counter` | `FinalizedInvoice.invoice_counter` / `SignedInvoice.invoice_counter` | Done |  |
+| `InvoiceData::note` | `fatoora_invoice_note` / `fatoora_signed_invoice_note` | `FinalizedInvoice.note`, `SignedInvoice.note` | Done |  |
+| `InvoiceData::seller` | `fatoora_invoice_seller` / `fatoora_signed_invoice_seller` | `FinalizedInvoice.seller`, `SignedInvoice.seller` | Done |  |
+| `InvoiceData::buyer` | `fatoora_invoice_buyer` / `fatoora_signed_invoice_buyer` | `FinalizedInvoice.buyer`, `SignedInvoice.buyer` | Done |  |
+| `InvoiceData::line_items` | `fatoora_*_invoice_line_item_*` + count | `FinalizedInvoice.line_items`, `SignedInvoice.line_items` | Done |  |
+| `InvoiceData::payment_means_code` | `fatoora_invoice_payment_means_code` / `fatoora_signed_invoice_payment_means_code` | `FinalizedInvoice.payment_means_code` / `SignedInvoice.payment_means_code` | Done |  |
+| `InvoiceData::vat_category` | `fatoora_invoice_vat_category` / `fatoora_signed_invoice_vat_category` | `FinalizedInvoice.vat_category` / `SignedInvoice.vat_category` | Done |  |
+| `InvoiceData::flags` | `fatoora_invoice_flags` / `fatoora_signed_invoice_flags` | `FinalizedInvoice.flags/flags_raw`, `SignedInvoice.flags/flags_raw` | Done |  |
 | `InvoiceData::is_*` helpers | — | — | Omitted (intentional) | Derivable from flags. |
-| `InvoiceData::invoice_level_charge` | `fatoora_invoice_level_charge` / `fatoora_signed_invoice_level_charge` | `Invoice.invoice_level_charge` / `SignedInvoice.invoice_level_charge` | Done |  |
-| `InvoiceData::invoice_level_discount` | `fatoora_invoice_level_discount` / `fatoora_signed_invoice_level_discount` | `Invoice.invoice_level_discount` / `SignedInvoice.invoice_level_discount` | Done |  |
-| `InvoiceData::allowance_reason` | `fatoora_invoice_allowance_reason` / `fatoora_signed_invoice_allowance_reason` | `Invoice.allowance_reason` / `SignedInvoice.allowance_reason` | Done |  |
+| `InvoiceData::invoice_level_charge` | `fatoora_invoice_level_charge` / `fatoora_signed_invoice_level_charge` | `FinalizedInvoice.invoice_level_charge` / `SignedInvoice.invoice_level_charge` | Done |  |
+| `InvoiceData::invoice_level_discount` | `fatoora_invoice_level_discount` / `fatoora_signed_invoice_level_discount` | `FinalizedInvoice.invoice_level_discount` / `SignedInvoice.invoice_level_discount` | Done |  |
+| `InvoiceData::allowance_reason` | `fatoora_invoice_allowance_reason` / `fatoora_signed_invoice_allowance_reason` | `FinalizedInvoice.allowance_reason` / `SignedInvoice.allowance_reason` | Done |  |
 | `InvoiceTotalsData` accessors | `fatoora_*_invoice_totals_*` | `InvoiceTotals` | Done |  |
 
 ## invoice (builder + finalized/signed)
@@ -110,9 +110,9 @@ Status values:
 | `InvoiceBuilder::allowance_reason` | — | — | Missing (yet to be added) | Not exposed in bindings. |
 | `InvoiceBuilder::build` | `fatoora_invoice_builder_build` | `InvoiceBuilder.build` | Done |  |
 | `FinalizedInvoice::data` | `fatoora_invoice_*` accessors | — | Done | Accessed via per-field FFI getters. |
-| `FinalizedInvoice::totals` | `fatoora_invoice_totals_*` | `Invoice.totals` | Done |  |
-| `FinalizedInvoice::hash_base64` | `fatoora_invoice_hash_base64` | `Invoice.hash_base64` | Done |  |
-| `FinalizedInvoice::sign` | `fatoora_invoice_sign` | `Invoice.sign` | Done |  |
+| `FinalizedInvoice::totals` | `fatoora_invoice_totals_*` | `FinalizedInvoice.totals` | Done |  |
+| `FinalizedInvoice::hash_base64` | `fatoora_invoice_hash_base64` | `FinalizedInvoice.hash_base64` | Done |  |
+| `FinalizedInvoice::sign` | `fatoora_invoice_sign` | `FinalizedInvoice.sign` | Done |  |
 | `SignedInvoice::data` | `fatoora_signed_invoice_*` accessors | — | Done | Accessed via per-field FFI getters. |
 | `SignedInvoice::totals` | `fatoora_signed_invoice_totals_*` | `SignedInvoice.totals` | Done |  |
 | `SignedInvoice::signed_properties` | — | — | Omitted (intentional) | Access via signed-only getters. |
@@ -158,8 +158,8 @@ Status values:
 | Core public API item | FFI symbol(s) | Python symbol | Status | Notes |
 | --- | --- | --- | --- | --- |
 | `ParseError` | — | — | Omitted (intentional) | Errors normalized via `FfiErrorKind`. |
-| `parse_finalized_invoice_xml` | `fatoora_parse_finalized_invoice_xml` | `parse_invoice_xml` | Done |  |
-| `parse_finalized_invoice_xml_file` | `fatoora_parse_finalized_invoice_xml_file` | `parse_invoice_xml_file` | Done |  |
+| `parse_finalized_invoice_xml` | `fatoora_parse_finalized_invoice_xml` | `parse_finalized_invoice_xml` | Done |  |
+| `parse_finalized_invoice_xml_file` | `fatoora_parse_finalized_invoice_xml_file` | `parse_finalized_invoice_xml_file` | Done |  |
 | `parse_signed_invoice_xml` | `fatoora_parse_signed_invoice_xml` | `parse_signed_invoice_xml` | Done |  |
 | `parse_signed_invoice_xml_file` | `fatoora_parse_signed_invoice_xml_file` | `parse_signed_invoice_xml_file` | Done |  |
 

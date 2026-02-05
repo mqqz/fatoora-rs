@@ -8,6 +8,7 @@ The Python package wraps the `fatoora-ffi` shared library via `cffi`.
 - Invoice builder timestamps are strings in ZATCA ISO UTC format (`YYYY-MM-DDTHH:MM:SSZ`), and
   country/currency codes are validated strings.
 
+
 ## Signed Invoice Metadata
 `SignedInvoice` exposes additional getters for auditing/debugging:
 - `signature()`

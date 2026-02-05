@@ -50,8 +50,15 @@ nav:
   - Contributing: contributing.md
   - Security: security.md
 
+plugins:
+  - search
+  - macros:
+      include_yaml:
+        - docs/_vars.yml
+
 markdown_extensions:
   - admonition
+  - pymdownx.details
   - toc:
       permalink: true
   - pymdownx.superfences

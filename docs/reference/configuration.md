@@ -4,33 +4,65 @@ Environment selection used by the API client and validation helpers.
 
 ## Environment
 
-=== "Rust"
-    - `EnvironmentType::from_str(env: &str) -> Result<EnvironmentType, EnvironmentParseError>` — parse `non_production`, `simulation`, `production`.
-    - `EnvironmentType::as_str(&self) -> &'static str` — lowercase string form.
-    - `EnvironmentType::endpoint_url(&self) -> &'static str` — base URL for ZATCA API.
+??? note "Parse and inspect"
+    Parse environment values and resolve API base URLs.
 
-=== "Python"
-    - `Environment` — enum with `NON_PRODUCTION`, `SIMULATION`, `PRODUCTION`.
+    === "{{ lang.rust }}"
+        ```rust
+        EnvironmentType::from_str(env: &str) -> Result<EnvironmentType, EnvironmentParseError>
+        EnvironmentType::as_str(&self) -> &'static str
+        EnvironmentType::endpoint_url(&self) -> &'static str
+        ```
 
-=== "C (FFI)"
-    - `FfiEnvironment` — enum for environments.
+    === "{{ lang.python }}"
+        ```python
+        Environment
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiEnvironment
+        ```
+
+    !!! info "Args"
+        - `env`: non_production, simulation, or production.
+
+    !!! info "Returns"
+        - `EnvironmentType` / `Environment`: parsed environment.
+        - `endpoint_url`: base URL for ZATCA API.
 
 ## Config
 
-=== "Rust"
-    - `Config::new(env: EnvironmentType) -> Config` — construct config for an environment.
-    - `Config::env(&self) -> EnvironmentType` — read the environment.
-    - `Config::default() -> Config` — defaults to `NonProduction`.
+??? note "Create and read"
+    Create config handles and read their environment.
 
-=== "Python"
-    - `Config(env: Environment = Environment.NON_PRODUCTION)` — create config handle.
-    - `Config.env_value() -> Environment` — read environment from FFI handle.
-    - `Config.validate_xml(xml: str) -> bool` — convenience wrapper for XML validation.
+    === "{{ lang.rust }}"
+        ```rust
+        Config::new(env: EnvironmentType) -> Config
+        Config::env(&self) -> EnvironmentType
+        Config::default() -> Config
+        ```
 
-=== "C (FFI)"
-    - `fatoora_config_new(env: FfiEnvironment) -> FfiResult_FfiConfig` — allocate config.
-    - `fatoora_config_env(config: FfiConfig*) -> FfiResult_FfiEnvironment` — read environment.
-    - `fatoora_config_free(config: FfiConfig*) -> void` — release config.
+    === "{{ lang.python }}"
+        ```python
+        Config(env: Environment = Environment.NON_PRODUCTION)
+        Config.env_value() -> Environment
+        Config.validate_xml(xml: str) -> bool
+        ```
 
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiConfig fatoora_config_new(FfiEnvironment env);
+        FfiResult_FfiEnvironment fatoora_config_env(FfiConfig* config);
+        void fatoora_config_free(FfiConfig* config);
+        ```
+
+    !!! info "Args"
+        - `env`: target environment.
+        - `xml`: invoice XML string (Python convenience).
+
+    !!! info "Returns"
+        - `Config` / `FfiConfig`: environment-aware handle.
+        - `Environment`: environment value from the handle.
 
 See also: [Getting Started Guide](../guides/getting-started.md)

@@ -2,70 +2,136 @@
 
 CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
-## Symbols
+## Csr Properties
 
-=== "Rust"
-    - `CsrProperties::from_properties_str(properties: &str) -> Result<CsrProperties, CsrError>` — parse CSR properties from a string.
-    - `CsrProperties::parse_csr_config(properties: &str) -> Result<CsrProperties, CsrError>` — alias for `from_properties_str`.
-    - `CsrProperties::parse_csr_config_file(path: impl AsRef<Path>) -> Result<CsrProperties, CsrError>` — parse properties file.
-    - `CsrProperties::build(&self, signer: &SigningKey, env: EnvironmentType) -> Result<Csr, CsrError>` — build CSR.
-    - `SigningKey::generate() -> SigningKey` — generate a new K256 signing key.
-    - `SigningKey::from_pem(pem: &str) -> Result<SigningKey, CsrError>` — parse PKCS#8 PEM key.
-    - `SigningKey::from_der(der: &[u8]) -> Result<SigningKey, CsrError>` — parse PKCS#8 DER key.
-    - `SigningKey::to_pem(&self) -> Result<String, CsrError>` — serialize to PEM.
-    - `SigningKey::to_der(&self) -> Result<Vec<u8>, CsrError>` — serialize to DER.
-    - `Csr::from_der(der: &[u8]) -> Result<Csr, CsrError>` — load CSR from DER.
-    - `Csr::to_pem(&self) -> Result<String, CsrError>` — serialize CSR to PEM.
-    - `Csr::to_der(&self) -> Result<Vec<u8>, CsrError>` — serialize CSR to DER.
-    - `Csr::to_base64(&self) -> Result<String, CsrError>` — base64 of DER.
-    - `Csr::to_pem_base64(&self) -> Result<String, CsrError>` — base64 of PEM.
-    - `Csr::subject_string(&self) -> String` — subject DN string.
-    - `Csr::extension_values_der(&self) -> Vec<Vec<u8>>` — raw DER values of extensions.
+??? note "Parse and build"
+    Parse CSR properties and build a CSR.
 
-=== "Python"
-    - `CsrProperties.from_properties_str(properties: str) -> CsrProperties`
-    - `CsrProperties.parse(properties: str) -> CsrProperties`
-    - `CsrProperties.parse_file(path: str) -> CsrProperties`
-    - `CsrProperties.build(key: SigningKey, env: Environment) -> Csr`
-    - `SigningKey.generate() -> SigningKey`
-    - `SigningKey.from_pem(pem: str) -> SigningKey`
-    - `SigningKey.from_der(der: bytes) -> SigningKey`
-    - `SigningKey.to_pem() -> str`
-    - `SigningKey.to_der() -> bytes`
-    - `Csr.from_der(der: bytes) -> Csr`
-    - `Csr.to_pem() -> str`
-    - `Csr.to_der() -> bytes`
-    - `Csr.to_base64() -> str`
-    - `Csr.to_pem_base64() -> str`
-    - `Csr.subject_string() -> str`
-    - `Csr.extension_values_der() -> list[bytes]`
+    === "{{ lang.rust }}"
+        ```rust
+        CsrProperties::from_properties_str(properties: &str) -> Result<CsrProperties, CsrError>
+        CsrProperties::parse_csr_config(properties: &str) -> Result<CsrProperties, CsrError>
+        CsrProperties::parse_csr_config_file(path: impl AsRef<Path>) -> Result<CsrProperties, CsrError>
+        CsrProperties::build(&self, signer: &SigningKey, env: EnvironmentType) -> Result<Csr, CsrError>
+        ```
 
-=== "C (FFI)"
-    - `fatoora_csr_properties_from_str(properties: const char*) -> FfiResult_FfiCsrProperties`
-    - `fatoora_csr_properties_parse(properties: const char*) -> FfiResult_FfiCsrProperties`
-    - `fatoora_csr_properties_parse_file(path: const char*) -> FfiResult_FfiCsrProperties`
-    - `fatoora_csr_build(props: FfiCsrProperties*, key: FfiSigningKey*, env: FfiEnvironment) -> FfiResult_FfiCsr`
-    - `fatoora_signing_key_generate() -> FfiResult_FfiSigningKey`
-    - `fatoora_signing_key_from_pem(pem: const char*) -> FfiResult_FfiSigningKey`
-    - `fatoora_signing_key_from_der(der: const uint8_t*, len: uintptr_t) -> FfiResult_FfiSigningKey`
-    - `fatoora_signing_key_to_pem(key: FfiSigningKey*) -> FfiResult_FfiString`
-    - `fatoora_signing_key_to_der(key: FfiSigningKey*) -> FfiResult_FfiBytes`
-    - `fatoora_csr_from_der(der: const uint8_t*, len: uintptr_t) -> FfiResult_FfiCsr`
-    - `fatoora_csr_to_pem(csr: FfiCsr*) -> FfiResult_FfiString`
-    - `fatoora_csr_to_der(csr: FfiCsr*) -> FfiResult_FfiBytes`
-    - `fatoora_csr_to_base64(csr: FfiCsr*) -> FfiResult_FfiString`
-    - `fatoora_csr_to_pem_base64(csr: FfiCsr*) -> FfiResult_FfiString`
-    - `fatoora_csr_subject_string(csr: FfiCsr*) -> FfiResult_FfiString`
-    - `fatoora_csr_extension_values_der(csr: FfiCsr*) -> FfiResult_FfiBytesList`
+    === "{{ lang.python }}"
+        ```python
+        CsrProperties.from_properties_str(properties: str) -> CsrProperties
+        CsrProperties.parse(properties: str) -> CsrProperties
+        CsrProperties.parse_file(path: str) -> CsrProperties
+        CsrProperties.build(key: SigningKey, env: Environment) -> Csr
+        ```
 
-## Types
-- `CsrProperties` validates fields, builds the subject/SAN, and constructs the request.
-- `SigningKey` wraps the K256 private key and controls PEM/DER I/O.
-- `Csr` wraps the generated request and supports base64 and PEM/DER output.
-- `CsrError` covers parsing, missing fields, subject/SAN build failures, encoding issues, and IO.
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiCsrProperties fatoora_csr_properties_from_str(const char* properties);
+        FfiResult_FfiCsrProperties fatoora_csr_properties_parse(const char* properties);
+        FfiResult_FfiCsrProperties fatoora_csr_properties_parse_file(const char* path);
+        FfiResult_FfiCsr fatoora_csr_build(FfiCsrProperties* props, FfiSigningKey* key, FfiEnvironment env);
+        ```
 
-## Notes
-- The template name extension is selected from `EnvironmentType`.
-- `Csr::to_pem_base64()` is the value expected by the ZATCA compliance endpoint.
+    !!! info "Args"
+        - `properties`: CSR properties text.
+        - `path`: file path for properties.
+        - `signer` / `key`: signing key.
+        - `env`: environment used to select template name.
+
+    !!! info "Returns"
+        - `CsrProperties`: parsed properties.
+        - `Csr`: CSR object built from properties.
+
+## Signing Key
+
+??? note "Key generation and IO"
+    Create and serialize signing keys.
+
+    === "{{ lang.rust }}"
+        ```rust
+        SigningKey::generate() -> SigningKey
+        SigningKey::from_pem(pem: &str) -> Result<SigningKey, CsrError>
+        SigningKey::from_der(der: &[u8]) -> Result<SigningKey, CsrError>
+        SigningKey::to_pem(&self) -> Result<String, CsrError>
+        SigningKey::to_der(&self) -> Result<Vec<u8>, CsrError>
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        SigningKey.generate() -> SigningKey
+        SigningKey.from_pem(pem: str) -> SigningKey
+        SigningKey.from_der(der: bytes) -> SigningKey
+        SigningKey.to_pem() -> str
+        SigningKey.to_der() -> bytes
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiSigningKey fatoora_signing_key_generate(void);
+        FfiResult_FfiSigningKey fatoora_signing_key_from_pem(const char* pem);
+        FfiResult_FfiSigningKey fatoora_signing_key_from_der(const uint8_t* der, uintptr_t len);
+        FfiResult_FfiString fatoora_signing_key_to_pem(FfiSigningKey* key);
+        FfiResult_FfiBytes fatoora_signing_key_to_der(FfiSigningKey* key);
+        ```
+
+    !!! info "Args"
+        - `pem` / `der`: PKCS#8 key material.
+
+    !!! info "Returns"
+        - `SigningKey`: signing key handle.
+        - `pem` / `der`: serialized key output.
+
+## CSR
+
+??? note "CSR IO"
+    Load and serialize CSR data.
+
+    === "{{ lang.rust }}"
+        ```rust
+        Csr::from_der(der: &[u8]) -> Result<Csr, CsrError>
+        Csr::to_pem(&self) -> Result<String, CsrError>
+        Csr::to_der(&self) -> Result<Vec<u8>, CsrError>
+        Csr::to_base64(&self) -> Result<String, CsrError>
+        Csr::to_pem_base64(&self) -> Result<String, CsrError>
+        Csr::subject_string(&self) -> String
+        Csr::extension_values_der(&self) -> Vec<Vec<u8>>
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        Csr.from_der(der: bytes) -> Csr
+        Csr.to_pem() -> str
+        Csr.to_der() -> bytes
+        Csr.to_base64() -> str
+        Csr.to_pem_base64() -> str
+        Csr.subject_string() -> str
+        Csr.extension_values_der() -> list[bytes]
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiCsr fatoora_csr_from_der(const uint8_t* der, uintptr_t len);
+        FfiResult_FfiString fatoora_csr_to_pem(FfiCsr* csr);
+        FfiResult_FfiBytes fatoora_csr_to_der(FfiCsr* csr);
+        FfiResult_FfiString fatoora_csr_to_base64(FfiCsr* csr);
+        FfiResult_FfiString fatoora_csr_to_pem_base64(FfiCsr* csr);
+        FfiResult_FfiString fatoora_csr_subject_string(FfiCsr* csr);
+        FfiResult_FfiBytesList fatoora_csr_extension_values_der(FfiCsr* csr);
+        ```
+
+    !!! info "Args"
+        - `der`: CSR in DER format.
+
+    !!! info "Returns"
+        - `Csr`: CSR object.
+        - `pem` / `der` / `base64`: serialized CSR output.
+
+## Errors
+
+!!! warning "Errors"
+    - `CsrError` covers parsing, missing fields, subject/SAN build failures, encoding issues, and IO.
+
+!!! note "Notes"
+    - The template name extension is selected from EnvironmentType.
+    - Csr.to_pem_base64() is the value expected by the ZATCA compliance endpoint.
 
 See also: [CSR Guide](../guides/csr.md)

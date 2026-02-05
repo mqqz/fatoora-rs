@@ -2,23 +2,41 @@
 
 ZATCA QR payload generation and accessors.
 
-## Symbols
+## Access QR
 
-=== "Rust"
-    - `QrCodeError` — missing fields, TLV length overflow, or XML extraction failures.
-    - `QrResult<T>` — `Result<T, QrCodeError>`.
-    - `QrPayload` — public type, constructed internally by invoice signing.
-    - `SignedInvoice::qr_code(&self) -> &str` — base64 TLV payload.
+??? note "QR payload"
+    Read the base64 TLV payload from a signed invoice.
 
-=== "Python"
-    - `SignedInvoice.qr() -> str` — base64 TLV payload.
+    === "{{ lang.rust }}"
+        ```rust
+        SignedInvoice::qr_code(&self) -> &str
+        ```
 
-=== "C (FFI)"
-    - `fatoora_signed_invoice_qr(signed: FfiSignedInvoice*) -> FfiResult_FfiString`
+    === "{{ lang.python }}"
+        ```python
+        SignedInvoice.qr() -> str
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiString fatoora_signed_invoice_qr(FfiSignedInvoice* signed);
+        ```
+
+    !!! info "Args"
+        - `signed`: signed invoice handle.
+
+    !!! info "Returns"
+        - `string`: base64 TLV payload.
+
+## Errors
+
+!!! warning "Errors"
+    - `QrCodeError` covers missing fields, TLV length overflow, or XML extraction failures.
 
 ## Behavior
-- QR payloads use TLV tags 1-5 for seller + totals, and tags 6-9 for hash/signature data when
-  present.
-- The base64-encoded payload must be 700 characters or fewer.
+
+!!! note "Behavior"
+    - QR payloads use TLV tags 1-5 for seller + totals, and tags 6-9 for hash/signature data when present.
+    - The base64-encoded payload must be 700 characters or fewer.
 
 See also: [QR Guide](../guides/qr.md)
