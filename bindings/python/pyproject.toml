@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fatoora-rs"
 version = "0.1.2"
-description = "Python bindings for the fatoora-rs ZATCA SDK"
+description = "Python bindings for the fatoora-rs library, providing ZATCA-compliant e-invoicing functionality."
 readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT"
@@ -20,9 +20,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/mqqz/fatoora-rs"
+Homepage = "https://mosadhan.com/fatoora-rs"
 Repository = "https://github.com/mqqz/fatoora-rs"
-Documentation = "https://github.com/mqqz/fatoora-rs"
+Documentation = "https://mosadhan.com/fatoora-rs"
 Issues = "https://github.com/mqqz/fatoora-rs/issues"
 
 [project.optional-dependencies]
