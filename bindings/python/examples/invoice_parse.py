@@ -5,7 +5,7 @@ from fatoora import (
     InvoiceSubType,
     InvoiceTypeKind,
     VatCategory,
-    parse_invoice_xml,
+    parse_finalized_invoice_xml,
 )
 
 
@@ -44,7 +44,7 @@ def main() -> None:
     invoice = builder.build()
     xml = invoice.xml()
 
-    parsed = parse_invoice_xml(xml)
+    parsed = parse_finalized_invoice_xml(xml)
     print("items", parsed.line_item_count())
     print("totals", parsed.totals())
 

@@ -1,6 +1,6 @@
 from .api import (
     Address,
-    Invoice,
+    FinalizedInvoice,
     InvoiceBuilder,
     InvoiceFlag,
     InvoiceLineItem,
@@ -14,13 +14,15 @@ from .api import (
     SignedInvoice,
     VatCategory,
     VatId,
-    parse_invoice_xml,
+    parse_finalized_invoice_xml,
+    parse_finalized_invoice_xml_file,
     parse_signed_invoice_xml,
+    parse_signed_invoice_xml_file,
 )
 
 __all__ = [
     "Address",
-    "Invoice",
+    "FinalizedInvoice",
     "InvoiceBuilder",
     "InvoiceFlag",
     "InvoiceLineItem",
@@ -34,6 +36,8 @@ __all__ = [
     "SignedInvoice",
     "VatCategory",
     "VatId",
-    "parse_invoice_xml",
+    "parse_finalized_invoice_xml",
+    "parse_finalized_invoice_xml_file",
     "parse_signed_invoice_xml",
+    "parse_signed_invoice_xml_file",
 ]

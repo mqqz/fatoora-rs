@@ -1514,7 +1514,7 @@ class SignedInvoice:
 
 
 @dataclass
-class Invoice:
+class FinalizedInvoice:
     _handle: Any
 
     def id(self) -> str:
@@ -1789,17 +1789,17 @@ class Invoice:
             self._handle = None
 
     @classmethod
-    def from_xml(cls, xml: str) -> "Invoice":
-        return parse_invoice_xml(xml)
+    def from_xml(cls, xml: str) -> "FinalizedInvoice":
+        return parse_finalized_invoice_xml(xml)
 
-    def __enter__(self) -> "Invoice":
+    def __enter__(self) -> "FinalizedInvoice":
         return self
 
     def __exit__(self, exc_type, exc, tb) -> None:
         self.close()
 
 
-def parse_invoice_xml(xml: str) -> Invoice:
+def parse_finalized_invoice_xml(xml: str) -> FinalizedInvoice:
     bindings = _FfiBindings.instance()
     result = bindings.lib.fatoora_parse_finalized_invoice_xml(_as_bytes(xml))
     handle = _wrap_handle(
@@ -1807,10 +1807,10 @@ def parse_invoice_xml(xml: str) -> Invoice:
         "FfiFinalizedInvoice",
         _result_or_raise(bindings.ffi, bindings.lib, result),
     )
-    return Invoice(handle)
+    return FinalizedInvoice(handle)
 
 
-def parse_invoice_xml_file(path: str) -> Invoice:
+def parse_finalized_invoice_xml_file(path: str) -> FinalizedInvoice:
     bindings = _FfiBindings.instance()
     result = bindings.lib.fatoora_parse_finalized_invoice_xml_file(_as_bytes(path))
     handle = _wrap_handle(
@@ -1818,7 +1818,7 @@ def parse_invoice_xml_file(path: str) -> Invoice:
         "FfiFinalizedInvoice",
         _result_or_raise(bindings.ffi, bindings.lib, result),
     )
-    return Invoice(handle)
+    return FinalizedInvoice(handle)
 
 
 def parse_signed_invoice_xml(xml: str) -> SignedInvoice:
@@ -2052,7 +2052,7 @@ class InvoiceBuilder:
         )
         _result_or_raise(bindings.ffi, bindings.lib, result)
 
-    def build(self) -> Invoice:
+    def build(self) -> FinalizedInvoice:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_invoice_builder_build(self._handle)
         handle = _wrap_handle(
@@ -2060,7 +2060,7 @@ class InvoiceBuilder:
             "FfiFinalizedInvoice",
             _result_or_raise(bindings.ffi, bindings.lib, result),
         )
-        return Invoice(handle)
+        return FinalizedInvoice(handle)
 
     def __del__(self) -> None:
         self.close()
