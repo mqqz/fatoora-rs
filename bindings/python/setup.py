@@ -13,7 +13,7 @@ from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
 class build_py(_build_py):
     def run(self) -> None:
-        repo_root = Path(os.environ.get("FATOORA_REPO_ROOT", Path(__file__).resolve().parents[2]))
+        repo_root = self._resolve_repo_root()
         target_dir = repo_root / "target" / "release"
 
         subprocess.check_call(
@@ -30,6 +30,21 @@ class build_py(_build_py):
         shutil.copy2(lib_path, package_dir / lib_name)
 
         super().run()
+
+    @staticmethod
+    def _resolve_repo_root() -> Path:
+        env_root = os.environ.get("FATOORA_REPO_ROOT")
+        if env_root:
+            return Path(env_root)
+        here = Path(__file__).resolve().parent
+        cargo_ws = here / "_cargo_ws"
+        if cargo_ws.is_dir():
+            return cargo_ws
+        # Fallback to the historical repo layout (bindings/python/..)
+        try:
+            return Path(__file__).resolve().parents[2]
+        except IndexError:
+            return here
 
     @staticmethod
     def _shared_lib_name() -> str:

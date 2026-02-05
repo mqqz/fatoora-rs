@@ -49,8 +49,8 @@ before-build = "cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/C
 
 [tool.cibuildwheel.windows]
 before-all = "powershell -Command \"if (!(Test-Path $env:VCPKG_INSTALLATION_ROOT)) { Write-Error 'VCPKG_INSTALLATION_ROOT is not set on this runner.'; exit 1 }; & $env:VCPKG_INSTALLATION_ROOT\\\\vcpkg.exe install libxml2:x64-windows --x-buildtype=release; if (!(Test-Path 'C:\\\\Program Files\\\\LLVM\\\\bin\\\\libclang.dll')) { Write-Error 'libclang.dll not found at C:\\\\Program Files\\\\LLVM\\\\bin. Install LLVM on the runner or set LIBCLANG_PATH.'; exit 1 }\""
-environment = "VCPKG_ROOT=C:\\\\vcpkg VCPKG_DEFAULT_TRIPLET=x64-windows VCPKGRS_DYNAMIC=1 LIBCLANG_PATH=C:\\\\PROGRA~1\\\\LLVM\\\\bin VCPKG_BUILD_TYPE=release VCPKG_LIBXML2_INCLUDE=C:\\\\vcpkg\\\\installed\\\\x64-windows\\\\include VCPKG_LIBXML2_LIB=C:\\\\vcpkg\\\\installed\\\\x64-windows\\\\lib"
-before-build = "powershell -Command \"C:\\\\vcpkg\\\\vcpkg.exe list | Select-String libxml2\" && cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/Cargo.toml"
+environment = "VCPKG_ROOT=C:\\\\vcpkg VCPKG_INSTALLATION_ROOT=C:\\\\vcpkg VCPKG_DEFAULT_TRIPLET=x64-windows VCPKGRS_TRIPLET=x64-windows VCPKGRS_DYNAMIC=1 LIBCLANG_PATH=C:\\\\PROGRA~1\\\\LLVM\\\\bin VCPKG_BUILD_TYPE=release VCPKG_LIBXML2_INCLUDE=C:\\\\vcpkg\\\\installed\\\\x64-windows\\\\include VCPKG_LIBXML2_LIB=C:\\\\vcpkg\\\\installed\\\\x64-windows\\\\lib"
+before-build = "cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/Cargo.toml"
 
 [tool.ruff.lint.per-file-ignores]
 # Ignore E402 (module level import not at top of file) in examples
