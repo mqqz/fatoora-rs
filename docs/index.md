@@ -88,13 +88,12 @@ The main core library (`fatoora-core`) is written in Rust with a C FFI that allo
     ```
 
 ## Current Limitations
-    - Multithreaded usage is unsupported/untested, so use at your own risk
-    - Only tested on sandbox, due to the difficulty of accessing the production environment
-    - Test suite needs more edge cases
-    - Invoice valdiation only covers the basic UBL format, no specific ZATCA/KSA rules yet.
+- Multithreaded usage is unsupported/untested, so use at your own risk
+- Only tested on sandbox, due to the difficulty of accessing the production environment
+- Test suite needs more edge cases
+- Invoice valdiation only covers the basic UBL format, no specific ZATCA/KSA rules yet.
 
 ## Where to Go Next
-- [Getting Started](guides/getting-started.md)
 - [CLI](guides/cli.md)
 - [Python Bindings](guides/python-bindings.md)
 - [Benchmarks](benchmarks.md)

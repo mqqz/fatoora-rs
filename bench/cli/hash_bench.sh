@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 FIXTURE="${ROOT_DIR}/fatoora-core/tests/fixtures/invoices/sample-simplified-invoice.xml"
 OUT_DIR="${ROOT_DIR}/bench/cli/results"
 OUT_FILE="${OUT_DIR}/hash_bench.md"
+DOC_FILE="${ROOT_DIR}/docs/benchmarks.md"
 
 if ! command -v hyperfine >/dev/null 2>&1; then
   echo "hyperfine is not installed; please install it and re-run."
@@ -53,3 +54,24 @@ hyperfine \
   "\"${RS_CLI}\" generate-hash --invoice \"${FIXTURE}\""
 
 echo "Wrote ${OUT_FILE}"
+
+if [ -f "${DOC_FILE}" ]; then
+  tmp_file="$(mktemp)"
+  awk -v table_file="${OUT_FILE}" '
+    /<!-- bench-table-start -->/ {
+      print
+      while ((getline line < table_file) > 0) print line
+      close(table_file)
+      in_table=1
+      next
+    }
+    /<!-- bench-table-end -->/ {
+      in_table=0
+      print
+      next
+    }
+    !in_table { print }
+  ' "${DOC_FILE}" > "${tmp_file}"
+  mv "${tmp_file}" "${DOC_FILE}"
+  echo "Updated ${DOC_FILE}"
+fi

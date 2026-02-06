@@ -65,4 +65,3 @@ Environment selection used by the API client and validation helpers.
         - `Config` / `FfiConfig`: environment-aware handle.
         - `Environment`: environment value from the handle.
 
-See also: [Getting Started Guide](../guides/getting-started.md)

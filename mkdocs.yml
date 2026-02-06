@@ -16,7 +16,6 @@ theme:
 nav:
   - Home: index.md
   - Guides:
-      - Getting Started: guides/getting-started.md
       - CSR Generation: guides/csr.md
       - Invoice Signing: guides/invoice-signing.md
       - Validation: guides/validation.md
@@ -27,7 +26,6 @@ nav:
       - C/C++ Bindings: guides/c-bindings.md
       - Guide Template: guides/example-template.md
   - Reference:
-      - Core: reference/core.md
       - Configuration: reference/configuration.md
       - CSR: reference/csr.md
       - Invoice:
