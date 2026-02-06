@@ -12,13 +12,11 @@ The C ABI is provided by the `fatoora-ffi` crate and can be used from C or C++.
 - Signed invoice metadata can be read via `fatoora_signed_invoice_signature`, `fatoora_signed_invoice_public_key`,
   `fatoora_signed_invoice_cert_hash`, `fatoora_signed_invoice_signed_props_hash`, and `fatoora_signed_invoice_signing_time`.
   `fatoora_signed_invoice_signing_time` returns a `YYYY-MM-DDTHH:MM:SS` UTC string.
-- Module headers are available under `fatoora/` (e.g., `fatoora/config.h`, `fatoora/invoice.h`, `fatoora/api.h`).
 
 ## Minimal C example (validation)
 ```c
 #include <stdio.h>
-#include "fatoora/validation.h"
-#include "fatoora/config.h"
+#include "fatoora_ffi.h"
 
 int main(void) {
     struct FfiConfig *config = fatoora_config_new(FfiEnvironment_NonProduction);
@@ -41,7 +39,7 @@ int main(void) {
 The header does not wrap symbols in `extern \"C\"`. Do that in your C++ translation unit:
 ```cpp
 extern \"C\" {
-#include \"fatoora/ffi.h\"
+#include \"fatoora_ffi.h\"
 }
 ```
 

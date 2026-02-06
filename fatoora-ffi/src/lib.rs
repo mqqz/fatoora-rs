@@ -16,10 +16,12 @@ use fatoora_core::api::{
     ValidationResponse, ValidationResults,
 };
 use fatoora_core::csr::{Csr, CsrProperties, SigningKey};
-use fatoora_core::invoice::sign::InvoiceSigner;
+use fatoora_core::invoice::sign::{InvoiceSigner, SigningError};
 use fatoora_core::invoice::xml::ToXml;
 use fatoora_core::invoice::xml::parse::{parse_finalized_invoice_xml, parse_signed_invoice_xml};
 use fatoora_core::invoice::validation::validate_xml_invoice_from_str;
+use x509_cert::der::{Encode, EncodePem};
+use x509_cert::der::pem::LineEnding;
 
 mod error;
 mod macros;
@@ -2246,6 +2248,36 @@ pub unsafe extern "C" fn fatoora_signer_from_der(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signer_free(signer: *mut FfiSigner) {
     ffi_handle_free!(signer, InvoiceSigner);
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signer_certificate_der(
+    signer: *mut FfiSigner,
+) -> FfiResult<FfiBytes> {
+    let signer = ffi_borrow!(signer, "signer", InvoiceSigner);
+    match signer.certificate().to_der() {
+        Ok(der) => FfiResult::ok(vec_to_ffi_bytes(der)),
+        Err(err) => FfiResult::err(ffi_error_from_signing(SigningError::SigningError(format!(
+            "Certificate DER encoding error: {err:?}"
+        )))),
+    }
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signer_certificate_pem(
+    signer: *mut FfiSigner,
+) -> FfiResult<FfiString> {
+    let signer = ffi_borrow!(signer, "signer", InvoiceSigner);
+    match signer.certificate().to_pem(LineEnding::LF) {
+        Ok(pem) => ffi_string_from_owned(pem),
+        Err(err) => FfiResult::err(ffi_error_from_signing(SigningError::SigningError(format!(
+            "Certificate PEM encoding error: {err:?}"
+        )))),
+    }
 }
 
 #[unsafe(no_mangle)]

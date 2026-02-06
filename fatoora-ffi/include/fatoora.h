@@ -207,6 +207,8 @@ typedef FfiZatcaClient ZatcaClient;
 #define signed_invoice_xml fatoora_signed_invoice_xml
 #define signed_invoice_xml_base64 fatoora_signed_invoice_xml_base64
 #define signed_invoice_zatca_key_signature fatoora_signed_invoice_zatca_key_signature
+#define signer_certificate_der fatoora_signer_certificate_der
+#define signer_certificate_pem fatoora_signer_certificate_pem
 #define signer_free fatoora_signer_free
 #define signer_from_der fatoora_signer_from_der
 #define signer_from_pem fatoora_signer_from_pem

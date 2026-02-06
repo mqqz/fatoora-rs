@@ -375,6 +375,8 @@ FfiResult_FfiString fatoora_invoice_original_reason(FfiFinalizedInvoice* invoice
 FfiResult_FfiSigner fatoora_signer_from_pem(const char* cert_pem, const char* key_pem);
 FfiResult_FfiSigner fatoora_signer_from_der(const unsigned char* cert_der, uintptr_t cert_len, const unsigned char* key_der, uintptr_t key_len);
 void fatoora_signer_free(FfiSigner* signer);
+FfiResult_FfiBytes fatoora_signer_certificate_der(FfiSigner* signer);
+FfiResult_FfiString fatoora_signer_certificate_pem(FfiSigner* signer);
 FfiResult_FfiSignedInvoice fatoora_invoice_sign(FfiFinalizedInvoice* invoice, FfiSigner* signer);
 
 FfiResult_FfiString fatoora_signed_invoice_xml(FfiSignedInvoice* signed);

@@ -239,6 +239,20 @@ class Signer:
             _FfiBindings.instance().lib.fatoora_signer_free(self._handle)
             self._handle = None
 
+    def certificate_der(self) -> bytes:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signer_certificate_der(self._handle)
+        return _decode_bytes(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def certificate_pem(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signer_certificate_pem(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
     def __enter__(self) -> "Signer":
         return self
 

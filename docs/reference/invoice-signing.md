@@ -15,11 +15,15 @@ Signing helpers and signature metadata.
     === "{{ lang.python }}"
         ```python
         Signer.from_pem(cert_pem: str, key_pem: str) -> Signer
+        Signer.certificate_pem() -> str
+        Signer.certificate_der() -> bytes
         ```
 
     === "{{ lang.c }}"
         ```c
         FfiResult_FfiSigner fatoora_signer_from_pem(const char* cert_pem, const char* key_pem);
+        FfiResult_FfiString fatoora_signer_certificate_pem(FfiSigner* signer);
+        FfiResult_FfiBytes fatoora_signer_certificate_der(FfiSigner* signer);
         ```
 
     !!! info "Args"
@@ -43,11 +47,15 @@ Signing helpers and signature metadata.
     === "{{ lang.python }}"
         ```python
         Signer.from_der(cert_der: bytes, key_der: bytes) -> Signer
+        Signer.certificate_pem() -> str
+        Signer.certificate_der() -> bytes
         ```
 
     === "{{ lang.c }}"
         ```c
         FfiResult_FfiSigner fatoora_signer_from_der(const uint8_t* cert_der, uintptr_t cert_len, const uint8_t* key_der, uintptr_t key_len);
+        FfiResult_FfiString fatoora_signer_certificate_pem(FfiSigner* signer);
+        FfiResult_FfiBytes fatoora_signer_certificate_der(FfiSigner* signer);
         ```
 
     !!! info "Args"

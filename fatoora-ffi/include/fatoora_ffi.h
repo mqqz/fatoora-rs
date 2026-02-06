@@ -1281,6 +1281,18 @@ void fatoora_signer_free(struct FfiSigner *signer);
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
+struct FfiResult_FfiBytes fatoora_signer_certificate_der(struct FfiSigner *signer);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_FfiString fatoora_signer_certificate_pem(struct FfiSigner *signer);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
 struct FfiResult_FfiSignedInvoice fatoora_invoice_sign(struct FfiFinalizedInvoice *invoice,
                                                        struct FfiSigner *signer);
 
