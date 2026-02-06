@@ -11,7 +11,37 @@ use fatoora_core::invoice::xml::InvoiceXmlError;
 use fatoora_core::invoice::xml::parse::ParseError;
 use fatoora_core::{Error as CoreError, ErrorKind};
 
-pub type FfiErrorKind = ErrorKind;
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum FfiErrorKind {
+    InvalidInput = 1,
+    Validation = 2,
+    Parse = 3,
+    Xml = 4,
+    Crypto = 5,
+    Io = 6,
+    Network = 7,
+    Unauthorized = 8,
+    Internal = 9,
+    Api = 10,
+}
+
+impl From<ErrorKind> for FfiErrorKind {
+    fn from(kind: ErrorKind) -> Self {
+        match kind {
+            ErrorKind::InvalidInput => Self::InvalidInput,
+            ErrorKind::Validation => Self::Validation,
+            ErrorKind::Parse => Self::Parse,
+            ErrorKind::Xml => Self::Xml,
+            ErrorKind::Crypto => Self::Crypto,
+            ErrorKind::Io => Self::Io,
+            ErrorKind::Network => Self::Network,
+            ErrorKind::Unauthorized => Self::Unauthorized,
+            ErrorKind::Internal => Self::Internal,
+            ErrorKind::Api => Self::Api,
+        }
+    }
+}
 
 #[repr(C)]
 pub struct FfiError {
@@ -112,7 +142,7 @@ pub fn ffi_error_internal(message: impl Into<String>) -> FfiErrorDetails {
 }
 
 pub fn ffi_error_from_core(err: CoreError) -> FfiErrorDetails {
-    FfiErrorDetails::new(err.kind(), err.message().to_string())
+    FfiErrorDetails::new(FfiErrorKind::from(err.kind()), err.message().to_string())
 }
 
 pub fn ffi_error_from_csr(err: CsrError) -> FfiErrorDetails {

@@ -63,7 +63,7 @@ Error types used across the core library, FFI, and Python bindings.
         - `error`: error handle returned from a failed FFI call.
 
     !!! info "Returns"
-        - `code`: numeric error kind.
+        - `code`: numeric error kind (see FfiErrorKind values).
         - `message`: UTF-8 error message.
 
 ## Mapping (FFI -> Python)
@@ -79,4 +79,3 @@ Error types used across the core library, FFI, and Python bindings.
     - Unauthorized -> UnauthorizedError
     - Internal -> InternalError
     - Api -> ApiError
-

@@ -45,6 +45,19 @@ typedef struct { void* ptr; } FfiOriginalInvoiceRef;
 typedef struct { unsigned char* ptr; uintptr_t len; } FfiBytes;
 typedef struct { FfiBytes* ptr; uintptr_t len; } FfiBytesList;
 typedef struct { int code; char* message; } FfiError;
+enum FfiErrorKind {
+  FfiErrorKind_InvalidInput = 1,
+  FfiErrorKind_Validation = 2,
+  FfiErrorKind_Parse = 3,
+  FfiErrorKind_Xml = 4,
+  FfiErrorKind_Crypto = 5,
+  FfiErrorKind_Io = 6,
+  FfiErrorKind_Network = 7,
+  FfiErrorKind_Unauthorized = 8,
+  FfiErrorKind_Internal = 9,
+  FfiErrorKind_Api = 10,
+};
+typedef int FfiErrorKind;
 
 typedef struct { _Bool ok; FfiInvoiceBuilder value; FfiError* error; } FfiResult_FfiInvoiceBuilder;
 typedef struct { _Bool ok; FfiFinalizedInvoice value; FfiError* error; } FfiResult_FfiFinalizedInvoice;
@@ -269,6 +282,9 @@ FfiResult_bool fatoora_invoice_builder_set_allowance(
     const char* reason,
     double amount
 );
+FfiResult_bool fatoora_invoice_builder_set_invoice_level_charge(FfiInvoiceBuilder* builder, double charge);
+FfiResult_bool fatoora_invoice_builder_set_invoice_level_discount(FfiInvoiceBuilder* builder, double discount);
+FfiResult_bool fatoora_invoice_builder_set_allowance_reason(FfiInvoiceBuilder* builder, const char* reason);
 
 FfiResult_bool fatoora_invoice_builder_set_flags(
     FfiInvoiceBuilder* builder,
@@ -319,6 +335,18 @@ FfiResult_f64 fatoora_signed_invoice_totals_taxable_amount(FfiSignedInvoice* sig
 
 FfiResult_u8 fatoora_invoice_flags(FfiFinalizedInvoice* invoice);
 FfiResult_u8 fatoora_signed_invoice_flags(FfiSignedInvoice* signed);
+FfiResult_bool fatoora_invoice_is_third_party(FfiFinalizedInvoice* invoice);
+FfiResult_bool fatoora_invoice_is_nominal(FfiFinalizedInvoice* invoice);
+FfiResult_bool fatoora_invoice_is_export(FfiFinalizedInvoice* invoice);
+FfiResult_bool fatoora_invoice_is_summary(FfiFinalizedInvoice* invoice);
+FfiResult_bool fatoora_invoice_is_self_billed(FfiFinalizedInvoice* invoice);
+FfiResult_bool fatoora_invoice_is_simplified(FfiFinalizedInvoice* invoice);
+FfiResult_bool fatoora_signed_invoice_is_third_party(FfiSignedInvoice* signed);
+FfiResult_bool fatoora_signed_invoice_is_nominal(FfiSignedInvoice* signed);
+FfiResult_bool fatoora_signed_invoice_is_export(FfiSignedInvoice* signed);
+FfiResult_bool fatoora_signed_invoice_is_summary(FfiSignedInvoice* signed);
+FfiResult_bool fatoora_signed_invoice_is_self_billed(FfiSignedInvoice* signed);
+FfiResult_bool fatoora_signed_invoice_is_simplified(FfiSignedInvoice* signed);
 
 FfiResult_FfiString fatoora_invoice_id(FfiFinalizedInvoice* invoice);
 FfiResult_FfiString fatoora_invoice_uuid(FfiFinalizedInvoice* invoice);

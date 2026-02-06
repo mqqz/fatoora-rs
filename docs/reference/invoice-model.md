@@ -66,6 +66,9 @@ Core data types for building and inspecting invoices.
         InvoiceBuilder.set_buyer(...) -> None
         InvoiceBuilder.set_note(language: str, text: str) -> None
         InvoiceBuilder.set_allowance(reason: str, amount: float) -> None
+        InvoiceBuilder.set_invoice_level_charge(charge: float) -> None
+        InvoiceBuilder.set_invoice_level_discount(discount: float) -> None
+        InvoiceBuilder.set_allowance_reason(reason: str) -> None
         InvoiceBuilder.set_flags(flags: int) -> None
         ```
 
@@ -83,6 +86,9 @@ Core data types for building and inspecting invoices.
         FfiResult_bool fatoora_invoice_builder_set_buyer(FfiInvoiceBuilder* builder, const char* name, const char* country, const char* city, const char* street, const char* additional_street, const char* building_number, const char* additional_number, const char* postal_code, const char* subdivision, const char* district, const char* vat_id, const char* other_id, const char* other_id_scheme);
         FfiResult_bool fatoora_invoice_builder_set_note(FfiInvoiceBuilder* builder, const char* lang, const char* text);
         FfiResult_bool fatoora_invoice_builder_set_allowance(FfiInvoiceBuilder* builder, const char* reason, double amount);
+        FfiResult_bool fatoora_invoice_builder_set_invoice_level_charge(FfiInvoiceBuilder* builder, double charge);
+        FfiResult_bool fatoora_invoice_builder_set_invoice_level_discount(FfiInvoiceBuilder* builder, double discount);
+        FfiResult_bool fatoora_invoice_builder_set_allowance_reason(FfiInvoiceBuilder* builder, const char* reason);
         FfiResult_bool fatoora_invoice_builder_set_flags(FfiInvoiceBuilder* builder, uint8_t flags);
         ```
 
@@ -175,6 +181,12 @@ Core data types for building and inspecting invoices.
         FinalizedInvoice.line_items() -> list[InvoiceLineItem]
         FinalizedInvoice.totals() -> InvoiceTotals
         FinalizedInvoice.flags() -> set[InvoiceFlag]
+        FinalizedInvoice.is_third_party() -> bool
+        FinalizedInvoice.is_nominal() -> bool
+        FinalizedInvoice.is_export() -> bool
+        FinalizedInvoice.is_summary() -> bool
+        FinalizedInvoice.is_self_billed() -> bool
+        FinalizedInvoice.is_simplified() -> bool
         FinalizedInvoice.xml() -> str
         FinalizedInvoice.hash_base64() -> str
         ```
@@ -199,6 +211,30 @@ Core data types for building and inspecting invoices.
         FfiResult_FfiParty fatoora_invoice_seller(FfiFinalizedInvoice* invoice);
         FfiResult_FfiParty fatoora_invoice_buyer(FfiFinalizedInvoice* invoice);
         FfiResult_FfiInvoiceNote fatoora_invoice_note(FfiFinalizedInvoice* invoice);
+        FfiResult_FfiOriginalInvoiceRef fatoora_invoice_original_ref(FfiFinalizedInvoice* invoice);
+        FfiResult_FfiString fatoora_invoice_original_reason(FfiFinalizedInvoice* invoice);
+        FfiResult_u8 fatoora_invoice_flags(FfiFinalizedInvoice* invoice);
+        FfiResult_bool fatoora_invoice_is_third_party(FfiFinalizedInvoice* invoice);
+        FfiResult_bool fatoora_invoice_is_nominal(FfiFinalizedInvoice* invoice);
+        FfiResult_bool fatoora_invoice_is_export(FfiFinalizedInvoice* invoice);
+        FfiResult_bool fatoora_invoice_is_summary(FfiFinalizedInvoice* invoice);
+        FfiResult_bool fatoora_invoice_is_self_billed(FfiFinalizedInvoice* invoice);
+        FfiResult_bool fatoora_invoice_is_simplified(FfiFinalizedInvoice* invoice);
+        FfiResult_u64 fatoora_invoice_line_item_count(FfiFinalizedInvoice* invoice);
+        FfiResult_FfiString fatoora_invoice_line_item_description(FfiFinalizedInvoice* invoice, uint64_t index);
+        FfiResult_FfiString fatoora_invoice_line_item_unit_code(FfiFinalizedInvoice* invoice, uint64_t index);
+        FfiResult_f64 fatoora_invoice_line_item_quantity(FfiFinalizedInvoice* invoice, uint64_t index);
+        FfiResult_f64 fatoora_invoice_line_item_unit_price(FfiFinalizedInvoice* invoice, uint64_t index);
+        FfiResult_f64 fatoora_invoice_line_item_total_amount(FfiFinalizedInvoice* invoice, uint64_t index);
+        FfiResult_f64 fatoora_invoice_line_item_vat_rate(FfiFinalizedInvoice* invoice, uint64_t index);
+        FfiResult_f64 fatoora_invoice_line_item_vat_amount(FfiFinalizedInvoice* invoice, uint64_t index);
+        FfiResult_u8 fatoora_invoice_line_item_vat_category(FfiFinalizedInvoice* invoice, uint64_t index);
+        FfiResult_f64 fatoora_invoice_totals_tax_inclusive(FfiFinalizedInvoice* invoice);
+        FfiResult_f64 fatoora_invoice_totals_tax_amount(FfiFinalizedInvoice* invoice);
+        FfiResult_f64 fatoora_invoice_totals_line_extension(FfiFinalizedInvoice* invoice);
+        FfiResult_f64 fatoora_invoice_totals_allowance_total(FfiFinalizedInvoice* invoice);
+        FfiResult_f64 fatoora_invoice_totals_charge_total(FfiFinalizedInvoice* invoice);
+        FfiResult_f64 fatoora_invoice_totals_taxable_amount(FfiFinalizedInvoice* invoice);
         ```
 
     !!! info "Args"
@@ -241,6 +277,33 @@ Core data types for building and inspecting invoices.
         SignedInvoice.cert_hash() -> str
         SignedInvoice.signed_props_hash() -> str
         SignedInvoice.signing_time() -> str
+        SignedInvoice.id() -> str
+        SignedInvoice.uuid() -> str
+        SignedInvoice.issue_datetime() -> str
+        SignedInvoice.currency() -> str
+        SignedInvoice.previous_invoice_hash() -> str
+        SignedInvoice.invoice_counter() -> int
+        SignedInvoice.payment_means_code() -> str
+        SignedInvoice.vat_category() -> VatCategory
+        SignedInvoice.invoice_level_charge() -> float
+        SignedInvoice.invoice_level_discount() -> float
+        SignedInvoice.allowance_reason() -> Optional[str]
+        SignedInvoice.invoice_type_kind() -> InvoiceTypeKind
+        SignedInvoice.invoice_sub_type() -> InvoiceSubType
+        SignedInvoice.original_invoice_ref() -> Optional[OriginalInvoiceRef]
+        SignedInvoice.original_invoice_reason() -> Optional[str]
+        SignedInvoice.seller() -> Party
+        SignedInvoice.buyer() -> Optional[Party]
+        SignedInvoice.note() -> Optional[InvoiceNote]
+        SignedInvoice.line_items() -> list[InvoiceLineItem]
+        SignedInvoice.totals() -> InvoiceTotals
+        SignedInvoice.flags() -> set[InvoiceFlag]
+        SignedInvoice.is_third_party() -> bool
+        SignedInvoice.is_nominal() -> bool
+        SignedInvoice.is_export() -> bool
+        SignedInvoice.is_summary() -> bool
+        SignedInvoice.is_self_billed() -> bool
+        SignedInvoice.is_simplified() -> bool
         ```
 
     === "{{ lang.c }}"
@@ -248,6 +311,17 @@ Core data types for building and inspecting invoices.
         FfiResult_FfiString fatoora_signed_invoice_xml(FfiSignedInvoice* signed);
         FfiResult_FfiString fatoora_signed_invoice_xml_base64(FfiSignedInvoice* signed);
         FfiResult_FfiString fatoora_signed_invoice_qr(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_id(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_uuid(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_issue_datetime(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_currency(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_previous_hash(FfiSignedInvoice* signed);
+        FfiResult_u64 fatoora_signed_invoice_counter(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_payment_means_code(FfiSignedInvoice* signed);
+        FfiResult_FfiVatCategory fatoora_signed_invoice_vat_category(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_allowance_reason(FfiSignedInvoice* signed);
+        FfiResult_f64 fatoora_signed_invoice_level_charge(FfiSignedInvoice* signed);
+        FfiResult_f64 fatoora_signed_invoice_level_discount(FfiSignedInvoice* signed);
         FfiResult_FfiString fatoora_signed_invoice_hash(FfiSignedInvoice* signed);
         FfiResult_FfiString fatoora_signed_invoice_hash_base64(FfiSignedInvoice* signed);
         FfiResult_FfiString fatoora_signed_invoice_signature(FfiSignedInvoice* signed);
@@ -256,6 +330,35 @@ Core data types for building and inspecting invoices.
         FfiResult_FfiString fatoora_signed_invoice_cert_hash(FfiSignedInvoice* signed);
         FfiResult_FfiString fatoora_signed_invoice_signed_props_hash(FfiSignedInvoice* signed);
         FfiResult_FfiString fatoora_signed_invoice_signing_time(FfiSignedInvoice* signed);
+        FfiResult_bool fatoora_signed_invoice_is_third_party(FfiSignedInvoice* signed);
+        FfiResult_bool fatoora_signed_invoice_is_nominal(FfiSignedInvoice* signed);
+        FfiResult_bool fatoora_signed_invoice_is_export(FfiSignedInvoice* signed);
+        FfiResult_bool fatoora_signed_invoice_is_summary(FfiSignedInvoice* signed);
+        FfiResult_bool fatoora_signed_invoice_is_self_billed(FfiSignedInvoice* signed);
+        FfiResult_bool fatoora_signed_invoice_is_simplified(FfiSignedInvoice* signed);
+        FfiResult_FfiInvoiceTypeKind fatoora_signed_invoice_type_kind(FfiSignedInvoice* signed);
+        FfiResult_FfiInvoiceSubType fatoora_signed_invoice_sub_type(FfiSignedInvoice* signed);
+        FfiResult_FfiParty fatoora_signed_invoice_seller(FfiSignedInvoice* signed);
+        FfiResult_FfiParty fatoora_signed_invoice_buyer(FfiSignedInvoice* signed);
+        FfiResult_FfiInvoiceNote fatoora_signed_invoice_note(FfiSignedInvoice* signed);
+        FfiResult_FfiOriginalInvoiceRef fatoora_signed_invoice_original_ref(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_original_reason(FfiSignedInvoice* signed);
+        FfiResult_u8 fatoora_signed_invoice_flags(FfiSignedInvoice* signed);
+        FfiResult_u64 fatoora_signed_invoice_line_item_count(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_line_item_description(FfiSignedInvoice* signed, uint64_t index);
+        FfiResult_FfiString fatoora_signed_invoice_line_item_unit_code(FfiSignedInvoice* signed, uint64_t index);
+        FfiResult_f64 fatoora_signed_invoice_line_item_quantity(FfiSignedInvoice* signed, uint64_t index);
+        FfiResult_f64 fatoora_signed_invoice_line_item_unit_price(FfiSignedInvoice* signed, uint64_t index);
+        FfiResult_f64 fatoora_signed_invoice_line_item_total_amount(FfiSignedInvoice* signed, uint64_t index);
+        FfiResult_f64 fatoora_signed_invoice_line_item_vat_rate(FfiSignedInvoice* signed, uint64_t index);
+        FfiResult_f64 fatoora_signed_invoice_line_item_vat_amount(FfiSignedInvoice* signed, uint64_t index);
+        FfiResult_u8 fatoora_signed_invoice_line_item_vat_category(FfiSignedInvoice* signed, uint64_t index);
+        FfiResult_f64 fatoora_signed_invoice_totals_tax_inclusive(FfiSignedInvoice* signed);
+        FfiResult_f64 fatoora_signed_invoice_totals_tax_amount(FfiSignedInvoice* signed);
+        FfiResult_f64 fatoora_signed_invoice_totals_line_extension(FfiSignedInvoice* signed);
+        FfiResult_f64 fatoora_signed_invoice_totals_allowance_total(FfiSignedInvoice* signed);
+        FfiResult_f64 fatoora_signed_invoice_totals_charge_total(FfiSignedInvoice* signed);
+        FfiResult_f64 fatoora_signed_invoice_totals_taxable_amount(FfiSignedInvoice* signed);
         ```
 
     !!! info "Args"
@@ -263,6 +366,7 @@ Core data types for building and inspecting invoices.
 
     !!! info "Returns"
         - Signed XML, hashes, and signature metadata.
+        - Optional handles are returned as NULL pointers on success when fields are absent.
 
 ## Supporting Types
 

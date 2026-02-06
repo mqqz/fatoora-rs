@@ -1494,6 +1494,36 @@ class SignedInvoice:
     def flags(self) -> set[InvoiceFlag]:
         return _flags_from_bits(self.flags_raw())
 
+    def is_third_party(self) -> bool:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_is_third_party(self._handle)
+        return bool(_result_or_raise(bindings.ffi, bindings.lib, result))
+
+    def is_nominal(self) -> bool:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_is_nominal(self._handle)
+        return bool(_result_or_raise(bindings.ffi, bindings.lib, result))
+
+    def is_export(self) -> bool:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_is_export(self._handle)
+        return bool(_result_or_raise(bindings.ffi, bindings.lib, result))
+
+    def is_summary(self) -> bool:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_is_summary(self._handle)
+        return bool(_result_or_raise(bindings.ffi, bindings.lib, result))
+
+    def is_self_billed(self) -> bool:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_is_self_billed(self._handle)
+        return bool(_result_or_raise(bindings.ffi, bindings.lib, result))
+
+    def is_simplified(self) -> bool:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_is_simplified(self._handle)
+        return bool(_result_or_raise(bindings.ffi, bindings.lib, result))
+
     def __del__(self) -> None:
         self.close()
 
@@ -1780,6 +1810,36 @@ class FinalizedInvoice:
     def flags(self) -> set[InvoiceFlag]:
         return _flags_from_bits(self.flags_raw())
 
+    def is_third_party(self) -> bool:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_is_third_party(self._handle)
+        return bool(_result_or_raise(bindings.ffi, bindings.lib, result))
+
+    def is_nominal(self) -> bool:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_is_nominal(self._handle)
+        return bool(_result_or_raise(bindings.ffi, bindings.lib, result))
+
+    def is_export(self) -> bool:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_is_export(self._handle)
+        return bool(_result_or_raise(bindings.ffi, bindings.lib, result))
+
+    def is_summary(self) -> bool:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_is_summary(self._handle)
+        return bool(_result_or_raise(bindings.ffi, bindings.lib, result))
+
+    def is_self_billed(self) -> bool:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_is_self_billed(self._handle)
+        return bool(_result_or_raise(bindings.ffi, bindings.lib, result))
+
+    def is_simplified(self) -> bool:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_is_simplified(self._handle)
+        return bool(_result_or_raise(bindings.ffi, bindings.lib, result))
+
     def __del__(self) -> None:
         self.close()
 
@@ -2042,6 +2102,30 @@ class InvoiceBuilder:
             self._handle,
             _as_bytes(reason),
             float(amount),
+        )
+        _result_or_raise(bindings.ffi, bindings.lib, result)
+
+    def set_invoice_level_charge(self, charge: float) -> None:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_builder_set_invoice_level_charge(
+            self._handle,
+            float(charge),
+        )
+        _result_or_raise(bindings.ffi, bindings.lib, result)
+
+    def set_invoice_level_discount(self, discount: float) -> None:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_builder_set_invoice_level_discount(
+            self._handle,
+            float(discount),
+        )
+        _result_or_raise(bindings.ffi, bindings.lib, result)
+
+    def set_allowance_reason(self, reason: str) -> None:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_invoice_builder_set_allowance_reason(
+            self._handle,
+            _as_bytes(reason),
         )
         _result_or_raise(bindings.ffi, bindings.lib, result)
 

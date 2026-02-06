@@ -1420,6 +1420,43 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_flags(
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_invoice_builder_set_invoice_level_charge(
+    builder: *mut FfiInvoiceBuilder,
+    charge: f64,
+) -> FfiResult<bool> {
+    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+    builder.invoice_level_charge(charge);
+    FfiResult::ok(true)
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_invoice_builder_set_invoice_level_discount(
+    builder: *mut FfiInvoiceBuilder,
+    discount: f64,
+) -> FfiResult<bool> {
+    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+    builder.invoice_level_discount(discount);
+    FfiResult::ok(true)
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_invoice_builder_set_allowance_reason(
+    builder: *mut FfiInvoiceBuilder,
+    reason: *const c_char,
+) -> FfiResult<bool> {
+    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+    let reason = ffi_required_string!(reason, "allowance reason");
+    builder.allowance_reason(reason);
+    FfiResult::ok(true)
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_builder_add_line_item(
     builder: *mut FfiInvoiceBuilder,
     description: *const c_char,
@@ -2023,6 +2060,114 @@ pub unsafe extern "C" fn fatoora_signed_invoice_flags(handle: *mut FfiSignedInvo
     let value = ffi_borrow!(handle, "signed", SignedInvoice);
     let signed: &SignedInvoice = value;
     FfiResult::ok(flags_to_bits(signed.data().flags()))
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_invoice_is_third_party(handle: *mut FfiFinalizedInvoice) -> FfiResult<bool> {
+    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+    let invoice: &FinalizedInvoice = value;
+    FfiResult::ok(invoice.data().is_third_party())
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_invoice_is_nominal(handle: *mut FfiFinalizedInvoice) -> FfiResult<bool> {
+    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+    let invoice: &FinalizedInvoice = value;
+    FfiResult::ok(invoice.data().is_nominal())
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_invoice_is_export(handle: *mut FfiFinalizedInvoice) -> FfiResult<bool> {
+    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+    let invoice: &FinalizedInvoice = value;
+    FfiResult::ok(invoice.data().is_export())
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_invoice_is_summary(handle: *mut FfiFinalizedInvoice) -> FfiResult<bool> {
+    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+    let invoice: &FinalizedInvoice = value;
+    FfiResult::ok(invoice.data().is_summary())
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_invoice_is_self_billed(handle: *mut FfiFinalizedInvoice) -> FfiResult<bool> {
+    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+    let invoice: &FinalizedInvoice = value;
+    FfiResult::ok(invoice.data().is_self_billed())
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_invoice_is_simplified(handle: *mut FfiFinalizedInvoice) -> FfiResult<bool> {
+    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+    let invoice: &FinalizedInvoice = value;
+    FfiResult::ok(invoice.data().invoice_type().is_simplified())
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signed_invoice_is_third_party(handle: *mut FfiSignedInvoice) -> FfiResult<bool> {
+    let value = ffi_borrow!(handle, "signed", SignedInvoice);
+    let signed: &SignedInvoice = value;
+    FfiResult::ok(signed.data().is_third_party())
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signed_invoice_is_nominal(handle: *mut FfiSignedInvoice) -> FfiResult<bool> {
+    let value = ffi_borrow!(handle, "signed", SignedInvoice);
+    let signed: &SignedInvoice = value;
+    FfiResult::ok(signed.data().is_nominal())
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signed_invoice_is_export(handle: *mut FfiSignedInvoice) -> FfiResult<bool> {
+    let value = ffi_borrow!(handle, "signed", SignedInvoice);
+    let signed: &SignedInvoice = value;
+    FfiResult::ok(signed.data().is_export())
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signed_invoice_is_summary(handle: *mut FfiSignedInvoice) -> FfiResult<bool> {
+    let value = ffi_borrow!(handle, "signed", SignedInvoice);
+    let signed: &SignedInvoice = value;
+    FfiResult::ok(signed.data().is_summary())
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signed_invoice_is_self_billed(handle: *mut FfiSignedInvoice) -> FfiResult<bool> {
+    let value = ffi_borrow!(handle, "signed", SignedInvoice);
+    let signed: &SignedInvoice = value;
+    FfiResult::ok(signed.data().is_self_billed())
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signed_invoice_is_simplified(handle: *mut FfiSignedInvoice) -> FfiResult<bool> {
+    let value = ffi_borrow!(handle, "signed", SignedInvoice);
+    let signed: &SignedInvoice = value;
+    FfiResult::ok(signed.data().invoice_type().is_simplified())
 }
 
 

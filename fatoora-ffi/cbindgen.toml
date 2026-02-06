@@ -6,4 +6,4 @@ namespaces = ["fatoora"]
 prefix_with_name = true
 
 [export]
-include = ["FfiInvoiceFlag"]
+include = ["FfiInvoiceFlag", "FfiErrorKind"]

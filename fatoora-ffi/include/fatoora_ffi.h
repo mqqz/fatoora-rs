@@ -44,6 +44,20 @@ enum FfiInvoiceFlag {
 };
 typedef uint8_t FfiInvoiceFlag;
 
+enum FfiErrorKind {
+  FfiErrorKind_InvalidInput = 1,
+  FfiErrorKind_Validation = 2,
+  FfiErrorKind_Parse = 3,
+  FfiErrorKind_Xml = 4,
+  FfiErrorKind_Crypto = 5,
+  FfiErrorKind_Io = 6,
+  FfiErrorKind_Network = 7,
+  FfiErrorKind_Unauthorized = 8,
+  FfiErrorKind_Internal = 9,
+  FfiErrorKind_Api = 10,
+};
+typedef int32_t FfiErrorKind;
+
 typedef struct FfiString {
   char *ptr;
 } FfiString;
@@ -844,6 +858,27 @@ struct FfiResult_bool fatoora_invoice_builder_set_flags(struct FfiInvoiceBuilder
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
+struct FfiResult_bool fatoora_invoice_builder_set_invoice_level_charge(struct FfiInvoiceBuilder *builder,
+                                                                       double charge);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_bool fatoora_invoice_builder_set_invoice_level_discount(struct FfiInvoiceBuilder *builder,
+                                                                         double discount);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_bool fatoora_invoice_builder_set_allowance_reason(struct FfiInvoiceBuilder *builder,
+                                                                   const char *reason);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
 struct FfiResult_bool fatoora_invoice_builder_add_line_item(struct FfiInvoiceBuilder *builder,
                                                             const char *description,
                                                             double quantity,
@@ -1130,6 +1165,78 @@ struct FfiResult_u8 fatoora_invoice_flags(struct FfiFinalizedInvoice *handle);
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
 struct FfiResult_u8 fatoora_signed_invoice_flags(struct FfiSignedInvoice *handle);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_bool fatoora_invoice_is_third_party(struct FfiFinalizedInvoice *handle);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_bool fatoora_invoice_is_nominal(struct FfiFinalizedInvoice *handle);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_bool fatoora_invoice_is_export(struct FfiFinalizedInvoice *handle);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_bool fatoora_invoice_is_summary(struct FfiFinalizedInvoice *handle);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_bool fatoora_invoice_is_self_billed(struct FfiFinalizedInvoice *handle);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_bool fatoora_invoice_is_simplified(struct FfiFinalizedInvoice *handle);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_bool fatoora_signed_invoice_is_third_party(struct FfiSignedInvoice *handle);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_bool fatoora_signed_invoice_is_nominal(struct FfiSignedInvoice *handle);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_bool fatoora_signed_invoice_is_export(struct FfiSignedInvoice *handle);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_bool fatoora_signed_invoice_is_summary(struct FfiSignedInvoice *handle);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_bool fatoora_signed_invoice_is_self_billed(struct FfiSignedInvoice *handle);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_bool fatoora_signed_invoice_is_simplified(struct FfiSignedInvoice *handle);
 
 /**
  * # Safety

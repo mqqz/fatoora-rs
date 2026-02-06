@@ -28,8 +28,8 @@ C ABI bindings for the core library. The Python package is built on top of this 
     struct FfiResult<T> { bool ok; T value; FfiError* error; }
     struct FfiError { int32_t code; char* message; }
     struct FfiString { char* ptr; }
-    struct FfiBytes { uint8_t* ptr; size_t len; }
-    struct FfiBytesList { FfiBytes* ptr; size_t len; }
+    struct FfiBytes { uint8_t* ptr; uintptr_t len; }
+    struct FfiBytesList { FfiBytes* ptr; uintptr_t len; }
     ```
 
     !!! info "Returns"
@@ -40,6 +40,7 @@ C ABI bindings for the core library. The Python package is built on top of this 
 
 ??? note "Read and free"
     ```c
+    enum FfiErrorKind { ... };
     int fatoora_error_code(FfiError* error);
     FfiString fatoora_error_message(FfiError* error);
     void fatoora_error_free(FfiError* error);
@@ -54,6 +55,7 @@ C ABI bindings for the core library. The Python package is built on top of this 
 
 !!! note "Notes"
     - FFI error codes map directly to Rust ErrorKind and Python FfiErrorKind.
+    - Some getters return optional handles (NULL pointer on success when the field is absent).
     - Signed invoice getters return signature metadata (hash, signature, public key, signed props hash, signing time) as UTF-8 strings.
 
 See also: [FFI Workflow](../development/ffi-workflow.md), [Python Bindings Guide](../guides/python-bindings.md), [C/C++ Bindings Guide](../guides/c-bindings.md)

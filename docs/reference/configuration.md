@@ -52,7 +52,7 @@ Environment selection used by the API client and validation helpers.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiConfig fatoora_config_new(FfiEnvironment env);
+        FfiConfig* fatoora_config_new(FfiEnvironment env);
         FfiResult_FfiEnvironment fatoora_config_env(FfiConfig* config);
         void fatoora_config_free(FfiConfig* config);
         ```
@@ -64,4 +64,3 @@ Environment selection used by the API client and validation helpers.
     !!! info "Returns"
         - `Config` / `FfiConfig`: environment-aware handle.
         - `Environment`: environment value from the handle.
-
