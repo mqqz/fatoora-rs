@@ -22,12 +22,12 @@ nav:
       - QR Codes: guides/qr.md
       - ZATCA API Client: guides/api.md
       - CLI: guides/cli.md
-      - Python Bindings: guides/python-bindings.md
-      - C/C++ Bindings: guides/c-bindings.md
-      - Guide Template: guides/example-template.md
   - Reference:
       - Configuration: reference/configuration.md
       - CSR: reference/csr.md
+      - Bindings:
+          - Python: reference/bindings/python.md
+          - C/C++ (FFI): reference/bindings/c.md
       - Invoice:
           - Model: reference/invoice-model.md
           - Signing: reference/invoice-signing.md
@@ -36,7 +36,6 @@ nav:
           - XML and Schemas: reference/xml-and-schemas.md
           - QR: reference/qr.md
       - API Client: reference/api-client.md
-      - FFI: reference/ffi.md
       - Errors: reference/errors.md
   - Development:
       - Overview: development/index.md

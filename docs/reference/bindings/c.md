@@ -2,6 +2,56 @@
 
 The C ABI is provided by the `fatoora-ffi` crate and can be used from C or C++.
 
+## FFI Layer
+
+??? note "Headers"
+    ```c
+    fatoora_ffi.h
+    fatoora.h
+    ```
+
+    !!! info "Returns"
+        - `fatoora_ffi.h`: full ABI surface.
+        - `fatoora.h`: alias header without the fatoora_ prefix (compile with -DFATOORA_FFI_NO_PREFIX).
+
+??? note "Ownership and results"
+    - Opaque handles (Ffi*) are created and freed with explicit *_free functions.
+    - All fallible calls return FfiResult<T>.
+    - Strings and byte buffers returned from FFI must be freed by the caller.
+
+??? note "Result and buffers"
+    ```c
+    struct FfiResult<T> { bool ok; T value; FfiError* error; }
+    struct FfiError { int32_t code; char* message; }
+    struct FfiString { char* ptr; }
+    struct FfiBytes { uint8_t* ptr; uintptr_t len; }
+    struct FfiBytesList { FfiBytes* ptr; uintptr_t len; }
+    ```
+
+    !!! info "Returns"
+        - `FfiResult<T>`: check ok before using value.
+        - `FfiString` / `FfiBytes` / `FfiBytesList`: heap buffers that must be freed by the caller.
+
+??? note "Error helpers"
+    ```c
+    enum FfiErrorKind { ... };
+    int fatoora_error_code(FfiError* error);
+    FfiString fatoora_error_message(FfiError* error);
+    void fatoora_error_free(FfiError* error);
+    ```
+
+    !!! info "Args"
+        - `error`: error handle from a failed FFI call.
+
+    !!! info "Returns"
+        - `code`: numeric error kind.
+        - `message`: UTF-8 error message.
+
+!!! note "Notes"
+    - FFI error codes map directly to Rust ErrorKind and Python FfiErrorKind.
+    - Some getters return optional handles (NULL pointer on success when the field is absent).
+    - Signed invoice getters return signature metadata (hash, signature, public key, signed props hash, signing time) as UTF-8 strings.
+
 ## Usage Notes
 - Most handles are opaque pointers and must be freed with their corresponding `*_free` functions.
 - Strings returned by the FFI should be freed with `fatoora_string_free`.
@@ -36,10 +86,10 @@ int main(void) {
 ```
 
 ## C++ include pattern
-The header does not wrap symbols in `extern \"C\"`. Do that in your C++ translation unit:
+The header does not wrap symbols in `extern "C"`. Do that in your C++ translation unit:
 ```cpp
-extern \"C\" {
-#include \"fatoora_ffi.h\"
+extern "C" {
+#include "fatoora_ffi.h"
 }
 ```
 
@@ -52,4 +102,4 @@ cc examples/validate.c -I fatoora-ffi/include -L target/release -lfatoora_ffi -o
 On macOS use `-lfatoora_ffi` with the `.dylib` in `target/release/`.
 On Windows link against `fatoora_ffi.dll` (and its import library if your toolchain requires it).
 
-See also: [FFI Reference](../reference/ffi.md)
+See also: [Python Bindings](python.md)

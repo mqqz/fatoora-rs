@@ -25,4 +25,4 @@ The Python package wraps the `fatoora-ffi` shared library via `cffi`.
 --8<-- "bindings/python/examples/python_bindings.py:example"
 ```
 
-See also: [FFI Reference](../reference/ffi.md)
+See also: [C/C++ Bindings](c.md)

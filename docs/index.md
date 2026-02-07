@@ -95,6 +95,6 @@ The main core library (`fatoora-core`) is written in Rust with a C FFI that allo
 
 ## Where to Go Next
 - [CLI](guides/cli.md)
-- [Python Bindings](guides/python-bindings.md)
+- [Python Bindings](reference/bindings/python.md)
 - [Benchmarks](benchmarks.md)
 - [Contributing](contributing.md)
