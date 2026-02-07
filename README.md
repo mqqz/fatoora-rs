@@ -11,10 +11,10 @@
 </p>
 <p align="center">
 <a href="https://mosadhan.com/fatoora-rs">🌐 Homepage</a> &nbsp;&bull;&nbsp;
-<a href="#features">Features</a> &nbsp;&bull;&nbsp;
-<a href="#installation">Installation</a> &nbsp;&bull;&nbsp;
-<a href="#examples">Examples</a> &nbsp;&bull;&nbsp;
-<a href="#documentation">Documentation</a>
+<a href="#features">⚡ Features</a> &nbsp;&bull;&nbsp;
+<a href="#installation">📥 Installation</a> &nbsp;&bull;&nbsp;
+<a href="#examples">💡 Examples</a> &nbsp;&bull;&nbsp;
+<a href="#documentation">🗂️ Documentation</a>
 </p>
 
 #
@@ -22,13 +22,13 @@
 An *unofficial* open-source toolkit for everything you'd need for ZATCA (Zakat, Tax and Customs Authority of Saudi Arabia) Phase 1 and 2 compliant e-invoicing.
 
 With bindings and support for many programming languages:
-- Rust <a href="https://crates.io/crates/fatoora-core"><img src="https://img.shields.io/crates/v/fatoora-core?logo=rust&label=fatoora-core" alt="fatoora-core Crates.io Version"/></a>
+- 🦀 Rust <a href="https://crates.io/crates/fatoora-core"><img src="https://img.shields.io/crates/v/fatoora-core?logo=rust&label=fatoora-core" alt="fatoora-core Crates.io Version"/></a>
   
-- Python <a href="https://pypi.org/project/fatoora-rs/"><img src="https://img.shields.io/pypi/v/fatoora-rs?logo=python" alt="PyPi Version"/></a>
+- 🐍 Python <a href="https://pypi.org/project/fatoora-rs/"><img src="https://img.shields.io/pypi/v/fatoora-rs?logo=python" alt="PyPi Version"/></a>
 
-- C/C++ (through the C FFI see ![releases](https://github.com/mqqz/fatoora-rs/releases))
+- 🌀 C/C++ (through the C FFI see ![releases](https://github.com/mqqz/fatoora-rs/releases))
 
-- Also, a Command Line Interface (CLI) Tool  <a href="https://crates.io/crates/fatoora-rs-cli"><img src="https://img.shields.io/crates/v/fatoora-rs-cli?logo=rust&label=fatoora-rs-cli" alt="fatoora-rs-cli Crates.io Version"/></a>
+- 🔌 Also, a Command Line Interface (CLI) Tool  <a href="https://crates.io/crates/fatoora-rs-cli"><img src="https://img.shields.io/crates/v/fatoora-rs-cli?logo=rust&label=fatoora-rs-cli" alt="fatoora-rs-cli Crates.io Version"/></a>
 
 > `fatoora-rs` is in active early development. While the core functionality is usable, the public API is still evolving and may change as the project matures.
 > We strive to maintain good test coverage and stability, but users should be aware that some rough edges may remain. 
@@ -37,40 +37,65 @@ With bindings and support for many programming languages:
 **Disclaimer**:
 `fatoora-rs` is not affiliated, associated, authorized, endorsed by, or in any way officially connected with ZATCA (Zakat, Tax and Customs Authority), or any of its subsidiaries or its affiliates. The official ZATCA website can be found at https://zatca.gov.sa.
 
-## Documentation
+## 🗂️ Documentation
 Checkout the [homepage](https://mosadhan.com/fatoora-rs), also the Rust API at [docs.rs](https://docs.rs/fatoora-core/latest/fatoora_core/) may prove useful.
 
-## Features
+## ⚡ Features
 
 Everything done by the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloadSDK) 
-- CSR Generation
-- Invoice Signing (All invoice types)
-- Validation (UBL only for now)
-- QR Generation
-- API Requests
+- 📩 [CSR Generation](https://mosadhan.com/fatoora-rs/guides/csr/)
+- ✍️ [Invoice Signing](https://mosadhan.com/fatoora-rs/guides/invoice-signing/) (All invoice types)
+- ✅ [Validation](https://mosadhan.com/fatoora-rs/guides/validation/) (UBL only for now)
+- 🧾 [QR Generation](https://mosadhan.com/fatoora-rs/guides/qr/)
+- 📨 [API Requests](https://mosadhan.com/fatoora-rs/guides/api/)
 
-*But we do it faster and better* e.g. ~190x faster invoice hashing than ZATCA's SDK (see [`bench/`](https://github.com/mqqz/fatoora-rs/blob/main/bench/cli/results/hash_bench.md))
+🚀 *But we do it faster and better* e.g. ~190x faster invoice hashing than ZATCA's SDK (see [`bench/`](https://github.com/mqqz/fatoora-rs/blob/main/bench/cli/results/hash_bench.md))
 
-## Dependencies
+## 🧩 Dependencies
 XML parsing/manipulation is done internally with `libxml2`, so you might need to install it if you haven't already. See [here](https://github.com/KWARC/rust-libxml?tab=readme-ov-file#installation-prerequisites) for relevant instructions.
 
-C headers are generated in `fatoora-ffi/include/`, with grouped headers under `fatoora/` (e.g., `fatoora/config.h`). Do not edit these generated headers manually; update the Rust sources and re-run the build to regenerate them.
-
-## Installation
-The Rust library can be added with `cargo add fatoora-core`.
-
-The cli tool can also be installed with `cargo`: 
+## 📥 Installation
+<details>
+<summary>Rust</summary>
+  
 ```
-cargo install fatoora-rs-cli
+cargo add fatoora-core
 ```
+</details>
 
-Python bindings:
+<details>
+<summary>Python</summary>
+  
 ```
 pip install fatoora-rs
 ```
-Python modules mirror the Rust core layout (e.g., `fatoora.config`, `fatoora.csr`, `fatoora.invoice`, `fatoora.sign`).
+</details>
 
-## Examples
+<details>
+<summary>C/C++</summary>
+  
+Download the precompiled shared library and headers for your platform on the repo's [releases](https://github.com/mqqz/fatoora-rs/releases) (`fatoora-ffi-*`).
+
+Alternatively, if you'd like to build from source. Clone the repo and run:
+```
+cargo build -p fatoora-ffi --release
+```
+
+The compiled library will be in `target/release/` for your platform (e.g. `libfatoora_ffi.so`, `libfatoora_ffi.dylib`, or `fatoora_ffi.dll`) and the headers will be (re)generated and written to `fatoora-ffi/include/`
+</details>
+
+<details>
+<summary>CLI</summary>
+  
+The cli tool can also be installed with `cargo`: 
+
+```
+cargo install fatoora-rs-cli
+```
+Alternatively, you can grab the precompiled binary for your platform on the repo's [releases](https://github.com/mqqz/fatoora-rs/releases) (`fatoora-rs-cli-*`).
+</details>
+
+## 💡 Examples
 
 <details>
 <summary>CSR Generation</summary>
@@ -203,17 +228,18 @@ fatoora-rs-cli invoice-request --invoice signed.xml --api-request request.json
 ```
 </details>
 
+And much more... see the guides in the [homepage](https://mosadhan.com/fatoora-rs/) for more info.
 ## Contributing
 
 Contributions are always welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
-## Roadmap
+## 🪧 Roadmap
 - Increase test coverage to 100% (Inshallah)
 - Add the full validation suite (not only UBL schema)
 - Expand bindings to other languages (subject to demand)
 - PDF invoice generation
 
-## Relevant Links
-- https://zatca.gov.sa/en/E-Invoicing/Pages/default.aspx
-- https://sandbox.zatca.gov.sa/downloadSDK
-- https://sandbox.zatca.gov.sa/IntegrationSandbox
+## 🔗 Relevant Links
+- [ZATCA E-Invoicing Homepage](https://zatca.gov.sa/en/E-Invoicing/Pages/default.aspx)
+- [ZATCA Fatoora SDK](https://sandbox.zatca.gov.sa/downloadSDK)
+- [ZATCA API Sandbox](https://sandbox.zatca.gov.sa/IntegrationSandbox)
