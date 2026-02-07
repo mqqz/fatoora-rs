@@ -912,6 +912,7 @@ dependencies = [
  "fatoora-core",
  "httpmock",
  "k256",
+ "serde_json",
  "tokio",
  "x509-cert",
 ]

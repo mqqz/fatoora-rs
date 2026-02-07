@@ -3497,6 +3497,7 @@ mod ffi_coverage_tests {
     use x509_cert::spki::EncodePublicKey;
     use x509_cert::spki::SubjectPublicKeyInfo;
     use x509_cert::time::Validity;
+    use serde_json::json;
 
     use super::*;
 
@@ -3591,6 +3592,88 @@ mod ffi_coverage_tests {
     }
 
     #[test]
+    fn helper_utilities_and_address_paths() {
+        let null = optional_string(std::ptr::null(), "optional").expect("null ok");
+        assert!(null.is_none());
+
+        let empty = cstr("");
+        let empty = optional_string_nonempty(empty.as_ptr(), "optional").expect("empty ok");
+        assert!(empty.is_none());
+
+        let invalid = std::ffi::CString::new(vec![0xff, 0xfe]).expect("invalid bytes");
+        let invalid = optional_string(invalid.as_ptr(), "invalid");
+        assert!(invalid.is_err());
+
+        let interior = "a\0b".to_string();
+        let result = ffi_string_from_owned(interior);
+        assert!(!result.ok);
+        if !result.error.is_null() {
+            unsafe { fatoora_error_free(result.error) };
+        }
+
+        let empty_bytes = vec_to_ffi_bytes(Vec::new());
+        assert!(empty_bytes.ptr.is_null());
+        assert_eq!(empty_bytes.len, 0);
+
+        let bytes = vec_to_ffi_bytes(vec![1, 2, 3]);
+        assert!(!bytes.ptr.is_null());
+        assert_eq!(bytes.len, 3);
+        unsafe { fatoora_bytes_free(bytes) };
+
+        let empty_list = vec_list_to_ffi_bytes_list(Vec::new());
+        assert!(empty_list.ptr.is_null());
+        assert_eq!(empty_list.len, 0);
+
+        let list = vec_list_to_ffi_bytes_list(vec![vec![9], vec![]]);
+        assert!(!list.ptr.is_null());
+        assert_eq!(list.len, 2);
+        unsafe { fatoora_bytes_list_free(list) };
+
+        let msg: ValidationMessage = serde_json::from_value(json!({
+            "type": "INFO",
+            "code": "I1",
+            "category": "INFO",
+            "message": "hello",
+            "status": "PASS",
+        }))
+        .expect("message");
+
+        let one = MessageList::One(msg.clone());
+        assert_eq!(message_list_len(&one), 1);
+        assert!(message_list_get(&one, 0).is_some());
+        assert!(message_list_get(&one, 1).is_none());
+
+        let many = MessageList::Many(vec![msg.clone(), msg]);
+        assert_eq!(message_list_len(&many), 2);
+        assert!(message_list_get(&many, 1).is_some());
+
+        let empty = MessageList::Empty;
+        assert_eq!(message_list_len(&empty), 0);
+        assert!(message_list_get(&empty, 0).is_none());
+
+        assert!(parse_country("SAU").is_ok());
+        assert!(parse_country("ZZZ").is_err());
+
+        let address = build_address(
+            cstr("SAU").as_ptr(),
+            cstr("Riyadh").as_ptr(),
+            cstr("King Fahd").as_ptr(),
+            cstr("").as_ptr(),
+            cstr("1234").as_ptr(),
+            cstr("").as_ptr(),
+            cstr("12222").as_ptr(),
+            cstr("").as_ptr(),
+            cstr("").as_ptr(),
+            "test",
+        )
+        .expect("address");
+        assert!(address.additional_street.is_none());
+        assert!(address.additional_number.is_none());
+        assert!(address.subdivision.is_none());
+        assert!(address.district.is_none());
+    }
+
+    #[test]
     fn config_and_validation_paths() {
         unsafe {
             let config = fatoora_config_new(FfiEnvironment::NonProduction);
@@ -3660,6 +3743,98 @@ mod ffi_coverage_tests {
             fatoora_signing_key_free(&mut key_from_der.value);
             fatoora_csr_properties_free(&mut props_handle);
             fatoora_string_free(key_pem.value);
+        }
+    }
+
+    #[test]
+    fn csr_properties_error_paths() {
+        unsafe {
+            let missing =
+                fatoora_csr_properties_parse_file(cstr("/tmp/does-not-exist.properties").as_ptr());
+            assert!(!missing.ok);
+            if !missing.error.is_null() {
+                fatoora_error_free(missing.error);
+            }
+
+            let invalid = fatoora_csr_properties_parse(cstr("bad=1").as_ptr());
+            assert!(!invalid.ok);
+            if !invalid.error.is_null() {
+                fatoora_error_free(invalid.error);
+            }
+        }
+    }
+
+    #[test]
+    fn signing_key_error_paths() {
+        unsafe {
+            let bad_pem = fatoora_signing_key_from_pem(cstr("not-a-key").as_ptr());
+            assert!(!bad_pem.ok);
+            if !bad_pem.error.is_null() {
+                fatoora_error_free(bad_pem.error);
+            }
+
+            let bad_der = fatoora_signing_key_from_der(std::ptr::null(), 0);
+            assert!(!bad_der.ok);
+            if !bad_der.error.is_null() {
+                fatoora_error_free(bad_der.error);
+            }
+
+            let null_pem = fatoora_signing_key_to_pem(std::ptr::null_mut());
+            assert!(!null_pem.ok);
+            if !null_pem.error.is_null() {
+                fatoora_error_free(null_pem.error);
+            }
+
+            let null_der = fatoora_signing_key_to_der(std::ptr::null_mut());
+            assert!(!null_der.ok);
+            if !null_der.error.is_null() {
+                fatoora_error_free(null_der.error);
+            }
+        }
+    }
+
+    #[test]
+    fn csr_conversion_paths() {
+        let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties");
+        unsafe {
+            let props =
+                fatoora_csr_properties_parse_file(cstr(config_path.to_string_lossy().as_ref()).as_ptr());
+            assert!(props.ok);
+            let mut props_handle = props.value;
+
+            let key = fatoora_signing_key_generate();
+            assert!(key.ok);
+            let mut key = key.value;
+
+            let csr = fatoora_csr_build(&mut props_handle, &mut key, FfiEnvironment::NonProduction);
+            assert!(csr.ok);
+            let mut csr = csr.value;
+
+            let csr_der = fatoora_csr_to_der(&mut csr);
+            assert!(csr_der.ok);
+            let csr_der = csr_der.value;
+            let csr_from_der = fatoora_csr_from_der(csr_der.ptr as *const u8, csr_der.len);
+            assert!(csr_from_der.ok);
+            let mut csr_from_der = csr_from_der.value;
+
+            let csr_pem = fatoora_csr_to_pem(&mut csr);
+            assert!(csr_pem.ok);
+            fatoora_string_free(csr_pem.value);
+
+            let subject = fatoora_csr_subject_string(&mut csr);
+            assert!(subject.ok);
+            fatoora_string_free(subject.value);
+
+            let extensions = fatoora_csr_extension_values_der(&mut csr);
+            assert!(extensions.ok);
+            fatoora_bytes_list_free(extensions.value);
+
+            fatoora_bytes_free(csr_der);
+            fatoora_csr_free(&mut csr_from_der);
+            fatoora_csr_free(&mut csr);
+            fatoora_signing_key_free(&mut key);
+            fatoora_csr_properties_free(&mut props_handle);
         }
     }
 
@@ -3738,6 +3913,157 @@ mod ffi_coverage_tests {
     }
 
     #[test]
+    fn validation_response_and_message_paths() {
+        let response: ValidationResponse = serde_json::from_value(json!({
+            "validationResults": {
+                "infoMessages": {
+                    "type": "INFO",
+                    "code": "I1",
+                    "category": "INFO",
+                    "message": "hello",
+                    "status": "PASS"
+                },
+                "warningMessages": [{
+                    "type": "WARN",
+                    "code": "W1",
+                    "category": "WARN",
+                    "message": "warn",
+                    "status": "PASS"
+                }],
+                "errorMessages": [{
+                    "type": "ERR",
+                    "code": "E1",
+                    "category": "ERR",
+                    "message": "err",
+                    "status": "FAIL"
+                }],
+                "status": "PASS"
+            },
+            "reportingStatus": "REPORTED",
+            "clearanceStatus": "CLEARED",
+            "qrSellertStatus": "OK",
+            "qrBuyertStatus": "OK"
+        }))
+        .expect("response");
+
+        unsafe {
+            let mut response = FfiValidationResponse {
+                ptr: Box::into_raw(Box::new(response)) as *mut std::os::raw::c_void,
+            };
+
+            let reporting = fatoora_validation_response_reporting_status(&mut response);
+            assert!(reporting.ok);
+            fatoora_string_free(reporting.value);
+
+            let clearance = fatoora_validation_response_clearance_status(&mut response);
+            assert!(clearance.ok);
+            fatoora_string_free(clearance.value);
+
+            let qr_seller = fatoora_validation_response_qr_seller_status(&mut response);
+            assert!(qr_seller.ok);
+            fatoora_string_free(qr_seller.value);
+
+            let qr_buyer = fatoora_validation_response_qr_buyer_status(&mut response);
+            assert!(qr_buyer.ok);
+            fatoora_string_free(qr_buyer.value);
+
+            let results = fatoora_validation_response_results(&mut response);
+            assert!(results.ok);
+            let mut results = results.value;
+
+            let status = fatoora_validation_results_status(&mut results);
+            assert!(status.ok);
+            fatoora_string_free(status.value);
+
+            let info_len = fatoora_validation_results_info_len(&mut results);
+            assert!(info_len.ok);
+            assert_eq!(info_len.value, 1);
+            let warning_len = fatoora_validation_results_warning_len(&mut results);
+            assert!(warning_len.ok);
+            assert_eq!(warning_len.value, 1);
+            let error_len = fatoora_validation_results_error_len(&mut results);
+            assert!(error_len.ok);
+            assert_eq!(error_len.value, 1);
+
+            let info = fatoora_validation_results_info_message(&mut results, 0);
+            assert!(info.ok);
+            let mut info = info.value;
+            let msg_type = fatoora_validation_message_type(&mut info);
+            assert!(msg_type.ok);
+            fatoora_string_free(msg_type.value);
+            let msg_code = fatoora_validation_message_code(&mut info);
+            assert!(msg_code.ok);
+            fatoora_string_free(msg_code.value);
+            let msg_category = fatoora_validation_message_category(&mut info);
+            assert!(msg_category.ok);
+            fatoora_string_free(msg_category.value);
+            let msg_text = fatoora_validation_message_text(&mut info);
+            assert!(msg_text.ok);
+            fatoora_string_free(msg_text.value);
+            let msg_status = fatoora_validation_message_status(&mut info);
+            assert!(msg_status.ok);
+            fatoora_string_free(msg_status.value);
+            fatoora_validation_message_free(&mut info);
+
+            let warning = fatoora_validation_results_warning_message(&mut results, 0);
+            assert!(warning.ok);
+            let mut warning = warning.value;
+            let warning_text = fatoora_validation_message_text(&mut warning);
+            assert!(warning_text.ok);
+            fatoora_string_free(warning_text.value);
+            fatoora_validation_message_free(&mut warning);
+
+            let error = fatoora_validation_results_error_message(&mut results, 0);
+            assert!(error.ok);
+            let mut error = error.value;
+            let error_text = fatoora_validation_message_text(&mut error);
+            assert!(error_text.ok);
+            fatoora_string_free(error_text.value);
+            fatoora_validation_message_free(&mut error);
+
+            let out_of_range = fatoora_validation_results_info_message(&mut results, 2);
+            assert!(!out_of_range.ok);
+            if !out_of_range.error.is_null() {
+                fatoora_error_free(out_of_range.error);
+            }
+
+            fatoora_validation_results_free(&mut results);
+            fatoora_validation_response_free(&mut response);
+        }
+
+        let empty_response: ValidationResponse = serde_json::from_value(json!({
+            "validationResults": {
+                "warningMessages": [],
+                "errorMessages": []
+            },
+            "reportingStatus": null,
+            "clearanceStatus": null,
+            "qrSellertStatus": null,
+            "qrBuyertStatus": null
+        }))
+        .expect("empty response");
+
+        unsafe {
+            let mut response = FfiValidationResponse {
+                ptr: Box::into_raw(Box::new(empty_response)) as *mut std::os::raw::c_void,
+            };
+            let results = fatoora_validation_response_results(&mut response);
+            assert!(results.ok);
+            let mut results = results.value;
+            let info_len = fatoora_validation_results_info_len(&mut results);
+            assert!(info_len.ok);
+            assert_eq!(info_len.value, 0);
+            let out = fatoora_validation_results_info_message(&mut results, 0);
+            assert!(!out.ok);
+            if !out.error.is_null() {
+                fatoora_error_free(out.error);
+            }
+            fatoora_validation_results_free(&mut results);
+            fatoora_validation_response_free(&mut response);
+        }
+    }
+
+    #[test]
     fn credit_note_builder_roundtrip() {
         unsafe {
             let builder = fatoora_invoice_builder_new(
@@ -3805,6 +4131,86 @@ mod ffi_coverage_tests {
     }
 
     #[test]
+    fn original_ref_accessors() {
+        unsafe {
+            let builder = fatoora_invoice_builder_new(
+                FfiInvoiceTypeKind::CreditNote,
+                FfiInvoiceSubType::Simplified,
+                cstr("INV-ORIG").as_ptr(),
+                cstr("uuid-orig").as_ptr(),
+                cstr("2024-01-01").as_ptr(),
+                cstr("Return").as_ptr(),
+            );
+            assert!(builder.ok);
+            let mut builder = builder.value;
+            assert!(fatoora_invoice_builder_set_id(&mut builder, cstr("CR-REF").as_ptr()).ok);
+            assert!(fatoora_invoice_builder_set_uuid(&mut builder, cstr("uuid-credit").as_ptr()).ok);
+            assert!(fatoora_invoice_builder_set_issue_datetime(
+                &mut builder,
+                cstr("2024-01-01T12:30:00Z").as_ptr()
+            )
+            .ok);
+            assert!(fatoora_invoice_builder_set_currency(&mut builder, cstr("SAR").as_ptr()).ok);
+            assert!(fatoora_invoice_builder_set_previous_hash(&mut builder, cstr("hash").as_ptr()).ok);
+            assert!(fatoora_invoice_builder_set_invoice_counter(&mut builder, 1).ok);
+            assert!(fatoora_invoice_builder_set_payment_means_code(&mut builder, cstr("10").as_ptr()).ok);
+            assert!(fatoora_invoice_builder_set_vat_category(&mut builder, FfiVatCategory::Standard).ok);
+            assert!(fatoora_invoice_builder_set_seller(
+                &mut builder,
+                cstr("Acme Inc").as_ptr(),
+                cstr("SAU").as_ptr(),
+                cstr("Riyadh").as_ptr(),
+                cstr("King Fahd").as_ptr(),
+                std::ptr::null(),
+                cstr("1234").as_ptr(),
+                std::ptr::null(),
+                cstr("12222").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                cstr("399999999900003").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+            )
+            .ok);
+            let add_result = fatoora_invoice_builder_add_line_item(
+                &mut builder,
+                cstr("Item").as_ptr(),
+                1.0,
+                cstr("PCE").as_ptr(),
+                100.0,
+                15.0,
+                FfiVatCategory::Standard,
+            );
+            assert!(add_result.ok);
+
+            let invoice_result = fatoora_invoice_builder_build(&mut builder);
+            assert!(invoice_result.ok);
+            let mut invoice = invoice_result.value;
+
+            let original_ref = fatoora_invoice_original_ref(&mut invoice);
+            assert!(original_ref.ok);
+            let mut original_ref = original_ref.value;
+            let ref_id = fatoora_original_invoice_ref_id(&mut original_ref);
+            assert!(ref_id.ok);
+            fatoora_string_free(ref_id.value);
+            let ref_uuid = fatoora_original_invoice_ref_uuid(&mut original_ref);
+            assert!(ref_uuid.ok);
+            fatoora_string_free(ref_uuid.value);
+            let ref_date = fatoora_original_invoice_ref_issue_date(&mut original_ref);
+            assert!(ref_date.ok);
+            fatoora_string_free(ref_date.value);
+            fatoora_original_invoice_ref_free(&mut original_ref);
+
+            let original_reason = fatoora_invoice_original_reason(&mut invoice);
+            assert!(original_reason.ok);
+            fatoora_string_free(original_reason.value);
+
+            fatoora_invoice_free(&mut invoice);
+            fatoora_invoice_builder_free(&mut builder);
+        }
+    }
+
+    #[test]
     fn invoice_builder_flags_set() {
         unsafe {
             let mut builder = build_invoice_builder();
@@ -3838,6 +4244,197 @@ mod ffi_coverage_tests {
     }
 
     #[test]
+    fn builder_setters_and_accessors() {
+        unsafe {
+            let mut builder = build_invoice_builder();
+            assert!(fatoora_invoice_builder_set_invoice_level_charge(&mut builder, 10.0).ok);
+            assert!(fatoora_invoice_builder_set_invoice_level_discount(&mut builder, 5.0).ok);
+            assert!(
+                fatoora_invoice_builder_set_allowance_reason(&mut builder, cstr("Promo").as_ptr())
+                    .ok
+            );
+            assert!(
+                fatoora_invoice_builder_set_note(&mut builder, cstr("en").as_ptr(), cstr("Note").as_ptr())
+                    .ok
+            );
+            assert!(
+                fatoora_invoice_builder_set_allowance(&mut builder, cstr("Allowance").as_ptr(), 2.0).ok
+            );
+            assert!(
+                fatoora_invoice_builder_set_buyer(
+                    &mut builder,
+                    cstr("Buyer Inc").as_ptr(),
+                    cstr("SAU").as_ptr(),
+                    cstr("Riyadh").as_ptr(),
+                    cstr("Street").as_ptr(),
+                    cstr("Extra St").as_ptr(),
+                    cstr("123").as_ptr(),
+                    cstr("5678").as_ptr(),
+                    cstr("12222").as_ptr(),
+                    cstr("Subdiv").as_ptr(),
+                    cstr("District").as_ptr(),
+                    cstr("399999999900003").as_ptr(),
+                    cstr("12345").as_ptr(),
+                    cstr("CRN").as_ptr(),
+                )
+                .ok
+            );
+
+            let add_result = fatoora_invoice_builder_add_line_item(
+                &mut builder,
+                cstr("Item").as_ptr(),
+                1.0,
+                cstr("PCE").as_ptr(),
+                100.0,
+                15.0,
+                FfiVatCategory::Standard,
+            );
+            assert!(add_result.ok);
+
+            let invoice_result = fatoora_invoice_builder_build(&mut builder);
+            assert!(invoice_result.ok);
+            let mut invoice = invoice_result.value;
+
+            let hash_b64 = fatoora_invoice_hash_base64(&mut invoice);
+            assert!(hash_b64.ok);
+            fatoora_string_free(hash_b64.value);
+
+            let flags = fatoora_invoice_flags(&mut invoice);
+            assert!(flags.ok);
+            let is_third = fatoora_invoice_is_third_party(&mut invoice);
+            assert!(is_third.ok);
+            let is_nominal = fatoora_invoice_is_nominal(&mut invoice);
+            assert!(is_nominal.ok);
+            let is_export = fatoora_invoice_is_export(&mut invoice);
+            assert!(is_export.ok);
+            let is_summary = fatoora_invoice_is_summary(&mut invoice);
+            assert!(is_summary.ok);
+            let is_self = fatoora_invoice_is_self_billed(&mut invoice);
+            assert!(is_self.ok);
+            let is_simplified = fatoora_invoice_is_simplified(&mut invoice);
+            assert!(is_simplified.ok);
+
+            let seller = fatoora_invoice_seller(&mut invoice);
+            assert!(seller.ok);
+            let mut seller = seller.value;
+            let seller_name = fatoora_party_name(&mut seller);
+            assert!(seller_name.ok);
+            fatoora_string_free(seller_name.value);
+            let seller_address = fatoora_party_address(&mut seller);
+            assert!(seller_address.ok);
+            let mut seller_address = seller_address.value;
+            let seller_country = fatoora_address_country_code(&mut seller_address);
+            assert!(seller_country.ok);
+            fatoora_string_free(seller_country.value);
+            let seller_city = fatoora_address_city(&mut seller_address);
+            assert!(seller_city.ok);
+            fatoora_string_free(seller_city.value);
+            let seller_street = fatoora_address_street(&mut seller_address);
+            assert!(seller_street.ok);
+            fatoora_string_free(seller_street.value);
+            let seller_building = fatoora_address_building_number(&mut seller_address);
+            assert!(seller_building.ok);
+            fatoora_string_free(seller_building.value);
+            let seller_postal = fatoora_address_postal_code(&mut seller_address);
+            assert!(seller_postal.ok);
+            fatoora_string_free(seller_postal.value);
+            fatoora_address_free(&mut seller_address);
+            fatoora_party_free(&mut seller);
+
+            let buyer = fatoora_invoice_buyer(&mut invoice);
+            assert!(buyer.ok);
+            let mut buyer = buyer.value;
+            let buyer_name = fatoora_party_name(&mut buyer);
+            assert!(buyer_name.ok);
+            fatoora_string_free(buyer_name.value);
+            let buyer_vat = fatoora_party_vat_id(&mut buyer);
+            assert!(buyer_vat.ok);
+            let mut buyer_vat = buyer_vat.value;
+            let buyer_vat_val = fatoora_vat_id_value(&mut buyer_vat);
+            assert!(buyer_vat_val.ok);
+            fatoora_string_free(buyer_vat_val.value);
+            fatoora_vat_id_free(&mut buyer_vat);
+            let buyer_other = fatoora_party_other_id(&mut buyer);
+            assert!(buyer_other.ok);
+            let mut buyer_other = buyer_other.value;
+            let buyer_other_val = fatoora_other_id_value(&mut buyer_other);
+            assert!(buyer_other_val.ok);
+            fatoora_string_free(buyer_other_val.value);
+            let buyer_other_scheme = fatoora_other_id_scheme(&mut buyer_other);
+            assert!(buyer_other_scheme.ok);
+            fatoora_string_free(buyer_other_scheme.value);
+            fatoora_other_id_free(&mut buyer_other);
+
+            let buyer_address = fatoora_party_address(&mut buyer);
+            assert!(buyer_address.ok);
+            let mut buyer_address = buyer_address.value;
+            let buyer_additional_street = fatoora_address_additional_street(&mut buyer_address);
+            assert!(buyer_additional_street.ok);
+            fatoora_string_free(buyer_additional_street.value);
+            let buyer_additional_number = fatoora_address_additional_number(&mut buyer_address);
+            assert!(buyer_additional_number.ok);
+            fatoora_string_free(buyer_additional_number.value);
+            let buyer_subdivision = fatoora_address_subdivision(&mut buyer_address);
+            assert!(buyer_subdivision.ok);
+            fatoora_string_free(buyer_subdivision.value);
+            let buyer_district = fatoora_address_district(&mut buyer_address);
+            assert!(buyer_district.ok);
+            fatoora_string_free(buyer_district.value);
+            fatoora_address_free(&mut buyer_address);
+            fatoora_party_free(&mut buyer);
+
+            let note = fatoora_invoice_note(&mut invoice);
+            assert!(note.ok);
+            let mut note = note.value;
+            let note_language = fatoora_invoice_note_language(&mut note);
+            assert!(note_language.ok);
+            fatoora_string_free(note_language.value);
+            let note_text = fatoora_invoice_note_text(&mut note);
+            assert!(note_text.ok);
+            fatoora_string_free(note_text.value);
+            fatoora_invoice_note_free(&mut note);
+
+            let id = fatoora_invoice_id(&mut invoice);
+            assert!(id.ok);
+            fatoora_string_free(id.value);
+            let uuid = fatoora_invoice_uuid(&mut invoice);
+            assert!(uuid.ok);
+            fatoora_string_free(uuid.value);
+            let datetime = fatoora_invoice_issue_datetime(&mut invoice);
+            assert!(datetime.ok);
+            fatoora_string_free(datetime.value);
+            let currency = fatoora_invoice_currency(&mut invoice);
+            assert!(currency.ok);
+            fatoora_string_free(currency.value);
+            let previous_hash = fatoora_invoice_previous_hash(&mut invoice);
+            assert!(previous_hash.ok);
+            fatoora_string_free(previous_hash.value);
+            let counter = fatoora_invoice_counter(&mut invoice);
+            assert!(counter.ok);
+            let payment = fatoora_invoice_payment_means_code(&mut invoice);
+            assert!(payment.ok);
+            fatoora_string_free(payment.value);
+            let vat_category = fatoora_invoice_vat_category(&mut invoice);
+            assert!(vat_category.ok);
+            let allowance_reason = fatoora_invoice_allowance_reason(&mut invoice);
+            assert!(allowance_reason.ok);
+            fatoora_string_free(allowance_reason.value);
+            let level_charge = fatoora_invoice_level_charge(&mut invoice);
+            assert!(level_charge.ok);
+            let level_discount = fatoora_invoice_level_discount(&mut invoice);
+            assert!(level_discount.ok);
+
+            let kind = fatoora_invoice_type_kind(&mut invoice);
+            assert!(kind.ok);
+            let sub_type = fatoora_invoice_sub_type(&mut invoice);
+            assert!(sub_type.ok);
+
+            fatoora_invoice_free(&mut invoice);
+            fatoora_invoice_builder_free(&mut builder);
+        }
+    }
+
+    #[test]
     fn zatca_client_new_free_paths() {
         unsafe {
             let config = fatoora_config_new(FfiEnvironment::NonProduction);
@@ -3847,6 +4444,49 @@ mod ffi_coverage_tests {
             let mut client = client.value;
             fatoora_zatca_client_free(&mut client);
             fatoora_config_free(config);
+        }
+    }
+
+    #[test]
+    fn free_string_and_bytes_paths() {
+        unsafe {
+            let null_string = FfiString {
+                ptr: std::ptr::null_mut(),
+            };
+            fatoora_string_free(null_string);
+
+            let owned = std::ffi::CString::new("hello").expect("CString");
+            let owned = FfiString {
+                ptr: owned.into_raw(),
+            };
+            fatoora_string_free(owned);
+
+            let empty_bytes = FfiBytes {
+                ptr: std::ptr::null_mut(),
+                len: 0,
+            };
+            fatoora_bytes_free(empty_bytes);
+
+            let bytes = vec_to_ffi_bytes(vec![1, 2, 3]);
+            fatoora_bytes_free(bytes);
+
+            let empty_list = FfiBytesList {
+                ptr: std::ptr::null_mut(),
+                len: 0,
+            };
+            fatoora_bytes_list_free(empty_list);
+
+            let item = vec_to_ffi_bytes(vec![9]);
+            let null_item = FfiBytes {
+                ptr: std::ptr::null_mut(),
+                len: 0,
+            };
+            let mut items = vec![item, null_item];
+            let len = items.len();
+            let ptr = items.as_mut_ptr();
+            std::mem::forget(items);
+            let list = FfiBytesList { ptr, len };
+            fatoora_bytes_list_free(list);
         }
     }
 
@@ -4421,6 +5061,12 @@ mod ffi_coverage_tests {
             );
             assert!(signer_der.ok);
             let mut signer_der = signer_der.value;
+            let signer_cert_der = fatoora_signer_certificate_der(&mut signer_der);
+            assert!(signer_cert_der.ok);
+            fatoora_bytes_free(signer_cert_der.value);
+            let signer_cert_pem = fatoora_signer_certificate_pem(&mut signer_der);
+            assert!(signer_cert_pem.ok);
+            fatoora_string_free(signer_cert_pem.value);
 
             let signer_pem =
                 fatoora_signer_from_pem(cstr(&cert_pem).as_ptr(), cstr(&key_pem).as_ptr());
@@ -4449,6 +5095,27 @@ mod ffi_coverage_tests {
             let signed_xml_b64 = fatoora_signed_invoice_xml_base64(&mut signed);
             assert!(signed_xml_b64.ok);
             fatoora_string_free(signed_xml_b64.value);
+            let signed_hash_b64 = fatoora_signed_invoice_hash_base64(&mut signed);
+            assert!(signed_hash_b64.ok);
+            fatoora_string_free(signed_hash_b64.value);
+            let signed_signature = fatoora_signed_invoice_signature(&mut signed);
+            assert!(signed_signature.ok);
+            fatoora_string_free(signed_signature.value);
+            let signed_public_key = fatoora_signed_invoice_public_key(&mut signed);
+            assert!(signed_public_key.ok);
+            fatoora_string_free(signed_public_key.value);
+            let signed_zatca_key_signature = fatoora_signed_invoice_zatca_key_signature(&mut signed);
+            assert!(signed_zatca_key_signature.ok);
+            fatoora_string_free(signed_zatca_key_signature.value);
+            let signed_cert_hash = fatoora_signed_invoice_cert_hash(&mut signed);
+            assert!(signed_cert_hash.ok);
+            fatoora_string_free(signed_cert_hash.value);
+            let signed_props_hash = fatoora_signed_invoice_signed_props_hash(&mut signed);
+            assert!(signed_props_hash.ok);
+            fatoora_string_free(signed_props_hash.value);
+            let signed_time = fatoora_signed_invoice_signing_time(&mut signed);
+            assert!(signed_time.ok);
+            fatoora_string_free(signed_time.value);
 
             let parsed_signed = fatoora_parse_signed_invoice_xml(cstr(&signed_xml_str).as_ptr());
             assert!(parsed_signed.ok);
@@ -4495,12 +5162,170 @@ mod ffi_coverage_tests {
 
             let signed_flags = fatoora_signed_invoice_flags(&mut signed);
             assert!(signed_flags.ok);
+            let signed_is_third = fatoora_signed_invoice_is_third_party(&mut signed);
+            assert!(signed_is_third.ok);
+            let signed_is_nominal = fatoora_signed_invoice_is_nominal(&mut signed);
+            assert!(signed_is_nominal.ok);
+            let signed_is_export = fatoora_signed_invoice_is_export(&mut signed);
+            assert!(signed_is_export.ok);
+            let signed_is_summary = fatoora_signed_invoice_is_summary(&mut signed);
+            assert!(signed_is_summary.ok);
+            let signed_is_self = fatoora_signed_invoice_is_self_billed(&mut signed);
+            assert!(signed_is_self.ok);
+            let signed_is_simplified = fatoora_signed_invoice_is_simplified(&mut signed);
+            assert!(signed_is_simplified.ok);
+
+            let signed_seller = fatoora_signed_invoice_seller(&mut signed);
+            assert!(signed_seller.ok);
+            let mut signed_seller = signed_seller.value;
+            let signed_seller_name = fatoora_party_name(&mut signed_seller);
+            assert!(signed_seller_name.ok);
+            fatoora_string_free(signed_seller_name.value);
+            fatoora_party_free(&mut signed_seller);
+
+            let signed_buyer = fatoora_signed_invoice_buyer(&mut signed);
+            assert!(signed_buyer.ok);
+            let mut signed_buyer = signed_buyer.value;
+            let signed_buyer_name = fatoora_party_name(&mut signed_buyer);
+            assert!(signed_buyer_name.ok);
+            fatoora_string_free(signed_buyer_name.value);
+            fatoora_party_free(&mut signed_buyer);
+
+            let signed_note = fatoora_signed_invoice_note(&mut signed);
+            assert!(signed_note.ok);
+            let mut signed_note = signed_note.value;
+            let signed_note_text = fatoora_invoice_note_text(&mut signed_note);
+            assert!(signed_note_text.ok);
+            fatoora_string_free(signed_note_text.value);
+            fatoora_invoice_note_free(&mut signed_note);
+
+            let signed_id = fatoora_signed_invoice_id(&mut signed);
+            assert!(signed_id.ok);
+            fatoora_string_free(signed_id.value);
+            let signed_issue = fatoora_signed_invoice_issue_datetime(&mut signed);
+            assert!(signed_issue.ok);
+            fatoora_string_free(signed_issue.value);
+            let signed_currency = fatoora_signed_invoice_currency(&mut signed);
+            assert!(signed_currency.ok);
+            fatoora_string_free(signed_currency.value);
+            let signed_prev = fatoora_signed_invoice_previous_hash(&mut signed);
+            assert!(signed_prev.ok);
+            fatoora_string_free(signed_prev.value);
+            let signed_counter = fatoora_signed_invoice_counter(&mut signed);
+            assert!(signed_counter.ok);
+            let signed_payment = fatoora_signed_invoice_payment_means_code(&mut signed);
+            assert!(signed_payment.ok);
+            fatoora_string_free(signed_payment.value);
+            let signed_vat = fatoora_signed_invoice_vat_category(&mut signed);
+            assert!(signed_vat.ok);
+            let signed_allowance_reason = fatoora_signed_invoice_allowance_reason(&mut signed);
+            assert!(signed_allowance_reason.ok);
+            fatoora_string_free(signed_allowance_reason.value);
+            let signed_level_charge = fatoora_signed_invoice_level_charge(&mut signed);
+            assert!(signed_level_charge.ok);
+            let signed_level_discount = fatoora_signed_invoice_level_discount(&mut signed);
+            assert!(signed_level_discount.ok);
+            let signed_type_kind = fatoora_signed_invoice_type_kind(&mut signed);
+            assert!(signed_type_kind.ok);
+            let signed_sub_type = fatoora_signed_invoice_sub_type(&mut signed);
+            assert!(signed_sub_type.ok);
 
             fatoora_signed_invoice_free(&mut signed);
             fatoora_signer_free(&mut signer_der);
             fatoora_signer_free(&mut signer_pem);
             fatoora_invoice_free(&mut invoice);
             fatoora_invoice_builder_free(&mut builder);
+        }
+    }
+
+    #[test]
+    fn parse_invoice_xml_file_paths() {
+        let invoice_xml = load_fixture("invoices/sample-simplified-invoice.xml");
+        let temp_dir = std::env::temp_dir();
+        let finalized_path = temp_dir.join("fatoora-finalized.xml");
+        std::fs::write(&finalized_path, &invoice_xml).expect("write finalized");
+
+        let (cert_der, key_der) = build_test_signer();
+        let key_pem = {
+            let key = SigningKey::from_der(&key_der).expect("key");
+            key.to_pem().expect("pem")
+        };
+        let cert_pem = {
+            let cert = Certificate::from_der(&cert_der).expect("cert");
+            cert.to_pem(LineEnding::LF).expect("cert pem").to_string()
+        };
+
+        unsafe {
+            let parsed = fatoora_parse_finalized_invoice_xml_file(
+                cstr(finalized_path.to_string_lossy().as_ref()).as_ptr(),
+            );
+            assert!(parsed.ok);
+            let mut parsed = parsed.value;
+            fatoora_invoice_free(&mut parsed);
+
+            let mut builder = build_invoice_builder();
+            let add_result = fatoora_invoice_builder_add_line_item(
+                &mut builder,
+                cstr("Item").as_ptr(),
+                1.0,
+                cstr("PCE").as_ptr(),
+                50.0,
+                15.0,
+                FfiVatCategory::Standard,
+            );
+            assert!(add_result.ok);
+            let invoice_result = fatoora_invoice_builder_build(&mut builder);
+            assert!(invoice_result.ok);
+            let mut invoice = invoice_result.value;
+
+            let signer =
+                fatoora_signer_from_pem(cstr(&cert_pem).as_ptr(), cstr(&key_pem).as_ptr());
+            assert!(signer.ok);
+            let mut signer = signer.value;
+
+            let signed = fatoora_invoice_sign(&mut invoice, &mut signer);
+            assert!(signed.ok);
+            let mut signed = signed.value;
+
+            let signed_xml = fatoora_signed_invoice_xml(&mut signed);
+            assert!(signed_xml.ok);
+            let signed_xml_str = std::ffi::CStr::from_ptr(signed_xml.value.ptr)
+                .to_string_lossy()
+                .to_string();
+            fatoora_string_free(signed_xml.value);
+
+            let signed_path = temp_dir.join("fatoora-signed.xml");
+            std::fs::write(&signed_path, signed_xml_str).expect("write signed");
+
+            let parsed_signed = fatoora_parse_signed_invoice_xml_file(
+                cstr(signed_path.to_string_lossy().as_ref()).as_ptr(),
+            );
+            assert!(parsed_signed.ok);
+            let mut parsed_signed = parsed_signed.value;
+            fatoora_signed_invoice_free(&mut parsed_signed);
+
+            fatoora_signed_invoice_free(&mut signed);
+            fatoora_signer_free(&mut signer);
+            fatoora_invoice_free(&mut invoice);
+            fatoora_invoice_builder_free(&mut builder);
+        }
+    }
+
+    #[test]
+    fn base_url_guard_restores_previous() {
+        let previous = "https://example.com/";
+        unsafe {
+            std::env::set_var("FATOORA_ZATCA_BASE_URL", previous);
+        }
+        {
+            let _guard = BaseUrlGuard::new("http://localhost/");
+            let current = std::env::var("FATOORA_ZATCA_BASE_URL").expect("env set");
+            assert_eq!(current, "http://localhost/");
+        }
+        let restored = std::env::var("FATOORA_ZATCA_BASE_URL").expect("restored");
+        assert_eq!(restored, previous);
+        unsafe {
+            std::env::remove_var("FATOORA_ZATCA_BASE_URL");
         }
     }
 
@@ -4522,6 +5347,8 @@ mod ffi_coverage_tests {
                 .expect("request id");
             assert_eq!(request_id_str, "77");
             fatoora_string_free(request_id.value);
+            let env = fatoora_csid_compliance_env(&mut ccsid);
+            assert!(env.ok);
 
             let token = fatoora_csid_compliance_token(&mut ccsid);
             assert!(token.ok);
@@ -4545,6 +5372,8 @@ mod ffi_coverage_tests {
                 .expect("request id");
             assert_eq!(request_id_str, "");
             fatoora_string_free(request_id.value);
+            let env = fatoora_csid_production_env(&mut pcsid);
+            assert!(env.ok);
             let token = fatoora_csid_production_token(&mut pcsid);
             assert!(token.ok);
             fatoora_string_free(token.value);
