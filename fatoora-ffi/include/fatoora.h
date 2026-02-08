@@ -36,6 +36,7 @@ typedef FfiZatcaClient ZatcaClient;
 #define address_country_code fatoora_address_country_code
 #define address_district fatoora_address_district
 #define address_free fatoora_address_free
+#define address_new fatoora_address_new
 #define address_postal_code fatoora_address_postal_code
 #define address_street fatoora_address_street
 #define address_subdivision fatoora_address_subdivision
@@ -62,6 +63,7 @@ typedef FfiZatcaClient ZatcaClient;
 #define csr_from_der fatoora_csr_from_der
 #define csr_properties_free fatoora_csr_properties_free
 #define csr_properties_from_str fatoora_csr_properties_from_str
+#define csr_properties_new fatoora_csr_properties_new
 #define csr_properties_parse fatoora_csr_properties_parse
 #define csr_properties_parse_file fatoora_csr_properties_parse_file
 #define csr_subject_string fatoora_csr_subject_string

@@ -87,6 +87,16 @@ typedef struct FfiResult_FfiEnvironment {
   struct FfiError *error;
 } FfiResult_FfiEnvironment;
 
+typedef struct FfiAddress {
+  void *ptr;
+} FfiAddress;
+
+typedef struct FfiResult_FfiAddress {
+  bool ok;
+  struct FfiAddress value;
+  struct FfiError *error;
+} FfiResult_FfiAddress;
+
 typedef struct FfiCsrProperties {
   void *ptr;
 } FfiCsrProperties;
@@ -307,16 +317,6 @@ typedef struct FfiResult_FfiOriginalInvoiceRef {
   struct FfiError *error;
 } FfiResult_FfiOriginalInvoiceRef;
 
-typedef struct FfiAddress {
-  void *ptr;
-} FfiAddress;
-
-typedef struct FfiResult_FfiAddress {
-  bool ok;
-  struct FfiAddress value;
-  struct FfiError *error;
-} FfiResult_FfiAddress;
-
 typedef struct FfiVatId {
   void *ptr;
 } FfiVatId;
@@ -377,7 +377,35 @@ void fatoora_config_free(struct FfiConfig *config);
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
+struct FfiResult_FfiAddress fatoora_address_new(const char *country_code,
+                                                const char *city,
+                                                const char *street,
+                                                const char *additional_street,
+                                                const char *building_number,
+                                                const char *additional_number,
+                                                const char *postal_code,
+                                                const char *subdivision,
+                                                const char *district);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
 struct FfiResult_FfiCsrProperties fatoora_csr_properties_from_str(const char *properties);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_FfiCsrProperties fatoora_csr_properties_new(const char *common_name,
+                                                             const char *serial_number,
+                                                             const char *organization_identifier,
+                                                             const char *organization_unit_name,
+                                                             const char *organization_name,
+                                                             const char *country_name,
+                                                             const char *invoice_type,
+                                                             const char *location_address,
+                                                             const char *industry_business_category);
 
 /**
  * # Safety
