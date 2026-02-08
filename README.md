@@ -10,7 +10,7 @@
 <a href="https://codecov.io/gh/mqqz/fatoora-rs"><img src="https://codecov.io/gh/mqqz/fatoora-rs/graph/badge.svg?token=JRI6609XU6"/></a>
 </p>
 <p align="center">
-<a href="https://rs.fatoortiy.com">🌐 Homepage</a> &nbsp;&bull;&nbsp;
+<a href="https://rs.fatoority.com">🌐 Homepage</a> &nbsp;&bull;&nbsp;
 <a href="#features">⚡ Features</a> &nbsp;&bull;&nbsp;
 <a href="#installation">📥 Installation</a> &nbsp;&bull;&nbsp;
 <a href="#examples">💡 Examples</a> &nbsp;&bull;&nbsp;
@@ -38,16 +38,16 @@ With bindings and support for many programming languages:
 `fatoora-rs` is not affiliated, associated, authorized, endorsed by, or in any way officially connected with ZATCA (Zakat, Tax and Customs Authority), or any of its subsidiaries or its affiliates. The official ZATCA website can be found at https://zatca.gov.sa.
 
 ## 🗂️ Documentation
-Checkout the [homepage](https://rs.fatoortiy.com), also the Rust API at [docs.rs](https://docs.rs/fatoora-core/latest/fatoora_core/) may prove useful.
+Checkout the [homepage](https://rs.fatoority.com), also the Rust API at [docs.rs](https://docs.rs/fatoora-core/latest/fatoora_core/) may prove useful.
 
 ## ⚡ Features
 
 Everything done by the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloadSDK) 
-- 📩 [CSR Generation](https://rs.fatoortiy.com/guides/csr/)
-- ✍️ [Invoice Signing](https://rs.fatoortiy.com/guides/invoice-signing/) (All invoice types)
-- ✅ [Validation](https://rs.fatoortiy.com/guides/validation/) (UBL only for now)
-- 🧾 [QR Generation](https://rs.fatoortiy.com/guides/qr/)
-- 📨 [API Requests](https://rs.fatoortiy.com/guides/api/)
+- 📩 [CSR Generation](https://rs.fatoority.com/guides/csr/)
+- ✍️ [Invoice Signing](https://rs.fatoority.com/guides/invoice-signing/) (All invoice types)
+- ✅ [Validation](https://rs.fatoority.com/guides/validation/) (UBL only for now)
+- 🧾 [QR Generation](https://rs.fatoority.com/guides/qr/)
+- 📨 [API Requests](https://rs.fatoority.com/guides/api/)
 
 🚀 *But we do it faster and better* e.g. ~190x faster invoice hashing than ZATCA's SDK (see [`bench/`](https://github.com/mqqz/fatoora-rs/blob/main/bench/cli/results/hash_bench.md))
 
@@ -228,7 +228,7 @@ fatoora-rs-cli invoice-request --invoice signed.xml --api-request request.json
 ```
 </details>
 
-And much more... see the guides in the [homepage](https://rs.fatoortiy.com/) for more info.
+And much more... see the guides in the [homepage](https://rs.fatoority.com/) for more info.
 ## Contributing
 
 Contributions are always welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.

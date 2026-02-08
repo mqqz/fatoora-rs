@@ -20,9 +20,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://rs.fatoortiy.com"
+Homepage = "https://rs.fatoority.com"
 Repository = "https://github.com/mqqz/fatoora-rs"
-Documentation = "https://rs.fatoortiy.com"
+Documentation = "https://rs.fatoority.com"
 Issues = "https://github.com/mqqz/fatoora-rs/issues"
 
 [project.optional-dependencies]
