@@ -185,23 +185,7 @@ fn parse_signed_rejects_invalid_signing_time() {
 
 #[test]
 fn credit_note_serializes_billing_reference_and_reason() {
-    let seller = Party::<SellerRole>::new(
-        "Acme Inc".into(),
-        Address {
-            country_code: CountryCode::parse("SAU").expect("country code"),
-            city: "Riyadh".into(),
-            street: "King Fahd".into(),
-            additional_street: None,
-            building_number: "1234".into(),
-            additional_number: Some("5678".into()),
-            postal_code: "12222".into(),
-            subdivision: None,
-            district: None,
-        },
-        "301121971500003",
-        None,
-    )
-    .expect("valid seller");
+    let seller = build_seller();
 
     let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
 
@@ -236,8 +220,373 @@ fn credit_note_serializes_billing_reference_and_reason() {
     assert!(xml.contains("<cbc:InstructionNote>pricing correction</cbc:InstructionNote>"));
 }
 
+#[test]
+fn debit_note_serializes_billing_reference_and_reason() {
+    let seller = build_seller();
+    let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
+
+    let original = OriginalInvoiceRef::new("INV-ORIG")
+        .with_uuid("uuid-orig")
+        .with_issue_date_str("2023-12-31")
+        .expect("issue date");
+
+    let mut builder = InvoiceBuilder::new(InvoiceType::DebitNote(
+        InvoiceSubType::Simplified,
+        original,
+        "pricing adjustment".into(),
+    ));
+    builder
+        .set_id("DB-1")
+        .set_uuid("uuid-db-1")
+        .set_issue_datetime("2024-01-01T12:30:00Z")
+        .set_currency("SAR")
+        .set_previous_invoice_hash("hash")
+        .set_invoice_counter(0)
+        .set_seller(seller)
+        .set_payment_means_code("10")
+        .set_vat_category(VatCategory::Standard)
+        .add_line_item(line_item);
+    let invoice = builder.build().expect("build debit note");
+
+    let xml = invoice.to_xml().expect("serialize debit note");
+    assert!(xml.contains("<cbc:InvoiceTypeCode name=\"0200000\">383</cbc:InvoiceTypeCode>"));
+    assert!(xml.contains("<cac:BillingReference>"));
+    assert!(xml.contains("<cbc:ID>INV-ORIG</cbc:ID>"));
+    assert!(xml.contains("<cbc:UUID>uuid-orig</cbc:UUID>"));
+    assert!(xml.contains("<cbc:IssueDate>2023-12-31</cbc:IssueDate>"));
+    assert!(xml.contains("<cbc:InstructionNote>pricing adjustment</cbc:InstructionNote>"));
+}
+
+#[test]
+fn parse_credit_note_requires_billing_reference_id() {
+    let xml = load_credit_note_xml();
+    let xml = xml.replace("<cbc:ID>SME00002</cbc:ID>", "");
+    let err = parse_finalized_invoice_xml(&xml).expect_err("missing billing ref id");
+    assert!(matches!(err, ParseError::MissingField("BillingReferenceID")));
+}
+
+#[test]
+fn parse_credit_note_missing_billing_reference_element() {
+    let xml = load_credit_note_xml();
+    let xml = remove_billing_reference(&xml);
+    let err = parse_finalized_invoice_xml(&xml).expect_err("missing billing reference element");
+    assert!(matches!(err, ParseError::MissingField("BillingReferenceID")));
+}
+
+#[test]
+fn parse_credit_note_rejects_invalid_original_issue_date() {
+    let xml = load_credit_note_xml();
+    let xml = xml.replace(
+        "<cbc:ID>SME00002</cbc:ID>",
+        "<cbc:ID>SME00002</cbc:ID><cbc:IssueDate>bad-date</cbc:IssueDate>",
+    );
+    let err = parse_finalized_invoice_xml(&xml).expect_err("invalid issue date");
+    assert!(matches!(err, ParseError::InvalidValue { field: "BillingReferenceIssueDate", .. }));
+}
+
+#[test]
+fn parse_credit_note_defaults_reason_when_missing() {
+    let xml = load_credit_note_xml();
+    let xml = xml.replace(
+        "<cbc:InstructionNote>In case of goods or services refund | عند ترجيع السلع أو الخدمات</cbc:InstructionNote>",
+        "",
+    );
+    let invoice = parse_finalized_invoice_xml(&xml).expect("parse credit note");
+    match invoice.data().invoice_type() {
+        InvoiceType::CreditNote(_, original, reason) => {
+            assert_eq!(original.id(), "SME00002");
+            assert_eq!(reason, "Adjustment");
+        }
+        _ => panic!("expected credit note"),
+    }
+}
+
+#[test]
+fn parse_credit_note_uses_note_when_instruction_missing() {
+    let xml = load_credit_note_xml();
+    let xml = xml.replace(
+        "<cbc:InstructionNote>In case of goods or services refund | عند ترجيع السلع أو الخدمات</cbc:InstructionNote>",
+        "",
+    );
+    let xml = xml.replace(
+        "<cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>",
+        "<cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode><cbc:Note>fallback note</cbc:Note>",
+    );
+    let invoice = parse_finalized_invoice_xml(&xml).expect("parse credit note");
+    match invoice.data().invoice_type() {
+        InvoiceType::CreditNote(_, _, reason) => {
+            assert_eq!(reason, "fallback note");
+        }
+        _ => panic!("expected credit note"),
+    }
+}
+
+#[test]
+fn parse_credit_note_prefers_instruction_note_over_note() {
+    let xml = load_credit_note_xml();
+    let xml = xml.replace(
+        "<cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>",
+        "<cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode><cbc:Note>fallback note</cbc:Note>",
+    );
+    let invoice = parse_finalized_invoice_xml(&xml).expect("parse credit note");
+    match invoice.data().invoice_type() {
+        InvoiceType::CreditNote(_, _, reason) => {
+            assert!(reason.contains("In case of goods or services refund"));
+        }
+        _ => panic!("expected credit note"),
+    }
+}
+
+#[test]
+fn parse_debit_note_type_and_reason() {
+    let xml = load_debit_note_xml();
+    let invoice = parse_finalized_invoice_xml(&xml).expect("parse debit note");
+    match invoice.data().invoice_type() {
+        InvoiceType::DebitNote(subtype, original, reason) => {
+            assert_eq!(*subtype, InvoiceSubType::Standard);
+            assert_eq!(original.id(), "SME00002");
+            assert!(reason.contains("Amendment"));
+        }
+        _ => panic!("expected debit note"),
+    }
+}
+
+#[test]
+fn credit_note_serialization_omits_instruction_note_when_reason_blank() {
+    let seller = build_seller();
+    let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
+
+    let original = OriginalInvoiceRef::new("INV-ORIG");
+    let mut builder = InvoiceBuilder::new(InvoiceType::CreditNote(
+        InvoiceSubType::Standard,
+        original,
+        "   ".into(),
+    ));
+    builder
+        .set_id("CR-NO-REASON")
+        .set_uuid("uuid-cr-no-reason")
+        .set_issue_datetime("2024-01-01T12:30:00Z")
+        .set_currency("SAR")
+        .set_previous_invoice_hash("hash")
+        .set_invoice_counter(0)
+        .set_seller(seller)
+        .set_payment_means_code("10")
+        .set_vat_category(VatCategory::Standard)
+        .add_line_item(line_item);
+    let invoice = builder.build().expect("build credit note");
+
+    let xml = invoice.to_xml().expect("serialize credit note");
+    assert!(!xml.contains("<cbc:InstructionNote>"));
+}
+
+#[test]
+fn credit_note_allowance_discount_round_trip() {
+    let seller = build_seller();
+    let line_item = LineItem::new("Item", 2.0, "PCE", 50.0, 15.0, VatCategory::Standard);
+
+    let original = OriginalInvoiceRef::new("INV-ORIG");
+    let mut builder = InvoiceBuilder::new(InvoiceType::CreditNote(
+        InvoiceSubType::Standard,
+        original,
+        "pricing correction".into(),
+    ));
+    builder
+        .set_id("CR-DISC-1")
+        .set_uuid("uuid-cr-disc-1")
+        .set_issue_datetime("2024-01-01T12:30:00Z")
+        .set_currency("SAR")
+        .set_previous_invoice_hash("hash")
+        .set_invoice_counter(0)
+        .set_seller(seller)
+        .set_payment_means_code("10")
+        .set_vat_category(VatCategory::Standard)
+        .invoice_level_discount(10.0)
+        .allowance_reason("Discount")
+        .add_line_item(line_item);
+    let invoice = builder.build().expect("build credit note");
+
+    let totals = invoice.totals();
+    assert_eq!(totals.allowance_total(), 10.0);
+    assert_eq!(totals.charge_total(), 0.0);
+    assert_eq!(totals.taxable_amount(), 90.0);
+    assert_eq!(totals.tax_inclusive_amount(), 105.0);
+
+    let xml = invoice.to_xml().expect("serialize credit note");
+    assert!(xml.contains("<cbc:AllowanceChargeReason>Discount</cbc:AllowanceChargeReason>"));
+    assert!(xml.contains("<cbc:Amount currencyID=\"SAR\">10.00</cbc:Amount>"));
+
+    let parsed = parse_finalized_invoice_xml(&xml).expect("parse credit note");
+    assert_eq!(parsed.data().allowance_reason(), Some("Discount"));
+    assert_eq!(parsed.totals().allowance_total(), 10.0);
+}
+
+#[test]
+fn debit_note_charge_serializes_allowance_charge() {
+    let seller = build_seller();
+    let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
+
+    let original = OriginalInvoiceRef::new("INV-ORIG");
+    let mut builder = InvoiceBuilder::new(InvoiceType::DebitNote(
+        InvoiceSubType::Standard,
+        original,
+        "pricing adjustment".into(),
+    ));
+    builder
+        .set_id("DB-CHG-1")
+        .set_uuid("uuid-db-chg-1")
+        .set_issue_datetime("2024-01-01T12:30:00Z")
+        .set_currency("SAR")
+        .set_previous_invoice_hash("hash")
+        .set_invoice_counter(0)
+        .set_seller(seller)
+        .set_payment_means_code("10")
+        .set_vat_category(VatCategory::Standard)
+        .invoice_level_charge(7.5)
+        .allowance_reason("Charge")
+        .add_line_item(line_item);
+    let invoice = builder.build().expect("build debit note");
+
+    let totals = invoice.totals();
+    assert_eq!(totals.charge_total(), 7.5);
+    assert_eq!(totals.taxable_amount(), 107.5);
+
+    let xml = invoice.to_xml().expect("serialize debit note");
+    assert!(xml.contains("<cbc:ChargeIndicator>true</cbc:ChargeIndicator>"));
+    assert!(xml.contains("<cbc:AllowanceChargeReason>Charge</cbc:AllowanceChargeReason>"));
+    assert!(xml.contains("<cbc:Amount currencyID=\"SAR\">7.50</cbc:Amount>"));
+}
+
+#[test]
+fn debit_note_allowance_round_trip() {
+    let seller = build_seller();
+    let line_item = LineItem::new("Item", 2.0, "PCE", 50.0, 15.0, VatCategory::Standard);
+
+    let original = OriginalInvoiceRef::new("INV-ORIG");
+    let mut builder = InvoiceBuilder::new(InvoiceType::DebitNote(
+        InvoiceSubType::Standard,
+        original,
+        "pricing adjustment".into(),
+    ));
+    builder
+        .set_id("DB-DISC-1")
+        .set_uuid("uuid-db-disc-1")
+        .set_issue_datetime("2024-01-01T12:30:00Z")
+        .set_currency("SAR")
+        .set_previous_invoice_hash("hash")
+        .set_invoice_counter(0)
+        .set_seller(seller)
+        .set_payment_means_code("10")
+        .set_vat_category(VatCategory::Standard)
+        .invoice_level_discount(8.0)
+        .allowance_reason("Adjustment")
+        .add_line_item(line_item);
+    let invoice = builder.build().expect("build debit note");
+
+    let totals = invoice.totals();
+    assert_eq!(totals.allowance_total(), 8.0);
+    assert_eq!(totals.taxable_amount(), 92.0);
+    assert_eq!(totals.tax_inclusive_amount(), 107.0);
+
+    let xml = invoice.to_xml().expect("serialize debit note");
+    assert!(xml.contains("<cbc:AllowanceChargeReason>Adjustment</cbc:AllowanceChargeReason>"));
+    assert!(xml.contains("<cbc:Amount currencyID=\"SAR\">8.00</cbc:Amount>"));
+
+    let parsed = parse_finalized_invoice_xml(&xml).expect("parse debit note");
+    assert_eq!(parsed.data().allowance_reason(), Some("Adjustment"));
+    assert_eq!(parsed.totals().allowance_total(), 8.0);
+}
+
+#[test]
+fn credit_note_round_trip_preserves_original_ref_and_reason() {
+    let seller = build_seller();
+    let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
+
+    let original = OriginalInvoiceRef::new("INV-ORIG")
+        .with_uuid("uuid-orig")
+        .with_issue_date_str("2023-12-31")
+        .expect("issue date");
+
+    let mut builder = InvoiceBuilder::new(InvoiceType::CreditNote(
+        InvoiceSubType::Standard,
+        original,
+        "pricing correction".into(),
+    ));
+    builder
+        .set_id("CR-RT-1")
+        .set_uuid("uuid-cr-rt-1")
+        .set_issue_datetime("2024-01-01T12:30:00Z")
+        .set_currency("SAR")
+        .set_previous_invoice_hash("hash")
+        .set_invoice_counter(0)
+        .set_seller(seller)
+        .set_payment_means_code("10")
+        .set_vat_category(VatCategory::Standard)
+        .add_line_item(line_item);
+    let invoice = builder.build().expect("build credit note");
+
+    let xml = invoice.to_xml().expect("serialize credit note");
+    let parsed = parse_finalized_invoice_xml(&xml).expect("parse credit note");
+    match parsed.data().invoice_type() {
+        InvoiceType::CreditNote(subtype, original, reason) => {
+            assert_eq!(*subtype, InvoiceSubType::Standard);
+            assert_eq!(original.id(), "INV-ORIG");
+            assert_eq!(original.uuid(), Some("uuid-orig"));
+            assert_eq!(original.issue_date().unwrap().as_str(), "2023-12-31");
+            assert_eq!(reason, "pricing correction");
+        }
+        _ => panic!("expected credit note"),
+    }
+}
+
+fn build_seller() -> Party<SellerRole> {
+    Party::<SellerRole>::new(
+        "Acme Inc".into(),
+        Address {
+            country_code: CountryCode::parse("SAU").expect("country code"),
+            city: "Riyadh".into(),
+            street: "King Fahd".into(),
+            additional_street: None,
+            building_number: "1234".into(),
+            additional_number: Some("5678".into()),
+            postal_code: "12222".into(),
+            subdivision: None,
+            district: None,
+        },
+        "301121971500003",
+        None,
+    )
+    .expect("valid seller")
+}
+
 fn load_sample_xml() -> String {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/invoices/sample-simplified-invoice.xml");
     std::fs::read_to_string(&path).expect("read xml")
+}
+
+fn load_credit_note_xml() -> String {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/invoices/Standard/Credit/Standard_Credit_Note.xml");
+    std::fs::read_to_string(&path).expect("read credit note xml")
+}
+
+fn load_debit_note_xml() -> String {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/invoices/Standard/Debit/Standard_Debit_Note.xml");
+    std::fs::read_to_string(&path).expect("read debit note xml")
+}
+
+fn remove_billing_reference(xml: &str) -> String {
+    let start = xml.find("<cac:BillingReference>");
+    let end = xml.find("</cac:BillingReference>");
+    match (start, end) {
+        (Some(start), Some(end)) => {
+            let end = end + "</cac:BillingReference>".len();
+            let mut out = String::with_capacity(xml.len());
+            out.push_str(&xml[..start]);
+            out.push_str(&xml[end..]);
+            out
+        }
+        _ => xml.to_string(),
+    }
 }

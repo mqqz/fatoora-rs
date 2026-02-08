@@ -44,21 +44,51 @@ pub enum InvoiceError {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Error)]
 #[error("invoice validation failed")]
 pub struct ValidationError {
-    pub issues: Vec<ValidationIssue>,
+    issues: Vec<ValidationIssue>,
 }
 
 impl ValidationError {
     pub fn new(issues: Vec<ValidationIssue>) -> Self {
         Self { issues }
     }
+
+    pub fn issues(&self) -> &[ValidationIssue] {
+        &self.issues
+    }
 }
 
 /// Single validation issue.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ValidationIssue {
-    pub field: InvoiceField,
-    pub kind: ValidationKind,
-    pub line_item_index: Option<usize>,
+    field: InvoiceField,
+    kind: ValidationKind,
+    line_item_index: Option<usize>,
+}
+
+impl ValidationIssue {
+    pub fn new(
+        field: InvoiceField,
+        kind: ValidationKind,
+        line_item_index: Option<usize>,
+    ) -> Self {
+        Self {
+            field,
+            kind,
+            line_item_index,
+        }
+    }
+
+    pub fn field(&self) -> InvoiceField {
+        self.field
+    }
+
+    pub fn kind(&self) -> ValidationKind {
+        self.kind
+    }
+
+    pub fn line_item_index(&self) -> Option<usize> {
+        self.line_item_index
+    }
 }
 
 #[non_exhaustive]
@@ -798,18 +828,18 @@ impl LineItem {
 
         let mut issues = Vec::new();
         if (expected_total - total_amount).abs() > EPSILON {
-            issues.push(ValidationIssue {
-                field: InvoiceField::LineItemTotalAmount,
-                kind: ValidationKind::Mismatch,
-                line_item_index: None,
-            });
+            issues.push(ValidationIssue::new(
+                InvoiceField::LineItemTotalAmount,
+                ValidationKind::Mismatch,
+                None,
+            ));
         }
         if (expected_vat - vat_amount).abs() > EPSILON {
-            issues.push(ValidationIssue {
-                field: InvoiceField::LineItemVatAmount,
-                kind: ValidationKind::Mismatch,
-                line_item_index: None,
-            });
+            issues.push(ValidationIssue::new(
+                InvoiceField::LineItemVatAmount,
+                ValidationKind::Mismatch,
+                None,
+            ));
         }
         if !issues.is_empty() {
             return Err(ValidationError::new(issues));

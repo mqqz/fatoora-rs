@@ -192,11 +192,7 @@ impl InvoiceBuilder {
     pub fn build(self) -> Result<FinalizedInvoice, InvoiceError> {
         let mut issues = Vec::new();
         let mut push_issue = |field: InvoiceField, kind: ValidationKind, line_item_index| {
-            issues.push(ValidationIssue {
-                field,
-                kind,
-                line_item_index,
-            });
+            issues.push(ValidationIssue::new(field, kind, line_item_index));
         };
 
         match self.id.as_deref() {

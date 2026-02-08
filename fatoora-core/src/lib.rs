@@ -184,11 +184,7 @@ mod tests {
     #[test]
     fn error_conversions_cover_variants() {
         let invoice_err = InvoiceError::Validation(ValidationError::new(vec![
-            ValidationIssue {
-                field: InvoiceField::Id,
-                kind: ValidationKind::Missing,
-                line_item_index: None,
-            },
+            ValidationIssue::new(InvoiceField::Id, ValidationKind::Missing, None),
         ]));
         let err: Error = invoice_err.into();
         assert_eq!(err.kind(), ErrorKind::Validation);

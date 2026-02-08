@@ -422,11 +422,87 @@ pub unsafe extern "C" fn fatoora_config_free(config: *mut FfiConfig) {
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_address_new(
+    country_code: *const c_char,
+    city: *const c_char,
+    street: *const c_char,
+    additional_street: *const c_char,
+    building_number: *const c_char,
+    additional_number: *const c_char,
+    postal_code: *const c_char,
+    subdivision: *const c_char,
+    district: *const c_char,
+) -> FfiResult<FfiAddress> {
+    match build_address(
+        country_code,
+        city,
+        street,
+        additional_street,
+        building_number,
+        additional_number,
+        postal_code,
+        subdivision,
+        district,
+        "address",
+    ) {
+        Ok(address) => FfiResult::ok(FfiAddress {
+            ptr: Box::into_raw(Box::new(address)) as *mut std::os::raw::c_void,
+        }),
+        Err(message) => FfiResult::err(message),
+    }
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_csr_properties_from_str(
     properties: *const c_char,
 ) -> FfiResult<FfiCsrProperties> {
     let properties = ffi_required_string!(properties, "csr properties");
     match CsrProperties::from_properties_str(&properties) {
+        Ok(props) => FfiResult::ok(FfiCsrProperties {
+            ptr: Box::into_raw(Box::new(props)) as *mut std::os::raw::c_void,
+        }),
+        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
+    }
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_csr_properties_new(
+    common_name: *const c_char,
+    serial_number: *const c_char,
+    organization_identifier: *const c_char,
+    organization_unit_name: *const c_char,
+    organization_name: *const c_char,
+    country_name: *const c_char,
+    invoice_type: *const c_char,
+    location_address: *const c_char,
+    industry_business_category: *const c_char,
+) -> FfiResult<FfiCsrProperties> {
+    let common_name = ffi_required_string!(common_name, "common name");
+    let serial_number = ffi_required_string!(serial_number, "serial number");
+    let organization_identifier = ffi_required_string!(organization_identifier, "organization identifier");
+    let organization_unit_name = ffi_required_string!(organization_unit_name, "organization unit name");
+    let organization_name = ffi_required_string!(organization_name, "organization name");
+    let country_name = ffi_required_string!(country_name, "country name");
+    let invoice_type = ffi_required_string!(invoice_type, "invoice type");
+    let location_address = ffi_required_string!(location_address, "location address");
+    let industry_business_category =
+        ffi_required_string!(industry_business_category, "industry business category");
+
+    match CsrProperties::new(
+        common_name,
+        serial_number,
+        organization_identifier,
+        organization_unit_name,
+        organization_name,
+        country_name,
+        invoice_type,
+        location_address,
+        industry_business_category,
+    ) {
         Ok(props) => FfiResult::ok(FfiCsrProperties {
             ptr: Box::into_raw(Box::new(props)) as *mut std::os::raw::c_void,
         }),
