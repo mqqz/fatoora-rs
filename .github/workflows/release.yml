@@ -43,9 +43,11 @@ jobs:
       - name: Install libxml2 (vcpkg)
         if: runner.os == 'Windows'
         shell: pwsh
+        env:
+          VCPKG_BUILD_TYPE: release
         run: |
           if (-not $env:VCPKG_INSTALLATION_ROOT) { throw "VCPKG_INSTALLATION_ROOT is not set on this runner." }
-          & $env:VCPKG_INSTALLATION_ROOT\vcpkg.exe install libxml2:x64-windows --x-buildtype=release
+          & $env:VCPKG_INSTALLATION_ROOT\vcpkg.exe install libxml2:x64-windows --triplet x64-windows
 
       - name: Build CLI
         env:
@@ -107,9 +109,11 @@ jobs:
       - name: Install libxml2 (vcpkg)
         if: runner.os == 'Windows'
         shell: pwsh
+        env:
+          VCPKG_BUILD_TYPE: release
         run: |
           if (-not $env:VCPKG_INSTALLATION_ROOT) { throw "VCPKG_INSTALLATION_ROOT is not set on this runner." }
-          & $env:VCPKG_INSTALLATION_ROOT\vcpkg.exe install libxml2:x64-windows --x-buildtype=release
+          & $env:VCPKG_INSTALLATION_ROOT\vcpkg.exe install libxml2:x64-windows --triplet x64-windows
 
       - name: Build FFI
         env:
