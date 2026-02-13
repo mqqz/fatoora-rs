@@ -51,14 +51,36 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         env:
+          VCPKG_ROOT: C:\vcpkg
+          VCPKG_INSTALLATION_ROOT: C:\vcpkg
           VCPKG_BUILD_TYPE: release
         run: |
-          if (-not $env:VCPKG_INSTALLATION_ROOT) { throw "VCPKG_INSTALLATION_ROOT is not set on this runner." }
-          & $env:VCPKG_INSTALLATION_ROOT\vcpkg.exe install libxml2:x64-windows --triplet x64-windows
+          if (-not (Test-Path $env:VCPKG_INSTALLATION_ROOT)) { throw "VCPKG_INSTALLATION_ROOT is not set on this runner." }
+          "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "VCPKG_INSTALLATION_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "VCPKG_DEFAULT_TRIPLET=x64-windows" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "VCPKGRS_TRIPLET=x64-windows" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "VCPKG_BUILD_TYPE=release" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          & $env:VCPKG_INSTALLATION_ROOT\vcpkg.exe install libxml2:x64-windows --triplet x64-windows --vcpkg-root $env:VCPKG_INSTALLATION_ROOT
+      
+      - name: Verify libxml2 install (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $inc = Join-Path $env:VCPKG_INSTALLATION_ROOT "installed\x64-windows\include\libxml2\libxml\parser.h"
+          $lib = Join-Path $env:VCPKG_INSTALLATION_ROOT "installed\x64-windows\lib\libxml2.lib"
+          if (-not (Test-Path $inc)) { throw "Missing libxml2 header: $inc" }
+          if (-not (Test-Path $lib)) { throw "Missing libxml2 import library: $lib" }
 
       - name: Build CLI
         env:
-          VCPKG_ROOT: ${{ env.VCPKG_INSTALLATION_ROOT }}
+          VCPKG_ROOT: ${{ runner.os == 'Windows' && 'C:\\vcpkg' || '' }}
+          VCPKG_INSTALLATION_ROOT: ${{ runner.os == 'Windows' && 'C:\\vcpkg' || '' }}
+          VCPKG_DEFAULT_TRIPLET: ${{ runner.os == 'Windows' && 'x64-windows' || '' }}
+          VCPKGRS_TRIPLET: ${{ runner.os == 'Windows' && 'x64-windows' || '' }}
+          VCPKG_BUILD_TYPE: ${{ runner.os == 'Windows' && 'release' || '' }}
+          VCPKG_LIBXML2_INCLUDE: ${{ runner.os == 'Windows' && 'C:\\vcpkg\\installed\\x64-windows\\include' || '' }}
+          VCPKG_LIBXML2_LIB: ${{ runner.os == 'Windows' && 'C:\\vcpkg\\installed\\x64-windows\\lib' || '' }}
           VCPKGRS_DYNAMIC: "1"
         run: cargo build -p fatoora-rs-cli --release --target ${{ matrix.target }}
 
@@ -120,14 +142,36 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         env:
+          VCPKG_ROOT: C:\vcpkg
+          VCPKG_INSTALLATION_ROOT: C:\vcpkg
           VCPKG_BUILD_TYPE: release
         run: |
-          if (-not $env:VCPKG_INSTALLATION_ROOT) { throw "VCPKG_INSTALLATION_ROOT is not set on this runner." }
-          & $env:VCPKG_INSTALLATION_ROOT\vcpkg.exe install libxml2:x64-windows --triplet x64-windows
+          if (-not (Test-Path $env:VCPKG_INSTALLATION_ROOT)) { throw "VCPKG_INSTALLATION_ROOT is not set on this runner." }
+          "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "VCPKG_INSTALLATION_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "VCPKG_DEFAULT_TRIPLET=x64-windows" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "VCPKGRS_TRIPLET=x64-windows" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "VCPKG_BUILD_TYPE=release" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          & $env:VCPKG_INSTALLATION_ROOT\vcpkg.exe install libxml2:x64-windows --triplet x64-windows --vcpkg-root $env:VCPKG_INSTALLATION_ROOT
+      
+      - name: Verify libxml2 install (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $inc = Join-Path $env:VCPKG_INSTALLATION_ROOT "installed\x64-windows\include\libxml2\libxml\parser.h"
+          $lib = Join-Path $env:VCPKG_INSTALLATION_ROOT "installed\x64-windows\lib\libxml2.lib"
+          if (-not (Test-Path $inc)) { throw "Missing libxml2 header: $inc" }
+          if (-not (Test-Path $lib)) { throw "Missing libxml2 import library: $lib" }
 
       - name: Build FFI
         env:
-          VCPKG_ROOT: ${{ env.VCPKG_INSTALLATION_ROOT }}
+          VCPKG_ROOT: ${{ runner.os == 'Windows' && 'C:\\vcpkg' || '' }}
+          VCPKG_INSTALLATION_ROOT: ${{ runner.os == 'Windows' && 'C:\\vcpkg' || '' }}
+          VCPKG_DEFAULT_TRIPLET: ${{ runner.os == 'Windows' && 'x64-windows' || '' }}
+          VCPKGRS_TRIPLET: ${{ runner.os == 'Windows' && 'x64-windows' || '' }}
+          VCPKG_BUILD_TYPE: ${{ runner.os == 'Windows' && 'release' || '' }}
+          VCPKG_LIBXML2_INCLUDE: ${{ runner.os == 'Windows' && 'C:\\vcpkg\\installed\\x64-windows\\include' || '' }}
+          VCPKG_LIBXML2_LIB: ${{ runner.os == 'Windows' && 'C:\\vcpkg\\installed\\x64-windows\\lib' || '' }}
           VCPKGRS_DYNAMIC: "1"
         run: cargo build -p fatoora-ffi --release --target ${{ matrix.target }}
 
