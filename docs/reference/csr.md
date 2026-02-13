@@ -4,9 +4,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
 ## CsrProperties
 
-### from_properties_str
+### `from_properties_str`
 
-??? note "Parse CSR properties string"
+???+ note "Parse CSR properties string"
     Parse properties text into `CsrProperties`.
 
     === "{{ lang.rust }}"
@@ -24,17 +24,12 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         FfiResult_FfiCsrProperties fatoora_csr_properties_from_str(const char* properties);
         ```
 
-    !!! info "Args"
-        - `properties` (`&str` / `str` / `const char*`): CSR properties text.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `Result<CsrProperties, CsrError>`.
-        - Python: `CsrProperties`.
-        - C: `FfiResult_FfiCsrProperties`.
+### `parse_csr_config` / `parse`
 
-### parse_csr_config / parse
-
-??? note "Parse CSR config"
+???+ note "Parse CSR config"
     Parse properties text using the config parser alias.
 
     === "{{ lang.rust }}"
@@ -52,17 +47,12 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         FfiResult_FfiCsrProperties fatoora_csr_properties_parse(const char* properties);
         ```
 
-    !!! info "Args"
-        - `properties` (`&str` / `str` / `const char*`): CSR properties text.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `Result<CsrProperties, CsrError>`.
-        - Python: `CsrProperties`.
-        - C: `FfiResult_FfiCsrProperties`.
+### `parse_csr_config_file` / `parse_file`
 
-### parse_csr_config_file / parse_file
-
-??? note "Parse CSR config file"
+???+ note "Parse CSR config file"
     Parse properties from a file path.
 
     === "{{ lang.rust }}"
@@ -80,17 +70,12 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         FfiResult_FfiCsrProperties fatoora_csr_properties_parse_file(const char* path);
         ```
 
-    !!! info "Args"
-        - `path` (`impl AsRef<Path>` / `str` / `const char*`): properties file path.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `Result<CsrProperties, CsrError>`.
-        - Python: `CsrProperties`.
-        - C: `FfiResult_FfiCsrProperties`.
+### `build`
 
-### build
-
-??? note "Build CSR"
+???+ note "Build CSR"
     Build a CSR from properties and signing key.
 
     === "{{ lang.rust }}"
@@ -108,20 +93,14 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         FfiResult_FfiCsr fatoora_csr_build(FfiCsrProperties* props, FfiSigningKey* key, FfiEnvironment env);
         ```
 
-    !!! info "Args"
-        - `signer` / `key` (`&SigningKey` / `SigningKey` / `FfiSigningKey*`): signing key.
-        - `env` (`EnvironmentType` / `Environment` / `FfiEnvironment`): template environment.
-
-    !!! info "Returns"
-        - Rust: `Result<Csr, CsrError>`.
-        - Python: `Csr`.
-        - C: `FfiResult_FfiCsr`.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
 ## SigningKey
 
-### generate
+### `generate`
 
-??? note "Generate key"
+???+ note "Generate key"
     Generate a new signing key.
 
     === "{{ lang.rust }}"
@@ -140,13 +119,11 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         ```
 
     !!! info "Returns"
-        - Rust: `SigningKey`.
-        - Python: `SigningKey`.
-        - C: `FfiResult_FfiSigningKey`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### from_pem
+### `from_pem`
 
-??? note "Load key from PEM"
+???+ note "Load key from PEM"
     Parse PKCS#8 key material in PEM format.
 
     === "{{ lang.rust }}"
@@ -164,17 +141,12 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         FfiResult_FfiSigningKey fatoora_signing_key_from_pem(const char* pem);
         ```
 
-    !!! info "Args"
-        - `pem` (`&str` / `str` / `const char*`): PEM key material.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `Result<SigningKey, CsrError>`.
-        - Python: `SigningKey`.
-        - C: `FfiResult_FfiSigningKey`.
+### `from_der`
 
-### from_der
-
-??? note "Load key from DER"
+???+ note "Load key from DER"
     Parse PKCS#8 key material in DER format.
 
     === "{{ lang.rust }}"
@@ -192,17 +164,12 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         FfiResult_FfiSigningKey fatoora_signing_key_from_der(const uint8_t* der, uintptr_t len);
         ```
 
-    !!! info "Args"
-        - `der` (`&[u8]` / `bytes` / `const uint8_t*` + `len`): DER key bytes.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `Result<SigningKey, CsrError>`.
-        - Python: `SigningKey`.
-        - C: `FfiResult_FfiSigningKey`.
+### `to_pem`
 
-### to_pem
-
-??? note "Serialize key to PEM"
+???+ note "Serialize key to PEM"
     Serialize the key to PEM format.
 
     === "{{ lang.rust }}"
@@ -221,13 +188,11 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         ```
 
     !!! info "Returns"
-        - Rust: `Result<String, CsrError>`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### to_der
+### `to_der`
 
-??? note "Serialize key to DER"
+???+ note "Serialize key to DER"
     Serialize the key to DER format.
 
     === "{{ lang.rust }}"
@@ -246,15 +211,13 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         ```
 
     !!! info "Returns"
-        - Rust: `Result<Vec<u8>, CsrError>`.
-        - Python: `bytes`.
-        - C: `FfiResult_FfiBytes`.
+        - Types are language-specific and shown in the active tab signature above.
 
 ## Csr
 
-### from_der
+### `from_der`
 
-??? note "Load CSR from DER"
+???+ note "Load CSR from DER"
     Parse CSR bytes in DER format.
 
     === "{{ lang.rust }}"
@@ -272,17 +235,12 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         FfiResult_FfiCsr fatoora_csr_from_der(const uint8_t* der, uintptr_t len);
         ```
 
-    !!! info "Args"
-        - `der` (`&[u8]` / `bytes` / `const uint8_t*` + `len`): DER CSR bytes.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `Result<Csr, CsrError>`.
-        - Python: `Csr`.
-        - C: `FfiResult_FfiCsr`.
+### `to_pem`
 
-### to_pem
-
-??? note "Serialize CSR to PEM"
+???+ note "Serialize CSR to PEM"
 
     === "{{ lang.rust }}"
         ```rust
@@ -300,13 +258,11 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         ```
 
     !!! info "Returns"
-        - Rust: `Result<String, CsrError>`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### to_der
+### `to_der`
 
-??? note "Serialize CSR to DER"
+???+ note "Serialize CSR to DER"
 
     === "{{ lang.rust }}"
         ```rust
@@ -324,13 +280,11 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         ```
 
     !!! info "Returns"
-        - Rust: `Result<Vec<u8>, CsrError>`.
-        - Python: `bytes`.
-        - C: `FfiResult_FfiBytes`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### to_base64
+### `to_base64`
 
-??? note "Serialize CSR DER to Base64"
+???+ note "Serialize CSR DER to Base64"
 
     === "{{ lang.rust }}"
         ```rust
@@ -348,13 +302,11 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         ```
 
     !!! info "Returns"
-        - Rust: `Result<String, CsrError>`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### to_pem_base64
+### `to_pem_base64`
 
-??? note "Serialize PEM CSR to Base64"
+???+ note "Serialize PEM CSR to Base64"
 
     === "{{ lang.rust }}"
         ```rust
@@ -372,13 +324,11 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         ```
 
     !!! info "Returns"
-        - Rust: `Result<String, CsrError>`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### subject_string
+### `subject_string`
 
-??? note "Get CSR subject string"
+???+ note "Get CSR subject string"
 
     === "{{ lang.rust }}"
         ```rust
@@ -396,13 +346,11 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         ```
 
     !!! info "Returns"
-        - Rust: `String`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### extension_values_der
+### `extension_values_der`
 
-??? note "Get extension DER values"
+???+ note "Get extension DER values"
 
     === "{{ lang.rust }}"
         ```rust
@@ -420,9 +368,7 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         ```
 
     !!! info "Returns"
-        - Rust: `Vec<Vec<u8>>`.
-        - Python: `list[bytes]`.
-        - C: `FfiResult_FfiBytesList`.
+        - Types are language-specific and shown in the active tab signature above.
 
 ## Errors
 

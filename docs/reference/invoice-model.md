@@ -4,9 +4,9 @@ Core data types for building and inspecting invoices.
 
 ## InvoiceBuilder
 
-### new
+### `new`
 
-??? note "Create builder"
+???+ note "Create builder"
     Create a builder for a specific invoice type/subtype.
 
     === "{{ lang.rust }}"
@@ -24,19 +24,12 @@ Core data types for building and inspecting invoices.
         FfiResult_FfiInvoiceBuilder fatoora_invoice_builder_new(FfiInvoiceTypeKind type_kind, FfiInvoiceSubType subtype, const char* original_id, const char* original_uuid, const char* original_issue_date, const char* original_reason);
         ```
 
-    !!! info "Args"
-        - `invoice_type` / `type_kind` (`InvoiceType` / `InvoiceTypeKind` / `FfiInvoiceTypeKind`): invoice classification.
-        - `invoice_subtype` / `subtype` (`InvoiceSubType` / `FfiInvoiceSubType`): invoice subtype.
-        - `original_*` (`Optional[str]` / `const char*`): required for credit/debit references.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `InvoiceBuilder`.
-        - Python: `InvoiceBuilder`.
-        - C: `FfiResult_FfiInvoiceBuilder`.
+### `set_id`
 
-### set_id
-
-??? note "Set invoice ID"
+???+ note "Set invoice ID"
 
     === "{{ lang.rust }}"
         ```rust
@@ -53,17 +46,12 @@ Core data types for building and inspecting invoices.
         FfiResult_bool fatoora_invoice_builder_set_id(FfiInvoiceBuilder* builder, const char* id);
         ```
 
-    !!! info "Args"
-        - `id` / `invoice_id` (`str` / `const char*`): invoice ID.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+### `set_uuid`
 
-### set_uuid
-
-??? note "Set invoice UUID"
+???+ note "Set invoice UUID"
 
     === "{{ lang.rust }}"
         ```rust
@@ -81,13 +69,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### set_issue_datetime
+### `set_issue_datetime`
 
-??? note "Set issue datetime"
+???+ note "Set issue datetime"
 
     === "{{ lang.rust }}"
         ```rust
@@ -105,13 +91,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### set_currency
+### `set_currency`
 
-??? note "Set currency"
+???+ note "Set currency"
 
     === "{{ lang.rust }}"
         ```rust
@@ -129,13 +113,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### set_previous_invoice_hash
+### `set_previous_invoice_hash`
 
-??? note "Set previous invoice hash"
+???+ note "Set previous invoice hash"
 
     === "{{ lang.rust }}"
         ```rust
@@ -153,13 +135,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### set_invoice_counter
+### `set_invoice_counter`
 
-??? note "Set invoice counter"
+???+ note "Set invoice counter"
 
     === "{{ lang.rust }}"
         ```rust
@@ -177,13 +157,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### set_payment_means_code
+### `set_payment_means_code`
 
-??? note "Set payment means code"
+???+ note "Set payment means code"
 
     === "{{ lang.rust }}"
         ```rust
@@ -201,13 +179,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### set_vat_category
+### `set_vat_category`
 
-??? note "Set invoice VAT category"
+???+ note "Set invoice VAT category"
 
     === "{{ lang.rust }}"
         ```rust
@@ -225,13 +201,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### set_seller
+### `set_seller`
 
-??? note "Set seller party"
+???+ note "Set seller party"
 
     === "{{ lang.rust }}"
         ```rust
@@ -249,13 +223,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### set_buyer
+### `set_buyer`
 
-??? note "Set buyer party"
+???+ note "Set buyer party"
 
     === "{{ lang.rust }}"
         ```rust
@@ -273,13 +245,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### set_note
+### `set_note`
 
-??? note "Set invoice note"
+???+ note "Set invoice note"
 
     === "{{ lang.rust }}"
         ```rust
@@ -297,13 +267,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### set_allowance
+### `set_allowance`
 
-??? note "Set allowance reason and amount"
+???+ note "Set allowance reason and amount"
 
     === "{{ lang.rust }}"
         ```rust
@@ -321,13 +289,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### set_invoice_level_charge
+### `set_invoice_level_charge`
 
-??? note "Set invoice-level charge"
+???+ note "Set invoice-level charge"
 
     === "{{ lang.rust }}"
         ```rust
@@ -345,13 +311,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### set_invoice_level_discount
+### `set_invoice_level_discount`
 
-??? note "Set invoice-level discount"
+???+ note "Set invoice-level discount"
 
     === "{{ lang.rust }}"
         ```rust
@@ -369,13 +333,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### set_allowance_reason
+### `set_allowance_reason`
 
-??? note "Set allowance reason"
+???+ note "Set allowance reason"
 
     === "{{ lang.rust }}"
         ```rust
@@ -393,13 +355,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### set_flags
+### `set_flags`
 
-??? note "Set invoice flags"
+???+ note "Set invoice flags"
 
     === "{{ lang.rust }}"
         ```rust
@@ -417,13 +377,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### add_line_item
+### `add_line_item`
 
-??? note "Add line item"
+???+ note "Add line item"
 
     === "{{ lang.rust }}"
         ```rust
@@ -441,13 +399,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&mut Self`.
-        - Python: `None`.
-        - C: `FfiResult_bool`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### build
+### `build`
 
-??? note "Finalize invoice"
+???+ note "Finalize invoice"
 
     === "{{ lang.rust }}"
         ```rust
@@ -465,15 +421,75 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `Result<FinalizedInvoice, InvoiceError>`.
-        - Python: `FinalizedInvoice`.
-        - C: `FfiResult_FfiFinalizedInvoice`.
+        - Types are language-specific and shown in the active tab signature above.
+
+## Field Groups
+
+### `id`
+
+- Setter: `InvoiceBuilder::set_id` / `InvoiceBuilder.set_id` / `fatoora_invoice_builder_set_id`
+- Getters: `FinalizedInvoice.id`, `SignedInvoice.id`, `fatoora_invoice_id`, `fatoora_signed_invoice_id`
+
+### `uuid`
+
+- Setter: `InvoiceBuilder::set_uuid` / `InvoiceBuilder.set_uuid` / `fatoora_invoice_builder_set_uuid`
+- Getters: `FinalizedInvoice.uuid`, `SignedInvoice.uuid`, `fatoora_invoice_uuid`, `fatoora_signed_invoice_uuid`
+
+### `issue_datetime`
+
+- Setter: `InvoiceBuilder::set_issue_datetime` / `InvoiceBuilder.set_issue_datetime` / `fatoora_invoice_builder_set_issue_datetime`
+- Getters: `FinalizedInvoice.issue_datetime`, `SignedInvoice.issue_datetime`, `fatoora_invoice_issue_datetime`, `fatoora_signed_invoice_issue_datetime`
+
+### `currency`
+
+- Setter: `InvoiceBuilder::set_currency` / `InvoiceBuilder.set_currency` / `fatoora_invoice_builder_set_currency`
+- Getters: `FinalizedInvoice.currency`, `SignedInvoice.currency`, `fatoora_invoice_currency`, `fatoora_signed_invoice_currency`
+
+### `previous_invoice_hash`
+
+- Setter: `InvoiceBuilder::set_previous_invoice_hash` / `InvoiceBuilder.set_previous_invoice_hash` / `fatoora_invoice_builder_set_previous_hash`
+- Getters: `FinalizedInvoice.previous_invoice_hash`, `SignedInvoice.previous_invoice_hash`, `fatoora_invoice_previous_hash`, `fatoora_signed_invoice_previous_hash`
+
+### `invoice_counter`
+
+- Setter: `InvoiceBuilder::set_invoice_counter` / `InvoiceBuilder.set_invoice_counter` / `fatoora_invoice_builder_set_invoice_counter`
+- Getters: `FinalizedInvoice.invoice_counter`, `SignedInvoice.invoice_counter`, `fatoora_invoice_counter`, `fatoora_signed_invoice_counter`
+
+### `payment_means_code`
+
+- Setter: `InvoiceBuilder::set_payment_means_code` / `InvoiceBuilder.set_payment_means_code` / `fatoora_invoice_builder_set_payment_means_code`
+- Getters: `FinalizedInvoice.payment_means_code`, `SignedInvoice.payment_means_code`, `fatoora_invoice_payment_means_code`, `fatoora_signed_invoice_payment_means_code`
+
+### `vat_category`
+
+- Setter: `InvoiceBuilder::set_vat_category` / `InvoiceBuilder.set_vat_category` / `fatoora_invoice_builder_set_vat_category`
+- Getters: `FinalizedInvoice.vat_category`, `SignedInvoice.vat_category`, `fatoora_invoice_vat_category`, `fatoora_signed_invoice_vat_category`
+
+### Parties (`seller`, `buyer`)
+
+- Setters: `InvoiceBuilder::set_seller`, `InvoiceBuilder::set_buyer` and matching Python/C builder methods.
+- Getters: `FinalizedInvoice.seller`, `FinalizedInvoice.buyer`, `SignedInvoice.seller`, `SignedInvoice.buyer`, `fatoora_invoice_seller`, `fatoora_invoice_buyer`, `fatoora_signed_invoice_seller`, `fatoora_signed_invoice_buyer`
+
+### Notes and Allowance (`note`, `allowance_reason`, charge/discount)
+
+- Setters: `set_note`, `set_allowance`, `set_invoice_level_charge`, `set_invoice_level_discount`, `set_allowance_reason` and matching Python/C builder methods.
+- Getters: `note`, `allowance_reason`, `invoice_level_charge`, `invoice_level_discount` on finalized/signed invoices and matching `fatoora_invoice_*` and `fatoora_signed_invoice_*` getters.
+
+### Flags and Type
+
+- Setter: `InvoiceBuilder::set_flags` / `InvoiceBuilder.set_flags` / `fatoora_invoice_builder_set_flags`
+- Getters: `flags`, `is_third_party`, `is_nominal`, `is_export`, `is_summary`, `is_self_billed`, `is_simplified`, `invoice_type_kind`, `invoice_sub_type` on finalized/signed invoices and matching C getters.
+
+### Line Items and Totals
+
+- Setter: `InvoiceBuilder::add_line_item` / `InvoiceBuilder.add_line_item` / `fatoora_invoice_builder_add_line_item`
+- Getters: `line_items`, `totals` on finalized/signed invoices and matching C line-item/totals getters (`fatoora_invoice_line_item_*`, `fatoora_invoice_totals_*`, `fatoora_signed_invoice_line_item_*`, `fatoora_signed_invoice_totals_*`).
 
 ## FinalizedInvoice
 
-### hash_base64
+### `hash_base64`
 
-??? note "Get finalized invoice hash (Base64)"
+???+ note "Get finalized invoice hash (Base64)"
 
     === "{{ lang.rust }}"
         ```rust
@@ -491,13 +507,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `Result<String, SigningError>`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### sign
+### `sign`
 
-??? note "Sign finalized invoice"
+???+ note "Sign finalized invoice"
 
     === "{{ lang.rust }}"
         ```rust
@@ -515,13 +529,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `Result<SignedInvoice, SigningError>`.
-        - Python: `SignedInvoice`.
-        - C: `FfiResult_FfiSignedInvoice`.
+        - Types are language-specific and shown in the active tab signature above.
 
 ### field accessors
 
-??? note "Read finalized invoice fields"
+???+ note "Read finalized invoice fields"
     Accessors for identity, parties, references, flags, line items, and totals are available per field in Python and C.
 
     === "{{ lang.python }}"
@@ -568,13 +580,13 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Typed field values matching each accessor signature.
+        - Types are language-specific and shown in the active tab signature above.
 
 ## SignedInvoice
 
-### xml
+### `xml`
 
-??? note "Get signed invoice XML"
+???+ note "Get signed invoice XML"
 
     === "{{ lang.rust }}"
         ```rust
@@ -592,13 +604,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `&str`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### to_xml_base64 / xml_base64
+### `to_xml_base64` / `xml_base64`
 
-??? note "Get signed XML as Base64"
+???+ note "Get signed XML as Base64"
 
     === "{{ lang.rust }}"
         ```rust
@@ -616,13 +626,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `String`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### hash_base64
+### `hash_base64`
 
-??? note "Get signed invoice hash (Base64)"
+???+ note "Get signed invoice hash (Base64)"
 
     === "{{ lang.rust }}"
         ```rust
@@ -640,13 +648,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Rust: `Result<String, SigningError>`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
 ### signature metadata accessors
 
-??? note "Read signature metadata"
+???+ note "Read signature metadata"
 
     === "{{ lang.rust }}"
         ```rust
@@ -679,11 +685,11 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Signature-related strings and optional values.
+        - Types are language-specific and shown in the active tab signature above.
 
 ### field accessors
 
-??? note "Read signed invoice data fields"
+???+ note "Read signed invoice data fields"
     Signed invoices expose the same business-field accessors as finalized invoices, plus signature metadata.
 
     === "{{ lang.python }}"
@@ -728,7 +734,7 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - Typed field values matching each accessor signature.
+        - Types are language-specific and shown in the active tab signature above.
 
 ## Supporting Types
 

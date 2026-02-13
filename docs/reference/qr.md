@@ -4,9 +4,9 @@ ZATCA QR payload generation and accessors.
 
 ## SignedInvoice
 
-### qr_code / qr / fatoora_signed_invoice_qr
+### `qr_code` / `qr` / `fatoora_signed_invoice_qr`
 
-??? note "Read QR payload"
+???+ note "Read QR payload"
     Read the Base64 TLV QR payload from a signed invoice.
 
     === "{{ lang.rust }}"
@@ -24,13 +24,8 @@ ZATCA QR payload generation and accessors.
         FfiResult_FfiString fatoora_signed_invoice_qr(FfiSignedInvoice* signed);
         ```
 
-    !!! info "Args"
-        - C only: `signed` (`FfiSignedInvoice*`).
-
-    !!! info "Returns"
-        - Rust: `&str`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
 ## Errors
 

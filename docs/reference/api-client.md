@@ -4,9 +4,9 @@ HTTP client for the ZATCA endpoints, plus response models.
 
 ## ZatcaClient
 
-### new
+### `new`
 
-??? note "Create client"
+???+ note "Create client"
 
     === "{{ lang.rust }}"
         ```rust
@@ -23,17 +23,12 @@ HTTP client for the ZATCA endpoints, plus response models.
         FfiResult_FfiZatcaClient fatoora_zatca_client_new(FfiConfig* config);
         ```
 
-    !!! info "Args"
-        - `config` (`Config` / `FfiConfig*`): environment config.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `Result<ZatcaClient, ZatcaError>`.
-        - Python: `ZatcaClient`.
-        - C: `FfiResult_FfiZatcaClient`.
+### `post_csr_for_ccsid`
 
-### post_csr_for_ccsid
-
-??? note "Issue compliance CSID"
+???+ note "Issue compliance CSID"
 
     === "{{ lang.rust }}"
         ```rust
@@ -50,18 +45,12 @@ HTTP client for the ZATCA endpoints, plus response models.
         FfiResult_FfiCsidCompliance fatoora_zatca_post_csr_for_ccsid(FfiZatcaClient* client, FfiCsr* csr, const char* otp);
         ```
 
-    !!! info "Args"
-        - `csr` (`&Csr` / `Csr` / `FfiCsr*`): CSR object.
-        - `otp` (`&str` / `str` / `const char*`): one-time password from ZATCA portal.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `Result<CsidCredentials<Compliance>, ZatcaError>`.
-        - Python: `CsidCompliance`.
-        - C: `FfiResult_FfiCsidCompliance`.
+### `post_ccsid_for_pcsid`
 
-### post_ccsid_for_pcsid
-
-??? note "Issue production CSID"
+???+ note "Issue production CSID"
 
     === "{{ lang.rust }}"
         ```rust
@@ -78,17 +67,12 @@ HTTP client for the ZATCA endpoints, plus response models.
         FfiResult_FfiCsidProduction fatoora_zatca_post_ccsid_for_pcsid(FfiZatcaClient* client, FfiCsidCompliance* ccsid);
         ```
 
-    !!! info "Args"
-        - `ccsid` (`&CsidCredentials<Compliance>` / `CsidCompliance` / `FfiCsidCompliance*`): compliance credentials.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `Result<CsidCredentials<Production>, ZatcaError>`.
-        - Python: `CsidProduction`.
-        - C: `FfiResult_FfiCsidProduction`.
+### `renew_csid`
 
-### renew_csid
-
-??? note "Renew production CSID"
+???+ note "Renew production CSID"
 
     === "{{ lang.rust }}"
         ```rust
@@ -105,20 +89,12 @@ HTTP client for the ZATCA endpoints, plus response models.
         FfiResult_FfiCsidProduction fatoora_zatca_renew_csid(FfiZatcaClient* client, FfiCsidProduction* pcsid, FfiCsr* csr, const char* otp, const char* accept_language);
         ```
 
-    !!! info "Args"
-        - `pcsid` (`&CsidCredentials<Production>` / `CsidProduction` / `FfiCsidProduction*`): production credentials.
-        - `csr` (`&Csr` / `Csr` / `FfiCsr*`): CSR object.
-        - `otp` (`&str` / `str` / `const char*`): one-time password.
-        - `accept_language` (`Option<&str>` / `Optional[str]` / `const char*`): optional language header.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `Result<CsidCredentials<Production>, ZatcaError>`.
-        - Python: `CsidProduction`.
-        - C: `FfiResult_FfiCsidProduction`.
+### `check_invoice_compliance` / `check_compliance`
 
-### check_invoice_compliance / check_compliance
-
-??? note "Check invoice compliance"
+???+ note "Check invoice compliance"
 
     === "{{ lang.rust }}"
         ```rust
@@ -135,18 +111,12 @@ HTTP client for the ZATCA endpoints, plus response models.
         FfiResult_FfiValidationResponse fatoora_zatca_check_compliance(FfiZatcaClient* client, FfiSignedInvoice* invoice, FfiCsidCompliance* ccsid);
         ```
 
-    !!! info "Args"
-        - `invoice` (`&SignedInvoice` / `SignedInvoice` / `FfiSignedInvoice*`): signed invoice.
-        - `credentials` / `ccsid` (`CsidCredentials<Compliance>` / `CsidCompliance` / `FfiCsidCompliance*`): compliance credentials.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `Result<ValidationResponse, ZatcaError>`.
-        - Python: `ValidationResponse`.
-        - C: `FfiResult_FfiValidationResponse`.
+### `report_simplified_invoice`
 
-### report_simplified_invoice
-
-??? note "Report simplified invoice"
+???+ note "Report simplified invoice"
 
     === "{{ lang.rust }}"
         ```rust
@@ -163,20 +133,12 @@ HTTP client for the ZATCA endpoints, plus response models.
         FfiResult_FfiValidationResponse fatoora_zatca_report_simplified_invoice(FfiZatcaClient* client, FfiSignedInvoice* invoice, FfiCsidProduction* pcsid, bool clearance_status, const char* accept_language);
         ```
 
-    !!! info "Args"
-        - `invoice` (`&SignedInvoice` / `SignedInvoice` / `FfiSignedInvoice*`): signed invoice.
-        - `credentials` / `pcsid` (`CsidCredentials<Production>` / `CsidProduction` / `FfiCsidProduction*`): production credentials.
-        - `clearance_status` (`bool`): include clearance status.
-        - `accept_language` (`Option<&str>` / `Optional[str]` / `const char*`): optional language header.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `Result<ValidationResponse, ZatcaError>`.
-        - Python: `ValidationResponse`.
-        - C: `FfiResult_FfiValidationResponse`.
+### `clear_standard_invoice`
 
-### clear_standard_invoice
-
-??? note "Clear standard invoice"
+???+ note "Clear standard invoice"
 
     === "{{ lang.rust }}"
         ```rust
@@ -193,22 +155,14 @@ HTTP client for the ZATCA endpoints, plus response models.
         FfiResult_FfiValidationResponse fatoora_zatca_clear_standard_invoice(FfiZatcaClient* client, FfiSignedInvoice* invoice, FfiCsidProduction* pcsid, bool clearance_status, const char* accept_language);
         ```
 
-    !!! info "Args"
-        - `invoice` (`&SignedInvoice` / `SignedInvoice` / `FfiSignedInvoice*`): signed invoice.
-        - `credentials` / `pcsid` (`CsidCredentials<Production>` / `CsidProduction` / `FfiCsidProduction*`): production credentials.
-        - `clearance_status` (`bool`): include clearance status.
-        - `accept_language` (`Option<&str>` / `Optional[str]` / `const char*`): optional language header.
-
-    !!! info "Returns"
-        - Rust: `Result<ValidationResponse, ZatcaError>`.
-        - Python: `ValidationResponse`.
-        - C: `FfiResult_FfiValidationResponse`.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
 ## CsidCredentials / CsidCompliance / CsidProduction
 
-### new
+### `new`
 
-??? note "Create credential handle"
+???+ note "Create credential handle"
 
     === "{{ lang.rust }}"
         ```rust
@@ -227,20 +181,12 @@ HTTP client for the ZATCA endpoints, plus response models.
         FfiResult_FfiCsidProduction fatoora_csid_production_new(FfiEnvironment env, const char* request_id, const char* token, const char* secret);
         ```
 
-    !!! info "Args"
-        - `env` (`EnvironmentType` / `Environment` / `FfiEnvironment`): target environment.
-        - `request_id` (`Option<String>` / `Optional[str]` / `const char*`): optional request id.
-        - `token` (`String` / `str` / `const char*`): binary security token.
-        - `secret` (`String` / `str` / `const char*`): shared secret.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `CsidCredentials<T>`.
-        - Python: `CsidCompliance` or `CsidProduction`.
-        - C: `FfiResult_FfiCsidCompliance` or `FfiResult_FfiCsidProduction`.
+### `env`
 
-### env
-
-??? note "Read credential environment"
+???+ note "Read credential environment"
 
     === "{{ lang.rust }}"
         ```rust
@@ -260,13 +206,11 @@ HTTP client for the ZATCA endpoints, plus response models.
         ```
 
     !!! info "Returns"
-        - Rust: `EnvironmentType`.
-        - Python: `Environment`.
-        - C: `FfiResult_FfiEnvironment`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### request_id
+### `request_id`
 
-??? note "Read optional request id"
+???+ note "Read optional request id"
 
     === "{{ lang.rust }}"
         ```rust
@@ -286,13 +230,11 @@ HTTP client for the ZATCA endpoints, plus response models.
         ```
 
     !!! info "Returns"
-        - Rust: `Option<&str>`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### binary_security_token / token
+### `binary_security_token` / `token`
 
-??? note "Read token"
+???+ note "Read token"
 
     === "{{ lang.rust }}"
         ```rust
@@ -312,13 +254,11 @@ HTTP client for the ZATCA endpoints, plus response models.
         ```
 
     !!! info "Returns"
-        - Rust: `&str`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### secret
+### `secret`
 
-??? note "Read credential secret"
+???+ note "Read credential secret"
 
     === "{{ lang.rust }}"
         ```rust
@@ -338,9 +278,7 @@ HTTP client for the ZATCA endpoints, plus response models.
         ```
 
     !!! info "Returns"
-        - Rust: `&str`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
 ## Response Types
 

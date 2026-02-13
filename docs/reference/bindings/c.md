@@ -4,7 +4,7 @@ The C ABI is provided by the `fatoora-ffi` crate and can be used from C or C++.
 
 ## FFI Layer
 
-??? note "Headers"
+???+ note "Headers"
     ```c
     fatoora_ffi.h
     fatoora.h
@@ -14,12 +14,12 @@ The C ABI is provided by the `fatoora-ffi` crate and can be used from C or C++.
         - `fatoora_ffi.h`: full ABI surface.
         - `fatoora.h`: alias header without the fatoora_ prefix (compile with -DFATOORA_FFI_NO_PREFIX).
 
-??? note "Ownership and results"
+???+ note "Ownership and results"
     - Opaque handles (Ffi*) are created and freed with explicit *_free functions.
     - All fallible calls return FfiResult<T>.
     - Strings and byte buffers returned from FFI must be freed by the caller.
 
-??? note "Result and buffers"
+???+ note "Result and buffers"
     ```c
     struct FfiResult<T> { bool ok; T value; FfiError* error; }
     struct FfiError { int32_t code; char* message; }
@@ -32,7 +32,7 @@ The C ABI is provided by the `fatoora-ffi` crate and can be used from C or C++.
         - `FfiResult<T>`: check ok before using value.
         - `FfiString` / `FfiBytes` / `FfiBytesList`: heap buffers that must be freed by the caller.
 
-??? note "Error helpers"
+???+ note "Error helpers"
     ```c
     enum FfiErrorKind { ... };
     int fatoora_error_code(FfiError* error);

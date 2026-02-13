@@ -4,9 +4,9 @@ Serialization and parsing helpers for invoice XML.
 
 ## ToXml (trait)
 
-### to_xml
+### `to_xml`
 
-??? note "Serialize to compact XML"
+???+ note "Serialize to compact XML"
     Convert an invoice type to XML.
 
     === "{{ lang.rust }}"
@@ -26,13 +26,11 @@ Serialization and parsing helpers for invoice XML.
         ```
 
     !!! info "Returns"
-        - Rust: `Result<String, InvoiceXmlError>`.
-        - Python: `str` via type methods.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### to_xml_with_format
+### `to_xml_with_format`
 
-??? note "Serialize with format"
+???+ note "Serialize with format"
     Convert to XML with explicit format option.
 
     === "{{ lang.rust }}"
@@ -50,17 +48,14 @@ Serialization and parsing helpers for invoice XML.
         /* not exposed directly */
         ```
 
-    !!! info "Args"
-        - `format` (`XmlFormat`): compact or pretty output.
-
-    !!! info "Returns"
-        - Rust: `Result<String, InvoiceXmlError>`.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
 ## FinalizedInvoice
 
-### xml
+### `xml`
 
-??? note "Get finalized invoice XML"
+???+ note "Get finalized invoice XML"
 
     === "{{ lang.rust }}"
         ```rust
@@ -78,15 +73,13 @@ Serialization and parsing helpers for invoice XML.
         ```
 
     !!! info "Returns"
-        - Rust: `Result<String, InvoiceXmlError>`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
 ## SignedInvoice
 
-### xml
+### `xml`
 
-??? note "Get signed invoice XML"
+???+ note "Get signed invoice XML"
 
     === "{{ lang.rust }}"
         ```rust
@@ -104,15 +97,13 @@ Serialization and parsing helpers for invoice XML.
         ```
 
     !!! info "Returns"
-        - Rust: `&str`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-## parse_finalized_invoice_xml / parse_finalized_invoice_xml_file
+## `parse_finalized_invoice_xml` / `parse_finalized_invoice_xml_file`
 
 ### parse finalized invoice
 
-??? note "Parse finalized invoice XML"
+???+ note "Parse finalized invoice XML"
 
     === "{{ lang.rust }}"
         ```rust
@@ -132,20 +123,14 @@ Serialization and parsing helpers for invoice XML.
         FfiResult_FfiFinalizedInvoice fatoora_parse_finalized_invoice_xml_file(const char* path);
         ```
 
-    !!! info "Args"
-        - `xml` (`&str` / `str` / `const char*`): XML content.
-        - `path` (`impl AsRef<Path>` / `str` / `const char*`): XML file path.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `Result<FinalizedInvoice, ParseError>`.
-        - Python: `FinalizedInvoice`.
-        - C: `FfiResult_FfiFinalizedInvoice`.
-
-## parse_signed_invoice_xml / parse_signed_invoice_xml_file
+## `parse_signed_invoice_xml` / `parse_signed_invoice_xml_file`
 
 ### parse signed invoice
 
-??? note "Parse signed invoice XML"
+???+ note "Parse signed invoice XML"
 
     === "{{ lang.rust }}"
         ```rust
@@ -165,14 +150,8 @@ Serialization and parsing helpers for invoice XML.
         FfiResult_FfiSignedInvoice fatoora_parse_signed_invoice_xml_file(const char* path);
         ```
 
-    !!! info "Args"
-        - `xml` (`&str` / `str` / `const char*`): XML content.
-        - `path` (`impl AsRef<Path>` / `str` / `const char*`): XML file path.
-
-    !!! info "Returns"
-        - Rust: `Result<SignedInvoice, ParseError>`.
-        - Python: `SignedInvoice`.
-        - C: `FfiResult_FfiSignedInvoice`.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
 ## Types
 

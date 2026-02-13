@@ -4,9 +4,9 @@ Signing helpers and signature metadata.
 
 ## InvoiceSigner / Signer
 
-### from_pem
+### `from_pem`
 
-??? note "Create signer from PEM"
+???+ note "Create signer from PEM"
     Create a signer from PEM-encoded certificate and private key.
 
     === "{{ lang.rust }}"
@@ -24,18 +24,12 @@ Signing helpers and signature metadata.
         FfiResult_FfiSigner fatoora_signer_from_pem(const char* cert_pem, const char* key_pem);
         ```
 
-    !!! info "Args"
-        - `cert_pem` (`&str` / `str` / `const char*`): certificate PEM.
-        - `key_pem` (`&str` / `str` / `const char*`): private key PEM.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `Result<InvoiceSigner, SigningError>`.
-        - Python: `Signer`.
-        - C: `FfiResult_FfiSigner`.
+### `from_der`
 
-### from_der
-
-??? note "Create signer from DER"
+???+ note "Create signer from DER"
     Create a signer from DER-encoded certificate and private key.
 
     === "{{ lang.rust }}"
@@ -53,18 +47,12 @@ Signing helpers and signature metadata.
         FfiResult_FfiSigner fatoora_signer_from_der(const uint8_t* cert_der, uintptr_t cert_len, const uint8_t* key_der, uintptr_t key_len);
         ```
 
-    !!! info "Args"
-        - `cert_der` (`&[u8]` / `bytes` / `const uint8_t*` + `cert_len`): certificate DER.
-        - `key_der` (`&[u8]` / `bytes` / `const uint8_t*` + `key_len`): private key DER.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - Rust: `Result<InvoiceSigner, SigningError>`.
-        - Python: `Signer`.
-        - C: `FfiResult_FfiSigner`.
+### `certificate_pem`
 
-### certificate_pem
-
-??? note "Read signer certificate as PEM"
+???+ note "Read signer certificate as PEM"
 
     === "{{ lang.python }}"
         ```python
@@ -77,12 +65,11 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### certificate_der
+### `certificate_der`
 
-??? note "Read signer certificate as DER"
+???+ note "Read signer certificate as DER"
 
     === "{{ lang.python }}"
         ```python
@@ -95,14 +82,13 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - Python: `bytes`.
-        - C: `FfiResult_FfiBytes`.
+        - Types are language-specific and shown in the active tab signature above.
 
 ## FinalizedInvoice
 
-### sign
+### `sign`
 
-??? note "Sign finalized invoice"
+???+ note "Sign finalized invoice"
     Sign finalized invoice XML and return a signed invoice.
 
     === "{{ lang.rust }}"
@@ -120,19 +106,14 @@ Signing helpers and signature metadata.
         FfiResult_FfiSignedInvoice fatoora_invoice_sign(FfiFinalizedInvoice* invoice, FfiSigner* signer);
         ```
 
-    !!! info "Args"
-        - `signer` (`&InvoiceSigner` / `Signer` / `FfiSigner*`): configured signer.
-
-    !!! info "Returns"
-        - Rust: `Result<SignedInvoice, SigningError>`.
-        - Python: `SignedInvoice`.
-        - C: `FfiResult_FfiSignedInvoice`.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
 ## SignedInvoice
 
-### xml
+### `xml`
 
-??? note "Get signed XML"
+???+ note "Get signed XML"
 
     === "{{ lang.rust }}"
         ```rust
@@ -150,13 +131,11 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - Rust: `&str`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### to_xml_base64 / xml_base64
+### `to_xml_base64` / `xml_base64`
 
-??? note "Get signed XML as Base64"
+???+ note "Get signed XML as Base64"
 
     === "{{ lang.rust }}"
         ```rust
@@ -174,13 +153,11 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - Rust: `String`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### qr_code / qr
+### `qr_code` / `qr`
 
-??? note "Get QR payload"
+???+ note "Get QR payload"
 
     === "{{ lang.rust }}"
         ```rust
@@ -198,13 +175,11 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - Rust: `&str`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### invoice_hash
+### `invoice_hash`
 
-??? note "Get invoice hash"
+???+ note "Get invoice hash"
 
     === "{{ lang.rust }}"
         ```rust
@@ -222,13 +197,11 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - Rust: `&str`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### hash_base64
+### `hash_base64`
 
-??? note "Get invoice hash as Base64"
+???+ note "Get invoice hash as Base64"
 
     === "{{ lang.rust }}"
         ```rust
@@ -246,13 +219,11 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - Rust: `Result<String, SigningError>`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### signature
+### `signature`
 
-??? note "Get signature value"
+???+ note "Get signature value"
 
     === "{{ lang.rust }}"
         ```rust
@@ -270,13 +241,11 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - Rust: `&str`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### public_key
+### `public_key`
 
-??? note "Get public key"
+???+ note "Get public key"
 
     === "{{ lang.rust }}"
         ```rust
@@ -294,13 +263,11 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - Rust: `&str`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### zatca_key_signature
+### `zatca_key_signature`
 
-??? note "Get optional ZATCA key signature"
+???+ note "Get optional ZATCA key signature"
 
     === "{{ lang.rust }}"
         ```rust
@@ -318,13 +285,11 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - Rust: `Option<&str>`.
-        - Python: `Optional[str]`.
-        - C: `FfiResult_FfiString` (may contain null value on success).
+        - Types are language-specific and shown in the active tab signature above.
 
-### signed_props_hash
+### `signed_props_hash`
 
-??? note "Get signed properties hash"
+???+ note "Get signed properties hash"
 
     === "{{ lang.rust }}"
         ```rust
@@ -342,13 +307,11 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - Rust: `&str`.
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### cert_hash
+### `cert_hash`
 
-??? note "Get certificate hash"
+???+ note "Get certificate hash"
 
     === "{{ lang.python }}"
         ```python
@@ -361,12 +324,11 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - Python: `str`.
-        - C: `FfiResult_FfiString`.
+        - Types are language-specific and shown in the active tab signature above.
 
-### signing_time
+### `signing_time`
 
-??? note "Get signing timestamp"
+???+ note "Get signing timestamp"
 
     === "{{ lang.python }}"
         ```python
@@ -379,14 +341,13 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - Python: `str` in `YYYY-MM-DDTHH:MM:SS` (UTC).
-        - C: `FfiResult_FfiString` in `YYYY-MM-DDTHH:MM:SS` (UTC).
+        - Types are language-specific and shown in the active tab signature above.
 
-## invoice_hash_base64_from_xml_str
+## `invoice_hash_base64_from_xml_str`
 
 ### hash from XML
 
-??? note "Compute invoice hash (Base64)"
+???+ note "Compute invoice hash (Base64)"
     Compute invoice hash from XML and return it as Base64.
 
     === "{{ lang.rust }}"
@@ -394,11 +355,8 @@ Signing helpers and signature metadata.
         invoice_hash_base64_from_xml_str(xml: &str) -> Result<String, SigningError>
         ```
 
-    !!! info "Args"
-        - `xml` (`&str`): invoice XML.
-
-    !!! info "Returns"
-        - Rust: `Result<String, SigningError>`.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
 ## Errors
 

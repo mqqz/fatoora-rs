@@ -6,7 +6,7 @@ Error types used across the core library, FFI, and Python bindings.
 
 ### categories
 
-??? note "Error categories"
+???+ note "Error categories"
     Shared high-level categories for validation, parsing, XML, crypto, IO, network, unauthorized, internal, and API errors.
 
     === "{{ lang.rust }}"
@@ -25,13 +25,13 @@ Error types used across the core library, FFI, and Python bindings.
         ```
 
     !!! info "Returns"
-        - Category enum values used to classify failures.
+        - Types are language-specific and shown in the active tab signature above.
 
 ## Domain Errors (Rust)
 
 ### error types
 
-??? note "Core error types"
+???+ note "Core error types"
 
     === "{{ lang.rust }}"
         ```rust
@@ -47,13 +47,13 @@ Error types used across the core library, FFI, and Python bindings.
         ```
 
     !!! info "Returns"
-        - Typed errors for each domain (invoice, CSR, signing, XML, API).
+        - Types are language-specific and shown in the active tab signature above.
 
 ## Exceptions (Python)
 
 ### exception hierarchy
 
-??? note "Python exceptions"
+???+ note "Python exceptions"
 
     === "{{ lang.python }}"
         ```python
@@ -72,54 +72,45 @@ Error types used across the core library, FFI, and Python bindings.
         ```
 
     !!! info "Returns"
-        - Typed exceptions mapped from FFI error kinds.
+        - Types are language-specific and shown in the active tab signature above.
 
 ## FfiError
 
-### fatoora_error_code
+### `fatoora_error_code`
 
-??? note "Read numeric error code"
+???+ note "Read numeric error code"
 
     === "{{ lang.c }}"
         ```c
         int fatoora_error_code(FfiError* error);
         ```
 
-    !!! info "Args"
-        - `error` (`FfiError*`): error handle returned from a failed FFI call.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - `int`: numeric error kind.
+### `fatoora_error_message`
 
-### fatoora_error_message
-
-??? note "Read error message"
+???+ note "Read error message"
 
     === "{{ lang.c }}"
         ```c
         FfiString fatoora_error_message(FfiError* error);
         ```
 
-    !!! info "Args"
-        - `error` (`FfiError*`): error handle returned from a failed FFI call.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
-    !!! info "Returns"
-        - `FfiString`: UTF-8 error message.
+### `fatoora_error_free`
 
-### fatoora_error_free
-
-??? note "Free error handle"
+???+ note "Free error handle"
 
     === "{{ lang.c }}"
         ```c
         void fatoora_error_free(FfiError* error);
         ```
 
-    !!! info "Args"
-        - `error` (`FfiError*`): error handle to release.
-
-    !!! info "Returns"
-        - `void`.
+    !!! info "Args / Returns"
+        - Types are language-specific and shown in the active tab signature above.
 
 ## Mapping (FFI -> Python)
 
