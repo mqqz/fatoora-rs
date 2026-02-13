@@ -162,16 +162,25 @@ class _FfiBindings:
         return cls._instance
 
 
-@dataclass
 class Config:
-    env: Environment = Environment.NON_PRODUCTION
-    _handle: Optional[Any] = None
+    _handle: Optional[Any]
 
-    def __post_init__(self) -> None:
+    def __init__(
+        self,
+        env: Environment = Environment.NON_PRODUCTION,
+        _handle: Optional[Any] = None,
+    ) -> None:
+        self._handle = _handle
         if self._handle is not None:
             return
         bindings = _FfiBindings.instance()
-        self._handle = bindings.lib.fatoora_config_new(int(self.env))
+        self._handle = bindings.lib.fatoora_config_new(int(env))
+
+    def __post_init__(self) -> None:
+        # Backward compatibility with any dataclass-style initialization paths.
+        if self._handle is None:
+            bindings = _FfiBindings.instance()
+            self._handle = bindings.lib.fatoora_config_new(int(Environment.NON_PRODUCTION))
 
     def validate_xml(self, xml: str) -> bool:
         return validate_xml_str(self, xml)
