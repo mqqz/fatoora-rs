@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fatoora-rs"
-version = "0.1.2"
+version = "0.1.3"
 description = "Python bindings for the fatoora-rs library, providing ZATCA-compliant e-invoicing functionality."
 readme = "README.md"
 requires-python = ">=3.9"

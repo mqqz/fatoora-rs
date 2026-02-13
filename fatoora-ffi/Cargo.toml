@@ -1,6 +1,6 @@
 [package]
 name = "fatoora-ffi"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2024"
 description = "C ABI bindings for the fatoora ZATCA SDK"
 license = "MIT"
@@ -15,7 +15,7 @@ categories = ["api-bindings", "external-ffi-bindings"]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-fatoora-core = { path = "../fatoora-core", version = "0.1.2" }
+fatoora-core = { path = "../fatoora-core", version = "0.1.3" }
 k256 = { version = "0.14.0-rc.1", features = ["pkcs8", "pem"] }
 tokio = { version = "1.47.1", features = ["rt", "rt-multi-thread"] }
 x509-cert = { version = "0.3.0-rc.2", features = ["builder", "pem"] }
