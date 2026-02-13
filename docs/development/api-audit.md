@@ -420,7 +420,7 @@ FfiResult_FfiFinalizedInvoice fatoora_parse_finalized_invoice_xml_file(const cha
 
 ### validation
 ```c
-FfiResult_bool fatoora_validate_xml_str(FfiConfig*, const char* xml);
+FfiResult_bool fatoora_validate_xml_invoice_from_str(FfiConfig*, const char* xml);
 ```
 
 ### api client

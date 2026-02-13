@@ -22,7 +22,7 @@ int main(void) {
     struct FfiConfig *config = fatoora_config_new(FfiEnvironment_NonProduction);
 
     /* invoice_xml_path = "path/to/invoice.xml" */
-    struct FfiResult_bool result = fatoora_validate_xml_str(config, xml_cstr);
+    struct FfiResult_bool result = fatoora_validate_xml_invoice_from_str(config, xml_cstr);
     if (!result.ok) {
         /* handle error */
         return 1;

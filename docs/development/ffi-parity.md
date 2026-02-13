@@ -42,7 +42,7 @@ Status values:
 | `invoice::sign::invoice_hash_base64_from_xml_str` | — | Missing (yet to be added) |  |
 | `invoice::xml::parse_*_xml` | `fatoora_parse_*_invoice_xml` | Done |  |
 | `invoice::xml::parse_*_xml_file` | `fatoora_parse_*_invoice_xml_file` | Done |  |
-| `invoice::validation::validate_xml_invoice_from_str` | `fatoora_validate_xml_str` | Done | FFI returns `bool` only. |
+| `invoice::validation::validate_xml_invoice_from_str` | `fatoora_validate_xml_invoice_from_str` | Done | FFI returns `bool` only. |
 | `api::ZatcaClient` (check/report/clear/renew) | `fatoora_zatca_*` | Done |  |
 | `api::CsidCredentials` | `fatoora_csid_*` | Done | `request_id` is a UTF-8 string; empty string is the sentinel. |
 | `api::CsidCredentials::env` | `fatoora_csid_*_env` | Done |  |

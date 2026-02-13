@@ -694,7 +694,7 @@ struct FfiResult_FfiString fatoora_validation_response_qr_buyer_status(struct Ff
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_FfiValidationResults fatoora_validation_response_results(struct FfiValidationResponse *handle);
+struct FfiResult_FfiValidationResults fatoora_validation_response_validation_results(struct FfiValidationResponse *handle);
 
 /**
  * # Safety
@@ -787,7 +787,8 @@ struct FfiResult_FfiString fatoora_validation_message_status(struct FfiValidatio
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_bool fatoora_validate_xml_str(struct FfiConfig *config, const char *xml);
+struct FfiResult_bool fatoora_validate_xml_invoice_from_str(struct FfiConfig *config,
+                                                            const char *xml);
 
 /**
  * # Safety
@@ -1389,6 +1390,18 @@ struct FfiResult_FfiString fatoora_signed_invoice_signed_props_hash(struct FfiSi
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
 struct FfiResult_FfiString fatoora_signed_invoice_signing_time(struct FfiSignedInvoice *handle);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_FfiString fatoora_signed_invoice_issuer(struct FfiSignedInvoice *handle);
+
+/**
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_FfiString fatoora_signed_invoice_serial(struct FfiSignedInvoice *handle);
 
 /**
  * # Safety

@@ -186,7 +186,7 @@ This table highlights aligned symbol names across layers.
 | --- | --- | --- | --- | --- |
 | `ValidationResult` | — | — | Omitted (intentional) | FFI only exposes boolean result. |
 | `XmlValidationError` | — | — | Omitted (intentional) | Errors normalized via `FfiErrorKind`. |
-| `validate_xml_invoice_from_str` | `fatoora_validate_xml_str` | `validate_xml_str` | Done |  |
+| `validate_xml_invoice_from_str` | `fatoora_validate_xml_invoice_from_str` | `validate_xml_invoice_from_str` | Done |  |
 
 ## invoice::qr
 | Core public API item | FFI symbol(s) | Python symbol | Status | Notes |

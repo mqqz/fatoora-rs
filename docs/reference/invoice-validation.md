@@ -16,12 +16,12 @@ Schema validation for invoice XML.
 
     === "{{ lang.python }}"
         ```python
-        validate_xml_str(config: Config, xml: str) -> bool
+        validate_xml_invoice_from_str(config: Config, xml: str) -> bool
         ```
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_bool fatoora_validate_xml_str(FfiConfig* config, const char* xml);
+        FfiResult_bool fatoora_validate_xml_invoice_from_str(FfiConfig* config, const char* xml);
         ```
 
 ## Behavior

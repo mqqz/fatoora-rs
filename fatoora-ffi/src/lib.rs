@@ -1090,7 +1090,7 @@ pub unsafe extern "C" fn fatoora_validation_response_qr_buyer_status(handle: *mu
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_validation_response_results(handle: *mut FfiValidationResponse) -> FfiResult<FfiValidationResults> {
+pub unsafe extern "C" fn fatoora_validation_response_validation_results(handle: *mut FfiValidationResponse) -> FfiResult<FfiValidationResults> {
     let value = ffi_borrow!(handle, "response", ValidationResponse);
     let response: &ValidationResponse = value;
     FfiResult::ok({
@@ -1259,7 +1259,7 @@ pub unsafe extern "C" fn fatoora_validation_message_status(handle: *mut FfiValid
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_validate_xml_str(
+pub unsafe extern "C" fn fatoora_validate_xml_invoice_from_str(
     config: *mut FfiConfig,
     xml: *const c_char,
 ) -> FfiResult<bool> {
@@ -2477,6 +2477,24 @@ pub unsafe extern "C" fn fatoora_signed_invoice_signing_time(handle: *mut FfiSig
     let signed: &SignedInvoice = value;
     let time = signed.signed_properties().signing_time();
     ffi_string_from_owned(time.to_string())
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signed_invoice_issuer(handle: *mut FfiSignedInvoice) -> FfiResult<FfiString> {
+    let value = ffi_borrow!(handle, "signed", SignedInvoice);
+    let signed: &SignedInvoice = value;
+    ffi_string_from_owned(signed.signed_properties().issuer().to_string())
+}
+
+#[unsafe(no_mangle)]
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signed_invoice_serial(handle: *mut FfiSignedInvoice) -> FfiResult<FfiString> {
+    let value = ffi_borrow!(handle, "signed", SignedInvoice);
+    let signed: &SignedInvoice = value;
+    ffi_string_from_owned(signed.signed_properties().serial().to_string())
 }
 
 
@@ -3755,7 +3773,7 @@ mod ffi_coverage_tests {
             let config = fatoora_config_new(FfiEnvironment::NonProduction);
             assert!(!config.is_null());
 
-            let invalid = fatoora_validate_xml_str(config, cstr("<Invoice>").as_ptr());
+            let invalid = fatoora_validate_xml_invoice_from_str(config, cstr("<Invoice>").as_ptr());
             assert!(!invalid.ok);
             if !invalid.error.is_null() {
                 fatoora_error_free(invalid.error);
@@ -4043,7 +4061,7 @@ mod ffi_coverage_tests {
             assert!(qr_buyer.ok);
             fatoora_string_free(qr_buyer.value);
 
-            let results = fatoora_validation_response_results(&mut response);
+            let results = fatoora_validation_response_validation_results(&mut response);
             assert!(results.ok);
             let mut results = results.value;
 
@@ -4123,7 +4141,7 @@ mod ffi_coverage_tests {
             let mut response = FfiValidationResponse {
                 ptr: Box::into_raw(Box::new(empty_response)) as *mut std::os::raw::c_void,
             };
-            let results = fatoora_validation_response_results(&mut response);
+            let results = fatoora_validation_response_validation_results(&mut response);
             assert!(results.ok);
             let mut results = results.value;
             let info_len = fatoora_validation_results_info_len(&mut results);

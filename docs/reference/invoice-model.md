@@ -585,6 +585,8 @@ Core data types for building and inspecting invoices.
         SignedInvoice::signature(&self) -> &str
         SignedInvoice::public_key(&self) -> &str
         SignedInvoice::zatca_key_signature(&self) -> Option<&str>
+        SignedProperties::issuer(&self) -> &str
+        SignedProperties::serial(&self) -> &str
         ```
 
     === "{{ lang.python }}"
@@ -596,6 +598,8 @@ Core data types for building and inspecting invoices.
         SignedInvoice.cert_hash() -> str
         SignedInvoice.signed_props_hash() -> str
         SignedInvoice.signing_time() -> str
+        SignedInvoice.issuer() -> str
+        SignedInvoice.serial() -> str
         ```
 
     === "{{ lang.c }}"
@@ -607,6 +611,42 @@ Core data types for building and inspecting invoices.
         FfiResult_FfiString fatoora_signed_invoice_cert_hash(FfiSignedInvoice* signed);
         FfiResult_FfiString fatoora_signed_invoice_signed_props_hash(FfiSignedInvoice* signed);
         FfiResult_FfiString fatoora_signed_invoice_signing_time(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_issuer(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_serial(FfiSignedInvoice* signed);
+        ```
+
+### `Address.new`
+
+???+ note "Create address value"
+
+    === "{{ lang.python }}"
+        ```python
+        Address.new(
+            country_code: str,
+            city: str,
+            street: str,
+            building_number: str,
+            postal_code: str,
+            additional_street: Optional[str] = None,
+            additional_number: Optional[str] = None,
+            subdivision: Optional[str] = None,
+            district: Optional[str] = None,
+        ) -> Address
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiAddress fatoora_address_new(
+            const char* country_code,
+            const char* city,
+            const char* street,
+            const char* additional_street,
+            const char* building_number,
+            const char* additional_number,
+            const char* postal_code,
+            const char* subdivision,
+            const char* district
+        );
         ```
 
 ### field accessors

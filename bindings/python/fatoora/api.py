@@ -182,9 +182,6 @@ class Config:
             bindings = _FfiBindings.instance()
             self._handle = bindings.lib.fatoora_config_new(int(Environment.NON_PRODUCTION))
 
-    def validate_xml(self, xml: str) -> bool:
-        return validate_xml_str(self, xml)
-
     def env(self) -> Environment:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_config_env(self._handle)
@@ -339,6 +336,38 @@ class SigningKey:
 @dataclass
 class CsrProperties:
     _handle: Optional[Any] = None
+
+    @classmethod
+    def new(
+        cls,
+        common_name: str,
+        serial_number: str,
+        organization_identifier: str,
+        organization_unit_name: str,
+        organization_name: str,
+        country_name: str,
+        invoice_type: str,
+        location_address: str,
+        industry_business_category: str,
+    ) -> "CsrProperties":
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_csr_properties_new(
+            _as_bytes(common_name),
+            _as_bytes(serial_number),
+            _as_bytes(organization_identifier),
+            _as_bytes(organization_unit_name),
+            _as_bytes(organization_name),
+            _as_bytes(country_name),
+            _as_bytes(invoice_type),
+            _as_bytes(location_address),
+            _as_bytes(industry_business_category),
+        )
+        handle = _wrap_handle(
+            bindings.ffi,
+            "FfiCsrProperties",
+            _result_or_raise(bindings.ffi, bindings.lib, result),
+        )
+        return cls(handle)
 
     @classmethod
     def from_properties_str(cls, properties: str) -> "CsrProperties":
@@ -777,9 +806,9 @@ class ValidationResponse:
             bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
         )
 
-    def results(self) -> ValidationResults:
+    def validation_results(self) -> ValidationResults:
         bindings = _FfiBindings.instance()
-        result = bindings.lib.fatoora_validation_response_results(self._handle)
+        result = bindings.lib.fatoora_validation_response_validation_results(self._handle)
         handle = _wrap_handle(
             bindings.ffi,
             "FfiValidationResults",
@@ -864,6 +893,38 @@ class OtherId:
 @dataclass
 class Address:
     _handle: Any
+
+    @classmethod
+    def new(
+        cls,
+        country_code: str,
+        city: str,
+        street: str,
+        building_number: str,
+        postal_code: str,
+        additional_street: Optional[str] = None,
+        additional_number: Optional[str] = None,
+        subdivision: Optional[str] = None,
+        district: Optional[str] = None,
+    ) -> "Address":
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_address_new(
+            _as_bytes(country_code),
+            _as_bytes(city),
+            _as_bytes(street),
+            _opt_cstr(bindings.ffi, additional_street),
+            _as_bytes(building_number),
+            _opt_cstr(bindings.ffi, additional_number),
+            _as_bytes(postal_code),
+            _opt_cstr(bindings.ffi, subdivision),
+            _opt_cstr(bindings.ffi, district),
+        )
+        handle = _wrap_handle(
+            bindings.ffi,
+            "FfiAddress",
+            _result_or_raise(bindings.ffi, bindings.lib, result),
+        )
+        return cls(handle)
 
     def country_code(self) -> str:
         bindings = _FfiBindings.instance()
@@ -1348,6 +1409,20 @@ class SignedInvoice:
             bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
         )
 
+    def issuer(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_issuer(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def serial(self) -> str:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_serial(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
     def seller(self) -> Party:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_signed_invoice_seller(self._handle)
@@ -1554,10 +1629,6 @@ class SignedInvoice:
         if self._handle and self._handle.ptr:
             _FfiBindings.instance().lib.fatoora_signed_invoice_free(self._handle)
             self._handle = None
-
-    @classmethod
-    def from_xml(cls, xml: str) -> "SignedInvoice":
-        return parse_signed_invoice_xml(xml)
 
     def __enter__(self) -> "SignedInvoice":
         return self
@@ -1871,10 +1942,6 @@ class FinalizedInvoice:
             _FfiBindings.instance().lib.fatoora_invoice_free(self._handle)
             self._handle = None
 
-    @classmethod
-    def from_xml(cls, xml: str) -> "FinalizedInvoice":
-        return parse_finalized_invoice_xml(xml)
-
     def __enter__(self) -> "FinalizedInvoice":
         return self
 
@@ -1926,9 +1993,9 @@ def parse_signed_invoice_xml_file(path: str) -> SignedInvoice:
     return SignedInvoice(handle)
 
 
-def validate_xml_str(config: Config, xml: str) -> bool:
+def validate_xml_invoice_from_str(config: Config, xml: str) -> bool:
     bindings = _FfiBindings.instance()
-    result = bindings.lib.fatoora_validate_xml_str(config._handle, _as_bytes(xml))
+    result = bindings.lib.fatoora_validate_xml_invoice_from_str(config._handle, _as_bytes(xml))
     return bool(_result_or_raise(bindings.ffi, bindings.lib, result))
 
 

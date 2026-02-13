@@ -14,7 +14,7 @@ fn config_validate_and_free() {
         assert!(!config.is_null());
 
         let xml = cstr("<Invoice></Invoice>");
-        let result = fatoora_validate_xml_str(config, xml.as_ptr());
+        let result = fatoora_validate_xml_invoice_from_str(config, xml.as_ptr());
         assert!(!result.ok);
         if !result.error.is_null() {
             fatoora_error_free(result.error);
@@ -339,7 +339,7 @@ fn null_handles_return_error() {
             fatoora_error_free(add_result.error);
         }
 
-        let validate_result = fatoora_validate_xml_str(std::ptr::null_mut(), cstr("<x/>").as_ptr());
+        let validate_result = fatoora_validate_xml_invoice_from_str(std::ptr::null_mut(), cstr("<x/>").as_ptr());
         assert!(!validate_result.ok);
         if !validate_result.error.is_null() {
             fatoora_error_free(validate_result.error);

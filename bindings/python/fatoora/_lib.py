@@ -190,7 +190,7 @@ FfiResult_FfiString fatoora_validation_response_reporting_status(FfiValidationRe
 FfiResult_FfiString fatoora_validation_response_clearance_status(FfiValidationResponse* response);
 FfiResult_FfiString fatoora_validation_response_qr_seller_status(FfiValidationResponse* response);
 FfiResult_FfiString fatoora_validation_response_qr_buyer_status(FfiValidationResponse* response);
-FfiResult_FfiValidationResults fatoora_validation_response_results(FfiValidationResponse* response);
+FfiResult_FfiValidationResults fatoora_validation_response_validation_results(FfiValidationResponse* response);
 
 void fatoora_validation_results_free(FfiValidationResults* results);
 FfiResult_FfiString fatoora_validation_results_status(FfiValidationResults* results);
@@ -208,7 +208,7 @@ FfiResult_FfiString fatoora_validation_message_category(FfiValidationMessage* me
 FfiResult_FfiString fatoora_validation_message_text(FfiValidationMessage* message);
 FfiResult_FfiString fatoora_validation_message_status(FfiValidationMessage* message);
 
-FfiResult_bool fatoora_validate_xml_str(FfiConfig* cfg, const char* xml);
+FfiResult_bool fatoora_validate_xml_invoice_from_str(FfiConfig* cfg, const char* xml);
 
 FfiResult_FfiInvoiceBuilder fatoora_invoice_builder_new(
     int invoice_type_kind,
@@ -391,6 +391,8 @@ FfiResult_FfiString fatoora_signed_invoice_zatca_key_signature(FfiSignedInvoice*
 FfiResult_FfiString fatoora_signed_invoice_cert_hash(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_signed_props_hash(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_signing_time(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_issuer(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_serial(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_id(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_issue_datetime(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_currency(FfiSignedInvoice* signed);

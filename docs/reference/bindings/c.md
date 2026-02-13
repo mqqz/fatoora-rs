@@ -72,7 +72,7 @@ int main(void) {
     struct FfiConfig *config = fatoora_config_new(FfiEnvironment_NonProduction);
     const char *xml = "<Invoice></Invoice>";
 
-    struct FfiResult_bool result = fatoora_validate_xml_str(config, xml);
+    struct FfiResult_bool result = fatoora_validate_xml_invoice_from_str(config, xml);
     if (!result.ok) {
         fprintf(stderr, "validation error: %s\n", result.error);
         fatoora_error_free(result.error);

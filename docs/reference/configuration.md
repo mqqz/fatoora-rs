@@ -125,23 +125,3 @@ Environment selection used by the API client and validation helpers.
         ```c
         /* call fatoora_config_new(FfiEnvironment_NonProduction) */
         ```
-
-### `validate_xml` (Python convenience)
-
-???+ note "Validate XML with config"
-    Python convenience wrapper for XML validation.
-
-    === "{{ lang.rust }}"
-        ```rust
-        // use validate_xml_invoice_from_str(xml: &str, config: &Config)
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        Config.validate_xml(xml: str) -> bool
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        FfiResult_bool fatoora_validate_xml_str(FfiConfig* config, const char* xml);
-        ```

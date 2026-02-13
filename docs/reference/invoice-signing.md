@@ -295,6 +295,44 @@ Signing helpers and signature metadata.
         FfiResult_FfiString fatoora_signed_invoice_signing_time(FfiSignedInvoice* signed);
         ```
 
+### `issuer`
+
+???+ note "Get certificate issuer from signed properties"
+
+    === "{{ lang.rust }}"
+        ```rust
+        SignedProperties::issuer(&self) -> &str
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        SignedInvoice.issuer() -> str
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiString fatoora_signed_invoice_issuer(FfiSignedInvoice* signed);
+        ```
+
+### `serial`
+
+???+ note "Get certificate serial from signed properties"
+
+    === "{{ lang.rust }}"
+        ```rust
+        SignedProperties::serial(&self) -> &str
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        SignedInvoice.serial() -> str
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiString fatoora_signed_invoice_serial(FfiSignedInvoice* signed);
+        ```
+
 ## `invoice_hash_base64_from_xml_str`
 
 ### hash from XML

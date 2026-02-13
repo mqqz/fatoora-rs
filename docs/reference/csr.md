@@ -4,6 +4,56 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
 ## CsrProperties
 
+### `new`
+
+???+ note "Create CSR properties"
+    Construct `CsrProperties` from explicit fields.
+
+    === "{{ lang.rust }}"
+        ```rust
+        CsrProperties::new(
+            common_name: impl Into<String>,
+            serial_number: impl Into<String>,
+            organization_identifier: impl Into<String>,
+            organization_unit_name: impl Into<String>,
+            organization_name: impl Into<String>,
+            country_name: impl Into<String>,
+            invoice_type: impl Into<String>,
+            location_address: impl Into<String>,
+            industry_business_category: impl Into<String>,
+        ) -> Result<CsrProperties, CsrError>
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        CsrProperties.new(
+            common_name: str,
+            serial_number: str,
+            organization_identifier: str,
+            organization_unit_name: str,
+            organization_name: str,
+            country_name: str,
+            invoice_type: str,
+            location_address: str,
+            industry_business_category: str,
+        ) -> CsrProperties
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiCsrProperties fatoora_csr_properties_new(
+            const char* common_name,
+            const char* serial_number,
+            const char* organization_identifier,
+            const char* organization_unit_name,
+            const char* organization_name,
+            const char* country_name,
+            const char* invoice_type,
+            const char* location_address,
+            const char* industry_business_category
+        );
+        ```
+
 ### `from_properties_str`
 
 ???+ note "Parse CSR properties string"

@@ -31,7 +31,7 @@ from .api import (
     parse_finalized_invoice_xml_file,
     parse_signed_invoice_xml,
     parse_signed_invoice_xml_file,
-    validate_xml_str,
+    validate_xml_invoice_from_str,
 )
 from .errors import (
     ApiError,
@@ -82,7 +82,7 @@ __all__ = [
     "parse_finalized_invoice_xml_file",
     "parse_signed_invoice_xml",
     "parse_signed_invoice_xml_file",
-    "validate_xml_str",
+    "validate_xml_invoice_from_str",
     "FatooraError",
     "FfiError",
     "FfiErrorKind",
