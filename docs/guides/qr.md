@@ -1,6 +1,6 @@
 # QR Codes
 
-Extracting and generating QR payloads from signed invoices.
+Generating QR payloads from finalized/signed invoices and reading embedded QR payloads from signed invoices.
 
 ## Example
 
@@ -17,6 +17,14 @@ Extracting and generating QR payloads from signed invoices.
 === "C/C++"
     ```c
     --8<-- "bindings/c/examples/qr.c:example"
+    ```
+
+=== "CLI"
+    ```bash
+    fatoora-rs-cli qr --invoice invoice.xml
+    fatoora-rs-cli qr --invoice signed.xml
+    fatoora-rs-cli qr --invoice signed.xml --fail-on-signed
+    fatoora-rs-cli qr-read --invoice signed.xml
     ```
 
 ## Notes

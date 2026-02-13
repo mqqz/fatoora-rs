@@ -171,7 +171,7 @@ fatoora-rs-cli validate --invoice invoice.xml --xsd-path assets/schemas/UBL2.1/x
 </details>
 
 <details>
-<summary>QR Extraction</summary>
+<summary>QR Generation & Reading</summary>
 
 Rust
 ```rust
@@ -184,7 +184,10 @@ let qr = signed.qr_code();
 
 CLI
 ```bash
+fatoora-rs-cli qr --invoice invoice.xml
 fatoora-rs-cli qr --invoice signed.xml
+fatoora-rs-cli qr --invoice signed.xml --fail-on-signed
+fatoora-rs-cli qr-read --invoice signed.xml
 ```
 </details>
 

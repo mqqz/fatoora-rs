@@ -4,7 +4,7 @@
 //! ```bash
 //! fatoora-rs-cli csr --csr-config csr.properties --generated-csr csr.pem --private-key key.pem
 //! ```
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use base64ct::{Base64, Encoding};
 use clap::{Parser, Subcommand, ValueEnum};
 use fatoora_core::{
@@ -13,6 +13,7 @@ use fatoora_core::{
     invoice::{
         validation::validate_xml_invoice_from_str,
         xml::parse::{parse_finalized_invoice_xml, parse_signed_invoice_xml},
+        FinalizedInvoice, SignedInvoice,
     },
 };
 use serde_json::json;
@@ -56,6 +57,15 @@ enum Commands {
         invoice: String,
     },
     Qr {
+        #[arg(long, help = "Path to invoice XML (finalized or signed)")]
+        invoice: String,
+        #[arg(
+            long,
+            help = "Fail if invoice is already signed (contains existing QR/signature fields)"
+        )]
+        fail_on_signed: bool,
+    },
+    QrRead {
         #[arg(long, help = "Path to signed invoice XML")]
         invoice: String,
     },
@@ -99,12 +109,13 @@ fn main() -> Result<()> {
             let csr_output = if pem {
                 csr.to_pem().context("failed to encode CSR as PEM")?
             } else {
-                csr.to_base64()
-                    .context("failed to encode CSR as base64")?
+                csr.to_base64().context("failed to encode CSR as base64")?
             };
 
             let key_output = if pem {
-                signer.to_pem().context("failed to encode private key as PEM")?
+                signer
+                    .to_pem()
+                    .context("failed to encode private key as PEM")?
             } else {
                 let der = signer
                     .to_der()
@@ -176,7 +187,33 @@ fn main() -> Result<()> {
                 .map_err(|error| anyhow::anyhow!("XML validation failed: {error}"))?;
             println!("OK");
         }
-        Commands::Qr { invoice } => {
+        Commands::Qr {
+            invoice,
+            fail_on_signed,
+        } => {
+            let xml = std::fs::read_to_string(&invoice)
+                .with_context(|| format!("failed to read invoice file {invoice}"))?;
+            let qr = match parse_signed_invoice_xml(&xml) {
+                Ok(signed) => {
+                    if fail_on_signed {
+                        bail!(
+                            "invoice {invoice} is signed; refuse to regenerate QR when --fail-on-signed is set"
+                        );
+                    }
+                    generate_signed_invoice_qr(&signed)?
+                }
+                Err(signed_parse_error) => {
+                    let finalized = parse_finalized_invoice_xml(&xml).with_context(|| {
+                        format!(
+                            "failed to parse invoice XML from {invoice}; signed parse error: {signed_parse_error}"
+                        )
+                    })?;
+                    generate_finalized_invoice_qr(&finalized)?
+                }
+            };
+            println!("{qr}");
+        }
+        Commands::QrRead { invoice } => {
             let xml = std::fs::read_to_string(&invoice)
                 .with_context(|| format!("failed to read invoice file {invoice}"))?;
             let signed = parse_signed_invoice_xml(&xml)
@@ -219,5 +256,87 @@ fn main() -> Result<()> {
         }
     }
 
+    Ok(())
+}
+
+fn generate_finalized_invoice_qr(invoice: &FinalizedInvoice) -> Result<String> {
+    build_qr_payload(invoice.data(), invoice.totals(), None)
+}
+
+fn generate_signed_invoice_qr(invoice: &SignedInvoice) -> Result<String> {
+    build_qr_payload(
+        invoice.data(),
+        invoice.totals(),
+        Some((
+            invoice.invoice_hash(),
+            invoice.signature(),
+            invoice.public_key(),
+            invoice.zatca_key_signature(),
+        )),
+    )
+}
+
+fn build_qr_payload(
+    data: &fatoora_core::invoice::InvoiceData,
+    totals: &fatoora_core::invoice::InvoiceTotalsData,
+    signing_parts: Option<(&str, &str, &str, Option<&str>)>,
+) -> Result<String> {
+    let seller_name = data.seller().name().trim();
+    if seller_name.is_empty() {
+        bail!("seller legal name is missing");
+    }
+    let seller_vat = data
+        .seller()
+        .vat_id()
+        .map(|vat| vat.as_str().trim())
+        .filter(|vat| !vat.is_empty())
+        .ok_or_else(|| anyhow::anyhow!("seller VAT ID is missing"))?;
+
+    let timestamp = data
+        .issue_datetime()
+        .as_str()
+        .trim_end_matches('Z')
+        .to_string();
+    let total_with_vat = format!("{:.2}", totals.tax_inclusive_amount());
+    let total_vat = format!("{:.2}", totals.tax_amount());
+
+    let mut tlv = Vec::new();
+    push_tlv_field(&mut tlv, 1, seller_name.as_bytes())?;
+    push_tlv_field(&mut tlv, 2, seller_vat.as_bytes())?;
+    push_tlv_field(&mut tlv, 3, timestamp.as_bytes())?;
+    push_tlv_field(&mut tlv, 4, total_with_vat.as_bytes())?;
+    push_tlv_field(&mut tlv, 5, total_vat.as_bytes())?;
+
+    if let Some((invoice_hash, signature, public_key_b64, zatca_key_signature_b64)) = signing_parts
+    {
+        push_tlv_field(&mut tlv, 6, invoice_hash.as_bytes())?;
+        push_tlv_field(&mut tlv, 7, signature.as_bytes())?;
+        let public_key_bytes = Base64::decode_vec(public_key_b64)
+            .context("failed to decode signed invoice public key (base64)")?;
+        push_tlv_field(&mut tlv, 8, &public_key_bytes)?;
+        if let Some(stamp_b64) = zatca_key_signature_b64 {
+            let stamp_bytes = Base64::decode_vec(stamp_b64)
+                .context("failed to decode ZATCA key signature (base64)")?;
+            push_tlv_field(&mut tlv, 9, &stamp_bytes)?;
+        }
+    }
+
+    let encoded = Base64::encode_string(&tlv);
+    if encoded.len() > 700 {
+        bail!(
+            "QR code payload exceeds 700 characters once base64 encoded (len={})",
+            encoded.len()
+        );
+    }
+    Ok(encoded)
+}
+
+fn push_tlv_field(buffer: &mut Vec<u8>, tag: u8, value: &[u8]) -> Result<()> {
+    if value.len() > u8::MAX as usize {
+        bail!("TLV field {tag} exceeds 255 bytes (len={})", value.len());
+    }
+    buffer.push(tag);
+    buffer.push(value.len() as u8);
+    buffer.extend_from_slice(value);
     Ok(())
 }
