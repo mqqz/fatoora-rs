@@ -11,10 +11,10 @@
 </p>
 <p align="center">
 <a href="https://rs.fatoority.com">🌐 Homepage</a> &nbsp;&bull;&nbsp;
-<a href="#features">⚡ Features</a> &nbsp;&bull;&nbsp;
-<a href="#installation">📥 Installation</a> &nbsp;&bull;&nbsp;
-<a href="#examples">💡 Examples</a> &nbsp;&bull;&nbsp;
-<a href="#documentation">🗂️ Documentation</a>
+<a href="#-features">⚡ Features</a> &nbsp;&bull;&nbsp;
+<a href="#-installation">📥 Installation</a> &nbsp;&bull;&nbsp;
+<a href="#-examples">💡 Examples</a> &nbsp;&bull;&nbsp;
+<a href="#-documentation">🗂️ Documentation</a>
 </p>
 
 #
@@ -118,7 +118,7 @@ Python
 from fatoora.config import Environment
 from fatoora.csr import CsrProperties, SigningKey
 
-props = CsrProperties.parse_file("csr.properties")
+props = CsrProperties.parse_csr_config_file("csr.properties")
 key = SigningKey.generate()
 csr = props.build(key, Environment.NON_PRODUCTION)
 csr_pem = csr.to_pem_base64()

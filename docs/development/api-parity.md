@@ -7,6 +7,24 @@ Status values:
 - Omitted (intentional): not exposed by design.
 - Missing (yet to be added): public core API with no FFI/Python equivalent.
 
+## Naming Alignment (Rust vs Python vs C)
+
+This table highlights aligned symbol names across layers.
+
+| Rust | Python | C (FFI) |
+| --- | --- | --- |
+| `Config::env` | `Config.env()` | `fatoora_config_env` |
+| `CsrProperties::parse_csr_config` | `CsrProperties.parse_csr_config` | `fatoora_csr_properties_parse_csr_config` |
+| `CsrProperties::parse_csr_config_file` | `CsrProperties.parse_csr_config_file` | `fatoora_csr_properties_parse_csr_config_file` |
+| `ZatcaClient::check_invoice_compliance` | `ZatcaClient.check_invoice_compliance` | `fatoora_zatca_check_invoice_compliance` |
+| `CsidCredentials::binary_security_token` | `CsidCompliance.binary_security_token()` / `CsidProduction.binary_security_token()` | `fatoora_csid_*_binary_security_token` |
+| `SignedInvoice::qr_code` | `SignedInvoice.qr_code()` | `fatoora_signed_invoice_qr_code` |
+| `SignedInvoice::to_xml_base64` | `SignedInvoice.to_xml_base64()` | `fatoora_signed_invoice_to_xml_base64` |
+| `InvoiceBuilder::flags` | `InvoiceBuilder.flags(...)` | `fatoora_invoice_builder_flags` |
+| `InvoiceBuilder::invoice_level_charge` | `InvoiceBuilder.invoice_level_charge(...)` | `fatoora_invoice_builder_invoice_level_charge` |
+| `InvoiceBuilder::invoice_level_discount` | `InvoiceBuilder.invoice_level_discount(...)` | `fatoora_invoice_builder_invoice_level_discount` |
+| `InvoiceBuilder::allowance_reason` | `InvoiceBuilder.allowance_reason(...)` | `fatoora_invoice_builder_allowance_reason` |
+
 ## config
 | Core public API item | FFI symbol(s) | Python symbol | Status | Notes |
 | --- | --- | --- | --- | --- |
@@ -16,7 +34,7 @@ Status values:
 | `EnvironmentParseError` | — | — | Omitted (intentional) | Errors normalized via `FfiErrorKind`. |
 | `Config::new` | `fatoora_config_new` | `Config` | Done |  |
 | `Config::default` | — | — | Omitted (intentional) | `Config` defaults to NonProduction in Rust. |
-| `Config::env` | `fatoora_config_env` | `Config.env_value` | Done | Python method reads from FFI handle. |
+| `Config::env` | `fatoora_config_env` | `Config.env` | Done | Python method reads from FFI handle. |
 
 ## csr
 | Core public API item | FFI symbol(s) | Python symbol | Status | Notes |
@@ -35,8 +53,8 @@ Status values:
 | `Csr::subject_string` | `fatoora_csr_subject_string` | `Csr.subject_string` | Done |  |
 | `Csr::extension_values_der` | `fatoora_csr_extension_values_der` | `Csr.extension_values_der` | Done |  |
 | `CsrProperties::from_properties_str` | `fatoora_csr_properties_from_str` | `CsrProperties.from_properties_str` | Done |  |
-| `CsrProperties::parse_csr_config` | `fatoora_csr_properties_parse` | `CsrProperties.parse` | Done |  |
-| `CsrProperties::parse_csr_config_file` | `fatoora_csr_properties_parse_file` | `CsrProperties.parse_file` | Done |  |
+| `CsrProperties::parse_csr_config` | `fatoora_csr_properties_parse_csr_config` | `CsrProperties.parse_csr_config` | Done |  |
+| `CsrProperties::parse_csr_config_file` | `fatoora_csr_properties_parse_csr_config_file` | `CsrProperties.parse_csr_config_file` | Done |  |
 | `CsrProperties::build` | `fatoora_csr_build` | `CsrProperties.build` | Done |  |
 
 ## invoice (model types)
@@ -104,10 +122,10 @@ Status values:
 | `InvoiceBuilder::set_note` | `fatoora_invoice_builder_set_note` | `InvoiceBuilder.set_note` | Done |  |
 | `InvoiceBuilder::set_allowance` | `fatoora_invoice_builder_set_allowance` | `InvoiceBuilder.set_allowance` | Done |  |
 | `InvoiceBuilder::add_line_item` | `fatoora_invoice_builder_add_line_item` | `InvoiceBuilder.add_line_item` | Done |  |
-| `InvoiceBuilder::flags` | `fatoora_invoice_builder_set_flags` | `InvoiceBuilder.set_flags` | Done | Rust uses `flags(...)` setter. |
-| `InvoiceBuilder::invoice_level_charge` | — | — | Missing (yet to be added) | Not exposed in bindings. |
-| `InvoiceBuilder::invoice_level_discount` | — | — | Missing (yet to be added) | Not exposed in bindings. |
-| `InvoiceBuilder::allowance_reason` | — | — | Missing (yet to be added) | Not exposed in bindings. |
+| `InvoiceBuilder::flags` | `fatoora_invoice_builder_flags` | `InvoiceBuilder.flags` | Done | Rust uses `flags(...)` setter. |
+| `InvoiceBuilder::invoice_level_charge` | `fatoora_invoice_builder_invoice_level_charge` | `InvoiceBuilder.invoice_level_charge` | Done |  |
+| `InvoiceBuilder::invoice_level_discount` | `fatoora_invoice_builder_invoice_level_discount` | `InvoiceBuilder.invoice_level_discount` | Done |  |
+| `InvoiceBuilder::allowance_reason` | `fatoora_invoice_builder_allowance_reason` | `InvoiceBuilder.allowance_reason` | Done |  |
 | `InvoiceBuilder::build` | `fatoora_invoice_builder_build` | `InvoiceBuilder.build` | Done |  |
 | `FinalizedInvoice::data` | `fatoora_invoice_*` accessors | — | Done | Accessed via per-field FFI getters. |
 | `FinalizedInvoice::totals` | `fatoora_invoice_totals_*` | `FinalizedInvoice.totals` | Done |  |
@@ -116,7 +134,7 @@ Status values:
 | `SignedInvoice::data` | `fatoora_signed_invoice_*` accessors | — | Done | Accessed via per-field FFI getters. |
 | `SignedInvoice::totals` | `fatoora_signed_invoice_totals_*` | `SignedInvoice.totals` | Done |  |
 | `SignedInvoice::signed_properties` | — | — | Omitted (intentional) | Access via signed-only getters. |
-| `SignedInvoice::qr_code` | `fatoora_signed_invoice_qr` | `SignedInvoice.qr` | Done |  |
+| `SignedInvoice::qr_code` | `fatoora_signed_invoice_qr_code` | `SignedInvoice.qr_code` | Done |  |
 | `SignedInvoice::xml` | `fatoora_signed_invoice_xml` | `SignedInvoice.xml` | Done |  |
 | `SignedInvoice::uuid` | `fatoora_signed_invoice_uuid` | `SignedInvoice.uuid` | Done |  |
 | `SignedInvoice::invoice_hash` | `fatoora_signed_invoice_hash` | `SignedInvoice.invoice_hash` | Done |  |
@@ -124,7 +142,7 @@ Status values:
 | `SignedInvoice::signature` | `fatoora_signed_invoice_signature` | `SignedInvoice.signature` | Done |  |
 | `SignedInvoice::public_key` | `fatoora_signed_invoice_public_key` | `SignedInvoice.public_key` | Done |  |
 | `SignedInvoice::zatca_key_signature` | `fatoora_signed_invoice_zatca_key_signature` | `SignedInvoice.zatca_key_signature` | Done |  |
-| `SignedInvoice::to_xml_base64` | `fatoora_signed_invoice_xml_base64` | `SignedInvoice.xml_base64` | Done |  |
+| `SignedInvoice::to_xml_base64` | `fatoora_signed_invoice_to_xml_base64` | `SignedInvoice.to_xml_base64` | Done |  |
 | `InvoiceView` | — | — | Omitted (intentional) | Internal trait. |
 
 ## invoice::sign
@@ -193,10 +211,10 @@ Status values:
 | `CsidCredentials::new` | `fatoora_csid_compliance_new` / `fatoora_csid_production_new` | `CsidCompliance.new` / `CsidProduction.new` | Done | Separate handle types. |
 | `CsidCredentials::env` | `fatoora_csid_*_env` | `CsidCompliance.env` / `CsidProduction.env` | Done |  |
 | `CsidCredentials::request_id` | `fatoora_csid_*_request_id` | `CsidCompliance.request_id` / `CsidProduction.request_id` | Done | `request_id` is a string; empty string is the sentinel. |
-| `CsidCredentials::binary_security_token` | `fatoora_csid_*_token` | `CsidCompliance.token` / `CsidProduction.token` | Done |  |
+| `CsidCredentials::binary_security_token` | `fatoora_csid_*_binary_security_token` | `CsidCompliance.binary_security_token` / `CsidProduction.binary_security_token` | Done |  |
 | `CsidCredentials::secret` | `fatoora_csid_*_secret` | `CsidCompliance.secret` / `CsidProduction.secret` | Done |  |
 | `ZatcaClient::new` | `fatoora_zatca_client_new` | `ZatcaClient.__init__` | Done |  |
-| `ZatcaClient::check_invoice_compliance` | `fatoora_zatca_check_compliance` | `ZatcaClient.check_compliance` | Done |  |
+| `ZatcaClient::check_invoice_compliance` | `fatoora_zatca_check_invoice_compliance` | `ZatcaClient.check_invoice_compliance` | Done |  |
 | `ZatcaClient::report_simplified_invoice` | `fatoora_zatca_report_simplified_invoice` | `ZatcaClient.report_simplified_invoice` | Done |  |
 | `ZatcaClient::clear_standard_invoice` | `fatoora_zatca_clear_standard_invoice` | `ZatcaClient.clear_standard_invoice` | Done |  |
 | `ZatcaClient::post_csr_for_ccsid` | `fatoora_zatca_post_csr_for_ccsid` | `ZatcaClient.post_csr_for_ccsid` | Done |  |

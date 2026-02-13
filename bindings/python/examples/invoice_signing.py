@@ -18,7 +18,7 @@ signed_xml = signed_xml_path.read_text(encoding="utf-8")
 signed = parse_signed_invoice_xml(signed_xml)
 
 hash_b64 = signed.hash_base64()
-qr = signed.qr()
+qr = signed.qr_code()
 signing_time = signed.signing_time()
 assert hash_b64
 assert qr

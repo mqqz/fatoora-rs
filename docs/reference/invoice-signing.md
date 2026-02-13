@@ -24,9 +24,6 @@ Signing helpers and signature metadata.
         FfiResult_FfiSigner fatoora_signer_from_pem(const char* cert_pem, const char* key_pem);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `from_der`
 
 ???+ note "Create signer from DER"
@@ -47,9 +44,6 @@ Signing helpers and signature metadata.
         FfiResult_FfiSigner fatoora_signer_from_der(const uint8_t* cert_der, uintptr_t cert_len, const uint8_t* key_der, uintptr_t key_len);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `certificate_pem`
 
 ???+ note "Read signer certificate as PEM"
@@ -64,9 +58,6 @@ Signing helpers and signature metadata.
         FfiResult_FfiString fatoora_signer_certificate_pem(FfiSigner* signer);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `certificate_der`
 
 ???+ note "Read signer certificate as DER"
@@ -80,9 +71,6 @@ Signing helpers and signature metadata.
         ```c
         FfiResult_FfiBytes fatoora_signer_certificate_der(FfiSigner* signer);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ## FinalizedInvoice
 
@@ -106,9 +94,6 @@ Signing helpers and signature metadata.
         FfiResult_FfiSignedInvoice fatoora_invoice_sign(FfiFinalizedInvoice* invoice, FfiSigner* signer);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ## SignedInvoice
 
 ### `xml`
@@ -130,10 +115,7 @@ Signing helpers and signature metadata.
         FfiResult_FfiString fatoora_signed_invoice_xml(FfiSignedInvoice* signed);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
-### `to_xml_base64` / `xml_base64`
+### `to_xml_base64`
 
 ???+ note "Get signed XML as Base64"
 
@@ -144,18 +126,15 @@ Signing helpers and signature metadata.
 
     === "{{ lang.python }}"
         ```python
-        SignedInvoice.xml_base64() -> str
+        SignedInvoice.to_xml_base64() -> str
         ```
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_xml_base64(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_to_xml_base64(FfiSignedInvoice* signed);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
-### `qr_code` / `qr`
+### `qr_code`
 
 ???+ note "Get QR payload"
 
@@ -166,16 +145,13 @@ Signing helpers and signature metadata.
 
     === "{{ lang.python }}"
         ```python
-        SignedInvoice.qr() -> str
+        SignedInvoice.qr_code() -> str
         ```
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_qr(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_qr_code(FfiSignedInvoice* signed);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `invoice_hash`
 
@@ -196,9 +172,6 @@ Signing helpers and signature metadata.
         FfiResult_FfiString fatoora_signed_invoice_hash(FfiSignedInvoice* signed);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `hash_base64`
 
 ???+ note "Get invoice hash as Base64"
@@ -217,9 +190,6 @@ Signing helpers and signature metadata.
         ```c
         FfiResult_FfiString fatoora_signed_invoice_hash_base64(FfiSignedInvoice* signed);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `signature`
 
@@ -240,9 +210,6 @@ Signing helpers and signature metadata.
         FfiResult_FfiString fatoora_signed_invoice_signature(FfiSignedInvoice* signed);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `public_key`
 
 ???+ note "Get public key"
@@ -261,9 +228,6 @@ Signing helpers and signature metadata.
         ```c
         FfiResult_FfiString fatoora_signed_invoice_public_key(FfiSignedInvoice* signed);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `zatca_key_signature`
 
@@ -284,9 +248,6 @@ Signing helpers and signature metadata.
         FfiResult_FfiString fatoora_signed_invoice_zatca_key_signature(FfiSignedInvoice* signed);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `signed_props_hash`
 
 ???+ note "Get signed properties hash"
@@ -306,9 +267,6 @@ Signing helpers and signature metadata.
         FfiResult_FfiString fatoora_signed_invoice_signed_props_hash(FfiSignedInvoice* signed);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `cert_hash`
 
 ???+ note "Get certificate hash"
@@ -322,9 +280,6 @@ Signing helpers and signature metadata.
         ```c
         FfiResult_FfiString fatoora_signed_invoice_cert_hash(FfiSignedInvoice* signed);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `signing_time`
 
@@ -340,9 +295,6 @@ Signing helpers and signature metadata.
         FfiResult_FfiString fatoora_signed_invoice_signing_time(FfiSignedInvoice* signed);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ## `invoice_hash_base64_from_xml_str`
 
 ### hash from XML
@@ -354,9 +306,6 @@ Signing helpers and signature metadata.
         ```rust
         invoice_hash_base64_from_xml_str(xml: &str) -> Result<String, SigningError>
         ```
-
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ## Errors
 

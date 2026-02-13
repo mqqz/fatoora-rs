@@ -101,8 +101,8 @@ FfiConfig* fatoora_config_new(int env);
 FfiResult_FfiEnvironment fatoora_config_env(FfiConfig* cfg);
 void fatoora_config_free(FfiConfig* cfg);
 
-FfiResult_FfiCsrProperties fatoora_csr_properties_parse(const char* properties);
-FfiResult_FfiCsrProperties fatoora_csr_properties_parse_file(const char* path);
+FfiResult_FfiCsrProperties fatoora_csr_properties_parse_csr_config(const char* properties);
+FfiResult_FfiCsrProperties fatoora_csr_properties_parse_csr_config_file(const char* path);
 FfiResult_FfiCsrProperties fatoora_csr_properties_from_str(const char* properties);
 void fatoora_csr_properties_free(FfiCsrProperties* props);
 
@@ -142,9 +142,9 @@ FfiResult_FfiString fatoora_csid_compliance_request_id(FfiCsidCompliance* creds)
 FfiResult_FfiString fatoora_csid_production_request_id(FfiCsidProduction* creds);
 FfiResult_FfiEnvironment fatoora_csid_compliance_env(FfiCsidCompliance* creds);
 FfiResult_FfiEnvironment fatoora_csid_production_env(FfiCsidProduction* creds);
-FfiResult_FfiString fatoora_csid_compliance_token(FfiCsidCompliance* creds);
+FfiResult_FfiString fatoora_csid_compliance_binary_security_token(FfiCsidCompliance* creds);
 FfiResult_FfiString fatoora_csid_compliance_secret(FfiCsidCompliance* creds);
-FfiResult_FfiString fatoora_csid_production_token(FfiCsidProduction* creds);
+FfiResult_FfiString fatoora_csid_production_binary_security_token(FfiCsidProduction* creds);
 FfiResult_FfiString fatoora_csid_production_secret(FfiCsidProduction* creds);
 void fatoora_csid_compliance_free(FfiCsidCompliance* creds);
 void fatoora_csid_production_free(FfiCsidProduction* creds);
@@ -165,7 +165,7 @@ FfiResult_FfiCsidProduction fatoora_zatca_renew_csid(
     const char* otp,
     const char* accept_language
 );
-FfiResult_FfiValidationResponse fatoora_zatca_check_compliance(
+FfiResult_FfiValidationResponse fatoora_zatca_check_invoice_compliance(
     FfiZatcaClient* client,
     FfiSignedInvoice* invoice,
     FfiCsidCompliance* ccsid
@@ -282,11 +282,11 @@ FfiResult_bool fatoora_invoice_builder_set_allowance(
     const char* reason,
     double amount
 );
-FfiResult_bool fatoora_invoice_builder_set_invoice_level_charge(FfiInvoiceBuilder* builder, double charge);
-FfiResult_bool fatoora_invoice_builder_set_invoice_level_discount(FfiInvoiceBuilder* builder, double discount);
-FfiResult_bool fatoora_invoice_builder_set_allowance_reason(FfiInvoiceBuilder* builder, const char* reason);
+FfiResult_bool fatoora_invoice_builder_invoice_level_charge(FfiInvoiceBuilder* builder, double charge);
+FfiResult_bool fatoora_invoice_builder_invoice_level_discount(FfiInvoiceBuilder* builder, double discount);
+FfiResult_bool fatoora_invoice_builder_allowance_reason(FfiInvoiceBuilder* builder, const char* reason);
 
-FfiResult_bool fatoora_invoice_builder_set_flags(
+FfiResult_bool fatoora_invoice_builder_flags(
     FfiInvoiceBuilder* builder,
     unsigned char flags
 );
@@ -380,8 +380,8 @@ FfiResult_FfiString fatoora_signer_certificate_pem(FfiSigner* signer);
 FfiResult_FfiSignedInvoice fatoora_invoice_sign(FfiFinalizedInvoice* invoice, FfiSigner* signer);
 
 FfiResult_FfiString fatoora_signed_invoice_xml(FfiSignedInvoice* signed);
-FfiResult_FfiString fatoora_signed_invoice_xml_base64(FfiSignedInvoice* signed);
-FfiResult_FfiString fatoora_signed_invoice_qr(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_to_xml_base64(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_qr_code(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_uuid(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_hash(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_hash_base64(FfiSignedInvoice* signed);

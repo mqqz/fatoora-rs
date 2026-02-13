@@ -15,6 +15,6 @@ from fatoora.invoice import parse_signed_invoice_xml
 # signed_xml_path = "path/to/signed_invoice.xml"
 signed_xml = signed_xml_path.read_text(encoding="utf-8")
 signed = parse_signed_invoice_xml(signed_xml)
-qr = signed.qr()
+qr = signed.qr_code()
 assert qr
 # --8<-- [end:example]

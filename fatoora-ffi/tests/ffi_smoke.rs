@@ -67,11 +67,11 @@ fn invoice_builder_roundtrip() {
         )
         .ok);
 
-        let flags_result = fatoora_invoice_builder_set_flags(&mut builder, 0b00001);
+        let flags_result = fatoora_invoice_builder_flags(&mut builder, 0b00001);
         assert!(flags_result.ok);
-        let flags_result = fatoora_invoice_builder_set_flags(&mut builder, 0b00100);
+        let flags_result = fatoora_invoice_builder_flags(&mut builder, 0b00100);
         assert!(flags_result.ok);
-        let flags_result = fatoora_invoice_builder_set_flags(&mut builder, 0b00001);
+        let flags_result = fatoora_invoice_builder_flags(&mut builder, 0b00001);
         assert!(flags_result.ok);
 
         let buyer_result = fatoora_invoice_builder_set_buyer(

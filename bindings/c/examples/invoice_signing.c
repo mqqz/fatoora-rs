@@ -28,7 +28,7 @@ int main(void) {
         return 1;
     }
     struct FfiResult_FfiString hash = fatoora_signed_invoice_hash_base64(&signed_invoice.value);
-    struct FfiResult_FfiString qr = fatoora_signed_invoice_qr(&signed_invoice.value);
+    struct FfiResult_FfiString qr = fatoora_signed_invoice_qr_code(&signed_invoice.value);
     assert(hash.value.ptr && strlen(hash.value.ptr) > 0);
     assert(qr.value.ptr && strlen(qr.value.ptr) > 0);
     fatoora_string_free(hash.value);

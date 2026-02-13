@@ -513,7 +513,7 @@ pub unsafe extern "C" fn fatoora_csr_properties_new(
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_csr_properties_parse(
+pub unsafe extern "C" fn fatoora_csr_properties_parse_csr_config(
     properties: *const c_char,
 ) -> FfiResult<FfiCsrProperties> {
     let properties = ffi_required_string!(properties, "csr properties");
@@ -528,7 +528,7 @@ pub unsafe extern "C" fn fatoora_csr_properties_parse(
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_csr_properties_parse_file(
+pub unsafe extern "C" fn fatoora_csr_properties_parse_csr_config_file(
     path: *const c_char,
 ) -> FfiResult<FfiCsrProperties> {
     let path = ffi_required_string!(path, "csr properties path");
@@ -848,7 +848,7 @@ pub unsafe extern "C" fn fatoora_csid_production_env(creds: *mut FfiCsidProducti
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_csid_compliance_token(handle: *mut FfiCsidCompliance) -> FfiResult<FfiString> {
+pub unsafe extern "C" fn fatoora_csid_compliance_binary_security_token(handle: *mut FfiCsidCompliance) -> FfiResult<FfiString> {
     let value = ffi_borrow!(handle, "csid", CsidCredentials<Compliance>);
     let creds: &CsidCredentials<Compliance> = value;
     ffi_string_from_owned(creds.binary_security_token().to_string())
@@ -868,7 +868,7 @@ pub unsafe extern "C" fn fatoora_csid_compliance_secret(handle: *mut FfiCsidComp
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_csid_production_token(handle: *mut FfiCsidProduction) -> FfiResult<FfiString> {
+pub unsafe extern "C" fn fatoora_csid_production_binary_security_token(handle: *mut FfiCsidProduction) -> FfiResult<FfiString> {
     let value = ffi_borrow!(handle, "csid", CsidCredentials<Production>);
     let creds: &CsidCredentials<Production> = value;
     ffi_string_from_owned(creds.binary_security_token().to_string())
@@ -964,7 +964,7 @@ pub unsafe extern "C" fn fatoora_zatca_renew_csid(
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_zatca_check_compliance(
+pub unsafe extern "C" fn fatoora_zatca_check_invoice_compliance(
     client: *mut FfiZatcaClient,
     invoice: *mut FfiSignedInvoice,
     ccsid: *mut FfiCsidCompliance,
@@ -1486,7 +1486,7 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_seller(
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_invoice_builder_set_flags(
+pub unsafe extern "C" fn fatoora_invoice_builder_flags(
     builder: *mut FfiInvoiceBuilder,
     flags: u8,
 ) -> FfiResult<bool> {
@@ -1498,7 +1498,7 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_flags(
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_invoice_builder_set_invoice_level_charge(
+pub unsafe extern "C" fn fatoora_invoice_builder_invoice_level_charge(
     builder: *mut FfiInvoiceBuilder,
     charge: f64,
 ) -> FfiResult<bool> {
@@ -1510,7 +1510,7 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_invoice_level_charge(
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_invoice_builder_set_invoice_level_discount(
+pub unsafe extern "C" fn fatoora_invoice_builder_invoice_level_discount(
     builder: *mut FfiInvoiceBuilder,
     discount: f64,
 ) -> FfiResult<bool> {
@@ -1522,7 +1522,7 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_invoice_level_discount(
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_invoice_builder_set_allowance_reason(
+pub unsafe extern "C" fn fatoora_invoice_builder_allowance_reason(
     builder: *mut FfiInvoiceBuilder,
     reason: *const c_char,
 ) -> FfiResult<bool> {
@@ -2386,7 +2386,7 @@ pub unsafe extern "C" fn fatoora_signed_invoice_xml(signed: *mut FfiSignedInvoic
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_signed_invoice_qr(signed: *mut FfiSignedInvoice) -> FfiResult<FfiString> {
+pub unsafe extern "C" fn fatoora_signed_invoice_qr_code(signed: *mut FfiSignedInvoice) -> FfiResult<FfiString> {
     let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     ffi_string_from_owned(signed.qr_code().to_string())
 }
@@ -3158,7 +3158,7 @@ pub unsafe extern "C" fn fatoora_original_invoice_ref_issue_date(handle: *mut Ff
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_signed_invoice_xml_base64(signed: *mut FfiSignedInvoice) -> FfiResult<FfiString> {
+pub unsafe extern "C" fn fatoora_signed_invoice_to_xml_base64(signed: *mut FfiSignedInvoice) -> FfiResult<FfiString> {
     let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     ffi_string_from_owned(signed.to_xml_base64())
 }
@@ -3441,7 +3441,7 @@ mod ffi_zatca_tests {
             let mut ccsid = ccsid_result.value;
 
             let mut compliance_result =
-                fatoora_zatca_check_compliance(&mut ffi_client, &mut ffi_simplified, &mut ccsid);
+                fatoora_zatca_check_invoice_compliance(&mut ffi_client, &mut ffi_simplified, &mut ccsid);
             assert!(compliance_result.ok);
             fatoora_validation_response_free(&mut compliance_result.value);
 
@@ -3771,7 +3771,7 @@ mod ffi_coverage_tests {
             .join("../fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties");
         unsafe {
             let props =
-                fatoora_csr_properties_parse_file(cstr(config_path.to_string_lossy().as_ref()).as_ptr());
+                fatoora_csr_properties_parse_csr_config_file(cstr(config_path.to_string_lossy().as_ref()).as_ptr());
             assert!(props.ok);
             let mut props_handle = props.value;
 
@@ -3826,13 +3826,13 @@ mod ffi_coverage_tests {
     fn csr_properties_error_paths() {
         unsafe {
             let missing =
-                fatoora_csr_properties_parse_file(cstr("/tmp/does-not-exist.properties").as_ptr());
+                fatoora_csr_properties_parse_csr_config_file(cstr("/tmp/does-not-exist.properties").as_ptr());
             assert!(!missing.ok);
             if !missing.error.is_null() {
                 fatoora_error_free(missing.error);
             }
 
-            let invalid = fatoora_csr_properties_parse(cstr("bad=1").as_ptr());
+            let invalid = fatoora_csr_properties_parse_csr_config(cstr("bad=1").as_ptr());
             assert!(!invalid.ok);
             if !invalid.error.is_null() {
                 fatoora_error_free(invalid.error);
@@ -3875,7 +3875,7 @@ mod ffi_coverage_tests {
             .join("../fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties");
         unsafe {
             let props =
-                fatoora_csr_properties_parse_file(cstr(config_path.to_string_lossy().as_ref()).as_ptr());
+                fatoora_csr_properties_parse_csr_config_file(cstr(config_path.to_string_lossy().as_ref()).as_ptr());
             assert!(props.ok);
             let mut props_handle = props.value;
 
@@ -4291,9 +4291,9 @@ mod ffi_coverage_tests {
         unsafe {
             let mut builder = build_invoice_builder();
 
-            let set_flags = fatoora_invoice_builder_set_flags(&mut builder, 0b00001);
+            let set_flags = fatoora_invoice_builder_flags(&mut builder, 0b00001);
             assert!(set_flags.ok);
-            let set_flags = fatoora_invoice_builder_set_flags(&mut builder, 0b00100);
+            let set_flags = fatoora_invoice_builder_flags(&mut builder, 0b00100);
             assert!(set_flags.ok);
 
             let add_result = fatoora_invoice_builder_add_line_item(
@@ -4323,10 +4323,10 @@ mod ffi_coverage_tests {
     fn builder_setters_and_accessors() {
         unsafe {
             let mut builder = build_invoice_builder();
-            assert!(fatoora_invoice_builder_set_invoice_level_charge(&mut builder, 10.0).ok);
-            assert!(fatoora_invoice_builder_set_invoice_level_discount(&mut builder, 5.0).ok);
+            assert!(fatoora_invoice_builder_invoice_level_charge(&mut builder, 10.0).ok);
+            assert!(fatoora_invoice_builder_invoice_level_discount(&mut builder, 5.0).ok);
             assert!(
-                fatoora_invoice_builder_set_allowance_reason(&mut builder, cstr("Promo").as_ptr())
+                fatoora_invoice_builder_allowance_reason(&mut builder, cstr("Promo").as_ptr())
                     .ok
             );
             assert!(
@@ -4724,7 +4724,7 @@ mod ffi_coverage_tests {
             if !result.error.is_null() {
                 fatoora_error_free(result.error);
             }
-            let result = fatoora_zatca_check_compliance(&mut client, &mut simplified, &mut ccsid);
+            let result = fatoora_zatca_check_invoice_compliance(&mut client, &mut simplified, &mut ccsid);
             assert!(!result.ok);
             if !result.error.is_null() {
                 fatoora_error_free(result.error);
@@ -4896,7 +4896,7 @@ mod ffi_coverage_tests {
                 fatoora_error_free(result.error);
             }
 
-            let result = fatoora_invoice_builder_set_flags(std::ptr::null_mut(), 0b1);
+            let result = fatoora_invoice_builder_flags(std::ptr::null_mut(), 0b1);
             assert!(!result.ok);
             if !result.error.is_null() {
                 fatoora_error_free(result.error);
@@ -5061,7 +5061,7 @@ mod ffi_coverage_tests {
                 fatoora_invoice_builder_set_allowance(&mut builder, cstr("Discount").as_ptr(), 5.0);
             assert!(allowance_result.ok);
 
-            let flags_result = fatoora_invoice_builder_set_flags(&mut builder, 0b00101);
+            let flags_result = fatoora_invoice_builder_flags(&mut builder, 0b00101);
             assert!(flags_result.ok);
 
             let invoice_result = fatoora_invoice_builder_build(&mut builder);
@@ -5159,7 +5159,7 @@ mod ffi_coverage_tests {
                 .to_string_lossy()
                 .to_string();
             fatoora_string_free(signed_xml.value);
-            let signed_qr = fatoora_signed_invoice_qr(&mut signed);
+            let signed_qr = fatoora_signed_invoice_qr_code(&mut signed);
             assert!(signed_qr.ok);
             fatoora_string_free(signed_qr.value);
             let signed_uuid = fatoora_signed_invoice_uuid(&mut signed);
@@ -5168,7 +5168,7 @@ mod ffi_coverage_tests {
             let signed_hash = fatoora_signed_invoice_hash(&mut signed);
             assert!(signed_hash.ok);
             fatoora_string_free(signed_hash.value);
-            let signed_xml_b64 = fatoora_signed_invoice_xml_base64(&mut signed);
+            let signed_xml_b64 = fatoora_signed_invoice_to_xml_base64(&mut signed);
             assert!(signed_xml_b64.ok);
             fatoora_string_free(signed_xml_b64.value);
             let signed_hash_b64 = fatoora_signed_invoice_hash_base64(&mut signed);
@@ -5426,7 +5426,7 @@ mod ffi_coverage_tests {
             let env = fatoora_csid_compliance_env(&mut ccsid);
             assert!(env.ok);
 
-            let token = fatoora_csid_compliance_token(&mut ccsid);
+            let token = fatoora_csid_compliance_binary_security_token(&mut ccsid);
             assert!(token.ok);
             fatoora_string_free(token.value);
             let secret = fatoora_csid_compliance_secret(&mut ccsid);
@@ -5450,7 +5450,7 @@ mod ffi_coverage_tests {
             fatoora_string_free(request_id.value);
             let env = fatoora_csid_production_env(&mut pcsid);
             assert!(env.ok);
-            let token = fatoora_csid_production_token(&mut pcsid);
+            let token = fatoora_csid_production_binary_security_token(&mut pcsid);
             assert!(token.ok);
             fatoora_string_free(token.value);
             let secret = fatoora_csid_production_secret(&mut pcsid);

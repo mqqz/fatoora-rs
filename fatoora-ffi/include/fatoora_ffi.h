@@ -411,13 +411,13 @@ struct FfiResult_FfiCsrProperties fatoora_csr_properties_new(const char *common_
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_FfiCsrProperties fatoora_csr_properties_parse(const char *properties);
+struct FfiResult_FfiCsrProperties fatoora_csr_properties_parse_csr_config(const char *properties);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_FfiCsrProperties fatoora_csr_properties_parse_file(const char *path);
+struct FfiResult_FfiCsrProperties fatoora_csr_properties_parse_csr_config_file(const char *path);
 
 /**
  * # Safety
@@ -575,7 +575,7 @@ struct FfiResult_FfiEnvironment fatoora_csid_production_env(struct FfiCsidProduc
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_FfiString fatoora_csid_compliance_token(struct FfiCsidCompliance *handle);
+struct FfiResult_FfiString fatoora_csid_compliance_binary_security_token(struct FfiCsidCompliance *handle);
 
 /**
  * # Safety
@@ -587,7 +587,7 @@ struct FfiResult_FfiString fatoora_csid_compliance_secret(struct FfiCsidComplian
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_FfiString fatoora_csid_production_token(struct FfiCsidProduction *handle);
+struct FfiResult_FfiString fatoora_csid_production_binary_security_token(struct FfiCsidProduction *handle);
 
 /**
  * # Safety
@@ -636,9 +636,9 @@ struct FfiResult_FfiCsidProduction fatoora_zatca_renew_csid(struct FfiZatcaClien
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_FfiValidationResponse fatoora_zatca_check_compliance(struct FfiZatcaClient *client,
-                                                                      struct FfiSignedInvoice *invoice,
-                                                                      struct FfiCsidCompliance *ccsid);
+struct FfiResult_FfiValidationResponse fatoora_zatca_check_invoice_compliance(struct FfiZatcaClient *client,
+                                                                              struct FfiSignedInvoice *invoice,
+                                                                              struct FfiCsidCompliance *ccsid);
 
 /**
  * # Safety
@@ -879,29 +879,29 @@ struct FfiResult_bool fatoora_invoice_builder_set_seller(struct FfiInvoiceBuilde
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_bool fatoora_invoice_builder_set_flags(struct FfiInvoiceBuilder *builder,
-                                                        uint8_t flags);
+struct FfiResult_bool fatoora_invoice_builder_flags(struct FfiInvoiceBuilder *builder,
+                                                    uint8_t flags);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_bool fatoora_invoice_builder_set_invoice_level_charge(struct FfiInvoiceBuilder *builder,
-                                                                       double charge);
+struct FfiResult_bool fatoora_invoice_builder_invoice_level_charge(struct FfiInvoiceBuilder *builder,
+                                                                   double charge);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_bool fatoora_invoice_builder_set_invoice_level_discount(struct FfiInvoiceBuilder *builder,
-                                                                         double discount);
+struct FfiResult_bool fatoora_invoice_builder_invoice_level_discount(struct FfiInvoiceBuilder *builder,
+                                                                     double discount);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_bool fatoora_invoice_builder_set_allowance_reason(struct FfiInvoiceBuilder *builder,
-                                                                   const char *reason);
+struct FfiResult_bool fatoora_invoice_builder_allowance_reason(struct FfiInvoiceBuilder *builder,
+                                                               const char *reason);
 
 /**
  * # Safety
@@ -1334,7 +1334,7 @@ struct FfiResult_FfiString fatoora_signed_invoice_xml(struct FfiSignedInvoice *s
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_FfiString fatoora_signed_invoice_qr(struct FfiSignedInvoice *signed_);
+struct FfiResult_FfiString fatoora_signed_invoice_qr_code(struct FfiSignedInvoice *signed_);
 
 /**
  * # Safety
@@ -1766,7 +1766,7 @@ struct FfiResult_FfiString fatoora_original_invoice_ref_issue_date(struct FfiOri
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_FfiString fatoora_signed_invoice_xml_base64(struct FfiSignedInvoice *signed_);
+struct FfiResult_FfiString fatoora_signed_invoice_to_xml_base64(struct FfiSignedInvoice *signed_);
 
 /**
  * # Safety

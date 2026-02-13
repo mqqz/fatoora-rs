@@ -25,9 +25,6 @@ Serialization and parsing helpers for invoice XML.
         FfiResult_FfiString fatoora_signed_invoice_xml(FfiSignedInvoice* signed);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `to_xml_with_format`
 
 ???+ note "Serialize with format"
@@ -47,9 +44,6 @@ Serialization and parsing helpers for invoice XML.
         ```c
         /* not exposed directly */
         ```
-
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ## FinalizedInvoice
 
@@ -72,9 +66,6 @@ Serialization and parsing helpers for invoice XML.
         FfiResult_FfiString fatoora_invoice_to_xml(FfiFinalizedInvoice* invoice);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ## SignedInvoice
 
 ### `xml`
@@ -95,9 +86,6 @@ Serialization and parsing helpers for invoice XML.
         ```c
         FfiResult_FfiString fatoora_signed_invoice_xml(FfiSignedInvoice* signed);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ## `parse_finalized_invoice_xml` / `parse_finalized_invoice_xml_file`
 
@@ -123,9 +111,6 @@ Serialization and parsing helpers for invoice XML.
         FfiResult_FfiFinalizedInvoice fatoora_parse_finalized_invoice_xml_file(const char* path);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ## `parse_signed_invoice_xml` / `parse_signed_invoice_xml_file`
 
 ### parse signed invoice
@@ -149,9 +134,6 @@ Serialization and parsing helpers for invoice XML.
         FfiResult_FfiSignedInvoice fatoora_parse_signed_invoice_xml(const char* xml);
         FfiResult_FfiSignedInvoice fatoora_parse_signed_invoice_xml_file(const char* path);
         ```
-
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ## Types
 

@@ -133,7 +133,7 @@ impl InvoiceBuilder {
     pub fn set_note(&mut self, note: InvoiceNote) -> &mut Self;
     pub fn set_allowance(&mut self, reason: String, amount: f64) -> &mut Self;
     pub fn add_line_item(&mut self, item: LineItem) -> &mut Self;
-    pub fn set_flags(&mut self, flags: InvoiceFlags) -> &mut Self;
+    pub fn flags(&mut self, flags: InvoiceFlags) -> &mut Self;
     pub fn build(self) -> Result<FinalizedInvoice, Error>;
 }
 ```
@@ -247,8 +247,8 @@ void fatoora_config_free(FfiConfig*);
 ### csr + key
 ```c
 FfiResult_FfiCsrProperties fatoora_csr_properties_from_str(const char* s);
-FfiResult_FfiCsrProperties fatoora_csr_properties_parse(const char* properties);
-FfiResult_FfiCsrProperties fatoora_csr_properties_parse_file(const char* path);
+FfiResult_FfiCsrProperties fatoora_csr_properties_parse_csr_config(const char* properties);
+FfiResult_FfiCsrProperties fatoora_csr_properties_parse_csr_config_file(const char* path);
 
 FfiResult_FfiSigningKey fatoora_signing_key_from_pem(const char* pem);
 FfiResult_FfiSigningKey fatoora_signing_key_from_der(const uint8_t* der, size_t len);
@@ -298,7 +298,7 @@ FfiResult_bool fatoora_invoice_builder_add_line_item(
     FfiVatCategory vat_category
 );
 
-FfiResult_bool fatoora_invoice_builder_set_flags(FfiInvoiceBuilder*, uint8_t flags);
+FfiResult_bool fatoora_invoice_builder_flags(FfiInvoiceBuilder*, uint8_t flags);
 FfiResult_FfiFinalizedInvoice fatoora_invoice_builder_build(FfiInvoiceBuilder*);
 void fatoora_invoice_builder_free(FfiInvoiceBuilder*);
 ```
@@ -391,8 +391,8 @@ FfiResult_f64 fatoora_signed_invoice_totals_taxable_amount(FfiSignedInvoice*);
 
 /* Signed-only accessors */
 FfiResult_FfiString fatoora_signed_invoice_xml(FfiSignedInvoice*);
-FfiResult_FfiString fatoora_signed_invoice_xml_base64(FfiSignedInvoice*);
-FfiResult_FfiString fatoora_signed_invoice_qr(FfiSignedInvoice*);
+FfiResult_FfiString fatoora_signed_invoice_to_xml_base64(FfiSignedInvoice*);
+FfiResult_FfiString fatoora_signed_invoice_qr_code(FfiSignedInvoice*);
 FfiResult_FfiString fatoora_signed_invoice_uuid(FfiSignedInvoice*);
 FfiResult_FfiString fatoora_signed_invoice_hash(FfiSignedInvoice*);
 FfiResult_FfiString fatoora_signed_invoice_signature(FfiSignedInvoice*);
@@ -441,7 +441,7 @@ FfiResult_FfiCsidProduction fatoora_csid_production_new(
     const char* secret
 );
 
-FfiResult_FfiValidationResponse fatoora_zatca_check_compliance(
+FfiResult_FfiValidationResponse fatoora_zatca_check_invoice_compliance(
     FfiZatcaClient*,
     FfiSignedInvoice*,
     FfiCsidCompliance*

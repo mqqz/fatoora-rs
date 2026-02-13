@@ -20,8 +20,8 @@ Status values:
 | --- | --- | --- | --- |
 | `config::Config::new` + `EnvironmentType` | `fatoora_config_new`, `FfiEnvironment` | Done | `fatoora_config_new` returns a raw handle, not `FfiResult`. |
 | `config::Config::env` | `fatoora_config_env` | Done |  |
-| `csr::CsrProperties::parse_csr_config` | `fatoora_csr_properties_parse` | Done |  |
-| `csr::CsrProperties::parse_csr_config_file` | `fatoora_csr_properties_parse_file` | Done |  |
+| `csr::CsrProperties::parse_csr_config` | `fatoora_csr_properties_parse_csr_config` | Done |  |
+| `csr::CsrProperties::parse_csr_config_file` | `fatoora_csr_properties_parse_csr_config_file` | Done |  |
 | `csr::SigningKey::{generate,from_pem,from_der}` | `fatoora_signing_key_generate`, `fatoora_signing_key_from_pem`, `fatoora_signing_key_from_der` | Done |  |
 | `csr::SigningKey::to_pem` | `fatoora_signing_key_to_pem` | Done |  |
 | `csr::SigningKey::to_der` | `fatoora_signing_key_to_der` | Done | Uses `FfiBytes`. |

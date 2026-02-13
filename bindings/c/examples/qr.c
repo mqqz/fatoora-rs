@@ -27,7 +27,7 @@ int main(void) {
         return 1;
     }
 
-    struct FfiResult_FfiString qr = fatoora_signed_invoice_qr(&signed_invoice.value);
+    struct FfiResult_FfiString qr = fatoora_signed_invoice_qr_code(&signed_invoice.value);
     assert(qr.value.ptr && strlen(qr.value.ptr) > 0);
     /* use qr.value.ptr, then free */
     fatoora_string_free(qr.value);

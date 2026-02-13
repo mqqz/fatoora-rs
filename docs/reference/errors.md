@@ -24,9 +24,6 @@ Error types used across the core library, FFI, and Python bindings.
         enum FfiErrorKind { ... };
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ## Domain Errors (Rust)
 
 ### error types
@@ -45,9 +42,6 @@ Error types used across the core library, FFI, and Python bindings.
         ParseError
         ZatcaError
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ## Exceptions (Python)
 
@@ -71,9 +65,6 @@ Error types used across the core library, FFI, and Python bindings.
         ApiError
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ## FfiError
 
 ### `fatoora_error_code`
@@ -85,9 +76,6 @@ Error types used across the core library, FFI, and Python bindings.
         int fatoora_error_code(FfiError* error);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `fatoora_error_message`
 
 ???+ note "Read error message"
@@ -97,9 +85,6 @@ Error types used across the core library, FFI, and Python bindings.
         FfiString fatoora_error_message(FfiError* error);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `fatoora_error_free`
 
 ???+ note "Free error handle"
@@ -108,9 +93,6 @@ Error types used across the core library, FFI, and Python bindings.
         ```c
         void fatoora_error_free(FfiError* error);
         ```
-
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ## Mapping (FFI -> Python)
 

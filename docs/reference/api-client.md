@@ -23,9 +23,6 @@ HTTP client for the ZATCA endpoints, plus response models.
         FfiResult_FfiZatcaClient fatoora_zatca_client_new(FfiConfig* config);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `post_csr_for_ccsid`
 
 ???+ note "Issue compliance CSID"
@@ -44,9 +41,6 @@ HTTP client for the ZATCA endpoints, plus response models.
         ```c
         FfiResult_FfiCsidCompliance fatoora_zatca_post_csr_for_ccsid(FfiZatcaClient* client, FfiCsr* csr, const char* otp);
         ```
-
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `post_ccsid_for_pcsid`
 
@@ -67,9 +61,6 @@ HTTP client for the ZATCA endpoints, plus response models.
         FfiResult_FfiCsidProduction fatoora_zatca_post_ccsid_for_pcsid(FfiZatcaClient* client, FfiCsidCompliance* ccsid);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `renew_csid`
 
 ???+ note "Renew production CSID"
@@ -89,10 +80,7 @@ HTTP client for the ZATCA endpoints, plus response models.
         FfiResult_FfiCsidProduction fatoora_zatca_renew_csid(FfiZatcaClient* client, FfiCsidProduction* pcsid, FfiCsr* csr, const char* otp, const char* accept_language);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
-### `check_invoice_compliance` / `check_compliance`
+### `check_invoice_compliance`
 
 ???+ note "Check invoice compliance"
 
@@ -103,16 +91,13 @@ HTTP client for the ZATCA endpoints, plus response models.
 
     === "{{ lang.python }}"
         ```python
-        ZatcaClient.check_compliance(invoice: SignedInvoice, ccsid: CsidCompliance) -> ValidationResponse
+        ZatcaClient.check_invoice_compliance(invoice: SignedInvoice, ccsid: CsidCompliance) -> ValidationResponse
         ```
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiValidationResponse fatoora_zatca_check_compliance(FfiZatcaClient* client, FfiSignedInvoice* invoice, FfiCsidCompliance* ccsid);
+        FfiResult_FfiValidationResponse fatoora_zatca_check_invoice_compliance(FfiZatcaClient* client, FfiSignedInvoice* invoice, FfiCsidCompliance* ccsid);
         ```
-
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `report_simplified_invoice`
 
@@ -133,9 +118,6 @@ HTTP client for the ZATCA endpoints, plus response models.
         FfiResult_FfiValidationResponse fatoora_zatca_report_simplified_invoice(FfiZatcaClient* client, FfiSignedInvoice* invoice, FfiCsidProduction* pcsid, bool clearance_status, const char* accept_language);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `clear_standard_invoice`
 
 ???+ note "Clear standard invoice"
@@ -154,9 +136,6 @@ HTTP client for the ZATCA endpoints, plus response models.
         ```c
         FfiResult_FfiValidationResponse fatoora_zatca_clear_standard_invoice(FfiZatcaClient* client, FfiSignedInvoice* invoice, FfiCsidProduction* pcsid, bool clearance_status, const char* accept_language);
         ```
-
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ## CsidCredentials / CsidCompliance / CsidProduction
 
@@ -181,9 +160,6 @@ HTTP client for the ZATCA endpoints, plus response models.
         FfiResult_FfiCsidProduction fatoora_csid_production_new(FfiEnvironment env, const char* request_id, const char* token, const char* secret);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `env`
 
 ???+ note "Read credential environment"
@@ -204,9 +180,6 @@ HTTP client for the ZATCA endpoints, plus response models.
         FfiResult_FfiEnvironment fatoora_csid_compliance_env(FfiCsidCompliance* creds);
         FfiResult_FfiEnvironment fatoora_csid_production_env(FfiCsidProduction* creds);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `request_id`
 
@@ -229,10 +202,7 @@ HTTP client for the ZATCA endpoints, plus response models.
         FfiResult_FfiString fatoora_csid_production_request_id(FfiCsidProduction* creds);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
-### `binary_security_token` / `token`
+### `binary_security_token`
 
 ???+ note "Read token"
 
@@ -243,18 +213,15 @@ HTTP client for the ZATCA endpoints, plus response models.
 
     === "{{ lang.python }}"
         ```python
-        CsidCompliance.token() -> str
-        CsidProduction.token() -> str
+        CsidCompliance.binary_security_token() -> str
+        CsidProduction.binary_security_token() -> str
         ```
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_csid_compliance_token(FfiCsidCompliance* creds);
-        FfiResult_FfiString fatoora_csid_production_token(FfiCsidProduction* creds);
+        FfiResult_FfiString fatoora_csid_compliance_binary_security_token(FfiCsidCompliance* creds);
+        FfiResult_FfiString fatoora_csid_production_binary_security_token(FfiCsidProduction* creds);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `secret`
 
@@ -276,9 +243,6 @@ HTTP client for the ZATCA endpoints, plus response models.
         FfiResult_FfiString fatoora_csid_compliance_secret(FfiCsidCompliance* creds);
         FfiResult_FfiString fatoora_csid_production_secret(FfiCsidProduction* creds);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ## Response Types
 

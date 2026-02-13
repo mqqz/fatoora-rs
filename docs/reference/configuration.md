@@ -4,7 +4,7 @@ Environment selection used by the API client and validation helpers.
 
 ## EnvironmentType / Environment / FfiEnvironment
 
-### `from_str` / `parse`
+### `from_str`
 
 ???+ note "Parse environment"
     Convert a string value to an environment enum.
@@ -24,10 +24,7 @@ Environment selection used by the API client and validation helpers.
         /* parse is not exposed in C; use FfiEnvironment enum constants directly */
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
-### `as_str` / `value`
+### `as_str`
 
 ???+ note "Get canonical string"
     Return the canonical string value of the environment.
@@ -46,9 +43,6 @@ Environment selection used by the API client and validation helpers.
         ```c
         /* not exposed; use enum value directly */
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `endpoint_url`
 
@@ -69,9 +63,6 @@ Environment selection used by the API client and validation helpers.
         ```c
         /* not exposed */
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ## Config
 
@@ -95,10 +86,7 @@ Environment selection used by the API client and validation helpers.
         FfiConfig* fatoora_config_new(FfiEnvironment env);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
-### `env` / `env_value`
+### `env`
 
 ???+ note "Read config environment"
     Return the environment value stored in a config.
@@ -110,16 +98,13 @@ Environment selection used by the API client and validation helpers.
 
     === "{{ lang.python }}"
         ```python
-        Config.env_value() -> Environment
+        Config.env() -> Environment
         ```
 
     === "{{ lang.c }}"
         ```c
         FfiResult_FfiEnvironment fatoora_config_env(FfiConfig* config);
         ```
-
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `default`
 
@@ -141,9 +126,6 @@ Environment selection used by the API client and validation helpers.
         /* call fatoora_config_new(FfiEnvironment_NonProduction) */
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `validate_xml` (Python convenience)
 
 ???+ note "Validate XML with config"
@@ -163,6 +145,3 @@ Environment selection used by the API client and validation helpers.
         ```c
         FfiResult_bool fatoora_validate_xml_str(FfiConfig* config, const char* xml);
         ```
-
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.

@@ -75,7 +75,7 @@ The main core library (`fatoora-core`) is written in Rust with a C FFI that allo
     from fatoora.config import Environment
     from fatoora.csr import CsrProperties, SigningKey
 
-    props = CsrProperties.parse_file("csr.properties")
+    props = CsrProperties.parse_csr_config_file("csr.properties")
     key = SigningKey.generate()
     csr = props.build(key, Environment.NON_PRODUCTION)
     csr_pem = csr.to_pem_base64()

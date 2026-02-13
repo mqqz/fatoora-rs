@@ -24,9 +24,6 @@ Core data types for building and inspecting invoices.
         FfiResult_FfiInvoiceBuilder fatoora_invoice_builder_new(FfiInvoiceTypeKind type_kind, FfiInvoiceSubType subtype, const char* original_id, const char* original_uuid, const char* original_issue_date, const char* original_reason);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `set_id`
 
 ???+ note "Set invoice ID"
@@ -45,9 +42,6 @@ Core data types for building and inspecting invoices.
         ```c
         FfiResult_bool fatoora_invoice_builder_set_id(FfiInvoiceBuilder* builder, const char* id);
         ```
-
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `set_uuid`
 
@@ -68,9 +62,6 @@ Core data types for building and inspecting invoices.
         FfiResult_bool fatoora_invoice_builder_set_uuid(FfiInvoiceBuilder* builder, const char* uuid);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `set_issue_datetime`
 
 ???+ note "Set issue datetime"
@@ -89,9 +80,6 @@ Core data types for building and inspecting invoices.
         ```c
         FfiResult_bool fatoora_invoice_builder_set_issue_datetime(FfiInvoiceBuilder* builder, const char* value);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `set_currency`
 
@@ -112,9 +100,6 @@ Core data types for building and inspecting invoices.
         FfiResult_bool fatoora_invoice_builder_set_currency(FfiInvoiceBuilder* builder, const char* code);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `set_previous_invoice_hash`
 
 ???+ note "Set previous invoice hash"
@@ -133,9 +118,6 @@ Core data types for building and inspecting invoices.
         ```c
         FfiResult_bool fatoora_invoice_builder_set_previous_hash(FfiInvoiceBuilder* builder, const char* hash);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `set_invoice_counter`
 
@@ -156,9 +138,6 @@ Core data types for building and inspecting invoices.
         FfiResult_bool fatoora_invoice_builder_set_invoice_counter(FfiInvoiceBuilder* builder, uint64_t counter);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `set_payment_means_code`
 
 ???+ note "Set payment means code"
@@ -177,9 +156,6 @@ Core data types for building and inspecting invoices.
         ```c
         FfiResult_bool fatoora_invoice_builder_set_payment_means_code(FfiInvoiceBuilder* builder, const char* code);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `set_vat_category`
 
@@ -200,9 +176,6 @@ Core data types for building and inspecting invoices.
         FfiResult_bool fatoora_invoice_builder_set_vat_category(FfiInvoiceBuilder* builder, FfiVatCategory cat);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `set_seller`
 
 ???+ note "Set seller party"
@@ -221,9 +194,6 @@ Core data types for building and inspecting invoices.
         ```c
         FfiResult_bool fatoora_invoice_builder_set_seller(FfiInvoiceBuilder* builder, const char* name, const char* country, const char* city, const char* street, const char* additional_street, const char* building_number, const char* additional_number, const char* postal_code, const char* subdivision, const char* district, const char* vat_id, const char* other_id, const char* other_id_scheme);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `set_buyer`
 
@@ -244,9 +214,6 @@ Core data types for building and inspecting invoices.
         FfiResult_bool fatoora_invoice_builder_set_buyer(FfiInvoiceBuilder* builder, const char* name, const char* country, const char* city, const char* street, const char* additional_street, const char* building_number, const char* additional_number, const char* postal_code, const char* subdivision, const char* district, const char* vat_id, const char* other_id, const char* other_id_scheme);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `set_note`
 
 ???+ note "Set invoice note"
@@ -265,9 +232,6 @@ Core data types for building and inspecting invoices.
         ```c
         FfiResult_bool fatoora_invoice_builder_set_note(FfiInvoiceBuilder* builder, const char* lang, const char* text);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `set_allowance`
 
@@ -288,10 +252,7 @@ Core data types for building and inspecting invoices.
         FfiResult_bool fatoora_invoice_builder_set_allowance(FfiInvoiceBuilder* builder, const char* reason, double amount);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
-### `set_invoice_level_charge`
+### `invoice_level_charge`
 
 ???+ note "Set invoice-level charge"
 
@@ -302,18 +263,15 @@ Core data types for building and inspecting invoices.
 
     === "{{ lang.python }}"
         ```python
-        InvoiceBuilder.set_invoice_level_charge(charge: float) -> None
+        InvoiceBuilder.invoice_level_charge(charge: float) -> None
         ```
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_bool fatoora_invoice_builder_set_invoice_level_charge(FfiInvoiceBuilder* builder, double charge);
+        FfiResult_bool fatoora_invoice_builder_invoice_level_charge(FfiInvoiceBuilder* builder, double charge);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
-### `set_invoice_level_discount`
+### `invoice_level_discount`
 
 ???+ note "Set invoice-level discount"
 
@@ -324,18 +282,15 @@ Core data types for building and inspecting invoices.
 
     === "{{ lang.python }}"
         ```python
-        InvoiceBuilder.set_invoice_level_discount(discount: float) -> None
+        InvoiceBuilder.invoice_level_discount(discount: float) -> None
         ```
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_bool fatoora_invoice_builder_set_invoice_level_discount(FfiInvoiceBuilder* builder, double discount);
+        FfiResult_bool fatoora_invoice_builder_invoice_level_discount(FfiInvoiceBuilder* builder, double discount);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
-### `set_allowance_reason`
+### `allowance_reason`
 
 ???+ note "Set allowance reason"
 
@@ -346,18 +301,15 @@ Core data types for building and inspecting invoices.
 
     === "{{ lang.python }}"
         ```python
-        InvoiceBuilder.set_allowance_reason(reason: str) -> None
+        InvoiceBuilder.allowance_reason(reason: str) -> None
         ```
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_bool fatoora_invoice_builder_set_allowance_reason(FfiInvoiceBuilder* builder, const char* reason);
+        FfiResult_bool fatoora_invoice_builder_allowance_reason(FfiInvoiceBuilder* builder, const char* reason);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
-### `set_flags`
+### `flags`
 
 ???+ note "Set invoice flags"
 
@@ -368,16 +320,13 @@ Core data types for building and inspecting invoices.
 
     === "{{ lang.python }}"
         ```python
-        InvoiceBuilder.set_flags(flags: int) -> None
+        InvoiceBuilder.flags(flags: int) -> None
         ```
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_bool fatoora_invoice_builder_set_flags(FfiInvoiceBuilder* builder, uint8_t flags);
+        FfiResult_bool fatoora_invoice_builder_flags(FfiInvoiceBuilder* builder, uint8_t flags);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `add_line_item`
 
@@ -398,9 +347,6 @@ Core data types for building and inspecting invoices.
         FfiResult_bool fatoora_invoice_builder_add_line_item(FfiInvoiceBuilder* builder, const char* description, double quantity, const char* unit_code, double unit_price, double vat_rate, FfiVatCategory vat_category);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `build`
 
 ???+ note "Finalize invoice"
@@ -419,9 +365,6 @@ Core data types for building and inspecting invoices.
         ```c
         FfiResult_FfiFinalizedInvoice fatoora_invoice_builder_build(FfiInvoiceBuilder* builder);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ## Field Groups
 
@@ -472,12 +415,12 @@ Core data types for building and inspecting invoices.
 
 ### Notes and Allowance (`note`, `allowance_reason`, charge/discount)
 
-- Setters: `set_note`, `set_allowance`, `set_invoice_level_charge`, `set_invoice_level_discount`, `set_allowance_reason` and matching Python/C builder methods.
+- Setters: `set_note`, `set_allowance`, `invoice_level_charge`, `invoice_level_discount`, `allowance_reason` and matching Python/C builder methods.
 - Getters: `note`, `allowance_reason`, `invoice_level_charge`, `invoice_level_discount` on finalized/signed invoices and matching `fatoora_invoice_*` and `fatoora_signed_invoice_*` getters.
 
 ### Flags and Type
 
-- Setter: `InvoiceBuilder::set_flags` / `InvoiceBuilder.set_flags` / `fatoora_invoice_builder_set_flags`
+- Setter: `InvoiceBuilder::flags` / `InvoiceBuilder.flags` / `fatoora_invoice_builder_flags`
 - Getters: `flags`, `is_third_party`, `is_nominal`, `is_export`, `is_summary`, `is_self_billed`, `is_simplified`, `invoice_type_kind`, `invoice_sub_type` on finalized/signed invoices and matching C getters.
 
 ### Line Items and Totals
@@ -506,9 +449,6 @@ Core data types for building and inspecting invoices.
         FfiResult_FfiString fatoora_invoice_hash_base64(FfiFinalizedInvoice* invoice);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `sign`
 
 ???+ note "Sign finalized invoice"
@@ -527,9 +467,6 @@ Core data types for building and inspecting invoices.
         ```c
         FfiResult_FfiSignedInvoice fatoora_invoice_sign(FfiFinalizedInvoice* invoice, FfiSigner* signer);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### field accessors
 
@@ -579,9 +516,6 @@ Core data types for building and inspecting invoices.
         /* plus remaining fatoora_invoice_* accessors */
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ## SignedInvoice
 
 ### `xml`
@@ -603,10 +537,7 @@ Core data types for building and inspecting invoices.
         FfiResult_FfiString fatoora_signed_invoice_xml(FfiSignedInvoice* signed);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
-### `to_xml_base64` / `xml_base64`
+### `to_xml_base64`
 
 ???+ note "Get signed XML as Base64"
 
@@ -617,16 +548,13 @@ Core data types for building and inspecting invoices.
 
     === "{{ lang.python }}"
         ```python
-        SignedInvoice.xml_base64() -> str
+        SignedInvoice.to_xml_base64() -> str
         ```
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_xml_base64(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_to_xml_base64(FfiSignedInvoice* signed);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `hash_base64`
 
@@ -646,9 +574,6 @@ Core data types for building and inspecting invoices.
         ```c
         FfiResult_FfiString fatoora_signed_invoice_hash_base64(FfiSignedInvoice* signed);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### signature metadata accessors
 
@@ -683,9 +608,6 @@ Core data types for building and inspecting invoices.
         FfiResult_FfiString fatoora_signed_invoice_signed_props_hash(FfiSignedInvoice* signed);
         FfiResult_FfiString fatoora_signed_invoice_signing_time(FfiSignedInvoice* signed);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### field accessors
 
@@ -732,9 +654,6 @@ Core data types for building and inspecting invoices.
         FfiResult_f64 fatoora_signed_invoice_totals_tax_inclusive(FfiSignedInvoice* signed);
         /* plus remaining fatoora_signed_invoice_* accessors */
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ## Supporting Types
 

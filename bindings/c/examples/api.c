@@ -49,7 +49,7 @@ int main(void) {
 
     /* response handle provides getters for results */
     /* struct FfiResult_FfiValidationResponse resp =
-       fatoora_zatca_check_compliance(&client.value, &signed_invoice.value, &ccsid.value); */
+       fatoora_zatca_check_invoice_compliance(&client.value, &signed_invoice.value, &ccsid.value); */
     free(xml_cstr);
     fatoora_signed_invoice_free(&signed_invoice.value);
     fatoora_csid_compliance_free(&ccsid.value);

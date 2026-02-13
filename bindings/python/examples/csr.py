@@ -6,7 +6,7 @@ from fatoora.config import Environment
 from fatoora.csr import CsrProperties, SigningKey
 
 # csr_props_path = "path/to/csr.properties"
-props = CsrProperties.parse_file(str(csr_props_path))
+props = CsrProperties.parse_csr_config_file(str(csr_props_path))
 key = SigningKey.generate()
 csr = props.build(key, Environment.NON_PRODUCTION)
 

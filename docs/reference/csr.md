@@ -24,10 +24,7 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         FfiResult_FfiCsrProperties fatoora_csr_properties_from_str(const char* properties);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
-### `parse_csr_config` / `parse`
+### `parse_csr_config`
 
 ???+ note "Parse CSR config"
     Parse properties text using the config parser alias.
@@ -39,18 +36,15 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.python }}"
         ```python
-        CsrProperties.parse(properties: str) -> CsrProperties
+        CsrProperties.parse_csr_config(properties: str) -> CsrProperties
         ```
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiCsrProperties fatoora_csr_properties_parse(const char* properties);
+        FfiResult_FfiCsrProperties fatoora_csr_properties_parse_csr_config(const char* properties);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
-### `parse_csr_config_file` / `parse_file`
+### `parse_csr_config_file`
 
 ???+ note "Parse CSR config file"
     Parse properties from a file path.
@@ -62,16 +56,13 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.python }}"
         ```python
-        CsrProperties.parse_file(path: str) -> CsrProperties
+        CsrProperties.parse_csr_config_file(path: str) -> CsrProperties
         ```
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiCsrProperties fatoora_csr_properties_parse_file(const char* path);
+        FfiResult_FfiCsrProperties fatoora_csr_properties_parse_csr_config_file(const char* path);
         ```
-
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `build`
 
@@ -92,9 +83,6 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         ```c
         FfiResult_FfiCsr fatoora_csr_build(FfiCsrProperties* props, FfiSigningKey* key, FfiEnvironment env);
         ```
-
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ## SigningKey
 
@@ -118,9 +106,6 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         FfiResult_FfiSigningKey fatoora_signing_key_generate(void);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `from_pem`
 
 ???+ note "Load key from PEM"
@@ -140,9 +125,6 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         ```c
         FfiResult_FfiSigningKey fatoora_signing_key_from_pem(const char* pem);
         ```
-
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `from_der`
 
@@ -164,9 +146,6 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         FfiResult_FfiSigningKey fatoora_signing_key_from_der(const uint8_t* der, uintptr_t len);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `to_pem`
 
 ???+ note "Serialize key to PEM"
@@ -187,9 +166,6 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         FfiResult_FfiString fatoora_signing_key_to_pem(FfiSigningKey* key);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `to_der`
 
 ???+ note "Serialize key to DER"
@@ -209,9 +185,6 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         ```c
         FfiResult_FfiBytes fatoora_signing_key_to_der(FfiSigningKey* key);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ## Csr
 
@@ -235,9 +208,6 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         FfiResult_FfiCsr fatoora_csr_from_der(const uint8_t* der, uintptr_t len);
         ```
 
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `to_pem`
 
 ???+ note "Serialize CSR to PEM"
@@ -256,9 +226,6 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         ```c
         FfiResult_FfiString fatoora_csr_to_pem(FfiCsr* csr);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `to_der`
 
@@ -279,9 +246,6 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         FfiResult_FfiBytes fatoora_csr_to_der(FfiCsr* csr);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `to_base64`
 
 ???+ note "Serialize CSR DER to Base64"
@@ -300,9 +264,6 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         ```c
         FfiResult_FfiString fatoora_csr_to_base64(FfiCsr* csr);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ### `to_pem_base64`
 
@@ -323,9 +284,6 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         FfiResult_FfiString fatoora_csr_to_pem_base64(FfiCsr* csr);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `subject_string`
 
 ???+ note "Get CSR subject string"
@@ -345,9 +303,6 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         FfiResult_FfiString fatoora_csr_subject_string(FfiCsr* csr);
         ```
 
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
-
 ### `extension_values_der`
 
 ???+ note "Get extension DER values"
@@ -366,9 +321,6 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
         ```c
         FfiResult_FfiBytesList fatoora_csr_extension_values_der(FfiCsr* csr);
         ```
-
-    !!! info "Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ## Errors
 

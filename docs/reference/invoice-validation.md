@@ -2,7 +2,7 @@
 
 Schema validation for invoice XML.
 
-## `validate_xml_invoice_from_str` / `validate_xml_str` / `fatoora_validate_xml_str`
+## `validate_xml_invoice_from_str`
 
 ### `validate`
 
@@ -23,9 +23,6 @@ Schema validation for invoice XML.
         ```c
         FfiResult_bool fatoora_validate_xml_str(FfiConfig* config, const char* xml);
         ```
-
-    !!! info "Args / Returns"
-        - Types are language-specific and shown in the active tab signature above.
 
 ## Behavior
 
