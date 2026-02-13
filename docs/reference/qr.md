@@ -2,10 +2,12 @@
 
 ZATCA QR payload generation and accessors.
 
-## Access QR
+## SignedInvoice
 
-??? note "QR payload"
-    Read the base64 TLV payload from a signed invoice.
+### qr_code / qr / fatoora_signed_invoice_qr
+
+??? note "Read QR payload"
+    Read the Base64 TLV QR payload from a signed invoice.
 
     === "{{ lang.rust }}"
         ```rust
@@ -23,10 +25,12 @@ ZATCA QR payload generation and accessors.
         ```
 
     !!! info "Args"
-        - `signed`: signed invoice handle.
+        - C only: `signed` (`FfiSignedInvoice*`).
 
     !!! info "Returns"
-        - `string`: base64 TLV payload.
+        - Rust: `&str`.
+        - Python: `str`.
+        - C: `FfiResult_FfiString`.
 
 ## Errors
 
@@ -37,6 +41,6 @@ ZATCA QR payload generation and accessors.
 
 !!! note "Behavior"
     - QR payloads use TLV tags 1-5 for seller + totals, and tags 6-9 for hash/signature data when present.
-    - The base64-encoded payload must be 700 characters or fewer.
+    - The Base64-encoded payload must be 700 characters or fewer.
 
 See also: [QR Guide](../guides/qr.md)

@@ -2,10 +2,12 @@
 
 Core data types for building and inspecting invoices.
 
-## Invoice Builder
+## InvoiceBuilder
+
+### new
 
 ??? note "Create builder"
-    Create a builder for a specific invoice type and subtype.
+    Create a builder for a specific invoice type/subtype.
 
     === "{{ lang.rust }}"
         ```rust
@@ -23,85 +25,405 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Args"
-        - `invoice_type` / `invoice_subtype`: invoice classification.
-        - `original_*`: original invoice references for credit/debit flows.
+        - `invoice_type` / `type_kind` (`InvoiceType` / `InvoiceTypeKind` / `FfiInvoiceTypeKind`): invoice classification.
+        - `invoice_subtype` / `subtype` (`InvoiceSubType` / `FfiInvoiceSubType`): invoice subtype.
+        - `original_*` (`Optional[str]` / `const char*`): required for credit/debit references.
 
     !!! info "Returns"
-        - `InvoiceBuilder`: mutable builder handle.
+        - Rust: `InvoiceBuilder`.
+        - Python: `InvoiceBuilder`.
+        - C: `FfiResult_FfiInvoiceBuilder`.
 
-??? note "Set fields"
-    Set header fields and parties on the builder.
+### set_id
+
+??? note "Set invoice ID"
 
     === "{{ lang.rust }}"
         ```rust
         InvoiceBuilder::set_id(id: impl Into<String>) -> &mut Self
-        InvoiceBuilder::set_uuid(uuid: impl Into<String>) -> &mut Self
-        InvoiceBuilder::set_issue_datetime(value: impl Into<String>) -> &mut Self
-        InvoiceBuilder::set_currency(code: impl Into<String>) -> &mut Self
-        InvoiceBuilder::set_previous_invoice_hash(hash: impl Into<String>) -> &mut Self
-        InvoiceBuilder::set_invoice_counter(counter: u64) -> &mut Self
-        InvoiceBuilder::set_payment_means_code(code: impl Into<String>) -> &mut Self
-        InvoiceBuilder::set_vat_category(category: VatCategory) -> &mut Self
-        InvoiceBuilder::set_seller(seller: Seller) -> &mut Self
-        InvoiceBuilder::set_buyer(buyer: Buyer) -> &mut Self
-        InvoiceBuilder::set_note(note: InvoiceNote) -> &mut Self
-        InvoiceBuilder::set_allowance(reason: impl Into<String>, amount: f64) -> &mut Self
-        InvoiceBuilder::invoice_level_charge(charge: f64) -> &mut Self
-        InvoiceBuilder::invoice_level_discount(discount: f64) -> &mut Self
-        InvoiceBuilder::allowance_reason(reason: impl Into<String>) -> &mut Self
-        InvoiceBuilder::flags(flags: InvoiceFlags) -> &mut Self
         ```
 
     === "{{ lang.python }}"
         ```python
         InvoiceBuilder.set_id(invoice_id: str) -> None
-        InvoiceBuilder.set_uuid(uuid: str) -> None
-        InvoiceBuilder.set_issue_datetime(issue_datetime: str) -> None
-        InvoiceBuilder.set_currency(currency_code: str) -> None
-        InvoiceBuilder.set_previous_invoice_hash(hash: str) -> None
-        InvoiceBuilder.set_invoice_counter(counter: int) -> None
-        InvoiceBuilder.set_payment_means_code(code: str) -> None
-        InvoiceBuilder.set_vat_category(category: VatCategory) -> None
-        InvoiceBuilder.set_seller(...) -> None
-        InvoiceBuilder.set_buyer(...) -> None
-        InvoiceBuilder.set_note(language: str, text: str) -> None
-        InvoiceBuilder.set_allowance(reason: str, amount: float) -> None
-        InvoiceBuilder.set_invoice_level_charge(charge: float) -> None
-        InvoiceBuilder.set_invoice_level_discount(discount: float) -> None
-        InvoiceBuilder.set_allowance_reason(reason: str) -> None
-        InvoiceBuilder.set_flags(flags: int) -> None
         ```
 
     === "{{ lang.c }}"
         ```c
         FfiResult_bool fatoora_invoice_builder_set_id(FfiInvoiceBuilder* builder, const char* id);
-        FfiResult_bool fatoora_invoice_builder_set_uuid(FfiInvoiceBuilder* builder, const char* uuid);
-        FfiResult_bool fatoora_invoice_builder_set_issue_datetime(FfiInvoiceBuilder* builder, const char* value);
-        FfiResult_bool fatoora_invoice_builder_set_currency(FfiInvoiceBuilder* builder, const char* code);
-        FfiResult_bool fatoora_invoice_builder_set_previous_hash(FfiInvoiceBuilder* builder, const char* hash);
-        FfiResult_bool fatoora_invoice_builder_set_invoice_counter(FfiInvoiceBuilder* builder, uint64_t counter);
-        FfiResult_bool fatoora_invoice_builder_set_payment_means_code(FfiInvoiceBuilder* builder, const char* code);
-        FfiResult_bool fatoora_invoice_builder_set_vat_category(FfiInvoiceBuilder* builder, FfiVatCategory cat);
-        FfiResult_bool fatoora_invoice_builder_set_seller(FfiInvoiceBuilder* builder, const char* name, const char* country, const char* city, const char* street, const char* additional_street, const char* building_number, const char* additional_number, const char* postal_code, const char* subdivision, const char* district, const char* vat_id, const char* other_id, const char* other_id_scheme);
-        FfiResult_bool fatoora_invoice_builder_set_buyer(FfiInvoiceBuilder* builder, const char* name, const char* country, const char* city, const char* street, const char* additional_street, const char* building_number, const char* additional_number, const char* postal_code, const char* subdivision, const char* district, const char* vat_id, const char* other_id, const char* other_id_scheme);
-        FfiResult_bool fatoora_invoice_builder_set_note(FfiInvoiceBuilder* builder, const char* lang, const char* text);
-        FfiResult_bool fatoora_invoice_builder_set_allowance(FfiInvoiceBuilder* builder, const char* reason, double amount);
-        FfiResult_bool fatoora_invoice_builder_set_invoice_level_charge(FfiInvoiceBuilder* builder, double charge);
-        FfiResult_bool fatoora_invoice_builder_set_invoice_level_discount(FfiInvoiceBuilder* builder, double discount);
-        FfiResult_bool fatoora_invoice_builder_set_allowance_reason(FfiInvoiceBuilder* builder, const char* reason);
-        FfiResult_bool fatoora_invoice_builder_set_flags(FfiInvoiceBuilder* builder, uint8_t flags);
         ```
 
     !!! info "Args"
-        - Field values as shown in the signatures.
+        - `id` / `invoice_id` (`str` / `const char*`): invoice ID.
 
     !!! info "Returns"
-        - Rust: builder for chaining.
-        - Python: None (raises on error).
-        - C: ok=true on success, error set on failure.
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
 
-??? note "Line items"
-    Add invoice line items.
+### set_uuid
+
+??? note "Set invoice UUID"
+
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceBuilder::set_uuid(uuid: impl Into<String>) -> &mut Self
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        InvoiceBuilder.set_uuid(uuid: str) -> None
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_bool fatoora_invoice_builder_set_uuid(FfiInvoiceBuilder* builder, const char* uuid);
+        ```
+
+    !!! info "Returns"
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
+
+### set_issue_datetime
+
+??? note "Set issue datetime"
+
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceBuilder::set_issue_datetime(value: impl Into<String>) -> &mut Self
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        InvoiceBuilder.set_issue_datetime(issue_datetime: str) -> None
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_bool fatoora_invoice_builder_set_issue_datetime(FfiInvoiceBuilder* builder, const char* value);
+        ```
+
+    !!! info "Returns"
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
+
+### set_currency
+
+??? note "Set currency"
+
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceBuilder::set_currency(code: impl Into<String>) -> &mut Self
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        InvoiceBuilder.set_currency(currency_code: str) -> None
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_bool fatoora_invoice_builder_set_currency(FfiInvoiceBuilder* builder, const char* code);
+        ```
+
+    !!! info "Returns"
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
+
+### set_previous_invoice_hash
+
+??? note "Set previous invoice hash"
+
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceBuilder::set_previous_invoice_hash(hash: impl Into<String>) -> &mut Self
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        InvoiceBuilder.set_previous_invoice_hash(hash: str) -> None
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_bool fatoora_invoice_builder_set_previous_hash(FfiInvoiceBuilder* builder, const char* hash);
+        ```
+
+    !!! info "Returns"
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
+
+### set_invoice_counter
+
+??? note "Set invoice counter"
+
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceBuilder::set_invoice_counter(counter: u64) -> &mut Self
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        InvoiceBuilder.set_invoice_counter(counter: int) -> None
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_bool fatoora_invoice_builder_set_invoice_counter(FfiInvoiceBuilder* builder, uint64_t counter);
+        ```
+
+    !!! info "Returns"
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
+
+### set_payment_means_code
+
+??? note "Set payment means code"
+
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceBuilder::set_payment_means_code(code: impl Into<String>) -> &mut Self
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        InvoiceBuilder.set_payment_means_code(code: str) -> None
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_bool fatoora_invoice_builder_set_payment_means_code(FfiInvoiceBuilder* builder, const char* code);
+        ```
+
+    !!! info "Returns"
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
+
+### set_vat_category
+
+??? note "Set invoice VAT category"
+
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceBuilder::set_vat_category(category: VatCategory) -> &mut Self
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        InvoiceBuilder.set_vat_category(category: VatCategory) -> None
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_bool fatoora_invoice_builder_set_vat_category(FfiInvoiceBuilder* builder, FfiVatCategory cat);
+        ```
+
+    !!! info "Returns"
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
+
+### set_seller
+
+??? note "Set seller party"
+
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceBuilder::set_seller(seller: Seller) -> &mut Self
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        InvoiceBuilder.set_seller(...) -> None
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_bool fatoora_invoice_builder_set_seller(FfiInvoiceBuilder* builder, const char* name, const char* country, const char* city, const char* street, const char* additional_street, const char* building_number, const char* additional_number, const char* postal_code, const char* subdivision, const char* district, const char* vat_id, const char* other_id, const char* other_id_scheme);
+        ```
+
+    !!! info "Returns"
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
+
+### set_buyer
+
+??? note "Set buyer party"
+
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceBuilder::set_buyer(buyer: Buyer) -> &mut Self
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        InvoiceBuilder.set_buyer(...) -> None
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_bool fatoora_invoice_builder_set_buyer(FfiInvoiceBuilder* builder, const char* name, const char* country, const char* city, const char* street, const char* additional_street, const char* building_number, const char* additional_number, const char* postal_code, const char* subdivision, const char* district, const char* vat_id, const char* other_id, const char* other_id_scheme);
+        ```
+
+    !!! info "Returns"
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
+
+### set_note
+
+??? note "Set invoice note"
+
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceBuilder::set_note(note: InvoiceNote) -> &mut Self
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        InvoiceBuilder.set_note(language: str, text: str) -> None
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_bool fatoora_invoice_builder_set_note(FfiInvoiceBuilder* builder, const char* lang, const char* text);
+        ```
+
+    !!! info "Returns"
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
+
+### set_allowance
+
+??? note "Set allowance reason and amount"
+
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceBuilder::set_allowance(reason: impl Into<String>, amount: f64) -> &mut Self
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        InvoiceBuilder.set_allowance(reason: str, amount: float) -> None
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_bool fatoora_invoice_builder_set_allowance(FfiInvoiceBuilder* builder, const char* reason, double amount);
+        ```
+
+    !!! info "Returns"
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
+
+### set_invoice_level_charge
+
+??? note "Set invoice-level charge"
+
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceBuilder::invoice_level_charge(charge: f64) -> &mut Self
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        InvoiceBuilder.set_invoice_level_charge(charge: float) -> None
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_bool fatoora_invoice_builder_set_invoice_level_charge(FfiInvoiceBuilder* builder, double charge);
+        ```
+
+    !!! info "Returns"
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
+
+### set_invoice_level_discount
+
+??? note "Set invoice-level discount"
+
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceBuilder::invoice_level_discount(discount: f64) -> &mut Self
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        InvoiceBuilder.set_invoice_level_discount(discount: float) -> None
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_bool fatoora_invoice_builder_set_invoice_level_discount(FfiInvoiceBuilder* builder, double discount);
+        ```
+
+    !!! info "Returns"
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
+
+### set_allowance_reason
+
+??? note "Set allowance reason"
+
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceBuilder::allowance_reason(reason: impl Into<String>) -> &mut Self
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        InvoiceBuilder.set_allowance_reason(reason: str) -> None
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_bool fatoora_invoice_builder_set_allowance_reason(FfiInvoiceBuilder* builder, const char* reason);
+        ```
+
+    !!! info "Returns"
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
+
+### set_flags
+
+??? note "Set invoice flags"
+
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceBuilder::flags(flags: InvoiceFlags) -> &mut Self
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        InvoiceBuilder.set_flags(flags: int) -> None
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_bool fatoora_invoice_builder_set_flags(FfiInvoiceBuilder* builder, uint8_t flags);
+        ```
+
+    !!! info "Returns"
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
+
+### add_line_item
+
+??? note "Add line item"
 
     === "{{ lang.rust }}"
         ```rust
@@ -118,14 +440,14 @@ Core data types for building and inspecting invoices.
         FfiResult_bool fatoora_invoice_builder_add_line_item(FfiInvoiceBuilder* builder, const char* description, double quantity, const char* unit_code, double unit_price, double vat_rate, FfiVatCategory vat_category);
         ```
 
-    !!! info "Args"
-        - Line item fields as shown in the signatures.
-
     !!! info "Returns"
-        - Builder updated with the new line item.
+        - Rust: `&mut Self`.
+        - Python: `None`.
+        - C: `FfiResult_bool`.
 
-??? note "Build"
-    Finalize the builder into a finalized invoice.
+### build
+
+??? note "Finalize invoice"
 
     === "{{ lang.rust }}"
         ```rust
@@ -143,20 +465,64 @@ Core data types for building and inspecting invoices.
         ```
 
     !!! info "Returns"
-        - `FinalizedInvoice`: immutable invoice handle.
+        - Rust: `Result<FinalizedInvoice, InvoiceError>`.
+        - Python: `FinalizedInvoice`.
+        - C: `FfiResult_FfiFinalizedInvoice`.
 
-## Finalized Invoice
+## FinalizedInvoice
 
-??? note "Accessors"
-    Read finalized invoice fields.
+### hash_base64
+
+??? note "Get finalized invoice hash (Base64)"
 
     === "{{ lang.rust }}"
         ```rust
-        FinalizedInvoice::data(&self) -> &InvoiceData
-        FinalizedInvoice::totals(&self) -> &InvoiceTotalsData
         FinalizedInvoice::hash_base64(&self) -> Result<String, SigningError>
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        FinalizedInvoice.hash_base64() -> str
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiString fatoora_invoice_hash_base64(FfiFinalizedInvoice* invoice);
+        ```
+
+    !!! info "Returns"
+        - Rust: `Result<String, SigningError>`.
+        - Python: `str`.
+        - C: `FfiResult_FfiString`.
+
+### sign
+
+??? note "Sign finalized invoice"
+
+    === "{{ lang.rust }}"
+        ```rust
         FinalizedInvoice::sign(self, signer: &InvoiceSigner) -> Result<SignedInvoice, SigningError>
         ```
+
+    === "{{ lang.python }}"
+        ```python
+        FinalizedInvoice.sign(signer: Signer) -> SignedInvoice
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiSignedInvoice fatoora_invoice_sign(FfiFinalizedInvoice* invoice, FfiSigner* signer);
+        ```
+
+    !!! info "Returns"
+        - Rust: `Result<SignedInvoice, SigningError>`.
+        - Python: `SignedInvoice`.
+        - C: `FfiResult_FfiSignedInvoice`.
+
+### field accessors
+
+??? note "Read finalized invoice fields"
+    Accessors for identity, parties, references, flags, line items, and totals are available per field in Python and C.
 
     === "{{ lang.python }}"
         ```python
@@ -188,95 +554,140 @@ Core data types for building and inspecting invoices.
         FinalizedInvoice.is_self_billed() -> bool
         FinalizedInvoice.is_simplified() -> bool
         FinalizedInvoice.xml() -> str
-        FinalizedInvoice.hash_base64() -> str
         ```
 
     === "{{ lang.c }}"
         ```c
+        /* field-level getters: fatoora_invoice_* */
         FfiResult_FfiString fatoora_invoice_id(FfiFinalizedInvoice* invoice);
         FfiResult_FfiString fatoora_invoice_uuid(FfiFinalizedInvoice* invoice);
-        FfiResult_FfiString fatoora_invoice_issue_datetime(FfiFinalizedInvoice* invoice);
-        FfiResult_FfiString fatoora_invoice_currency(FfiFinalizedInvoice* invoice);
-        FfiResult_FfiString fatoora_invoice_previous_hash(FfiFinalizedInvoice* invoice);
-        FfiResult_u64 fatoora_invoice_counter(FfiFinalizedInvoice* invoice);
-        FfiResult_FfiString fatoora_invoice_payment_means_code(FfiFinalizedInvoice* invoice);
-        FfiResult_FfiVatCategory fatoora_invoice_vat_category(FfiFinalizedInvoice* invoice);
-        FfiResult_FfiString fatoora_invoice_allowance_reason(FfiFinalizedInvoice* invoice);
-        FfiResult_f64 fatoora_invoice_level_charge(FfiFinalizedInvoice* invoice);
-        FfiResult_f64 fatoora_invoice_level_discount(FfiFinalizedInvoice* invoice);
         FfiResult_FfiString fatoora_invoice_to_xml(FfiFinalizedInvoice* invoice);
-        FfiResult_FfiString fatoora_invoice_hash_base64(FfiFinalizedInvoice* invoice);
-        FfiResult_FfiInvoiceTypeKind fatoora_invoice_type_kind(FfiFinalizedInvoice* invoice);
-        FfiResult_FfiInvoiceSubType fatoora_invoice_sub_type(FfiFinalizedInvoice* invoice);
-        FfiResult_FfiParty fatoora_invoice_seller(FfiFinalizedInvoice* invoice);
-        FfiResult_FfiParty fatoora_invoice_buyer(FfiFinalizedInvoice* invoice);
-        FfiResult_FfiInvoiceNote fatoora_invoice_note(FfiFinalizedInvoice* invoice);
-        FfiResult_FfiOriginalInvoiceRef fatoora_invoice_original_ref(FfiFinalizedInvoice* invoice);
-        FfiResult_FfiString fatoora_invoice_original_reason(FfiFinalizedInvoice* invoice);
-        FfiResult_u8 fatoora_invoice_flags(FfiFinalizedInvoice* invoice);
-        FfiResult_bool fatoora_invoice_is_third_party(FfiFinalizedInvoice* invoice);
-        FfiResult_bool fatoora_invoice_is_nominal(FfiFinalizedInvoice* invoice);
-        FfiResult_bool fatoora_invoice_is_export(FfiFinalizedInvoice* invoice);
-        FfiResult_bool fatoora_invoice_is_summary(FfiFinalizedInvoice* invoice);
-        FfiResult_bool fatoora_invoice_is_self_billed(FfiFinalizedInvoice* invoice);
-        FfiResult_bool fatoora_invoice_is_simplified(FfiFinalizedInvoice* invoice);
         FfiResult_u64 fatoora_invoice_line_item_count(FfiFinalizedInvoice* invoice);
-        FfiResult_FfiString fatoora_invoice_line_item_description(FfiFinalizedInvoice* invoice, uint64_t index);
-        FfiResult_FfiString fatoora_invoice_line_item_unit_code(FfiFinalizedInvoice* invoice, uint64_t index);
-        FfiResult_f64 fatoora_invoice_line_item_quantity(FfiFinalizedInvoice* invoice, uint64_t index);
-        FfiResult_f64 fatoora_invoice_line_item_unit_price(FfiFinalizedInvoice* invoice, uint64_t index);
-        FfiResult_f64 fatoora_invoice_line_item_total_amount(FfiFinalizedInvoice* invoice, uint64_t index);
-        FfiResult_f64 fatoora_invoice_line_item_vat_rate(FfiFinalizedInvoice* invoice, uint64_t index);
-        FfiResult_f64 fatoora_invoice_line_item_vat_amount(FfiFinalizedInvoice* invoice, uint64_t index);
-        FfiResult_u8 fatoora_invoice_line_item_vat_category(FfiFinalizedInvoice* invoice, uint64_t index);
         FfiResult_f64 fatoora_invoice_totals_tax_inclusive(FfiFinalizedInvoice* invoice);
-        FfiResult_f64 fatoora_invoice_totals_tax_amount(FfiFinalizedInvoice* invoice);
-        FfiResult_f64 fatoora_invoice_totals_line_extension(FfiFinalizedInvoice* invoice);
-        FfiResult_f64 fatoora_invoice_totals_allowance_total(FfiFinalizedInvoice* invoice);
-        FfiResult_f64 fatoora_invoice_totals_charge_total(FfiFinalizedInvoice* invoice);
-        FfiResult_f64 fatoora_invoice_totals_taxable_amount(FfiFinalizedInvoice* invoice);
+        /* plus remaining fatoora_invoice_* accessors */
         ```
 
-    !!! info "Args"
-        - `invoice`: finalized invoice handle.
-
     !!! info "Returns"
-        - Field values for the finalized invoice.
+        - Typed field values matching each accessor signature.
 
-## Signed Invoice
+## SignedInvoice
 
-??? note "Accessors"
-    Read signed invoice fields and metadata.
+### xml
+
+??? note "Get signed invoice XML"
 
     === "{{ lang.rust }}"
         ```rust
-        SignedInvoice::data(&self) -> &InvoiceData
-        SignedInvoice::totals(&self) -> &InvoiceTotalsData
-        SignedInvoice::signed_properties(&self) -> &SignedProperties
-        SignedInvoice::qr_code(&self) -> &str
         SignedInvoice::xml(&self) -> &str
-        SignedInvoice::uuid(&self) -> &str
-        SignedInvoice::invoice_hash(&self) -> &str
-        SignedInvoice::signature(&self) -> &str
-        SignedInvoice::public_key(&self) -> &str
-        SignedInvoice::zatca_key_signature(&self) -> Option<&str>
-        SignedInvoice::to_xml_base64(&self) -> String
-        SignedInvoice::hash_base64(&self) -> Result<String, SigningError>
         ```
 
     === "{{ lang.python }}"
         ```python
         SignedInvoice.xml() -> str
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiString fatoora_signed_invoice_xml(FfiSignedInvoice* signed);
+        ```
+
+    !!! info "Returns"
+        - Rust: `&str`.
+        - Python: `str`.
+        - C: `FfiResult_FfiString`.
+
+### to_xml_base64 / xml_base64
+
+??? note "Get signed XML as Base64"
+
+    === "{{ lang.rust }}"
+        ```rust
+        SignedInvoice::to_xml_base64(&self) -> String
+        ```
+
+    === "{{ lang.python }}"
+        ```python
         SignedInvoice.xml_base64() -> str
-        SignedInvoice.qr() -> str
-        SignedInvoice.invoice_hash() -> str
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiString fatoora_signed_invoice_xml_base64(FfiSignedInvoice* signed);
+        ```
+
+    !!! info "Returns"
+        - Rust: `String`.
+        - Python: `str`.
+        - C: `FfiResult_FfiString`.
+
+### hash_base64
+
+??? note "Get signed invoice hash (Base64)"
+
+    === "{{ lang.rust }}"
+        ```rust
+        SignedInvoice::hash_base64(&self) -> Result<String, SigningError>
+        ```
+
+    === "{{ lang.python }}"
+        ```python
         SignedInvoice.hash_base64() -> str
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiString fatoora_signed_invoice_hash_base64(FfiSignedInvoice* signed);
+        ```
+
+    !!! info "Returns"
+        - Rust: `Result<String, SigningError>`.
+        - Python: `str`.
+        - C: `FfiResult_FfiString`.
+
+### signature metadata accessors
+
+??? note "Read signature metadata"
+
+    === "{{ lang.rust }}"
+        ```rust
+        SignedInvoice::invoice_hash(&self) -> &str
+        SignedInvoice::signature(&self) -> &str
+        SignedInvoice::public_key(&self) -> &str
+        SignedInvoice::zatca_key_signature(&self) -> Option<&str>
+        ```
+
+    === "{{ lang.python }}"
+        ```python
+        SignedInvoice.invoice_hash() -> str
         SignedInvoice.signature() -> str
         SignedInvoice.public_key() -> str
         SignedInvoice.zatca_key_signature() -> Optional[str]
         SignedInvoice.cert_hash() -> str
         SignedInvoice.signed_props_hash() -> str
         SignedInvoice.signing_time() -> str
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiString fatoora_signed_invoice_hash(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_signature(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_public_key(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_zatca_key_signature(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_cert_hash(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_signed_props_hash(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_signing_time(FfiSignedInvoice* signed);
+        ```
+
+    !!! info "Returns"
+        - Signature-related strings and optional values.
+
+### field accessors
+
+??? note "Read signed invoice data fields"
+    Signed invoices expose the same business-field accessors as finalized invoices, plus signature metadata.
+
+    === "{{ lang.python }}"
+        ```python
         SignedInvoice.id() -> str
         SignedInvoice.uuid() -> str
         SignedInvoice.issue_datetime() -> str
@@ -308,70 +719,21 @@ Core data types for building and inspecting invoices.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_xml(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_xml_base64(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_qr(FfiSignedInvoice* signed);
+        /* field-level getters: fatoora_signed_invoice_* */
         FfiResult_FfiString fatoora_signed_invoice_id(FfiSignedInvoice* signed);
         FfiResult_FfiString fatoora_signed_invoice_uuid(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_issue_datetime(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_currency(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_previous_hash(FfiSignedInvoice* signed);
-        FfiResult_u64 fatoora_signed_invoice_counter(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_payment_means_code(FfiSignedInvoice* signed);
-        FfiResult_FfiVatCategory fatoora_signed_invoice_vat_category(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_allowance_reason(FfiSignedInvoice* signed);
-        FfiResult_f64 fatoora_signed_invoice_level_charge(FfiSignedInvoice* signed);
-        FfiResult_f64 fatoora_signed_invoice_level_discount(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_hash(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_hash_base64(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_signature(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_public_key(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_zatca_key_signature(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_cert_hash(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_signed_props_hash(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_signing_time(FfiSignedInvoice* signed);
-        FfiResult_bool fatoora_signed_invoice_is_third_party(FfiSignedInvoice* signed);
-        FfiResult_bool fatoora_signed_invoice_is_nominal(FfiSignedInvoice* signed);
-        FfiResult_bool fatoora_signed_invoice_is_export(FfiSignedInvoice* signed);
-        FfiResult_bool fatoora_signed_invoice_is_summary(FfiSignedInvoice* signed);
-        FfiResult_bool fatoora_signed_invoice_is_self_billed(FfiSignedInvoice* signed);
-        FfiResult_bool fatoora_signed_invoice_is_simplified(FfiSignedInvoice* signed);
-        FfiResult_FfiInvoiceTypeKind fatoora_signed_invoice_type_kind(FfiSignedInvoice* signed);
-        FfiResult_FfiInvoiceSubType fatoora_signed_invoice_sub_type(FfiSignedInvoice* signed);
-        FfiResult_FfiParty fatoora_signed_invoice_seller(FfiSignedInvoice* signed);
-        FfiResult_FfiParty fatoora_signed_invoice_buyer(FfiSignedInvoice* signed);
-        FfiResult_FfiInvoiceNote fatoora_signed_invoice_note(FfiSignedInvoice* signed);
-        FfiResult_FfiOriginalInvoiceRef fatoora_signed_invoice_original_ref(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_original_reason(FfiSignedInvoice* signed);
-        FfiResult_u8 fatoora_signed_invoice_flags(FfiSignedInvoice* signed);
         FfiResult_u64 fatoora_signed_invoice_line_item_count(FfiSignedInvoice* signed);
-        FfiResult_FfiString fatoora_signed_invoice_line_item_description(FfiSignedInvoice* signed, uint64_t index);
-        FfiResult_FfiString fatoora_signed_invoice_line_item_unit_code(FfiSignedInvoice* signed, uint64_t index);
-        FfiResult_f64 fatoora_signed_invoice_line_item_quantity(FfiSignedInvoice* signed, uint64_t index);
-        FfiResult_f64 fatoora_signed_invoice_line_item_unit_price(FfiSignedInvoice* signed, uint64_t index);
-        FfiResult_f64 fatoora_signed_invoice_line_item_total_amount(FfiSignedInvoice* signed, uint64_t index);
-        FfiResult_f64 fatoora_signed_invoice_line_item_vat_rate(FfiSignedInvoice* signed, uint64_t index);
-        FfiResult_f64 fatoora_signed_invoice_line_item_vat_amount(FfiSignedInvoice* signed, uint64_t index);
-        FfiResult_u8 fatoora_signed_invoice_line_item_vat_category(FfiSignedInvoice* signed, uint64_t index);
         FfiResult_f64 fatoora_signed_invoice_totals_tax_inclusive(FfiSignedInvoice* signed);
-        FfiResult_f64 fatoora_signed_invoice_totals_tax_amount(FfiSignedInvoice* signed);
-        FfiResult_f64 fatoora_signed_invoice_totals_line_extension(FfiSignedInvoice* signed);
-        FfiResult_f64 fatoora_signed_invoice_totals_allowance_total(FfiSignedInvoice* signed);
-        FfiResult_f64 fatoora_signed_invoice_totals_charge_total(FfiSignedInvoice* signed);
-        FfiResult_f64 fatoora_signed_invoice_totals_taxable_amount(FfiSignedInvoice* signed);
+        /* plus remaining fatoora_signed_invoice_* accessors */
         ```
 
-    !!! info "Args"
-        - `signed`: signed invoice handle.
-
     !!! info "Returns"
-        - Signed XML, hashes, and signature metadata.
-        - Optional handles are returned as NULL pointers on success when fields are absent.
+        - Typed field values matching each accessor signature.
 
 ## Supporting Types
 
 !!! note "Types"
-    - CountryCode, CurrencyCode, InvoiceTimestamp, InvoiceDate, VatId, OtherId.
-    - InvoiceNote, OriginalInvoiceRef, LineItem, Party (Seller/Buyer roles).
+    - `CountryCode`, `CurrencyCode`, `InvoiceTimestamp`, `InvoiceDate`, `VatId`, `OtherId`.
+    - `InvoiceNote`, `OriginalInvoiceRef`, `LineItem`, `Party` (`Seller`/`Buyer` roles).
 
 See also: [Invoice Signing Reference](invoice-signing.md)

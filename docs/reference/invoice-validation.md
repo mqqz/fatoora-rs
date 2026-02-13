@@ -2,9 +2,11 @@
 
 Schema validation for invoice XML.
 
-## Validate XML
+## validate_xml_invoice_from_str / validate_xml_str / fatoora_validate_xml_str
 
-??? note "Validate XML"
+### validate
+
+??? note "Validate invoice XML"
     Validate invoice XML against the bundled UBL schema.
 
     === "{{ lang.rust }}"
@@ -23,18 +25,18 @@ Schema validation for invoice XML.
         ```
 
     !!! info "Args"
-        - `config`: environment config handle.
-        - `xml`: invoice XML string.
+        - `config` (`&Config` / `Config` / `FfiConfig*`): environment config handle.
+        - `xml` (`&str` / `str` / `const char*`): invoice XML string.
 
     !!! info "Returns"
-        - Rust: Ok(()) on success, XmlValidationError on failure.
-        - Python: True on success, raises XmlError on failure.
-        - C: ok=true on success, error set on failure.
+        - Rust: `Result<(), XmlValidationError>`.
+        - Python: `bool` (raises `XmlError` on failure).
+        - C: `FfiResult_bool`.
 
 ## Behavior
 
 !!! note "Behavior"
-    - Validation uses the bundled UBL 2.1 schema under fatoora-core/assets.
+    - Validation uses the bundled UBL 2.1 schema under `fatoora-core/assets`.
     - Errors include schema parse failures, XML parse failures, and schema validation errors.
 
 See also: [Invoice Validation Guide](../guides/validation.md)

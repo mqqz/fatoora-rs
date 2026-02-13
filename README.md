@@ -229,7 +229,8 @@ fatoora-rs-cli invoice-request --invoice signed.xml --api-request request.json
 </details>
 
 And much more... see the guides in the [homepage](https://rs.fatoority.com/) for more info.
-## Contributing
+
+## 🤝 Contributing
 
 Contributions are always welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 

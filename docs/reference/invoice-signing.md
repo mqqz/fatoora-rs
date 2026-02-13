@@ -2,10 +2,12 @@
 
 Signing helpers and signature metadata.
 
-## Signer
+## InvoiceSigner / Signer
 
-??? note "Create from PEM"
-    Create a signer from PEM-encoded certificate and private key strings.
+### from_pem
+
+??? note "Create signer from PEM"
+    Create a signer from PEM-encoded certificate and private key.
 
     === "{{ lang.rust }}"
         ```rust
@@ -15,29 +17,26 @@ Signing helpers and signature metadata.
     === "{{ lang.python }}"
         ```python
         Signer.from_pem(cert_pem: str, key_pem: str) -> Signer
-        Signer.certificate_pem() -> str
-        Signer.certificate_der() -> bytes
         ```
 
     === "{{ lang.c }}"
         ```c
         FfiResult_FfiSigner fatoora_signer_from_pem(const char* cert_pem, const char* key_pem);
-        FfiResult_FfiString fatoora_signer_certificate_pem(FfiSigner* signer);
-        FfiResult_FfiBytes fatoora_signer_certificate_der(FfiSigner* signer);
         ```
 
     !!! info "Args"
-        - `cert_pem`: certificate in PEM format.
-        - `key_pem`: private key in PEM format.
+        - `cert_pem` (`&str` / `str` / `const char*`): certificate PEM.
+        - `key_pem` (`&str` / `str` / `const char*`): private key PEM.
 
     !!! info "Returns"
-        - `Signer`: ready to sign invoices.
+        - Rust: `Result<InvoiceSigner, SigningError>`.
+        - Python: `Signer`.
+        - C: `FfiResult_FfiSigner`.
 
-    !!! warning "Errors"
-        - `SigningError`: invalid PEM, key/cert mismatch, or parsing failures.
+### from_der
 
-??? note "Create from DER"
-    Create a signer from DER-encoded certificate and private key bytes.
+??? note "Create signer from DER"
+    Create a signer from DER-encoded certificate and private key.
 
     === "{{ lang.rust }}"
         ```rust
@@ -47,31 +46,64 @@ Signing helpers and signature metadata.
     === "{{ lang.python }}"
         ```python
         Signer.from_der(cert_der: bytes, key_der: bytes) -> Signer
-        Signer.certificate_pem() -> str
-        Signer.certificate_der() -> bytes
         ```
 
     === "{{ lang.c }}"
         ```c
         FfiResult_FfiSigner fatoora_signer_from_der(const uint8_t* cert_der, uintptr_t cert_len, const uint8_t* key_der, uintptr_t key_len);
-        FfiResult_FfiString fatoora_signer_certificate_pem(FfiSigner* signer);
-        FfiResult_FfiBytes fatoora_signer_certificate_der(FfiSigner* signer);
         ```
 
     !!! info "Args"
-        - `cert_der`: certificate bytes in DER format.
-        - `key_der`: private key bytes in DER format.
+        - `cert_der` (`&[u8]` / `bytes` / `const uint8_t*` + `cert_len`): certificate DER.
+        - `key_der` (`&[u8]` / `bytes` / `const uint8_t*` + `key_len`): private key DER.
 
     !!! info "Returns"
-        - `Signer`: ready to sign invoices.
+        - Rust: `Result<InvoiceSigner, SigningError>`.
+        - Python: `Signer`.
+        - C: `FfiResult_FfiSigner`.
 
-    !!! warning "Errors"
-        - `SigningError`: invalid DER, key/cert mismatch, or parsing failures.
+### certificate_pem
 
-## Finalized Invoice
+??? note "Read signer certificate as PEM"
 
-??? note "Sign"
-    Signs the finalized invoice XML and returns a signed invoice.
+    === "{{ lang.python }}"
+        ```python
+        Signer.certificate_pem() -> str
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiString fatoora_signer_certificate_pem(FfiSigner* signer);
+        ```
+
+    !!! info "Returns"
+        - Python: `str`.
+        - C: `FfiResult_FfiString`.
+
+### certificate_der
+
+??? note "Read signer certificate as DER"
+
+    === "{{ lang.python }}"
+        ```python
+        Signer.certificate_der() -> bytes
+        ```
+
+    === "{{ lang.c }}"
+        ```c
+        FfiResult_FfiBytes fatoora_signer_certificate_der(FfiSigner* signer);
+        ```
+
+    !!! info "Returns"
+        - Python: `bytes`.
+        - C: `FfiResult_FfiBytes`.
+
+## FinalizedInvoice
+
+### sign
+
+??? note "Sign finalized invoice"
+    Sign finalized invoice XML and return a signed invoice.
 
     === "{{ lang.rust }}"
         ```rust
@@ -89,18 +121,18 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Args"
-        - `signer`: signer created from PEM/DER certificate + private key.
+        - `signer` (`&InvoiceSigner` / `Signer` / `FfiSigner*`): configured signer.
 
     !!! info "Returns"
-        - `SignedInvoice`: signed XML plus metadata.
+        - Rust: `Result<SignedInvoice, SigningError>`.
+        - Python: `SignedInvoice`.
+        - C: `FfiResult_FfiSignedInvoice`.
 
-    !!! warning "Errors"
-        - `SigningError`: XML parsing, canonicalization, or crypto failures.
+## SignedInvoice
 
-## Signed Invoice
+### xml
 
-??? note "XML"
-    Return the signed invoice XML string.
+??? note "Get signed XML"
 
     === "{{ lang.rust }}"
         ```rust
@@ -118,10 +150,13 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - `string`: signed invoice XML.
+        - Rust: `&str`.
+        - Python: `str`.
+        - C: `FfiResult_FfiString`.
 
-??? note "XML (Base64)"
-    Return the signed invoice XML as Base64.
+### to_xml_base64 / xml_base64
+
+??? note "Get signed XML as Base64"
 
     === "{{ lang.rust }}"
         ```rust
@@ -139,10 +174,13 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - `string`: Base64-encoded signed XML.
+        - Rust: `String`.
+        - Python: `str`.
+        - C: `FfiResult_FfiString`.
 
-??? note "QR Code"
-    Return the embedded QR payload.
+### qr_code / qr
+
+??? note "Get QR payload"
 
     === "{{ lang.rust }}"
         ```rust
@@ -160,10 +198,13 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - `string`: QR payload.
+        - Rust: `&str`.
+        - Python: `str`.
+        - C: `FfiResult_FfiString`.
 
-??? note "Invoice Hash"
-    Return the invoice hash string (canonicalized XML).
+### invoice_hash
+
+??? note "Get invoice hash"
 
     === "{{ lang.rust }}"
         ```rust
@@ -181,10 +222,13 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - `string`: invoice hash.
+        - Rust: `&str`.
+        - Python: `str`.
+        - C: `FfiResult_FfiString`.
 
-??? note "Invoice Hash (Base64)"
-    Return the invoice hash as Base64.
+### hash_base64
+
+??? note "Get invoice hash as Base64"
 
     === "{{ lang.rust }}"
         ```rust
@@ -202,13 +246,13 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - `string`: Base64-encoded invoice hash.
+        - Rust: `Result<String, SigningError>`.
+        - Python: `str`.
+        - C: `FfiResult_FfiString`.
 
-    !!! warning "Errors"
-        - `SigningError`: canonicalization or encoding failures.
+### signature
 
-??? note "Signature"
-    Return the signature value.
+??? note "Get signature value"
 
     === "{{ lang.rust }}"
         ```rust
@@ -226,10 +270,13 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - `string`: signature value.
+        - Rust: `&str`.
+        - Python: `str`.
+        - C: `FfiResult_FfiString`.
 
-??? note "Public Key"
-    Return the public key from the signing certificate.
+### public_key
+
+??? note "Get public key"
 
     === "{{ lang.rust }}"
         ```rust
@@ -247,10 +294,13 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - `string`: public key.
+        - Rust: `&str`.
+        - Python: `str`.
+        - C: `FfiResult_FfiString`.
 
-??? note "ZATCA Key Signature"
-    Return the optional ZATCA key signature.
+### zatca_key_signature
+
+??? note "Get optional ZATCA key signature"
 
     === "{{ lang.rust }}"
         ```rust
@@ -268,10 +318,13 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - `string | null`: ZATCA key signature if present.
+        - Rust: `Option<&str>`.
+        - Python: `Optional[str]`.
+        - C: `FfiResult_FfiString` (may contain null value on success).
 
-??? note "Signed Properties Hash"
-    Return the signed properties hash.
+### signed_props_hash
+
+??? note "Get signed properties hash"
 
     === "{{ lang.rust }}"
         ```rust
@@ -289,10 +342,13 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - `string`: signed properties hash.
+        - Rust: `&str`.
+        - Python: `str`.
+        - C: `FfiResult_FfiString`.
 
-??? note "Certificate Hash"
-    Return the certificate hash.
+### cert_hash
+
+??? note "Get certificate hash"
 
     === "{{ lang.python }}"
         ```python
@@ -305,10 +361,12 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - `string`: certificate hash.
+        - Python: `str`.
+        - C: `FfiResult_FfiString`.
 
-??? note "Signing Time"
-    Return the signing timestamp in UTC.
+### signing_time
+
+??? note "Get signing timestamp"
 
     === "{{ lang.python }}"
         ```python
@@ -321,12 +379,15 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Returns"
-        - `string`: UTC timestamp in `YYYY-MM-DDTHH:MM:SS` format.
+        - Python: `str` in `YYYY-MM-DDTHH:MM:SS` (UTC).
+        - C: `FfiResult_FfiString` in `YYYY-MM-DDTHH:MM:SS` (UTC).
 
-## Helpers
+## invoice_hash_base64_from_xml_str
 
-??? note "Hash from XML (Base64)"
-    Compute the invoice hash from an XML string and return it as Base64.
+### hash from XML
+
+??? note "Compute invoice hash (Base64)"
+    Compute invoice hash from XML and return it as Base64.
 
     === "{{ lang.rust }}"
         ```rust
@@ -334,19 +395,20 @@ Signing helpers and signature metadata.
         ```
 
     !!! info "Args"
-        - `xml`: invoice XML string.
+        - `xml` (`&str`): invoice XML.
 
     !!! info "Returns"
-        - `string`: Base64-encoded invoice hash.
-
-    !!! warning "Errors"
-        - `SigningError`: XML parsing or canonicalization failures.
+        - Rust: `Result<String, SigningError>`.
 
 ## Errors
-- `SigningError` covers XML parsing, canonicalization, and certificate/key errors.
+
+!!! warning "Errors"
+    - `SigningError` covers XML parsing, canonicalization, and certificate/key errors.
 
 ## Notes
-- `SignedProperties::signing_time` is in `YYYY-MM-DDTHH:MM:SS` format (UTC).
-- Invoice hashes are computed from canonicalized XML, excluding signature fields.
+
+!!! note "Notes"
+    - `SignedProperties::signing_time` uses `YYYY-MM-DDTHH:MM:SS` format (UTC).
+    - Invoice hashes are computed from canonicalized XML excluding signature fields.
 
 See also: [Invoice Signing Guide](../guides/invoice-signing.md)
