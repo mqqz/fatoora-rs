@@ -14,7 +14,7 @@
 <a href="#-features">⚡ Features</a> &nbsp;&bull;&nbsp;
 <a href="#-installation">📥 Installation</a> &nbsp;&bull;&nbsp;
 <a href="#-examples">💡 Examples</a> &nbsp;&bull;&nbsp;
-<a href="#-documentation">🗂️ Documentation</a>
+<a href="#%EF%B8%8F-documentation">🗂️ Documentation</a>
 </p>
 
 #
