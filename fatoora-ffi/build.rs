@@ -37,8 +37,8 @@ fn main() {
 }
 
 fn write_alias_header(header_path: &PathBuf, out_path: &PathBuf) -> Result<(), String> {
-    let header = std::fs::read_to_string(header_path)
-        .map_err(|err| format!("read header: {err}"))?;
+    let header =
+        std::fs::read_to_string(header_path).map_err(|err| format!("read header: {err}"))?;
     let mut type_aliases = std::collections::BTreeSet::new();
     let mut func_aliases = std::collections::BTreeSet::new();
     let mut enums: Vec<(String, Vec<String>)> = Vec::new();
@@ -92,7 +92,9 @@ fn write_alias_header(header_path: &PathBuf, out_path: &PathBuf) -> Result<(), S
         }
 
         for token in trimmed.split(|c: char| !c.is_ascii_alphanumeric() && c != '_') {
-            if let Some(name) = token.strip_prefix("fatoora_") && !name.is_empty() {
+            if let Some(name) = token.strip_prefix("fatoora_")
+                && !name.is_empty()
+            {
                 func_aliases.insert((name.to_string(), token.to_string()));
             }
         }
@@ -114,9 +116,7 @@ fn write_alias_header(header_path: &PathBuf, out_path: &PathBuf) -> Result<(), S
         let short_enum = enum_name.trim_start_matches("Ffi");
         for value in values {
             if let Some(suffix) = value.strip_prefix(&format!("{enum_name}_")) {
-                output.push_str(&format!(
-                    "#define {short_enum}_{suffix} {value}\n"
-                ));
+                output.push_str(&format!("#define {short_enum}_{suffix} {value}\n"));
             }
         }
     }

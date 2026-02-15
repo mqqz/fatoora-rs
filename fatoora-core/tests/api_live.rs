@@ -3,9 +3,9 @@ mod common;
 use base64ct::{Base64, Encoding};
 use fatoora_core::api::ZatcaClient;
 use fatoora_core::config::{Config, EnvironmentType};
+use fatoora_core::csr::Csr;
 use fatoora_core::csr::{CsrProperties, SigningKey};
 use std::path::Path;
-use fatoora_core::csr::Csr;
 
 fn should_skip_network_tests() -> bool {
     match std::env::var("SKIP_ZATCA_LIVE_API") {

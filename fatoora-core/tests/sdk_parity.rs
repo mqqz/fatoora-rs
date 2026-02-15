@@ -2,8 +2,8 @@ mod common;
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::{SystemTime, UNIX_EPOCH};
 use std::sync::{Mutex, OnceLock};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use base64ct::{Base64, Encoding};
 use fatoora_core::config::Config;
@@ -189,12 +189,27 @@ fn parity_invoices() -> Vec<(&'static str, fatoora_core::invoice::FinalizedInvoi
         ("credit-note", common::credit_note_standard_invoice()),
         ("debit-note", common::debit_note_standard_invoice()),
         ("prepayment-standard", common::prepayment_standard_invoice()),
-        ("mixed-vat-simplified", common::mixed_vat_simplified_invoice()),
-        ("export-self-billed", common::export_self_billed_standard_invoice()),
+        (
+            "mixed-vat-simplified",
+            common::mixed_vat_simplified_invoice(),
+        ),
+        (
+            "export-self-billed",
+            common::export_self_billed_standard_invoice(),
+        ),
         ("out-of-scope", common::out_of_scope_standard_invoice()),
-        ("simplified-credit-note", common::simplified_credit_note_invoice()),
-        ("simplified-debit-note", common::simplified_debit_note_invoice()),
-        ("foreign-currency", common::foreign_currency_standard_invoice()),
+        (
+            "simplified-credit-note",
+            common::simplified_credit_note_invoice(),
+        ),
+        (
+            "simplified-debit-note",
+            common::simplified_debit_note_invoice(),
+        ),
+        (
+            "foreign-currency",
+            common::foreign_currency_standard_invoice(),
+        ),
     ]
 }
 
@@ -220,8 +235,9 @@ fn sdk_parity_hash_matches_official_cli() {
                     .expect("sdk hash output");
             let _ = std::fs::remove_file(&path);
 
-            let sdk_hash = parse_sdk_hash(&sdk_output)
-                .unwrap_or_else(|| panic!("parse sdk hash failed for {label}. output:\n{sdk_output}"));
+            let sdk_hash = parse_sdk_hash(&sdk_output).unwrap_or_else(|| {
+                panic!("parse sdk hash failed for {label}. output:\n{sdk_output}")
+            });
             let our_hash = invoice.hash_base64().expect("hash");
             assert_eq!(
                 our_hash.trim(),
@@ -245,8 +261,8 @@ fn sdk_parity_sign_contains_same_hash() {
 
         for (label, invoice) in parity_invoices() {
             let xml = invoice.to_xml().expect("serialize invoice");
-            let signed_xml = sign_with_sdk(&xml, label)
-                .unwrap_or_else(|| panic!("sdk sign failed for {label}"));
+            let signed_xml =
+                sign_with_sdk(&xml, label).unwrap_or_else(|| panic!("sdk sign failed for {label}"));
 
             let signed = parse_signed_invoice_xml(&signed_xml).expect("parse signed xml");
             let our_hash = invoice.hash_base64().expect("hash");
@@ -290,10 +306,7 @@ fn sdk_parity_validation_matches_official_cli() {
 
             let cfg = Config::default();
             let our_ok = validate_xml_invoice_from_str(&signed_xml, &cfg).is_ok();
-            assert_eq!(
-                our_ok, sdk_ok,
-                "validation result mismatch for {label}"
-            );
+            assert_eq!(our_ok, sdk_ok, "validation result mismatch for {label}");
         }
     });
 }
@@ -317,16 +330,13 @@ fn sdk_parity_rejects_invalid_invoice() {
         let path = temp_xml_path("invalid-validate");
         std::fs::write(&path, &xml).expect("write temp xml");
 
-        let sdk_output =
-            run_official_output(&["-validate", "-invoice", path.to_str().unwrap()])
-                .expect("sdk validation output");
+        let sdk_output = run_official_output(&["-validate", "-invoice", path.to_str().unwrap()])
+            .expect("sdk validation output");
 
         let _ = std::fs::remove_file(&path);
 
         let sdk_ok = parse_sdk_xsd_validation(&sdk_output).unwrap_or_else(|| {
-            panic!(
-                "parse sdk XSD validation failed for invalid invoice. output:\n{sdk_output}"
-            )
+            panic!("parse sdk XSD validation failed for invalid invoice. output:\n{sdk_output}")
         });
         assert!(!sdk_ok, "sdk should reject invalid invoice");
 

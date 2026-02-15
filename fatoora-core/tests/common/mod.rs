@@ -1,9 +1,9 @@
 use base64ct::{Base64, Encoding};
+use fatoora_core::csr::SigningKey;
 use fatoora_core::invoice::{
     Address, FinalizedInvoice, InvoiceBuilder, InvoiceFlags, InvoiceNote, InvoiceSubType,
     InvoiceType, LineItem, OriginalInvoiceRef, OtherId, Party, SellerRole, VatCategory,
 };
-use fatoora_core::csr::SigningKey;
 
 #[allow(dead_code)]
 pub fn dummy_finalized_invoice() -> FinalizedInvoice {
@@ -579,8 +579,7 @@ pub fn signer_from_csid(
     let b64_der = String::from_utf8(b64_der_bytes).expect("token utf-8");
     let der = Base64::decode_vec(&b64_der).expect("decode DER");
     let key_der = key.to_der().expect("key der");
-    fatoora_core::invoice::sign::InvoiceSigner::from_der(&der, &key_der)
-        .expect("signer")
+    fatoora_core::invoice::sign::InvoiceSigner::from_der(&der, &key_der).expect("signer")
 }
 
 #[allow(dead_code)]

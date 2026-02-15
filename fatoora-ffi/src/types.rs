@@ -119,8 +119,12 @@ impl From<String> for FfiString {
     fn from(value: String) -> Self {
         let c = CString::new(value).ok();
         match c {
-            Some(value) => FfiString { ptr: value.into_raw() },
-            None => FfiString { ptr: std::ptr::null_mut() },
+            Some(value) => FfiString {
+                ptr: value.into_raw(),
+            },
+            None => FfiString {
+                ptr: std::ptr::null_mut(),
+            },
         }
     }
 }
@@ -235,17 +239,41 @@ mod tests {
 
     #[test]
     fn enum_conversions() {
-        assert_eq!(EnvironmentType::from(FfiEnvironment::NonProduction), EnvironmentType::NonProduction);
-        assert_eq!(EnvironmentType::from(FfiEnvironment::Simulation), EnvironmentType::Simulation);
-        assert_eq!(EnvironmentType::from(FfiEnvironment::Production), EnvironmentType::Production);
+        assert_eq!(
+            EnvironmentType::from(FfiEnvironment::NonProduction),
+            EnvironmentType::NonProduction
+        );
+        assert_eq!(
+            EnvironmentType::from(FfiEnvironment::Simulation),
+            EnvironmentType::Simulation
+        );
+        assert_eq!(
+            EnvironmentType::from(FfiEnvironment::Production),
+            EnvironmentType::Production
+        );
 
-        assert_eq!(InvoiceSubType::from(FfiInvoiceSubType::Standard), InvoiceSubType::Standard);
-        assert_eq!(InvoiceSubType::from(FfiInvoiceSubType::Simplified), InvoiceSubType::Simplified);
+        assert_eq!(
+            InvoiceSubType::from(FfiInvoiceSubType::Standard),
+            InvoiceSubType::Standard
+        );
+        assert_eq!(
+            InvoiceSubType::from(FfiInvoiceSubType::Simplified),
+            InvoiceSubType::Simplified
+        );
 
-        assert_eq!(VatCategory::from(FfiVatCategory::Exempt), VatCategory::Exempt);
-        assert_eq!(VatCategory::from(FfiVatCategory::Standard), VatCategory::Standard);
+        assert_eq!(
+            VatCategory::from(FfiVatCategory::Exempt),
+            VatCategory::Exempt
+        );
+        assert_eq!(
+            VatCategory::from(FfiVatCategory::Standard),
+            VatCategory::Standard
+        );
         assert_eq!(VatCategory::from(FfiVatCategory::Zero), VatCategory::Zero);
-        assert_eq!(VatCategory::from(FfiVatCategory::OutOfScope), VatCategory::OutOfScope);
+        assert_eq!(
+            VatCategory::from(FfiVatCategory::OutOfScope),
+            VatCategory::OutOfScope
+        );
     }
 
     #[test]

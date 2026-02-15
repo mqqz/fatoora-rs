@@ -1,10 +1,10 @@
 mod common;
 
+use base64ct::{Base64, Encoding};
 use fatoora_core::config::EnvironmentType;
 use fatoora_core::csr::{CsrProperties, SigningKey as CoreSigningKey};
 use fatoora_core::invoice::sign::{InvoiceSigner, SigningError};
 use fatoora_core::invoice::xml::ToXml;
-use base64ct::{Base64, Encoding};
 use k256::ecdsa::SigningKey as K256SigningKey;
 use k256::pkcs8::DecodePrivateKey;
 use libxml::parser::Parser;

@@ -4,8 +4,8 @@ use fatoora_core::invoice::xml::parse::{
     parse_signed_invoice_xml, parse_signed_invoice_xml_file,
 };
 use fatoora_core::invoice::{
-    Address, CountryCode, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, OriginalInvoiceRef,
-    Party, SellerRole, VatCategory,
+    Address, CountryCode, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem,
+    OriginalInvoiceRef, Party, SellerRole, VatCategory,
 };
 use std::path::Path;
 
@@ -31,18 +31,9 @@ fn parse_sample_simplified_invoice() {
         data.seller().name(),
         "شركة توريد التكنولوجيا بأقصى سرعة المحدودة | Maximum Speed Tech Supply LTD"
     );
-    assert_eq!(
-        data.seller().vat_id().unwrap().as_str(),
-        "399999999900003"
-    );
-    assert_eq!(
-        data.seller().other_id().unwrap().as_str(),
-        "1010010000"
-    );
-    assert_eq!(
-        data.seller().other_id().unwrap().scheme_id(),
-        Some("CRN")
-    );
+    assert_eq!(data.seller().vat_id().unwrap().as_str(), "399999999900003");
+    assert_eq!(data.seller().other_id().unwrap().as_str(), "1010010000");
+    assert_eq!(data.seller().other_id().unwrap().scheme_id(), Some("CRN"));
 
     let address = data.seller().address();
     assert!(address.street().contains("Prince Sultan"));
@@ -148,9 +139,18 @@ fn parse_rejects_missing_invoice_id() {
 #[test]
 fn parse_rejects_invalid_currency_code() {
     let xml = load_sample_xml();
-    let xml = xml.replace("<cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>", "<cbc:DocumentCurrencyCode>ZZZ</cbc:DocumentCurrencyCode>");
+    let xml = xml.replace(
+        "<cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>",
+        "<cbc:DocumentCurrencyCode>ZZZ</cbc:DocumentCurrencyCode>",
+    );
     let err = parse_finalized_invoice_xml(&xml).expect_err("invalid currency");
-    assert!(matches!(err, ParseError::InvalidValue { field: "DocumentCurrencyCode", .. }));
+    assert!(matches!(
+        err,
+        ParseError::InvalidValue {
+            field: "DocumentCurrencyCode",
+            ..
+        }
+    ));
 }
 
 #[test]
@@ -161,7 +161,13 @@ fn parse_rejects_unknown_invoice_type_code() {
         "<cbc:InvoiceTypeCode name=\"0200000\">999</cbc:InvoiceTypeCode>",
     );
     let err = parse_finalized_invoice_xml(&xml).expect_err("invalid invoice type");
-    assert!(matches!(err, ParseError::InvalidValue { field: "InvoiceTypeCode", .. }));
+    assert!(matches!(
+        err,
+        ParseError::InvalidValue {
+            field: "InvoiceTypeCode",
+            ..
+        }
+    ));
 }
 
 #[test]
@@ -180,7 +186,13 @@ fn parse_signed_rejects_invalid_signing_time() {
         "<xades:SigningTime>bad-time</xades:SigningTime>",
     );
     let err = parse_signed_invoice_xml(&xml).expect_err("invalid signing time");
-    assert!(matches!(err, ParseError::InvalidValue { field: "SigningTime", .. }));
+    assert!(matches!(
+        err,
+        ParseError::InvalidValue {
+            field: "SigningTime",
+            ..
+        }
+    ));
 }
 
 #[test]
@@ -262,7 +274,10 @@ fn parse_credit_note_requires_billing_reference_id() {
     let xml = load_credit_note_xml();
     let xml = xml.replace("<cbc:ID>SME00002</cbc:ID>", "");
     let err = parse_finalized_invoice_xml(&xml).expect_err("missing billing ref id");
-    assert!(matches!(err, ParseError::MissingField("BillingReferenceID")));
+    assert!(matches!(
+        err,
+        ParseError::MissingField("BillingReferenceID")
+    ));
 }
 
 #[test]
@@ -270,7 +285,10 @@ fn parse_credit_note_missing_billing_reference_element() {
     let xml = load_credit_note_xml();
     let xml = remove_billing_reference(&xml);
     let err = parse_finalized_invoice_xml(&xml).expect_err("missing billing reference element");
-    assert!(matches!(err, ParseError::MissingField("BillingReferenceID")));
+    assert!(matches!(
+        err,
+        ParseError::MissingField("BillingReferenceID")
+    ));
 }
 
 #[test]
@@ -281,7 +299,13 @@ fn parse_credit_note_rejects_invalid_original_issue_date() {
         "<cbc:ID>SME00002</cbc:ID><cbc:IssueDate>bad-date</cbc:IssueDate>",
     );
     let err = parse_finalized_invoice_xml(&xml).expect_err("invalid issue date");
-    assert!(matches!(err, ParseError::InvalidValue { field: "BillingReferenceIssueDate", .. }));
+    assert!(matches!(
+        err,
+        ParseError::InvalidValue {
+            field: "BillingReferenceIssueDate",
+            ..
+        }
+    ));
 }
 
 #[test]

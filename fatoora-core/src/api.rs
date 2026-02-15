@@ -1,13 +1,13 @@
 //! ZATCA HTTP API client and response types.
-use reqwest::Client;
-use serde::{Deserialize, Serialize};
-use thiserror::Error;
 use crate::{
     config::{Config, EnvironmentType},
     csr::Csr,
     invoice::SignedInvoice,
 };
+use reqwest::Client;
+use serde::{Deserialize, Serialize};
 use std::marker::PhantomData;
+use thiserror::Error;
 
 /// Errors returned by the ZATCA API client.
 #[derive(Error, Debug)]
@@ -218,7 +218,6 @@ impl ServerErrorResponse {
     }
 }
 
-
 /// CSID credentials used for API calls.
 /// This is usually obtained after requesting a CSID from ZATCA.
 /// ie. through [post_ccsid_for_pcsid][ZatcaClient::post_ccsid_for_pcsid] or [post_csr_for_ccsid][ZatcaClient::post_csr_for_ccsid].
@@ -233,7 +232,7 @@ impl ServerErrorResponse {
 ///     EnvironmentType::NonProduction,
 ///     Some("1234567890123".to_string()), // requestID field
 ///     "TUlJQ1BUQ0NBZU9nQXdJQkFnS....",   // binarySecurityToken field
-///     "Dehvg1fc8GF6Jwt5bOxXwC6en....",   // secret field 
+///     "Dehvg1fc8GF6Jwt5bOxXwC6en....",   // secret field
 /// );
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -386,7 +385,7 @@ impl ZatcaClient {
 
         match accept_language {
             Some("ar") => request = request.header("accept-language", "ar"),
-            _ => request = request.header("accept-language", "en")
+            _ => request = request.header("accept-language", "en"),
         }
 
         let response = request
@@ -402,7 +401,7 @@ impl ZatcaClient {
                 Err(_) => {
                     return Err(ZatcaError::InvalidResponse(format!(
                         "status {status}: {body}"
-                    )))
+                    )));
                 }
             }
         }
@@ -497,7 +496,7 @@ impl ZatcaClient {
                 Err(_) => {
                     return Err(ZatcaError::InvalidResponse(format!(
                         "status {status}: {body}"
-                    )))
+                    )));
                 }
             }
         }
@@ -793,11 +792,7 @@ impl ZatcaClient {
 // Private API
 impl ZatcaClient {
     fn build_endpoint(&self, path: &str) -> String {
-        format!(
-            "{}{}",
-            self.base_url,
-            path.trim_start_matches('/')
-        )
+        format!("{}{}", self.base_url, path.trim_start_matches('/'))
     }
 
     fn ensure_env<T>(&self, creds: &CsidCredentials<T>) -> Result<(), ZatcaError> {
@@ -814,8 +809,8 @@ mod tests {
     use crate::{
         csr::CsrProperties,
         invoice::{
-            sign::SignedProperties, xml::ToXml, Address, CountryCode, InvoiceBuilder,
-            InvoiceSubType, InvoiceType, LineItem, Party, SellerRole, VatCategory,
+            Address, CountryCode, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, Party,
+            SellerRole, VatCategory, sign::SignedProperties, xml::ToXml,
         },
     };
     use base64ct::{Base64, Encoding};
@@ -1045,12 +1040,7 @@ mod tests {
     async fn report_rejects_standard_invoice() {
         let signed_invoice = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Standard));
 
-        let creds = CsidCredentials::new(
-            EnvironmentType::NonProduction,
-            None,
-            "token",
-            "secret",
-        );
+        let creds = CsidCredentials::new(EnvironmentType::NonProduction, None, "token", "secret");
         let client = ZatcaClient::new(Config::default()).expect("client");
 
         let result = client
@@ -1063,12 +1053,7 @@ mod tests {
     async fn clearance_rejects_simplified_invoice() {
         let signed_invoice = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
 
-        let creds = CsidCredentials::new(
-            EnvironmentType::NonProduction,
-            None,
-            "token",
-            "secret",
-        );
+        let creds = CsidCredentials::new(EnvironmentType::NonProduction, None, "token", "secret");
         let client = ZatcaClient::new(Config::default()).expect("client");
 
         let result = client
@@ -1081,26 +1066,18 @@ mod tests {
     async fn compliance_rejects_env_mismatch() {
         let signed_invoice = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
         let client = ZatcaClient::new(Config::default()).expect("client");
-        let creds = CsidCredentials::new(
-            EnvironmentType::Production,
-            None,
-            "token",
-            "secret",
-        );
+        let creds = CsidCredentials::new(EnvironmentType::Production, None, "token", "secret");
 
-        let result = client.check_invoice_compliance(&signed_invoice, &creds).await;
+        let result = client
+            .check_invoice_compliance(&signed_invoice, &creds)
+            .await;
         assert!(matches!(result, Err(ZatcaError::ClientState(_))));
     }
 
     #[tokio::test]
     async fn post_ccsid_requires_request_id() {
         let client = ZatcaClient::new(Config::default()).expect("client");
-        let creds = CsidCredentials::new(
-            EnvironmentType::NonProduction,
-            None,
-            "token",
-            "secret",
-        );
+        let creds = CsidCredentials::new(EnvironmentType::NonProduction, None, "token", "secret");
 
         let result = client.post_ccsid_for_pcsid(&creds).await;
         assert!(matches!(result, Err(ZatcaError::ClientState(_))));
@@ -1201,18 +1178,10 @@ mod tests {
             let client = ZatcaClient::new(Config::default()).expect("client");
             let simplified = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
             let standard = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Standard));
-            let pcsid = CsidCredentials::new(
-                EnvironmentType::NonProduction,
-                None,
-                "token",
-                "secret",
-            );
-            let ccsid = CsidCredentials::new(
-                EnvironmentType::NonProduction,
-                None,
-                "token",
-                "secret",
-            );
+            let pcsid =
+                CsidCredentials::new(EnvironmentType::NonProduction, None, "token", "secret");
+            let ccsid =
+                CsidCredentials::new(EnvironmentType::NonProduction, None, "token", "secret");
 
             let report = client
                 .report_simplified_invoice(&simplified, &pcsid, false, Some("ar"))
@@ -1257,7 +1226,9 @@ mod tests {
         }"#;
 
         let csr_mock = server.mock(|when, then| {
-            when.method(POST).path("/compliance").header("OTP", "123456");
+            when.method(POST)
+                .path("/compliance")
+                .header("OTP", "123456");
             then.status(200)
                 .header("content-type", "application/json")
                 .body(ccsid_body);
@@ -1287,10 +1258,7 @@ mod tests {
                 .expect("ccsid");
             assert_eq!(ccsid.request_id(), Some("42"));
 
-            let pcsid = client
-                .post_ccsid_for_pcsid(&ccsid)
-                .await
-                .expect("pcsid");
+            let pcsid = client.post_ccsid_for_pcsid(&ccsid).await.expect("pcsid");
             assert_eq!(pcsid.request_id(), Some("77"));
 
             let renewed = client
@@ -1330,12 +1298,8 @@ mod tests {
         rt.block_on(async {
             let client = ZatcaClient::new(Config::default()).expect("client");
             let invoice = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
-            let creds = CsidCredentials::new(
-                EnvironmentType::NonProduction,
-                None,
-                "token",
-                "secret",
-            );
+            let creds =
+                CsidCredentials::new(EnvironmentType::NonProduction, None, "token", "secret");
 
             let result = client
                 .report_simplified_invoice(&invoice, &creds, false, None)
@@ -1380,12 +1344,8 @@ mod tests {
             let client = ZatcaClient::new(Config::default()).expect("client");
             let simplified = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
             let standard = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Standard));
-            let pcsid = CsidCredentials::new(
-                EnvironmentType::NonProduction,
-                None,
-                "token",
-                "secret",
-            );
+            let pcsid =
+                CsidCredentials::new(EnvironmentType::NonProduction, None, "token", "secret");
 
             let result = client
                 .report_simplified_invoice(&simplified, &pcsid, false, None)
@@ -1427,18 +1387,10 @@ mod tests {
             let client = ZatcaClient::new(Config::default()).expect("client");
             let standard = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Standard));
             let simplified = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
-            let pcsid = CsidCredentials::new(
-                EnvironmentType::NonProduction,
-                None,
-                "token",
-                "secret",
-            );
-            let ccsid = CsidCredentials::new(
-                EnvironmentType::NonProduction,
-                None,
-                "token",
-                "secret",
-            );
+            let pcsid =
+                CsidCredentials::new(EnvironmentType::NonProduction, None, "token", "secret");
+            let ccsid =
+                CsidCredentials::new(EnvironmentType::NonProduction, None, "token", "secret");
 
             let result = client
                 .clear_standard_invoice(&standard, &pcsid, true, None)
@@ -1484,12 +1436,8 @@ mod tests {
         rt.block_on(async {
             let client = ZatcaClient::new(Config::default()).expect("client");
             let invoice = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
-            let pcsid = CsidCredentials::new(
-                EnvironmentType::NonProduction,
-                None,
-                "token",
-                "secret",
-            );
+            let pcsid =
+                CsidCredentials::new(EnvironmentType::NonProduction, None, "token", "secret");
 
             let result = client
                 .report_simplified_invoice(&invoice, &pcsid, false, None)
@@ -1519,12 +1467,8 @@ mod tests {
         rt.block_on(async {
             let client = ZatcaClient::new(Config::default()).expect("client");
             let invoice = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Standard));
-            let pcsid = CsidCredentials::new(
-                EnvironmentType::NonProduction,
-                None,
-                "token",
-                "secret",
-            );
+            let pcsid =
+                CsidCredentials::new(EnvironmentType::NonProduction, None, "token", "secret");
 
             let result = client
                 .clear_standard_invoice(&invoice, &pcsid, true, None)
@@ -1554,12 +1498,8 @@ mod tests {
         rt.block_on(async {
             let client = ZatcaClient::new(Config::default()).expect("client");
             let invoice = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
-            let ccsid = CsidCredentials::new(
-                EnvironmentType::NonProduction,
-                None,
-                "token",
-                "secret",
-            );
+            let ccsid =
+                CsidCredentials::new(EnvironmentType::NonProduction, None, "token", "secret");
 
             let result = client.check_invoice_compliance(&invoice, &ccsid).await;
             assert!(matches!(result, Err(ZatcaError::Unauthorized(_))));
@@ -1616,9 +1556,7 @@ mod tests {
                 "token",
                 "secret",
             );
-            let result = client
-                .renew_csid(&pcsid, &csr, "123456", None)
-                .await;
+            let result = client.renew_csid(&pcsid, &csr, "123456", None).await;
             assert!(matches!(result, Err(ZatcaError::Unauthorized(_))));
 
             csr_mock.assert();
@@ -1649,12 +1587,8 @@ mod tests {
         rt.block_on(async {
             let client = ZatcaClient::new(Config::default()).expect("client");
             let invoice = build_signed_invoice(InvoiceType::Tax(InvoiceSubType::Simplified));
-            let ccsid = CsidCredentials::new(
-                EnvironmentType::NonProduction,
-                None,
-                "token",
-                "secret",
-            );
+            let ccsid =
+                CsidCredentials::new(EnvironmentType::NonProduction, None, "token", "secret");
             let pcsid = CsidCredentials::new(
                 EnvironmentType::NonProduction,
                 Some("1".into()),
@@ -1666,9 +1600,7 @@ mod tests {
             let result = client.check_invoice_compliance(&invoice, &ccsid).await;
             assert!(matches!(result, Err(ZatcaError::InvalidResponse(_))));
 
-            let result = client
-                .renew_csid(&pcsid, &csr, "123456", None)
-                .await;
+            let result = client.renew_csid(&pcsid, &csr, "123456", None).await;
             assert!(matches!(result, Err(ZatcaError::InvalidResponse(_))));
 
             compliance_mock.assert();

@@ -38,34 +38,48 @@ fn invoice_builder_roundtrip() {
         assert!(builder_result.ok, "builder error");
         let mut builder = builder_result.value;
         assert!(fatoora_invoice_builder_set_id(&mut builder, cstr("INV-1").as_ptr()).ok);
-        assert!(fatoora_invoice_builder_set_uuid(&mut builder, cstr("123e4567-e89b-12d3-a456-426614174000").as_ptr()).ok);
-        assert!(fatoora_invoice_builder_set_issue_datetime(
-            &mut builder,
-            cstr("2024-01-01T12:30:00Z").as_ptr()
-        )
-        .ok);
+        assert!(
+            fatoora_invoice_builder_set_uuid(
+                &mut builder,
+                cstr("123e4567-e89b-12d3-a456-426614174000").as_ptr()
+            )
+            .ok
+        );
+        assert!(
+            fatoora_invoice_builder_set_issue_datetime(
+                &mut builder,
+                cstr("2024-01-01T12:30:00Z").as_ptr()
+            )
+            .ok
+        );
         assert!(fatoora_invoice_builder_set_currency(&mut builder, cstr("SAR").as_ptr()).ok);
         assert!(fatoora_invoice_builder_set_previous_hash(&mut builder, cstr("hash").as_ptr()).ok);
         assert!(fatoora_invoice_builder_set_invoice_counter(&mut builder, 1).ok);
-        assert!(fatoora_invoice_builder_set_payment_means_code(&mut builder, cstr("10").as_ptr()).ok);
-        assert!(fatoora_invoice_builder_set_vat_category(&mut builder, FfiVatCategory::Standard).ok);
-        assert!(fatoora_invoice_builder_set_seller(
-            &mut builder,
-            cstr("Acme Inc").as_ptr(),
-            cstr("SAU").as_ptr(),
-            cstr("Riyadh").as_ptr(),
-            cstr("King Fahd").as_ptr(),
-            cstr("").as_ptr(),
-            cstr("1234").as_ptr(),
-            std::ptr::null(),
-            cstr("12222").as_ptr(),
-            std::ptr::null(),
-            std::ptr::null(),
-            cstr("399999999900003").as_ptr(),
-            std::ptr::null(),
-            std::ptr::null(),
-        )
-        .ok);
+        assert!(
+            fatoora_invoice_builder_set_payment_means_code(&mut builder, cstr("10").as_ptr()).ok
+        );
+        assert!(
+            fatoora_invoice_builder_set_vat_category(&mut builder, FfiVatCategory::Standard).ok
+        );
+        assert!(
+            fatoora_invoice_builder_set_seller(
+                &mut builder,
+                cstr("Acme Inc").as_ptr(),
+                cstr("SAU").as_ptr(),
+                cstr("Riyadh").as_ptr(),
+                cstr("King Fahd").as_ptr(),
+                cstr("").as_ptr(),
+                cstr("1234").as_ptr(),
+                std::ptr::null(),
+                cstr("12222").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                cstr("399999999900003").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+            )
+            .ok
+        );
 
         let flags_result = fatoora_invoice_builder_flags(&mut builder, 0b00001);
         assert!(flags_result.ok);
@@ -99,11 +113,8 @@ fn invoice_builder_roundtrip() {
         );
         assert!(note_result.ok);
 
-        let allowance_result = fatoora_invoice_builder_set_allowance(
-            &mut builder,
-            cstr("Discount").as_ptr(),
-            5.0,
-        );
+        let allowance_result =
+            fatoora_invoice_builder_set_allowance(&mut builder, cstr("Discount").as_ptr(), 5.0);
         assert!(allowance_result.ok);
 
         let add_result = fatoora_invoice_builder_add_line_item(
@@ -159,34 +170,48 @@ fn parse_finalized_invoice_xml() {
         assert!(builder_result.ok);
         let mut builder = builder_result.value;
         assert!(fatoora_invoice_builder_set_id(&mut builder, cstr("INV-2").as_ptr()).ok);
-        assert!(fatoora_invoice_builder_set_uuid(&mut builder, cstr("123e4567-e89b-12d3-a456-426614174001").as_ptr()).ok);
-        assert!(fatoora_invoice_builder_set_issue_datetime(
-            &mut builder,
-            cstr("2024-01-01T12:30:00Z").as_ptr()
-        )
-        .ok);
+        assert!(
+            fatoora_invoice_builder_set_uuid(
+                &mut builder,
+                cstr("123e4567-e89b-12d3-a456-426614174001").as_ptr()
+            )
+            .ok
+        );
+        assert!(
+            fatoora_invoice_builder_set_issue_datetime(
+                &mut builder,
+                cstr("2024-01-01T12:30:00Z").as_ptr()
+            )
+            .ok
+        );
         assert!(fatoora_invoice_builder_set_currency(&mut builder, cstr("SAR").as_ptr()).ok);
         assert!(fatoora_invoice_builder_set_previous_hash(&mut builder, cstr("hash").as_ptr()).ok);
         assert!(fatoora_invoice_builder_set_invoice_counter(&mut builder, 2).ok);
-        assert!(fatoora_invoice_builder_set_payment_means_code(&mut builder, cstr("10").as_ptr()).ok);
-        assert!(fatoora_invoice_builder_set_vat_category(&mut builder, FfiVatCategory::Standard).ok);
-        assert!(fatoora_invoice_builder_set_seller(
-            &mut builder,
-            cstr("Acme Inc").as_ptr(),
-            cstr("SAU").as_ptr(),
-            cstr("Riyadh").as_ptr(),
-            cstr("King Fahd").as_ptr(),
-            std::ptr::null(),
-            cstr("1234").as_ptr(),
-            std::ptr::null(),
-            cstr("12222").as_ptr(),
-            std::ptr::null(),
-            std::ptr::null(),
-            cstr("399999999900003").as_ptr(),
-            std::ptr::null(),
-            std::ptr::null(),
-        )
-        .ok);
+        assert!(
+            fatoora_invoice_builder_set_payment_means_code(&mut builder, cstr("10").as_ptr()).ok
+        );
+        assert!(
+            fatoora_invoice_builder_set_vat_category(&mut builder, FfiVatCategory::Standard).ok
+        );
+        assert!(
+            fatoora_invoice_builder_set_seller(
+                &mut builder,
+                cstr("Acme Inc").as_ptr(),
+                cstr("SAU").as_ptr(),
+                cstr("Riyadh").as_ptr(),
+                cstr("King Fahd").as_ptr(),
+                std::ptr::null(),
+                cstr("1234").as_ptr(),
+                std::ptr::null(),
+                cstr("12222").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                cstr("399999999900003").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+            )
+            .ok
+        );
 
         let add_result = fatoora_invoice_builder_add_line_item(
             &mut builder,
@@ -256,34 +281,48 @@ fn credit_note_roundtrip() {
         assert!(result.ok);
         let mut builder = result.value;
         assert!(fatoora_invoice_builder_set_id(&mut builder, cstr("INV-4").as_ptr()).ok);
-        assert!(fatoora_invoice_builder_set_uuid(&mut builder, cstr("123e4567-e89b-12d3-a456-426614174003").as_ptr()).ok);
-        assert!(fatoora_invoice_builder_set_issue_datetime(
-            &mut builder,
-            cstr("2024-01-01T12:30:00Z").as_ptr()
-        )
-        .ok);
+        assert!(
+            fatoora_invoice_builder_set_uuid(
+                &mut builder,
+                cstr("123e4567-e89b-12d3-a456-426614174003").as_ptr()
+            )
+            .ok
+        );
+        assert!(
+            fatoora_invoice_builder_set_issue_datetime(
+                &mut builder,
+                cstr("2024-01-01T12:30:00Z").as_ptr()
+            )
+            .ok
+        );
         assert!(fatoora_invoice_builder_set_currency(&mut builder, cstr("SAR").as_ptr()).ok);
         assert!(fatoora_invoice_builder_set_previous_hash(&mut builder, cstr("hash").as_ptr()).ok);
         assert!(fatoora_invoice_builder_set_invoice_counter(&mut builder, 4).ok);
-        assert!(fatoora_invoice_builder_set_payment_means_code(&mut builder, cstr("10").as_ptr()).ok);
-        assert!(fatoora_invoice_builder_set_vat_category(&mut builder, FfiVatCategory::Standard).ok);
-        assert!(fatoora_invoice_builder_set_seller(
-            &mut builder,
-            cstr("Acme Inc").as_ptr(),
-            cstr("SAU").as_ptr(),
-            cstr("Riyadh").as_ptr(),
-            cstr("King Fahd").as_ptr(),
-            std::ptr::null(),
-            cstr("1234").as_ptr(),
-            std::ptr::null(),
-            cstr("12222").as_ptr(),
-            std::ptr::null(),
-            std::ptr::null(),
-            cstr("399999999900003").as_ptr(),
-            std::ptr::null(),
-            std::ptr::null(),
-        )
-        .ok);
+        assert!(
+            fatoora_invoice_builder_set_payment_means_code(&mut builder, cstr("10").as_ptr()).ok
+        );
+        assert!(
+            fatoora_invoice_builder_set_vat_category(&mut builder, FfiVatCategory::Standard).ok
+        );
+        assert!(
+            fatoora_invoice_builder_set_seller(
+                &mut builder,
+                cstr("Acme Inc").as_ptr(),
+                cstr("SAU").as_ptr(),
+                cstr("Riyadh").as_ptr(),
+                cstr("King Fahd").as_ptr(),
+                std::ptr::null(),
+                cstr("1234").as_ptr(),
+                std::ptr::null(),
+                cstr("12222").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                cstr("399999999900003").as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+            )
+            .ok
+        );
 
         let add_result = fatoora_invoice_builder_add_line_item(
             &mut builder,
@@ -339,7 +378,8 @@ fn null_handles_return_error() {
             fatoora_error_free(add_result.error);
         }
 
-        let validate_result = fatoora_validate_xml_invoice_from_str(std::ptr::null_mut(), cstr("<x/>").as_ptr());
+        let validate_result =
+            fatoora_validate_xml_invoice_from_str(std::ptr::null_mut(), cstr("<x/>").as_ptr());
         assert!(!validate_result.ok);
         if !validate_result.error.is_null() {
             fatoora_error_free(validate_result.error);
@@ -391,8 +431,9 @@ fn parse_finalized_invoice_from_file() {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../fatoora-core/tests/fixtures/invoices/sample-simplified-invoice.xml");
     unsafe {
-        let result =
-            fatoora_parse_finalized_invoice_xml_file(cstr(path.to_string_lossy().as_ref()).as_ptr());
+        let result = fatoora_parse_finalized_invoice_xml_file(
+            cstr(path.to_string_lossy().as_ref()).as_ptr(),
+        );
         assert!(result.ok);
         if result.ok {
             let mut invoice = result.value;

@@ -54,12 +54,10 @@ pub fn parse_finalized_invoice_xml_file(
     path: impl AsRef<Path>,
 ) -> Result<FinalizedInvoice, ParseError> {
     let path = path.as_ref();
-    let xml = std::fs::read_to_string(path).map_err(|e| {
-        ParseError::XmlParse(format!("failed to read {}: {e}", path.display()))
-    })?;
+    let xml = std::fs::read_to_string(path)
+        .map_err(|e| ParseError::XmlParse(format!("failed to read {}: {e}", path.display())))?;
     parse_finalized_invoice_xml(&xml)
 }
-
 
 /// Parse a signed invoice from XML string.
 ///
@@ -83,12 +81,10 @@ pub fn parse_signed_invoice_xml(xml: &str) -> Result<SignedInvoice, ParseError> 
 /// Returns [`ParseError`] if the file cannot be read or the XML is invalid.
 pub fn parse_signed_invoice_xml_file(path: impl AsRef<Path>) -> Result<SignedInvoice, ParseError> {
     let path = path.as_ref();
-    let xml = std::fs::read_to_string(path).map_err(|e| {
-        ParseError::XmlParse(format!("failed to read {}: {e}", path.display()))
-    })?;
+    let xml = std::fs::read_to_string(path)
+        .map_err(|e| ParseError::XmlParse(format!("failed to read {}: {e}", path.display())))?;
     parse_signed_invoice_xml(&xml)
 }
-
 
 fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, ParseError> {
     let ctx = build_context(doc)?;
@@ -553,10 +549,11 @@ fn parse_line_items(ctx: &xpath::Context) -> Result<Vec<LineItem>, ParseError> {
 }
 
 fn parse_datetime(date: &str, time: &str) -> Result<String, ParseError> {
-    let time = NaiveTime::parse_from_str(time, "%H:%M:%S").map_err(|e| ParseError::InvalidValue {
-        field: "IssueTime",
-        value: format!("{time} ({e:?})"),
-    })?;
+    let time =
+        NaiveTime::parse_from_str(time, "%H:%M:%S").map_err(|e| ParseError::InvalidValue {
+            field: "IssueTime",
+            value: format!("{time} ({e:?})"),
+        })?;
     let combined = format!("{date}T{}Z", time.format("%H:%M:%S"));
     let naive = NaiveDateTime::parse_from_str(&combined, "%Y-%m-%dT%H:%M:%SZ").map_err(|e| {
         ParseError::InvalidValue {

@@ -128,9 +128,7 @@ impl SignedProperties {
             serial: "test".to_string(),
             cert_hash: "test".to_string(),
             signed_props_hash: "test".to_string(),
-            signing_time: chrono::Utc::now()
-                .format("%Y-%m-%dT%H:%M:%S")
-                .to_string(),
+            signing_time: chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S").to_string(),
             zatca_key_signature: zatca_key_signature.map(|s| s.to_string()),
         }
     }
@@ -1094,7 +1092,6 @@ mod tests {
         let actual = public_key_base64(&key);
         assert_eq!(actual, expected);
     }
-
 
     fn build_test_cert(key: &SigningKey) -> Certificate {
         let serial_number = SerialNumber::from(1u32);

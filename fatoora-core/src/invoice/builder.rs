@@ -184,7 +184,6 @@ impl InvoiceBuilder {
         self
     }
 
-
     /// Validate the invoice and compute totals.
     ///
     /// # Errors
@@ -221,7 +220,11 @@ impl InvoiceBuilder {
             Some(value) => match InvoiceTimestamp::parse(value) {
                 Ok(parsed) => Some(parsed),
                 Err(_) => {
-                    push_issue(InvoiceField::IssueDateTime, ValidationKind::InvalidFormat, None);
+                    push_issue(
+                        InvoiceField::IssueDateTime,
+                        ValidationKind::InvalidFormat,
+                        None,
+                    );
                     None
                 }
             },
@@ -244,10 +247,16 @@ impl InvoiceBuilder {
             },
         };
         match self.previous_invoice_hash.as_deref() {
-            None => push_issue(InvoiceField::PreviousInvoiceHash, ValidationKind::Missing, None),
-            Some(value) if value.trim().is_empty() => {
-                push_issue(InvoiceField::PreviousInvoiceHash, ValidationKind::Empty, None)
-            }
+            None => push_issue(
+                InvoiceField::PreviousInvoiceHash,
+                ValidationKind::Missing,
+                None,
+            ),
+            Some(value) if value.trim().is_empty() => push_issue(
+                InvoiceField::PreviousInvoiceHash,
+                ValidationKind::Empty,
+                None,
+            ),
             _ => {}
         }
         if self.invoice_counter.is_none() {
@@ -257,7 +266,11 @@ impl InvoiceBuilder {
             push_issue(InvoiceField::Seller, ValidationKind::Missing, None);
         }
         match self.payment_means_code.as_deref() {
-            None => push_issue(InvoiceField::PaymentMeansCode, ValidationKind::Missing, None),
+            None => push_issue(
+                InvoiceField::PaymentMeansCode,
+                ValidationKind::Missing,
+                None,
+            ),
             Some(value) if value.trim().is_empty() => {
                 push_issue(InvoiceField::PaymentMeansCode, ValidationKind::Empty, None)
             }
@@ -339,7 +352,9 @@ impl InvoiceBuilder {
             seller: self.seller.expect("validated seller"),
             buyer: self.buyer,
             line_items: self.line_items,
-            payment_means_code: self.payment_means_code.expect("validated payment means code"),
+            payment_means_code: self
+                .payment_means_code
+                .expect("validated payment means code"),
             vat_category: self.vat_category.expect("validated vat category"),
             flags: self.flags,
             invoice_level_charge: self.invoice_level_charge,

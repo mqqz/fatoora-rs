@@ -247,7 +247,11 @@ fn qr_command_generates_payload_for_finalized_invoice() {
     assert!(!payload.trim().is_empty(), "expected non-empty QR payload");
     let tlv = decode_tlv(&payload);
     let tags: Vec<u8> = tlv.iter().map(|(tag, _)| *tag).collect();
-    assert_eq!(tags, vec![1, 2, 3, 4, 5], "finalized QR should include tags 1..5 only");
+    assert_eq!(
+        tags,
+        vec![1, 2, 3, 4, 5],
+        "finalized QR should include tags 1..5 only"
+    );
 
     let _ = std::fs::remove_file(fixture);
 }

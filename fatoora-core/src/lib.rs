@@ -142,10 +142,14 @@ impl From<invoice::xml::parse::ParseError> for Error {
 impl From<invoice::validation::XmlValidationError> for Error {
     fn from(err: invoice::validation::XmlValidationError) -> Self {
         let kind = match err {
-            invoice::validation::XmlValidationError::InvalidXsdPath { .. } => ErrorKind::InvalidInput,
+            invoice::validation::XmlValidationError::InvalidXsdPath { .. } => {
+                ErrorKind::InvalidInput
+            }
             invoice::validation::XmlValidationError::SchemaParse { .. } => ErrorKind::Parse,
             invoice::validation::XmlValidationError::XmlParse { .. } => ErrorKind::Xml,
-            invoice::validation::XmlValidationError::SchemaValidation { .. } => ErrorKind::Validation,
+            invoice::validation::XmlValidationError::SchemaValidation { .. } => {
+                ErrorKind::Validation
+            }
         };
         Error::new(kind, err.to_string())
     }
@@ -168,24 +172,28 @@ impl From<api::ZatcaError> for Error {
 #[cfg(test)]
 mod tests {
     use super::{Error, ErrorKind};
+    use crate::invoice::sign::SigningError;
+    use crate::invoice::validation::XmlValidationError;
+    use crate::invoice::xml::InvoiceXmlError;
+    use crate::invoice::xml::parse::ParseError;
     use crate::{
         api::ZatcaError,
         csr::CsrError,
         invoice::{
-            InvoiceError, QrCodeError, ValidationError, ValidationIssue, ValidationKind, InvoiceField,
+            InvoiceError, InvoiceField, QrCodeError, ValidationError, ValidationIssue,
+            ValidationKind,
         },
     };
-    use crate::invoice::sign::SigningError;
-    use crate::invoice::xml::InvoiceXmlError;
-    use crate::invoice::xml::parse::ParseError;
-    use crate::invoice::validation::XmlValidationError;
     use quick_xml::se::SeError;
 
     #[test]
     fn error_conversions_cover_variants() {
-        let invoice_err = InvoiceError::Validation(ValidationError::new(vec![
-            ValidationIssue::new(InvoiceField::Id, ValidationKind::Missing, None),
-        ]));
+        let invoice_err =
+            InvoiceError::Validation(ValidationError::new(vec![ValidationIssue::new(
+                InvoiceField::Id,
+                ValidationKind::Missing,
+                None,
+            )]));
         let err: Error = invoice_err.into();
         assert_eq!(err.kind(), ErrorKind::Validation);
 

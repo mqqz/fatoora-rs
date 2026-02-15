@@ -28,13 +28,15 @@ fn bundled_xsd_path() -> PathBuf {
         .join("assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd")
 }
 
-fn build_validation_context(_config: &Config) -> Result<SchemaValidationContext, XmlValidationError> {
+fn build_validation_context(
+    _config: &Config,
+) -> Result<SchemaValidationContext, XmlValidationError> {
     let xsd_path_buf = bundled_xsd_path();
-    let xsd_path = xsd_path_buf.to_str().ok_or_else(|| {
-        XmlValidationError::InvalidXsdPath {
+    let xsd_path = xsd_path_buf
+        .to_str()
+        .ok_or_else(|| XmlValidationError::InvalidXsdPath {
             path: xsd_path_buf.display().to_string(),
-        }
-    })?;
+        })?;
 
     let mut parser_ctx = SchemaParserContext::from_file(xsd_path);
     SchemaValidationContext::from_parser(&mut parser_ctx)
@@ -47,11 +49,12 @@ fn build_validation_context(_config: &Config) -> Result<SchemaValidationContext,
 /// Returns [`XmlValidationError`] if the XML is invalid or validation fails.
 pub fn validate_xml_invoice_from_str(xml: &str, config: &Config) -> ValidationResult {
     let mut validation_ctx = build_validation_context(config)?;
-    let document = Parser::default()
-        .parse_string(xml)
-        .map_err(|e| XmlValidationError::XmlParse {
-            message: format!("{e:?}"),
-        })?;
+    let document =
+        Parser::default()
+            .parse_string(xml)
+            .map_err(|e| XmlValidationError::XmlParse {
+                message: format!("{e:?}"),
+            })?;
 
     validation_ctx
         .validate_document(&document)

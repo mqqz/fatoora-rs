@@ -3,17 +3,12 @@ use std::path::{Path, PathBuf};
 
 use crate::invoice::sign::invoice_hash_base64;
 
-const CBC_NS: &str =
-    "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2";
-const CAC_NS: &str =
-    "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2";
+const CBC_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2";
+const CAC_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2";
 const UBL_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2";
-const EXT_NS: &str =
-    "urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2";
-const SIG_NS: &str =
-    "urn:oasis:names:specification:ubl:schema:xsd:CommonSignatureComponents-2";
-const SAC_NS: &str =
-    "urn:oasis:names:specification:ubl:schema:xsd:SignatureAggregateComponents-2";
+const EXT_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2";
+const SIG_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:CommonSignatureComponents-2";
+const SAC_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:SignatureAggregateComponents-2";
 const DS_NS: &str = "http://www.w3.org/2000/09/xmldsig#";
 const XADES_NS: &str = "http://uri.etsi.org/01903/v1.3.2#";
 
@@ -44,7 +39,8 @@ fn fixture_invoices_match_hash_digest() {
         );
         let actual_invoice_digest = invoice_hash_base64(&doc).expect("invoice hash");
         assert_eq!(
-            expected_invoice_digest, actual_invoice_digest,
+            expected_invoice_digest,
+            actual_invoice_digest,
             "invoice hash mismatch for {}",
             file.display()
         );

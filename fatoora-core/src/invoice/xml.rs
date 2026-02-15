@@ -1023,7 +1023,6 @@ pub trait ToXml {
     }
 }
 
-
 impl ToXml for FinalizedInvoice {
     fn to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError> {
         to_xml_with_format(self, format)

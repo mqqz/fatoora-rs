@@ -98,8 +98,8 @@ fn test_csr_matches_zatca_sdk() {
             message: e.to_string(),
         })
         .unwrap();
-    let key_path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/pkeys/test_zatca_pkey.der");
+    let key_path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/pkeys/test_zatca_pkey.der");
     let zatca_pkey = SigningKey::from_der(&std::fs::read(key_path).unwrap()).unwrap();
 
     let _csr = csr_config.build(&zatca_pkey, env).unwrap();

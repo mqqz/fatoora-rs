@@ -4,8 +4,8 @@ use base64ct::{Base64, Encoding};
 use ecdsa;
 use fatoora_derive::Validate;
 use java_properties::read;
-use k256::{Secp256k1, ecdsa::SigningKey as K256SigningKey};
 use k256::pkcs8::{DecodePrivateKey, EncodePrivateKey, LineEnding as KeyLineEnding};
+use k256::{Secp256k1, ecdsa::SigningKey as K256SigningKey};
 use std::{
     io::Cursor,
     path::{self, PathBuf},
@@ -150,12 +150,12 @@ impl SigningKey {
     }
 
     pub fn to_der(&self) -> Result<Vec<u8>, CsrError> {
-        let doc = self
-            .inner
-            .to_pkcs8_der()
-            .map_err(|e: k256::pkcs8::Error| CsrError::KeyEncode {
-                message: e.to_string(),
-            })?;
+        let doc =
+            self.inner
+                .to_pkcs8_der()
+                .map_err(|e: k256::pkcs8::Error| CsrError::KeyEncode {
+                    message: e.to_string(),
+                })?;
         Ok(doc.as_bytes().to_vec())
     }
 
@@ -387,7 +387,9 @@ impl CsrProperties {
     ///
     /// # Errors
     /// Returns [`CsrError`] when the file cannot be read or required fields are missing.
-    pub fn parse_csr_config_file(csr_path: impl AsRef<path::Path>) -> Result<CsrProperties, CsrError> {
+    pub fn parse_csr_config_file(
+        csr_path: impl AsRef<path::Path>,
+    ) -> Result<CsrProperties, CsrError> {
         let path = csr_path.as_ref();
         let pathbuf = path.to_path_buf();
         let contents = std::fs::read_to_string(path).map_err(|e| CsrError::Io {

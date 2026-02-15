@@ -13,10 +13,7 @@ macro_rules! ffi_require_handle {
         match unsafe { $ptr.as_mut() } {
             Some(handle) => handle,
             None => {
-                return FfiResult::err(ffi_error_invalid_input(concat!(
-                    $label,
-                    " handle is null"
-                )))
+                return FfiResult::err(ffi_error_invalid_input(concat!($label, " handle is null")));
             }
         }
     }};
@@ -71,10 +68,7 @@ macro_rules! ffi_handle_free {
 macro_rules! ffi_take_handle {
     ($ptr:expr, $label:literal, $ty:ty) => {{
         if $ptr.is_null() {
-            return FfiResult::err(ffi_error_invalid_input(concat!(
-                $label,
-                " handle is null"
-            )));
+            return FfiResult::err(ffi_error_invalid_input(concat!($label, " handle is null")));
         }
         let handle = unsafe { &mut *$ptr };
         match take_handle::<$ty>(&mut handle.ptr, $label) {

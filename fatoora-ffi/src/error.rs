@@ -1,14 +1,13 @@
-
 use std::os::raw::c_char;
 
 use crate::types::FfiString;
 use fatoora_core::api::ZatcaError;
 use fatoora_core::csr::CsrError;
-use fatoora_core::invoice::{InvoiceError, QrCodeError};
 use fatoora_core::invoice::sign::SigningError;
 use fatoora_core::invoice::validation::XmlValidationError;
 use fatoora_core::invoice::xml::InvoiceXmlError;
 use fatoora_core::invoice::xml::parse::ParseError;
+use fatoora_core::invoice::{InvoiceError, QrCodeError};
 use fatoora_core::{Error as CoreError, ErrorKind};
 
 #[repr(i32)]
@@ -87,7 +86,9 @@ impl<T> FfiResult<T> {
             value: unsafe { std::mem::zeroed() },
             error: Box::into_raw(Box::new(FfiError {
                 code: details.kind as i32,
-                message: c.map(|value| value.into_raw()).unwrap_or(std::ptr::null_mut()),
+                message: c
+                    .map(|value| value.into_raw())
+                    .unwrap_or(std::ptr::null_mut()),
             })),
         }
     }
@@ -120,16 +121,22 @@ pub unsafe extern "C" fn fatoora_error_code(error: *mut FfiError) -> i32 {
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_error_message(error: *mut FfiError) -> FfiString {
     if error.is_null() {
-        return FfiString { ptr: std::ptr::null_mut() };
+        return FfiString {
+            ptr: std::ptr::null_mut(),
+        };
     }
     let message = unsafe { (*error).message };
     if message.is_null() {
-        return FfiString { ptr: std::ptr::null_mut() };
+        return FfiString {
+            ptr: std::ptr::null_mut(),
+        };
     }
     let cstr = unsafe { std::ffi::CStr::from_ptr(message) };
     match cstr.to_str() {
         Ok(value) => FfiString::from(value.to_string()),
-        Err(_) => FfiString { ptr: std::ptr::null_mut() },
+        Err(_) => FfiString {
+            ptr: std::ptr::null_mut(),
+        },
     }
 }
 
@@ -190,10 +197,7 @@ mod tests {
 
     #[test]
     fn err_allocates_error() {
-        let result = FfiResult::<u32>::err(FfiErrorDetails::new(
-            FfiErrorKind::Internal,
-            "boom",
-        ));
+        let result = FfiResult::<u32>::err(FfiErrorDetails::new(FfiErrorKind::Internal, "boom"));
         assert!(!result.ok);
         assert!(!result.error.is_null());
         unsafe { super::fatoora_error_free(result.error) };

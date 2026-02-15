@@ -12,10 +12,10 @@ use bitflags::bitflags;
 use chrono::{NaiveDate, NaiveDateTime};
 use iso_currency::Currency as IsoCurrency;
 use isocountry::CountryCode as IsoCountryCode;
+use serde::{Deserialize, Serialize};
 use std::marker::PhantomData;
 use std::str::FromStr;
 use thiserror::Error;
-use serde::{Deserialize, Serialize};
 
 type Result<T> = std::result::Result<T, InvoiceError>;
 
@@ -66,11 +66,7 @@ pub struct ValidationIssue {
 }
 
 impl ValidationIssue {
-    pub fn new(
-        field: InvoiceField,
-        kind: ValidationKind,
-        line_item_index: Option<usize>,
-    ) -> Self {
+    pub fn new(field: InvoiceField, kind: ValidationKind, line_item_index: Option<usize>) -> Self {
         Self {
             field,
             kind,

@@ -1,7 +1,7 @@
 // --8<-- [start:example]
 #[tokio::main]
 pub async fn main() {
-    use fatoora_core::api::{CsidCredentials, Compliance, ZatcaClient};
+    use fatoora_core::api::{Compliance, CsidCredentials, ZatcaClient};
     use fatoora_core::config::{Config, EnvironmentType};
     use fatoora_core::invoice::xml::parse::parse_signed_invoice_xml;
 

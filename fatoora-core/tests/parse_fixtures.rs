@@ -1,6 +1,4 @@
-use fatoora_core::invoice::xml::parse::{
-    parse_finalized_invoice_xml, parse_signed_invoice_xml,
-};
+use fatoora_core::invoice::xml::parse::{parse_finalized_invoice_xml, parse_signed_invoice_xml};
 use std::path::{Path, PathBuf};
 
 fn collect_xml_files(dir: &Path) -> Vec<PathBuf> {
@@ -18,8 +16,7 @@ fn collect_xml_files(dir: &Path) -> Vec<PathBuf> {
 }
 
 fn read_xml(path: &Path) -> String {
-    std::fs::read_to_string(path)
-        .unwrap_or_else(|e| panic!("failed to read {:?}: {e:?}", path))
+    std::fs::read_to_string(path).unwrap_or_else(|e| panic!("failed to read {:?}: {e:?}", path))
 }
 
 #[test]

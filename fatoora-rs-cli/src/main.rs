@@ -4,16 +4,16 @@
 //! ```bash
 //! fatoora-rs-cli csr --csr-config csr.properties --generated-csr csr.pem --private-key key.pem
 //! ```
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use base64ct::{Base64, Encoding};
 use clap::{Parser, Subcommand, ValueEnum};
 use fatoora_core::{
     config::EnvironmentType,
     csr::CsrProperties,
     invoice::{
+        FinalizedInvoice, SignedInvoice,
         validation::validate_xml_invoice_from_str,
         xml::parse::{parse_finalized_invoice_xml, parse_signed_invoice_xml},
-        FinalizedInvoice, SignedInvoice,
     },
 };
 use serde_json::json;
