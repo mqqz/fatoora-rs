@@ -612,7 +612,7 @@ fn apply_signed_properties_values_raw(
     set_xpath_text(
         &ctx,
         "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:Object/xades:QualifyingProperties/xades:SignedProperties/xades:SignedSignatureProperties/xades:SigningTime",
-        &signing_time,
+        signing_time,
     )?;
     set_xpath_text(
         &ctx,
@@ -1067,7 +1067,7 @@ mod tests {
         let digest_value = "digest";
         let issuer = "issuer";
         let serial = "123";
-        let xml = signed_properties_xml(&signing_time, digest_value, issuer, serial);
+        let xml = signed_properties_xml(signing_time, digest_value, issuer, serial);
         let hash = sha2::Sha256::digest(xml.as_bytes());
         let mut hex_hash = String::with_capacity(hash.len() * 2);
         for byte in hash {
