@@ -1,8 +1,28 @@
 # Configuration
 
-Environment selection used by the API client and validation helpers.
+There are three main "environments" which are required to determine which ZATCA API endpoint to use.
+Additionally, the type of environment changes the signing/validation process slightly.
 
-## EnvironmentType / Environment / FfiEnvironment
+- "Non-Production"
+      Sometimes also called the "Sandbox". It's open to anyone to use without registration for
+      initial testing. It's a dummy environment with mainly hardcoded values and responses. For 
+      instance, the OTP "123345" is always considered valid.
+
+      Endpoint: ["https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal/"]
+
+- "Simulation":
+      The simulation environment requires registration at the developer portal. It's also used for
+      testing only.
+
+      Endpoint: ["https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation/"]
+
+- "Production":
+      This is the real deal environment for in-production systems where real invoices are to be 
+      reported.
+
+      Endpoint: ["https://gw-fatoora.zatca.gov.sa/e-invoicing/core/"]
+
+## Environment
 
 ### `from_str`
 

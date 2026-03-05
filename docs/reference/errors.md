@@ -94,16 +94,3 @@ Error types used across the core library, FFI, and Python bindings.
         void fatoora_error_free(FfiError* error);
         ```
 
-## Mapping (FFI -> Python)
-
-!!! note "Mapping"
-    - InvalidInput -> InvalidInputError
-    - Validation -> ValidationError
-    - Parse -> ParseError
-    - Xml -> XmlError
-    - Crypto -> CryptoError
-    - Io -> IoError
-    - Network -> NetworkError
-    - Unauthorized -> UnauthorizedError
-    - Internal -> InternalError
-    - Api -> ApiError

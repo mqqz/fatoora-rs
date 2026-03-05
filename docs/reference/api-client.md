@@ -1,6 +1,8 @@
 # ZATCA API Client
 
-HTTP client for the ZATCA endpoints, plus response models.
+The HTTP client is the main way to contact ZATCA's official fatoora platform API.
+Please do read the [ZATCA Official API Gateway](https://sandbox.zatca.gov.sa/IntegrationSandbox) 
+for more details.
 
 ## ZatcaClient
 

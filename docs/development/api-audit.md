@@ -37,7 +37,6 @@ This page captures the current public surface, the target shape, and a checklist
 - [x] Remove filesystem helpers where not essential (no file-based helpers outside CSR + invoice XML parse).
 - [x] Remove custom XSD handling entirely (no `with_xsd_path`).
 - [x] CLI `validate` uses bundled XSD only (no `--xsd-path` flag).
-- [ ] Evaluate whether `Config` still adds value beyond `Environment` (keep only if extensibility is needed).
 
 ## Proposed Signature List (Core)
 This list is intentionally minimal and string/bytes-only at the public boundary. Names reflect current API.
@@ -476,14 +475,3 @@ void fatoora_csid_compliance_free(FfiCsidCompliance*);
 void fatoora_csid_production_free(FfiCsidProduction*);
 ```
 
-## Issues / Inconsistencies / Improvements (Current)
-### Resolved
-- External types exposed in core public API are removed or wrapped.
-- FFI header is in sync with Rust exports (totals, parties, validation response fields, invoice type getters).
-- FFI invoice type getters return `FfiInvoiceTypeKind`/`FfiInvoiceSubType` and are exported in headers.
-- Validation response accessors are present in headers.
-
-### Remaining / Follow-ups
-- Decide if `Config` remains a public type or if `EnvironmentType` alone is enough.
-- Review and simplify error taxonomy for a smaller top-level error surface.
-- Keep docs/examples aligned with current accessors (especially new invoice accessors for signed/finalized).

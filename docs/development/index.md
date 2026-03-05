@@ -47,7 +47,7 @@ See `docs/development/api-audit.md` for the current core/FFI surface, proposed s
 ## Python bindings (uv)
 ```bash
 uv venv
-uv pip install -e bindings/python
+uv pip install -e "bindings/python"
 ```
 
 ## Build a Python wheel (uv)
@@ -57,6 +57,6 @@ uv build --wheel
 
 ## Tests
 ```bash
-uv pip install -e bindings/python[dev]
+uv pip install -e "bindings/python[dev]"
 uv run -c "import fatoora"
 ```

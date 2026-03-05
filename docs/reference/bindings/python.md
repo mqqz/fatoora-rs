@@ -25,4 +25,18 @@ The Python package wraps the `fatoora-ffi` shared library via `cffi`.
 --8<-- "bindings/python/examples/python_bindings.py:example"
 ```
 
+## Error Mapping (FFI -> Python)
+
+!!! note "Mapping"
+    - InvalidInput -> InvalidInputError
+    - Validation -> ValidationError
+    - Parse -> ParseError
+    - Xml -> XmlError
+    - Crypto -> CryptoError
+    - Io -> IoError
+    - Network -> NetworkError
+    - Unauthorized -> UnauthorizedError
+    - Internal -> InternalError
+    - Api -> ApiError
+
 See also: [C/C++ Bindings](c.md)
