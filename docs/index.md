@@ -24,12 +24,17 @@ This library was born out of the frustration involved in working with the ZATCA 
 There are two main ways to interact with `fatoora-rs`. Either through:
 
 - **The Command Line Interaface (CLI)**:
+
 This CLI aims to be a *lighter, efficient and ergonomic* replacement to the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloadSDK) CLI tool.
 
 - **Code Libraries**:
+
 The main core library (`fatoora-core`) is written in Rust with a C FFI that allows interopability with many languages:
+
     - Rust (using the `fatoora-core` crate)
+
     - C/C++ (directly through the FFI shared library)
+
     - Python (wrapper library over the FFI)
 
 ## Installation
@@ -88,9 +93,13 @@ The main core library (`fatoora-core`) is written in Rust with a C FFI that allo
     ```
 
 ## Current Limitations
+
 - Multithreaded usage is unsupported/untested, so use at your own risk
+
 - Only tested on sandbox, due to the difficulty of accessing the production environment
+
 - Test suite needs more edge cases
+
 - Invoice valdiation only covers the basic UBL format, no specific ZATCA/KSA rules yet.
 
 ## Where to Go Next
