@@ -243,6 +243,21 @@ Contributions are always welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
 - Expand bindings to other languages (subject to demand)
 - PDF invoice generation
 
+## Author 🤓
+
+This project began as a personal undertaking, and 
+continues to be developed and maintained by me [@mqqz](https://github.com/mqqz).
+
+While this means development happens alongside other commitments, I do my
+best to keep the project maintained and responsive to issues. Contributions,
+feedback, and suggestions are always welcome.
+
+If you or your team are working on fintech or ZATCA integrations and need help building
+reliable scalable infrastructure, from someone who knows his way around this,
+feel free to get in touch ;)
+
+[mosadhan.com](https://mosadhan.com)
+
 ## 🔗 Relevant Links
 - [ZATCA E-Invoicing Homepage](https://zatca.gov.sa/en/E-Invoicing/Pages/default.aspx)
 - [ZATCA Fatoora SDK](https://sandbox.zatca.gov.sa/downloadSDK)
