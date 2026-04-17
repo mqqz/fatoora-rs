@@ -1,0 +1,2293 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Unofficial toolkit for ZATCA Phase 1/2 compliant e-invoicing">
+      
+      
+      
+        <link rel="canonical" href="https://rs.fatoority.com/development/api-audit/">
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../ffi-workflow/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>API Audit - fatoora-rs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-audit-core-ffi" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="fatoora-rs" class="md-header__button md-logo" aria-label="fatoora-rs" data-md-component="logo">
+      
+  <img src="../../assets/images/crab-logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            fatoora-rs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              API Audit
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mqqz/fatoora-rs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mqqz/fatoora-rs
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="fatoora-rs" class="md-nav__button md-logo" aria-label="fatoora-rs" data-md-component="logo">
+      
+  <img src="../../assets/images/crab-logo.png" alt="logo">
+
+    </a>
+    fatoora-rs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mqqz/fatoora-rs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mqqz/fatoora-rs
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/csr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CSR Generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/invoice-signing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Invoice Signing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/qr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ZATCA API Client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/csr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CSR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bindings
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bindings
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/bindings/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/bindings/c/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C/C++ (FFI)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Invoice
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Invoice
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/invoice-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/invoice-signing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/invoice-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/xml-and-schemas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML and Schemas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/qr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/api-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Audit
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#current-surface-updated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Surface (Updated)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#target-shape-guiding-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Target Shape (Guiding Principles)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#final-api-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Final API Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#proposed-signature-list-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proposed Signature List (Core)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Proposed Signature List (Core)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#csr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        csr
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#invoice-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        invoice model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#invoice-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        invoice builder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#invoice-signing-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        invoice signing + XML
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        api client
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#proposed-signature-list-ffi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proposed Signature List (FFI)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Proposed Signature List (FFI)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ffi-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FFI types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#config_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#csr-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        csr + key
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#invoice-builder_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        invoice builder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#invoice-accessors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        invoice accessors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signing-xml-parse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        signing + XML parse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-client_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        api client
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ffi-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FFI Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ffi-parity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FFI Parity Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-parity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Parity Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#current-surface-updated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Surface (Updated)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#target-shape-guiding-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Target Shape (Guiding Principles)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#final-api-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Final API Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#proposed-signature-list-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proposed Signature List (Core)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Proposed Signature List (Core)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#csr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        csr
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#invoice-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        invoice model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#invoice-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        invoice builder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#invoice-signing-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        invoice signing + XML
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        api client
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#proposed-signature-list-ffi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proposed Signature List (FFI)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Proposed Signature List (FFI)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ffi-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FFI types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#config_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#csr-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        csr + key
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#invoice-builder_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        invoice builder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#invoice-accessors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        invoice accessors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signing-xml-parse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        signing + XML parse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-client_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        api client
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="api-audit-core-ffi">API Audit (Core + FFI)<a class="headerlink" href="#api-audit-core-ffi" title="Permanent link">&para;</a></h1>
+<p>This page captures the current public surface, the target shape, and a checklist to resolve while finalizing the API. Notes reflect the current codebase (older parity docs may be stale).</p>
+<h2 id="current-surface-updated">Current Surface (Updated)<a class="headerlink" href="#current-surface-updated" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Core modules: <code>config</code>, <code>csr</code>, <code>invoice</code>, <code>invoice::sign</code>, <code>invoice::xml</code>, <code>invoice::validation</code>, <code>api</code> (see <code>fatoora-core/src/lib.rs</code>).</li>
+<li>Core public API uses crate-owned types only; external types no longer appear in public signatures (HTTP errors and signing time are strings).</li>
+<li>CSR + signing keys are wrapped in crate-owned types (<code>SigningKey</code>, <code>Csr</code>) with string/bytes constructors and serializers.</li>
+<li>Invoice timestamp/currency/country codes are validated string wrappers (<code>InvoiceTimestamp</code>, <code>CurrencyCode</code>, <code>CountryCode</code>).</li>
+<li>FFI exports cover config, CSR, signing keys, invoice builder/sign/parse/accessors, validation, and ZATCA API (<code>fatoora-ffi/src/lib.rs</code>).</li>
+<li>FFI string handling is strict UTF-8 (no lossy conversion or trimming); interior-NUL returns an error or NULL.</li>
+<li>FFI enums use explicit <code>repr(i32)</code> discriminants for ABI stability.</li>
+<li>FFI async calls share a single Tokio runtime (no per-call runtime creation).</li>
+<li>Core defines a unified <code>ErrorKind</code>/<code>Error</code>; FFI uses the same kind values (1:1 mapping).</li>
+<li>Generated C header is in sync with Rust exports and includes validation accessors, totals/party getters, and invoice type getters.</li>
+</ul>
+<h2 id="target-shape-guiding-principles">Target Shape (Guiding Principles)<a class="headerlink" href="#target-shape-guiding-principles" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Public API exposes only crate-owned types; external crates stay internal.</li>
+<li>Inputs at the boundary are string/bytes with validation inside the crate.</li>
+<li>FFI is handle-based with <code>FfiResult&lt;T&gt;</code> for fallible operations; constructors that cannot fail (e.g., config) return raw handles; no panics cross the boundary.</li>
+<li>Constructors are minimal; setters carry optional/extended fields.</li>
+</ul>
+<h2 id="final-api-checklist">Final API Checklist<a class="headerlink" href="#final-api-checklist" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[x] Core public API exposes only crate-owned types (no external crate types in signatures).</li>
+<li>[x] Core uses string/bytes inputs for CSR/signing and also provides <code>_file</code> helpers.</li>
+<li>[x] Country code, currency code, and timestamp are string wrappers with validation at construction.</li>
+<li>[x] Remove custom XSD inputs entirely; <code>Config</code> always uses bundled schemas.</li>
+<li>[x] <code>InvoiceBuilder</code> has a small required set; optional fields are set via setters.</li>
+<li>[x] <code>InvoiceType</code> and <code>InvoiceFlags</code> are consistent across core and FFI.</li>
+<li>[x] <code>SignedInvoice</code> and <code>FinalizedInvoice</code> expose identical read-only accessors for core invoice data.</li>
+<li>[ ] All fallible functions return a single top-level error or a small set of module errors.</li>
+<li>[x] FFI uses <code>FfiResult&lt;T&gt;</code> for fallible functions; no panics cross the boundary.</li>
+<li>[x] FFI exports include all accessors (totals, parties, validation response) and headers match Rust.</li>
+<li>[x] FFI constructors avoid long parameter lists; prefer config handles and setters.</li>
+<li>[x] FFI provides both string/bytes and <code>_file</code> helpers for CSR and invoice parsing.</li>
+<li>[x] FFI handle types are <code>#[repr(C)]</code> opaque structs; enums are <code>repr(i32)</code> with explicit discriminants.</li>
+<li>[x] Remove filesystem helpers where not essential (no file-based helpers outside CSR + invoice XML parse).</li>
+<li>[x] Remove custom XSD handling entirely (no <code>with_xsd_path</code>).</li>
+<li>[x] CLI <code>validate</code> uses bundled XSD only (no <code>--xsd-path</code> flag).</li>
+</ul>
+<h2 id="proposed-signature-list-core">Proposed Signature List (Core)<a class="headerlink" href="#proposed-signature-list-core" title="Permanent link">&para;</a></h2>
+<p>This list is intentionally minimal and string/bytes-only at the public boundary. Names reflect current API.</p>
+<h3 id="config">config<a class="headerlink" href="#config" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">pub</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="nc">EnvironmentType</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">NonProduction</span><span class="p">,</span><span class="w"> </span><span class="n">Simulation</span><span class="p">,</span><span class="w"> </span><span class="n">Production</span><span class="w"> </span><span class="p">}</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Config</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="k">impl</span><span class="w"> </span><span class="n">Config</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">new</span><span class="p">(</span><span class="n">env</span><span class="p">:</span><span class="w"> </span><span class="nc">EnvironmentType</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">env</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">EnvironmentType</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="csr">csr<a class="headerlink" href="#csr" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">CsrProperties</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="k">impl</span><span class="w"> </span><span class="n">CsrProperties</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">new</span><span class="p">(</span><span class="o">..</span><span class="p">.</span><span class="n">fields</span><span class="o">..</span><span class="p">.)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="bp">Self</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">from_properties_str</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="bp">Self</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">parse_csr_config</span><span class="p">(</span><span class="n">properties</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="bp">Self</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">parse_csr_config_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">Path</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="bp">Self</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">SigningKey</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="k">impl</span><span class="w"> </span><span class="n">SigningKey</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">generate</span><span class="p">()</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">from_der</span><span class="p">(</span><span class="n">bytes</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="p">[</span><span class="kt">u8</span><span class="p">])</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="bp">Self</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">from_pem</span><span class="p">(</span><span class="n">pem</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="bp">Self</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">to_der</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="nb">Vec</span><span class="o">&lt;</span><span class="kt">u8</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">to_pem</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Csr</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="k">impl</span><span class="w"> </span><span class="n">Csr</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">to_der</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="nb">Vec</span><span class="o">&lt;</span><span class="kt">u8</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">to_pem</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">to_base64</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">to_pem_base64</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">impl</span><span class="w"> </span><span class="n">CsrProperties</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">key</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">SigningKey</span><span class="p">,</span><span class="w"> </span><span class="n">env</span><span class="p">:</span><span class="w"> </span><span class="nc">EnvironmentType</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">Csr</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="invoice-model">invoice model<a class="headerlink" href="#invoice-model" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">CountryCode</span><span class="p">(</span><span class="nb">String</span><span class="p">);</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">CurrencyCode</span><span class="p">(</span><span class="nb">String</span><span class="p">);</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">InvoiceTimestamp</span><span class="p">(</span><span class="nb">String</span><span class="p">);</span><span class="w"> </span><span class="c1">// ZATCA ISO UTC: YYYY-MM-DDTHH:MM:SSZ</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Address</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">VatId</span><span class="p">(</span><span class="nb">String</span><span class="p">);</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">OtherId</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">InvoiceNote</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Party</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">type</span><span class="w"> </span><span class="nc">Seller</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Party</span><span class="p">;</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">type</span><span class="w"> </span><span class="nc">Buyer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Party</span><span class="p">;</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="nc">InvoiceSubType</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">Standard</span><span class="p">,</span><span class="w"> </span><span class="n">Simplified</span><span class="w"> </span><span class="p">}</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="nc">InvoiceType</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">Tax</span><span class="p">(</span><span class="n">InvoiceSubType</span><span class="p">),</span>
+<span class="w">    </span><span class="n">Prepayment</span><span class="p">(</span><span class="n">InvoiceSubType</span><span class="p">),</span>
+<span class="w">    </span><span class="n">CreditNote</span><span class="p">(</span><span class="n">InvoiceSubType</span><span class="p">,</span><span class="w"> </span><span class="n">OriginalInvoiceRef</span><span class="p">,</span><span class="w"> </span><span class="nb">String</span><span class="p">),</span>
+<span class="w">    </span><span class="n">DebitNote</span><span class="p">(</span><span class="n">InvoiceSubType</span><span class="p">,</span><span class="w"> </span><span class="n">OriginalInvoiceRef</span><span class="p">,</span><span class="w"> </span><span class="nb">String</span><span class="p">),</span>
+<span class="p">}</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">OriginalInvoiceRef</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="n">bitflags</span><span class="o">!</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">InvoiceFlags</span><span class="p">:</span><span class="w"> </span><span class="kt">u8</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">LineItem</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">InvoiceTotalsData</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FinalizedInvoice</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">SignedInvoice</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<h3 id="invoice-builder">invoice builder<a class="headerlink" href="#invoice-builder" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">InvoiceBuilder</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="k">impl</span><span class="w"> </span><span class="n">InvoiceBuilder</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">new</span><span class="p">(</span><span class="n">invoice_type</span><span class="p">:</span><span class="w"> </span><span class="nc">InvoiceType</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">set_id</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">id</span><span class="p">:</span><span class="w"> </span><span class="nc">impl</span><span class="w"> </span><span class="nb">Into</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">mut</span><span class="w"> </span><span class="bp">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">set_uuid</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">uuid</span><span class="p">:</span><span class="w"> </span><span class="nc">impl</span><span class="w"> </span><span class="nb">Into</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">mut</span><span class="w"> </span><span class="bp">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">set_issue_datetime</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">issue_datetime</span><span class="p">:</span><span class="w"> </span><span class="nc">impl</span><span class="w"> </span><span class="nb">Into</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">mut</span><span class="w"> </span><span class="bp">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">set_currency</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">currency</span><span class="p">:</span><span class="w"> </span><span class="nc">impl</span><span class="w"> </span><span class="nb">Into</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">mut</span><span class="w"> </span><span class="bp">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">set_previous_invoice_hash</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">hash</span><span class="p">:</span><span class="w"> </span><span class="nc">impl</span><span class="w"> </span><span class="nb">Into</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">mut</span><span class="w"> </span><span class="bp">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">set_invoice_counter</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">counter</span><span class="p">:</span><span class="w"> </span><span class="kt">u64</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">mut</span><span class="w"> </span><span class="bp">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">set_seller</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">seller</span><span class="p">:</span><span class="w"> </span><span class="nc">Seller</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">mut</span><span class="w"> </span><span class="bp">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">set_payment_means_code</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">code</span><span class="p">:</span><span class="w"> </span><span class="nc">impl</span><span class="w"> </span><span class="nb">Into</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">mut</span><span class="w"> </span><span class="bp">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">set_vat_category</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">vat_category</span><span class="p">:</span><span class="w"> </span><span class="nc">VatCategory</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">mut</span><span class="w"> </span><span class="bp">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">set_buyer</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">buyer</span><span class="p">:</span><span class="w"> </span><span class="nc">Buyer</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">mut</span><span class="w"> </span><span class="bp">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">set_note</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">note</span><span class="p">:</span><span class="w"> </span><span class="nc">InvoiceNote</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">mut</span><span class="w"> </span><span class="bp">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">set_allowance</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">reason</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="n">amount</span><span class="p">:</span><span class="w"> </span><span class="kt">f64</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">mut</span><span class="w"> </span><span class="bp">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">add_line_item</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">item</span><span class="p">:</span><span class="w"> </span><span class="nc">LineItem</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">mut</span><span class="w"> </span><span class="bp">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">flags</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">flags</span><span class="p">:</span><span class="w"> </span><span class="nc">InvoiceFlags</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">mut</span><span class="w"> </span><span class="bp">Self</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">FinalizedInvoice</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="invoice-signing-xml">invoice signing + XML<a class="headerlink" href="#invoice-signing-xml" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">InvoiceSigner</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="k">impl</span><span class="w"> </span><span class="n">InvoiceSigner</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">from_pem</span><span class="p">(</span><span class="n">cert_pem</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="n">key_pem</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="bp">Self</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">from_der</span><span class="p">(</span><span class="n">cert_der</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="p">[</span><span class="kt">u8</span><span class="p">],</span><span class="w"> </span><span class="n">key_der</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="p">[</span><span class="kt">u8</span><span class="p">])</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="bp">Self</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">sign</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">invoice</span><span class="p">:</span><span class="w"> </span><span class="nc">FinalizedInvoice</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">SignedInvoice</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">sign_xml</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">xml</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">SignedInvoice</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">invoice_hash_base64_from_xml</span><span class="p">(</span><span class="n">xml</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">parse_finalized_invoice_xml</span><span class="p">(</span><span class="n">xml</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">FinalizedInvoice</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">parse_finalized_invoice_xml_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nc">impl</span><span class="w"> </span><span class="nb">AsRef</span><span class="o">&lt;</span><span class="n">Path</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">FinalizedInvoice</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">parse_signed_invoice_xml</span><span class="p">(</span><span class="n">xml</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">SignedInvoice</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">parse_signed_invoice_xml_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nc">impl</span><span class="w"> </span><span class="nb">AsRef</span><span class="o">&lt;</span><span class="n">Path</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">SignedInvoice</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">validate_xml_invoice</span><span class="p">(</span><span class="n">xml</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="n">config</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">Config</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="p">(),</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="api-client">api client<a class="headerlink" href="#api-client" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">pub</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="nc">CsidScope</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">Compliance</span><span class="p">,</span><span class="w"> </span><span class="n">Production</span><span class="w"> </span><span class="p">}</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">CsidCredentials</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">ZatcaClient</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="k">impl</span><span class="w"> </span><span class="n">ZatcaClient</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">new</span><span class="p">(</span><span class="n">config</span><span class="p">:</span><span class="w"> </span><span class="nc">Config</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="bp">Self</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">check_invoice_compliance</span><span class="p">(</span>
+<span class="w">        </span><span class="o">&amp;</span><span class="bp">self</span><span class="p">,</span>
+<span class="w">        </span><span class="n">invoice</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">SignedInvoice</span><span class="p">,</span>
+<span class="w">        </span><span class="n">creds</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">CsidCredentials</span><span class="p">,</span>
+<span class="w">    </span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">ValidationResponse</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">report_simplified_invoice</span><span class="p">(</span>
+<span class="w">        </span><span class="o">&amp;</span><span class="bp">self</span><span class="p">,</span>
+<span class="w">        </span><span class="n">invoice</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">SignedInvoice</span><span class="p">,</span>
+<span class="w">        </span><span class="n">creds</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">CsidCredentials</span><span class="p">,</span>
+<span class="w">        </span><span class="n">clearance_status</span><span class="p">:</span><span class="w"> </span><span class="kt">bool</span><span class="p">,</span>
+<span class="w">        </span><span class="n">accept_language</span><span class="p">:</span><span class="w"> </span><span class="nb">Option</span><span class="o">&lt;&amp;</span><span class="kt">str</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">ValidationResponse</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">clear_standard_invoice</span><span class="p">(</span>
+<span class="w">        </span><span class="o">&amp;</span><span class="bp">self</span><span class="p">,</span>
+<span class="w">        </span><span class="n">invoice</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">SignedInvoice</span><span class="p">,</span>
+<span class="w">        </span><span class="n">creds</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">CsidCredentials</span><span class="p">,</span>
+<span class="w">        </span><span class="n">clearance_status</span><span class="p">:</span><span class="w"> </span><span class="kt">bool</span><span class="p">,</span>
+<span class="w">        </span><span class="n">accept_language</span><span class="p">:</span><span class="w"> </span><span class="nb">Option</span><span class="o">&lt;&amp;</span><span class="kt">str</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">ValidationResponse</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">post_csr_for_ccsid</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">csr</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">Csr</span><span class="p">,</span><span class="w"> </span><span class="n">otp</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">CsidCredentials</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">post_ccsid_for_pcsid</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">creds</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">CsidCredentials</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">CsidCredentials</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">renew_csid</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">creds</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">CsidCredentials</span><span class="p">,</span><span class="w"> </span><span class="n">csr</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">Csr</span><span class="p">,</span><span class="w"> </span><span class="n">otp</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="n">accept_language</span><span class="p">:</span><span class="w"> </span><span class="nb">Option</span><span class="o">&lt;&amp;</span><span class="kt">str</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="w">        </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">CsidCredentials</span><span class="p">,</span><span class="w"> </span><span class="n">Error</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="proposed-signature-list-ffi">Proposed Signature List (FFI)<a class="headerlink" href="#proposed-signature-list-ffi" title="Permanent link">&para;</a></h2>
+<p>Names are illustrative; exact naming follows <code>fatoora_</code> prefix rules. This list reflects the current layout.</p>
+<h3 id="ffi-types">FFI types<a class="headerlink" href="#ffi-types" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="cm">/* Opaque handles */</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiConfig</span><span class="w"> </span><span class="n">FfiConfig</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiInvoiceBuilder</span><span class="w"> </span><span class="n">FfiInvoiceBuilder</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiFinalizedInvoice</span><span class="w"> </span><span class="n">FfiFinalizedInvoice</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiSignedInvoice</span><span class="w"> </span><span class="n">FfiSignedInvoice</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiSigner</span><span class="w"> </span><span class="n">FfiSigner</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiCsrProperties</span><span class="w"> </span><span class="n">FfiCsrProperties</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiCsr</span><span class="w"> </span><span class="n">FfiCsr</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiSigningKey</span><span class="w"> </span><span class="n">FfiSigningKey</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiZatcaClient</span><span class="w"> </span><span class="n">FfiZatcaClient</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiCsidCompliance</span><span class="w"> </span><span class="n">FfiCsidCompliance</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiCsidProduction</span><span class="w"> </span><span class="n">FfiCsidProduction</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiAddress</span><span class="w"> </span><span class="n">FfiAddress</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiParty</span><span class="w"> </span><span class="n">FfiParty</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiVatId</span><span class="w"> </span><span class="n">FfiVatId</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiOtherId</span><span class="w"> </span><span class="n">FfiOtherId</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiInvoiceNote</span><span class="w"> </span><span class="n">FfiInvoiceNote</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiOriginalInvoiceRef</span><span class="w"> </span><span class="n">FfiOriginalInvoiceRef</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiValidationResponse</span><span class="w"> </span><span class="n">FfiValidationResponse</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiValidationResults</span><span class="w"> </span><span class="n">FfiValidationResults</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiValidationMessage</span><span class="w"> </span><span class="n">FfiValidationMessage</span><span class="p">;</span>
+
+<span class="cm">/* Value types */</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiString</span><span class="w"> </span><span class="n">FfiString</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiBytes</span><span class="w"> </span><span class="n">FfiBytes</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiBytesList</span><span class="w"> </span><span class="n">FfiBytesList</span><span class="p">;</span>
+
+<span class="cm">/* Enums */</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="n">FfiEnvironment</span><span class="w"> </span><span class="n">FfiEnvironment</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="n">FfiInvoiceTypeKind</span><span class="w"> </span><span class="n">FfiInvoiceTypeKind</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="n">FfiInvoiceSubType</span><span class="w"> </span><span class="n">FfiInvoiceSubType</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="n">FfiInvoiceFlag</span><span class="w"> </span><span class="n">FfiInvoiceFlag</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="n">FfiVatCategory</span><span class="w"> </span><span class="n">FfiVatCategory</span><span class="p">;</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="n">FfiErrorKind</span><span class="w"> </span><span class="n">FfiErrorKind</span><span class="p">;</span>
+
+<span class="cm">/* Result wrappers (generated per type) */</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">FfiResult_FfiString</span><span class="w"> </span><span class="n">FfiResult_FfiString</span><span class="p">;</span>
+<span class="cm">/* ...other FfiResult_* specializations... */</span>
+</code></pre></div>
+<h3 id="config_1">config<a class="headerlink" href="#config_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">FfiConfig</span><span class="o">*</span><span class="w"> </span><span class="nf">fatoora_config_new</span><span class="p">(</span><span class="n">FfiEnvironment</span><span class="w"> </span><span class="n">env</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">fatoora_config_free</span><span class="p">(</span><span class="n">FfiConfig</span><span class="o">*</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="csr-key">csr + key<a class="headerlink" href="#csr-key" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">FfiResult_FfiCsrProperties</span><span class="w"> </span><span class="nf">fatoora_csr_properties_from_str</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">s</span><span class="p">);</span>
+<span class="n">FfiResult_FfiCsrProperties</span><span class="w"> </span><span class="nf">fatoora_csr_properties_parse_csr_config</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">properties</span><span class="p">);</span>
+<span class="n">FfiResult_FfiCsrProperties</span><span class="w"> </span><span class="nf">fatoora_csr_properties_parse_csr_config_file</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">path</span><span class="p">);</span>
+
+<span class="n">FfiResult_FfiSigningKey</span><span class="w"> </span><span class="nf">fatoora_signing_key_from_pem</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">pem</span><span class="p">);</span>
+<span class="n">FfiResult_FfiSigningKey</span><span class="w"> </span><span class="nf">fatoora_signing_key_from_der</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">uint8_t</span><span class="o">*</span><span class="w"> </span><span class="n">der</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">len</span><span class="p">);</span>
+<span class="n">FfiResult_FfiSigningKey</span><span class="w"> </span><span class="nf">fatoora_signing_key_generate</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signing_key_to_pem</span><span class="p">(</span><span class="n">FfiSigningKey</span><span class="o">*</span><span class="w"> </span><span class="n">key</span><span class="p">);</span>
+
+<span class="n">FfiResult_FfiCsr</span><span class="w"> </span><span class="nf">fatoora_csr_build</span><span class="p">(</span><span class="n">FfiCsrProperties</span><span class="o">*</span><span class="w"> </span><span class="n">props</span><span class="p">,</span><span class="w"> </span><span class="n">FfiSigningKey</span><span class="o">*</span><span class="w"> </span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">FfiEnvironment</span><span class="w"> </span><span class="n">env</span><span class="p">);</span>
+
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_csr_to_base64</span><span class="p">(</span><span class="n">FfiCsr</span><span class="o">*</span><span class="w"> </span><span class="n">csr</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_csr_to_pem_base64</span><span class="p">(</span><span class="n">FfiCsr</span><span class="o">*</span><span class="w"> </span><span class="n">csr</span><span class="p">);</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">fatoora_csr_free</span><span class="p">(</span><span class="n">FfiCsr</span><span class="o">*</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">fatoora_signing_key_free</span><span class="p">(</span><span class="n">FfiSigningKey</span><span class="o">*</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="invoice-builder_1">invoice builder<a class="headerlink" href="#invoice-builder_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">FfiResult_FfiInvoiceBuilder</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_new</span><span class="p">(</span>
+<span class="w">    </span><span class="n">FfiInvoiceTypeKind</span><span class="w"> </span><span class="n">kind</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FfiInvoiceSubType</span><span class="w"> </span><span class="n">sub_type</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">original_invoice_id</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">original_invoice_uuid</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">original_invoice_issue_date</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">original_invoice_reason</span>
+<span class="p">);</span>
+
+<span class="n">FfiResult_bool</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_set_id</span><span class="p">(</span><span class="n">FfiInvoiceBuilder</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">id</span><span class="p">);</span>
+<span class="n">FfiResult_bool</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_set_uuid</span><span class="p">(</span><span class="n">FfiInvoiceBuilder</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">uuid</span><span class="p">);</span>
+<span class="n">FfiResult_bool</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_set_issue_datetime</span><span class="p">(</span><span class="n">FfiInvoiceBuilder</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">issue_timestamp</span><span class="p">);</span>
+<span class="n">FfiResult_bool</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_set_currency</span><span class="p">(</span><span class="n">FfiInvoiceBuilder</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">currency_code</span><span class="p">);</span>
+<span class="n">FfiResult_bool</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_set_previous_hash</span><span class="p">(</span><span class="n">FfiInvoiceBuilder</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">hash</span><span class="p">);</span>
+<span class="n">FfiResult_bool</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_set_invoice_counter</span><span class="p">(</span><span class="n">FfiInvoiceBuilder</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">counter</span><span class="p">);</span>
+<span class="n">FfiResult_bool</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_set_payment_means_code</span><span class="p">(</span><span class="n">FfiInvoiceBuilder</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">code</span><span class="p">);</span>
+<span class="n">FfiResult_bool</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_set_vat_category</span><span class="p">(</span><span class="n">FfiInvoiceBuilder</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">FfiVatCategory</span><span class="w"> </span><span class="n">vat_category</span><span class="p">);</span>
+
+<span class="n">FfiResult_bool</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_set_seller</span><span class="p">(</span><span class="n">FfiInvoiceBuilder</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span>
+<span class="n">FfiResult_bool</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_set_buyer</span><span class="p">(</span><span class="n">FfiInvoiceBuilder</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span>
+<span class="n">FfiResult_bool</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_set_note</span><span class="p">(</span><span class="n">FfiInvoiceBuilder</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">language</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">text</span><span class="p">);</span>
+<span class="n">FfiResult_bool</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_set_allowance</span><span class="p">(</span><span class="n">FfiInvoiceBuilder</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">reason</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">amount</span><span class="p">);</span>
+<span class="n">FfiResult_bool</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_add_line_item</span><span class="p">(</span>
+<span class="w">    </span><span class="n">FfiInvoiceBuilder</span><span class="o">*</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">description</span><span class="p">,</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">quantity</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">unit_code</span><span class="p">,</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">unit_price</span><span class="p">,</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">vat_rate</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FfiVatCategory</span><span class="w"> </span><span class="n">vat_category</span>
+<span class="p">);</span>
+
+<span class="n">FfiResult_bool</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_flags</span><span class="p">(</span><span class="n">FfiInvoiceBuilder</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">flags</span><span class="p">);</span>
+<span class="n">FfiResult_FfiFinalizedInvoice</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_build</span><span class="p">(</span><span class="n">FfiInvoiceBuilder</span><span class="o">*</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">fatoora_invoice_builder_free</span><span class="p">(</span><span class="n">FfiInvoiceBuilder</span><span class="o">*</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="invoice-accessors">invoice accessors<a class="headerlink" href="#invoice-accessors" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="cm">/* FinalizedInvoice core data accessors */</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_invoice_id</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_invoice_uuid</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_invoice_issue_datetime</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_invoice_currency</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_invoice_previous_hash</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_u64</span><span class="w">      </span><span class="nf">fatoora_invoice_counter</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_invoice_payment_means_code</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiVatCategory</span><span class="w"> </span><span class="nf">fatoora_invoice_vat_category</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_invoice_allowance_reason</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w">      </span><span class="nf">fatoora_invoice_level_charge</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w">      </span><span class="nf">fatoora_invoice_level_discount</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+
+<span class="n">FfiResult_u8</span><span class="w">       </span><span class="nf">fatoora_invoice_flags</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiInvoiceTypeKind</span><span class="w"> </span><span class="nf">fatoora_invoice_type_kind</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiInvoiceSubType</span><span class="w">  </span><span class="nf">fatoora_invoice_sub_type</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiOriginalInvoiceRef</span><span class="w"> </span><span class="nf">fatoora_invoice_original_ref</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_invoice_original_reason</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+
+<span class="n">FfiResult_FfiParty</span><span class="w"> </span><span class="nf">fatoora_invoice_seller</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiParty</span><span class="w"> </span><span class="nf">fatoora_invoice_buyer</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiInvoiceNote</span><span class="w"> </span><span class="nf">fatoora_invoice_note</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+
+<span class="cm">/* Line items + totals are mirrored for signed/finalized */</span>
+<span class="n">FfiResult_u64</span><span class="w">  </span><span class="nf">fatoora_invoice_line_item_count</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_invoice_line_item_description</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_invoice_line_item_unit_code</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w">  </span><span class="nf">fatoora_invoice_line_item_quantity</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w">  </span><span class="nf">fatoora_invoice_line_item_unit_price</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w">  </span><span class="nf">fatoora_invoice_line_item_total_amount</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w">  </span><span class="nf">fatoora_invoice_line_item_vat_rate</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w">  </span><span class="nf">fatoora_invoice_line_item_vat_amount</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+<span class="n">FfiResult_u8</span><span class="w">   </span><span class="nf">fatoora_invoice_line_item_vat_category</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+
+<span class="n">FfiResult_f64</span><span class="w"> </span><span class="nf">fatoora_invoice_totals_tax_inclusive</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w"> </span><span class="nf">fatoora_invoice_totals_tax_amount</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w"> </span><span class="nf">fatoora_invoice_totals_line_extension</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w"> </span><span class="nf">fatoora_invoice_totals_allowance_total</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w"> </span><span class="nf">fatoora_invoice_totals_charge_total</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w"> </span><span class="nf">fatoora_invoice_totals_taxable_amount</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_invoice_to_xml</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_invoice_hash_base64</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">fatoora_invoice_free</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">);</span>
+
+<span class="cm">/* SignedInvoice core data accessors (mirrors FinalizedInvoice) */</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_id</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_issue_datetime</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_currency</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_previous_hash</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_u64</span><span class="w">      </span><span class="nf">fatoora_signed_invoice_counter</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_payment_means_code</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiVatCategory</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_vat_category</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_allowance_reason</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w">      </span><span class="nf">fatoora_signed_invoice_level_charge</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w">      </span><span class="nf">fatoora_signed_invoice_level_discount</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+
+<span class="n">FfiResult_u8</span><span class="w">       </span><span class="nf">fatoora_signed_invoice_flags</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiInvoiceTypeKind</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_type_kind</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiInvoiceSubType</span><span class="w">  </span><span class="nf">fatoora_signed_invoice_sub_type</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiOriginalInvoiceRef</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_original_ref</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_original_reason</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+
+<span class="n">FfiResult_FfiParty</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_seller</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiParty</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_buyer</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiInvoiceNote</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_note</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+
+<span class="n">FfiResult_u64</span><span class="w">  </span><span class="nf">fatoora_signed_invoice_line_item_count</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_line_item_description</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_line_item_unit_code</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w">  </span><span class="nf">fatoora_signed_invoice_line_item_quantity</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w">  </span><span class="nf">fatoora_signed_invoice_line_item_unit_price</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w">  </span><span class="nf">fatoora_signed_invoice_line_item_total_amount</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w">  </span><span class="nf">fatoora_signed_invoice_line_item_vat_rate</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w">  </span><span class="nf">fatoora_signed_invoice_line_item_vat_amount</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+<span class="n">FfiResult_u8</span><span class="w">   </span><span class="nf">fatoora_signed_invoice_line_item_vat_category</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+
+<span class="n">FfiResult_f64</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_totals_tax_inclusive</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_totals_tax_amount</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_totals_line_extension</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_totals_allowance_total</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_totals_charge_total</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_f64</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_totals_taxable_amount</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+
+<span class="cm">/* Signed-only accessors */</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_xml</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_to_xml_base64</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_qr_code</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_uuid</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_hash</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_signature</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_public_key</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_cert_hash</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_signed_props_hash</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiString</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_signing_time</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">fatoora_signed_invoice_free</span><span class="p">(</span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="signing-xml-parse">signing + XML parse<a class="headerlink" href="#signing-xml-parse" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">FfiResult_FfiSigner</span><span class="w"> </span><span class="nf">fatoora_signer_from_pem</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">cert_pem</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">key_pem</span><span class="p">);</span>
+<span class="n">FfiResult_FfiSigner</span><span class="w"> </span><span class="nf">fatoora_signer_from_der</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">uint8_t</span><span class="o">*</span><span class="w"> </span><span class="n">cert_der</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">cert_len</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">uint8_t</span><span class="o">*</span><span class="w"> </span><span class="n">key_der</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">key_len</span><span class="p">);</span>
+
+<span class="n">FfiResult_FfiSignedInvoice</span><span class="w"> </span><span class="nf">fatoora_invoice_sign</span><span class="p">(</span><span class="n">FfiFinalizedInvoice</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">FfiSigner</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiSignedInvoice</span><span class="w"> </span><span class="nf">fatoora_invoice_sign_xml</span><span class="p">(</span><span class="n">FfiSigner</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">xml</span><span class="p">);</span>
+
+<span class="n">FfiResult_FfiSignedInvoice</span><span class="w"> </span><span class="nf">fatoora_parse_signed_invoice_xml</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">xml</span><span class="p">);</span>
+<span class="n">FfiResult_FfiSignedInvoice</span><span class="w"> </span><span class="nf">fatoora_parse_signed_invoice_xml_file</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">path</span><span class="p">);</span>
+<span class="n">FfiResult_FfiFinalizedInvoice</span><span class="w"> </span><span class="nf">fatoora_parse_finalized_invoice_xml</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">xml</span><span class="p">);</span>
+<span class="n">FfiResult_FfiFinalizedInvoice</span><span class="w"> </span><span class="nf">fatoora_parse_finalized_invoice_xml_file</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">path</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="validation">validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">FfiResult_bool</span><span class="w"> </span><span class="nf">fatoora_validate_xml_invoice_from_str</span><span class="p">(</span><span class="n">FfiConfig</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">xml</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="api-client_1">api client<a class="headerlink" href="#api-client_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">FfiResult_FfiZatcaClient</span><span class="w"> </span><span class="nf">fatoora_zatca_client_new</span><span class="p">(</span><span class="n">FfiConfig</span><span class="o">*</span><span class="p">);</span>
+
+<span class="cm">/* CSID handles (request_id is a UTF-8 string; empty string is the sentinel) */</span>
+<span class="n">FfiResult_FfiCsidCompliance</span><span class="w"> </span><span class="nf">fatoora_csid_compliance_new</span><span class="p">(</span>
+<span class="w">    </span><span class="n">FfiEnvironment</span><span class="w"> </span><span class="n">env</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">request_id</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">token</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">secret</span>
+<span class="p">);</span>
+<span class="n">FfiResult_FfiCsidProduction</span><span class="w"> </span><span class="nf">fatoora_csid_production_new</span><span class="p">(</span>
+<span class="w">    </span><span class="n">FfiEnvironment</span><span class="w"> </span><span class="n">env</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">request_id</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">token</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">secret</span>
+<span class="p">);</span>
+
+<span class="n">FfiResult_FfiValidationResponse</span><span class="w"> </span><span class="nf">fatoora_zatca_check_invoice_compliance</span><span class="p">(</span>
+<span class="w">    </span><span class="n">FfiZatcaClient</span><span class="o">*</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FfiCsidCompliance</span><span class="o">*</span>
+<span class="p">);</span>
+<span class="n">FfiResult_FfiValidationResponse</span><span class="w"> </span><span class="nf">fatoora_zatca_report_simplified_invoice</span><span class="p">(</span>
+<span class="w">    </span><span class="n">FfiZatcaClient</span><span class="o">*</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FfiCsidProduction</span><span class="o">*</span><span class="p">,</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">clearance_status</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">accept_language</span>
+<span class="p">);</span>
+<span class="n">FfiResult_FfiValidationResponse</span><span class="w"> </span><span class="nf">fatoora_zatca_clear_standard_invoice</span><span class="p">(</span>
+<span class="w">    </span><span class="n">FfiZatcaClient</span><span class="o">*</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FfiSignedInvoice</span><span class="o">*</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FfiCsidProduction</span><span class="o">*</span><span class="p">,</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">clearance_status</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">accept_language</span>
+<span class="p">);</span>
+
+<span class="n">FfiResult_FfiCsidCompliance</span><span class="w"> </span><span class="nf">fatoora_zatca_post_csr_for_ccsid</span><span class="p">(</span><span class="n">FfiZatcaClient</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">FfiCsr</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">otp</span><span class="p">);</span>
+<span class="n">FfiResult_FfiCsidProduction</span><span class="w"> </span><span class="nf">fatoora_zatca_post_ccsid_for_pcsid</span><span class="p">(</span><span class="n">FfiZatcaClient</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">FfiCsidCompliance</span><span class="o">*</span><span class="p">);</span>
+<span class="n">FfiResult_FfiCsidProduction</span><span class="w"> </span><span class="nf">fatoora_zatca_renew_csid</span><span class="p">(</span>
+<span class="w">    </span><span class="n">FfiZatcaClient</span><span class="o">*</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FfiCsidProduction</span><span class="o">*</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FfiCsr</span><span class="o">*</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">otp</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">accept_language</span>
+<span class="p">);</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">fatoora_zatca_client_free</span><span class="p">(</span><span class="n">FfiZatcaClient</span><span class="o">*</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">fatoora_csid_compliance_free</span><span class="p">(</span><span class="n">FfiCsidCompliance</span><span class="o">*</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">fatoora_csid_production_free</span><span class="p">(</span><span class="n">FfiCsidProduction</span><span class="o">*</span><span class="p">);</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

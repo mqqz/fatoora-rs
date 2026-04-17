@@ -1,0 +1,12 @@
+lang:
+  rust: Rust
+  python: Python
+  c: C (FFI)
+pkg:
+  rust: fatoora_core
+  python: fatoora
+  c: fatoora
+ffi:
+  free_error: fatoora_error_free
+  free_string: fatoora_string_free
+  free_result: fatoora_result_free
