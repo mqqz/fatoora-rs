@@ -52,7 +52,11 @@ Everything done by the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloa
 🚀 *But we do it faster and better* e.g. ~190x faster invoice hashing than ZATCA's SDK (see [`bench/`](https://github.com/mqqz/fatoora-rs/blob/main/bench/cli/results/hash_bench.md))
 
 ## 🧩 Dependencies
-XML parsing/manipulation is done internally with `libxml2`, so you might need to install it if you haven't already. See [here](https://github.com/KWARC/rust-libxml?tab=readme-ov-file#installation-prerequisites) for relevant instructions.
+XML parsing/manipulation is done internally with `libxml2`, so you might need to install it if you haven't already (see [here](https://github.com/KWARC/rust-libxml?tab=readme-ov-file#installation-prerequisites) for relevant instructions).
+
+> [!WARNING]
+> Using outdated versions of `libxml2` leaves you vulnerable to several exploits e.g. CVE-2025-6021 and more.
+> Please ensure you are using newer versions such as 2.13.8 or 2.14.2+.
 
 ## 📥 Installation
 <details>
