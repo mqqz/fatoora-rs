@@ -52,11 +52,7 @@ Everything done by the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloa
 🚀 *But we do it faster and better* e.g. ~190x faster invoice hashing than ZATCA's SDK (see [`bench/`](https://github.com/mqqz/fatoora-rs/blob/main/bench/cli/results/hash_bench.md))
 
 ## 🧩 Dependencies
-XML parsing/manipulation is done internally with `libxml2`, so you might need to install it if you haven't already (see [here](https://github.com/KWARC/rust-libxml?tab=readme-ov-file#installation-prerequisites) for relevant instructions).
-
-> [!WARNING]
-> Using outdated versions of `libxml2` leaves you vulnerable to several exploits e.g. CVE-2025-6021 and more.
-> Please ensure you are using newer versions such as 2.13.8 or 2.14.2+.
+XML parsing, XPath and canonicalisation use Rust libraries (`uppsala` and `bergshamra-c14n`). Schema validation temporarily retains `libxml2` until uppsala fixes inherited simple-content validation and rejection of child elements in simple content. Builds still require the [rust-libxml prerequisites](https://github.com/KWARC/rust-libxml#installation-prerequisites).
 
 ## 📥 Installation
 <details>
@@ -170,7 +166,7 @@ validate_xml_invoice_from_str(&xml, &config)?;
 
 CLI
 ```bash
-fatoora-rs-cli validate --invoice invoice.xml --xsd-path assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd
+fatoora-rs-cli validate --invoice invoice.xml
 ```
 </details>
 
