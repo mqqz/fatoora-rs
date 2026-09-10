@@ -24,8 +24,8 @@ Validation workflows for UBL invoices and schema checks.
   `fatoora-core/assets/schemas/UBL2.1/xsd/UBL-Invoice-2.1.xsd`, and no other schema can be
   substituted.
 - The environment has no effect on validation.
-- Schema validation temporarily uses `libxml2`. Switching to uppsala requires a published
-  fix for inherited simple-content values and child-element rejection, verified by
-  the regression tests in `fatoora-core/tests/validation.rs`.
+- Schema validation uses `uppsala`. Version 0.10.1 accepts invalid inherited
+  simple-content values and child elements in simple content. This PR is parked
+  until an upstream fix passes the regression tests in `fatoora-core/tests/validation.rs`.
 
 See also: [Invoice Validation Reference](../reference/invoice-validation.md)

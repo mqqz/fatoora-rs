@@ -24,7 +24,6 @@ fatoora-rs is an unofficial toolkit for ZATCA Phase 1 and 2 compliant e-invoicin
 
 ## Getting Started
 - Rust toolchain (stable) and Cargo
-- `libxml2` and libclang development libraries for XML schema validation
 - Optional: `uv` for Python bindings development and tests
 
 Quick setup:

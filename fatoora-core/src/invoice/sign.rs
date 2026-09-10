@@ -564,8 +564,7 @@ fn insert_after_last_reference(
 ///
 /// uppsala's `insert_before` / `insert_after` / `append_child` return `()` and
 /// no-op when a precondition fails, so nothing but the resulting parent link
-/// distinguishes a grafted node from one still floating in the arena. The
-/// libxml calls these replaced returned a `Result`; this restores that.
+/// distinguishes a grafted node from one still floating in the arena.
 fn check_attached(
     doc: &Document<'_>,
     node: NodeId,

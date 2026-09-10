@@ -18,11 +18,9 @@ Re-vendoring UBL 2.1 straight from OASIS reintroduces the layout uppsala cannot
 resolve. Copy the files into `xsd/` flat, and strip the `../common/` prefixes
 again.
 
-Schema validation temporarily uses libxml2 while uppsala's inherited
-simple-content validation and child-element rejection are fixed upstream.
-The flattened layout is compatible with both engines and is retained for the
-eventual switch back. The regression tests in `tests/validation.rs` must pass
-with the replacement engine before removing libxml2.
+Schema validation uses uppsala. Version 0.10.1 accepts invalid inherited
+simple-content values and child elements in simple content. The PR remains
+parked until an upstream fix passes the regression tests in `tests/validation.rs`.
 
 The local import closure is checked before compiling the schema
 (`invoice::validation::check_imports_present`), so a missing file is reported

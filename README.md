@@ -52,7 +52,7 @@ Everything done by the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloa
 🚀 *But we do it faster and better* e.g. ~190x faster invoice hashing than ZATCA's SDK (see [`bench/`](https://github.com/mqqz/fatoora-rs/blob/main/bench/cli/results/hash_bench.md))
 
 ## 🧩 Dependencies
-XML parsing, XPath and canonicalisation use Rust libraries (`uppsala` and `bergshamra-c14n`). Schema validation temporarily retains `libxml2` until uppsala fixes inherited simple-content validation and rejection of child elements in simple content. Builds still require the [rust-libxml prerequisites](https://github.com/KWARC/rust-libxml#installation-prerequisites).
+XML parsing, XPath and schema validation use `uppsala`; canonicalisation uses `bergshamra-c14n`.
 
 ## 📥 Installation
 <details>

@@ -1,16 +1,13 @@
 //! XML schema validation helpers.
 use crate::config::Config;
 use crate::invoice::xml::dom;
-use libxml::{
-    parser::{Parser, ParserOptions},
-    schemas::{SchemaParserContext, SchemaValidationContext},
-};
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
+use uppsala::xsd::XsdValidator;
 
 /// Re-exported so callers can name the errors [`XmlValidationError`] carries.
-pub use libxml::error::StructuredError as ValidationError;
+pub use uppsala::error::ValidationError;
 
 pub type ValidationResult = Result<(), XmlValidationError>;
 
@@ -29,19 +26,12 @@ fn bundled_xsd_path() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets/schemas/UBL2.1/xsd/UBL-Invoice-2.1.xsd")
 }
 
-/// Keep libxml2 validation until a published uppsala release rejects invalid
-/// inherited simple content and child elements in simple content. The public
-/// API regression tests in tests/validation.rs cover both upstream defects.
-/// A fresh context is needed per call: libxml2 validation contexts are mutable
-/// and cannot be shared between threads.
-fn build_validator() -> Result<SchemaValidationContext, String> {
+fn build_validator() -> Result<XsdValidator, String> {
     let path = bundled_xsd_path();
     check_imports_present(&path)?;
-    let path = path
-        .to_str()
-        .ok_or_else(|| format!("invalid XSD path: {}", path.display()))?;
-    let mut parser = SchemaParserContext::from_file(path);
-    SchemaValidationContext::from_parser(&mut parser).map_err(|errors| format!("{errors:?}"))
+    let text = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let schema = uppsala::parse(&text).map_err(|e| e.to_string())?;
+    XsdValidator::from_schema_with_base_path(&schema, path.parent()).map_err(|e| e.to_string())
 }
 
 /// Fail if any schema in the import closure of `root` is missing from disk.
@@ -94,25 +84,17 @@ fn schema_locations(xsd: &str) -> Result<Vec<String>, String> {
 /// # Errors
 /// Returns [`XmlValidationError`] if the XML is invalid or validation fails.
 pub fn validate_xml_invoice_from_str(xml: &str, _config: &Config) -> ValidationResult {
-    let mut validator =
+    let validator =
         build_validator().map_err(|message| XmlValidationError::SchemaParse { message })?;
-    // libxml defaults to recovering malformed XML. Validation must reject the
-    // supplied document rather than validate a repaired tree.
-    let document = Parser::default()
-        .parse_string_with_options(
-            xml,
-            ParserOptions {
-                recover: false,
-                ..ParserOptions::default()
-            },
-        )
-        .map_err(|e| XmlValidationError::XmlParse {
-            message: format!("{e}"),
-        })?;
-
-    validator
-        .validate_document(&document)
-        .map_err(|errors| XmlValidationError::SchemaValidation { errors })
+    let document = uppsala::parse(xml).map_err(|e| XmlValidationError::XmlParse {
+        message: e.to_string(),
+    })?;
+    let errors = validator.validate(&document);
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(XmlValidationError::SchemaValidation { errors })
+    }
 }
 
 #[cfg(test)]
