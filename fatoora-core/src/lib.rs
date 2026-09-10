@@ -142,9 +142,6 @@ impl From<invoice::xml::parse::ParseError> for Error {
 impl From<invoice::validation::XmlValidationError> for Error {
     fn from(err: invoice::validation::XmlValidationError) -> Self {
         let kind = match err {
-            invoice::validation::XmlValidationError::InvalidXsdPath { .. } => {
-                ErrorKind::InvalidInput
-            }
             invoice::validation::XmlValidationError::SchemaParse { .. } => ErrorKind::Parse,
             invoice::validation::XmlValidationError::XmlParse { .. } => ErrorKind::Xml,
             invoice::validation::XmlValidationError::SchemaValidation { .. } => {
