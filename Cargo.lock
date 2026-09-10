@@ -346,6 +346,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "bergshamra-c14n"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc54495f3fedf00739800c513cb963d6b6744bffd55025241dbc1e6afa314026"
+dependencies = [
+ "bergshamra-core",
+ "bergshamra-xml",
+ "memchr",
+ "uppsala",
+]
+
+[[package]]
+name = "bergshamra-core"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d532893e3a9db133d69c217f6ea5a1dffc045fab0c4b02ffafa04a6cbb7f524"
+dependencies = [
+ "thiserror 2.0.17",
+]
+
+[[package]]
+name = "bergshamra-xml"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e5c53bfc2a6da370abe933b66e0342b452a804f3e2a45778d1cfe50cd6f6aa6"
+dependencies = [
+ "bergshamra-core",
+ "uppsala",
+]
+
+[[package]]
 name = "bindgen"
 version = "0.72.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -354,7 +385,7 @@ dependencies = [
  "bitflags",
  "cexpr",
  "clang-sys",
- "itertools 0.13.0",
+ "itertools",
  "proc-macro2",
  "quote",
  "regex",
@@ -872,6 +903,7 @@ name = "fatoora-core"
 version = "0.1.3"
 dependencies = [
  "base64ct",
+ "bergshamra-c14n",
  "bitflags",
  "chrono",
  "const-oid",
@@ -1532,15 +1564,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "itertools"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
-dependencies = [
- "either",
-]
-
-[[package]]
 name = "itoa"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1630,7 +1653,7 @@ dependencies = [
  "ascii-canvas",
  "bit-set",
  "ena",
- "itertools 0.11.0",
+ "itertools",
  "lalrpop-util",
  "petgraph",
  "pico-args",

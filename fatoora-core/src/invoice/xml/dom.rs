@@ -106,7 +106,8 @@ pub(crate) fn string_value(doc: &Document<'_>, id: NodeId) -> String {
 /// Trimmed text of the first node matching `expr`.
 ///
 /// Returns `None` when nothing matches or the value is blank, so callers that
-/// have no use for the difference can treat "absent" and "empty" alike.
+/// have no use for the difference can treat "absent" and "empty" alike. Use
+/// [`text_present`] where the distinction belongs in the error message.
 pub(crate) fn text(
     eval: &XPathEvaluator,
     doc: &Document<'_>,
@@ -125,7 +126,21 @@ pub(crate) fn text_from(
     Ok(text_present_from(eval, doc, context, expr)?.filter(|value| !value.is_empty()))
 }
 
-/// Trimmed text evaluated from `context`, keeping present but blank values.
+/// Trimmed text of the first node matching `expr`, keeping "present but blank".
+///
+/// `None` means nothing matched; `Some("")` means an element is there and
+/// empty. The QR and signing paths report those two cases differently — telling
+/// an operator a field is missing when it is present and blank sends them
+/// looking for an element that is right in front of them.
+pub(crate) fn text_present(
+    eval: &XPathEvaluator,
+    doc: &Document<'_>,
+    expr: &str,
+) -> XmlResult<Option<String>> {
+    text_present_from(eval, doc, doc.root(), expr)
+}
+
+/// [`text_present`], evaluated from `context`.
 pub(crate) fn text_present_from(
     eval: &XPathEvaluator,
     doc: &Document<'_>,
@@ -136,4 +151,27 @@ pub(crate) fn text_present_from(
         return Ok(None);
     };
     Ok(Some(string_value(doc, id).trim().to_string()))
+}
+
+/// Replace an element's children with a single text node.
+///
+/// uppsala has no `set_content`, and the elements this targets hold nothing but
+/// text, so dropping the existing children is the faithful equivalent.
+pub(crate) fn set_text<'a>(doc: &mut Document<'a>, id: NodeId, value: &str) {
+    for child in doc.children(id) {
+        doc.detach(child);
+    }
+    let text = doc.create_text(value.to_string());
+    doc.append_child(id, text);
+}
+
+/// Parse a template fragment and graft its root element into `doc`.
+///
+/// Returns the imported node, still detached; the caller decides where it goes.
+pub(crate) fn import_fragment<'a>(doc: &mut Document<'a>, xml: &str) -> XmlResult<Option<NodeId>> {
+    let fragment = uppsala::parse(xml)?;
+    let Some(root) = fragment.document_element() else {
+        return Ok(None);
+    };
+    Ok(doc.import_subtree(&fragment, root))
 }

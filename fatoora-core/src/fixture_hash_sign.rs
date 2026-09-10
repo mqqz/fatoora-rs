@@ -1,16 +1,8 @@
-use libxml::{parser::Parser, xpath};
 use std::path::{Path, PathBuf};
 
 use crate::invoice::sign::invoice_hash_base64;
-
-const CBC_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2";
-const CAC_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2";
-const UBL_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2";
-const EXT_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2";
-const SIG_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:CommonSignatureComponents-2";
-const SAC_NS: &str = "urn:oasis:names:specification:ubl:schema:xsd:SignatureAggregateComponents-2";
-const DS_NS: &str = "http://www.w3.org/2000/09/xmldsig#";
-const XADES_NS: &str = "http://uri.etsi.org/01903/v1.3.2#";
+use crate::invoice::xml::dom;
+use uppsala::{Document, XPathEvaluator};
 
 #[test]
 fn fixture_invoices_match_hash_digest() {
@@ -20,20 +12,12 @@ fn fixture_invoices_match_hash_digest() {
 
     for file in files {
         let xml = std::fs::read_to_string(&file).expect("read fixture");
-        let doc = Parser::default().parse_string(&xml).expect("parse fixture");
-        let ctx = xpath::Context::new(&doc).expect("xpath context");
-
-        ctx.register_namespace("cbc", CBC_NS).expect("cbc ns");
-        ctx.register_namespace("cac", CAC_NS).expect("cac ns");
-        ctx.register_namespace("ubl", UBL_NS).expect("ubl ns");
-        ctx.register_namespace("ext", EXT_NS).expect("ext ns");
-        ctx.register_namespace("sig", SIG_NS).expect("sig ns");
-        ctx.register_namespace("sac", SAC_NS).expect("sac ns");
-        ctx.register_namespace("ds", DS_NS).expect("ds ns");
-        ctx.register_namespace("xades", XADES_NS).expect("xades ns");
+        let doc = dom::parse(&xml).expect("parse fixture");
+        let eval = dom::evaluator();
 
         let expected_invoice_digest = xpath_text(
-            &ctx,
+            eval,
+            &doc,
             "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:SignedInfo/ds:Reference[@Id='invoiceSignedData']/ds:DigestValue",
             "invoiceSignedData DigestValue",
         );
@@ -47,15 +31,10 @@ fn fixture_invoices_match_hash_digest() {
     }
 }
 
-fn xpath_text(ctx: &xpath::Context, expr: &str, label: &str) -> String {
-    let nodes = ctx
-        .evaluate(expr)
+fn xpath_text(eval: &XPathEvaluator, doc: &Document<'_>, expr: &str, label: &str) -> String {
+    let value = dom::text(eval, doc, expr)
         .unwrap_or_else(|_| panic!("XPath error for {label}"))
-        .get_nodes_as_vec();
-    let node = nodes
-        .first()
         .unwrap_or_else(|| panic!("Missing {label} in invoice XML"));
-    let value = node.get_content().trim().to_string();
     assert!(!value.is_empty(), "Empty {label} in invoice XML");
     value
 }

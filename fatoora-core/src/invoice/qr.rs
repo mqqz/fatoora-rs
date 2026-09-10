@@ -1,10 +1,10 @@
 //! QR payload generation and encoding.
 use super::{InvoiceData, InvoiceTotalsData};
 use base64ct::{Base64, Encoding};
-use libxml::{tree::Document, xpath};
 use thiserror::Error;
+use uppsala::{Document, XPathEvaluator};
 
-use crate::invoice::xml::constants::{CAC_NS, CBC_NS};
+use crate::invoice::xml::dom;
 
 /// Errors emitted when building or encoding QR payloads.
 #[derive(Debug, Error)]
@@ -80,32 +80,30 @@ impl QrPayload {
         })
     }
 
-    pub(crate) fn from_xml(doc: &Document) -> QrResult<Self> {
-        let ctx = xpath::Context::new(doc)
-            .map_err(|e| QrCodeError::Xml(format!("XPath context error: {e:?}")))?;
-        ctx.register_namespace("cbc", CBC_NS)
-            .map_err(|e| QrCodeError::Xml(format!("XPath context error: {e:?}")))?;
-        ctx.register_namespace("cac", CAC_NS)
-            .map_err(|e| QrCodeError::Xml(format!("XPath context error: {e:?}")))?;
+    pub(crate) fn from_xml(doc: &Document<'_>) -> QrResult<Self> {
+        let eval = dom::evaluator();
 
         let seller_name = xpath_text(
-            &ctx,
+            eval,
+            doc,
             "//cac:AccountingSupplierParty//cac:PartyLegalEntity/cbc:RegistrationName",
             "seller name",
         )?;
         let seller_vat = xpath_text(
-            &ctx,
+            eval,
+            doc,
             "//cac:AccountingSupplierParty//cac:PartyTaxScheme//cbc:CompanyID",
             "seller VAT",
         )?;
-        let issue_date = xpath_text(&ctx, "//cbc:IssueDate", "issue date")?;
-        let issue_time = xpath_text(&ctx, "//cbc:IssueTime", "issue time")?;
+        let issue_date = xpath_text(eval, doc, "//cbc:IssueDate", "issue date")?;
+        let issue_time = xpath_text(eval, doc, "//cbc:IssueTime", "issue time")?;
         let total_with_vat = xpath_text(
-            &ctx,
+            eval,
+            doc,
             "//cac:LegalMonetaryTotal//cbc:TaxInclusiveAmount",
             "total with VAT",
         )?;
-        let total_vat = xpath_text(&ctx, "//cac:TaxTotal/cbc:TaxAmount", "total VAT")?;
+        let total_vat = xpath_text(eval, doc, "//cac:TaxTotal/cbc:TaxAmount", "total VAT")?;
 
         Ok(Self {
             seller_name,
@@ -201,19 +199,19 @@ impl TlvBuilder {
     }
 }
 
-fn xpath_text(ctx: &xpath::Context, expr: &str, label: &str) -> QrResult<String> {
-    let nodes = ctx
-        .evaluate(expr)
-        .map_err(|e| QrCodeError::Xml(format!("XPath error for {label}: {e:?}")))?
-        .get_nodes_as_vec();
-    let node = nodes
-        .first()
-        .ok_or_else(|| QrCodeError::Xml(format!("Missing {label} in invoice XML")))?;
-    let value = node.get_content().trim().to_string();
-    if value.is_empty() {
-        return Err(QrCodeError::Xml(format!("Empty {label} in invoice XML")));
+fn xpath_text(
+    eval: &XPathEvaluator,
+    doc: &Document<'_>,
+    expr: &str,
+    label: &str,
+) -> QrResult<String> {
+    match dom::text_present(eval, doc, expr)
+        .map_err(|e| QrCodeError::Xml(format!("XPath error for {label}: {e}")))?
+    {
+        Some(value) if !value.is_empty() => Ok(value),
+        Some(_) => Err(QrCodeError::Xml(format!("Empty {label} in invoice XML"))),
+        None => Err(QrCodeError::Xml(format!("Missing {label} in invoice XML"))),
     }
-    Ok(value)
 }
 
 #[cfg(test)]
@@ -226,6 +224,30 @@ mod tests {
         LineItem, Party, SellerRole, VatCategory,
     };
     use base64ct::{Base64, Encoding};
+
+    #[test]
+    fn xpath_text_distinguishes_empty_from_missing() {
+        let xml = concat!(
+            r#"<Invoice xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">"#,
+            "<cbc:IssueTime>   </cbc:IssueTime></Invoice>",
+        );
+        let doc = dom::parse(xml).expect("parse");
+        let eval = dom::evaluator();
+
+        let empty =
+            xpath_text(eval, &doc, "//cbc:IssueTime", "issue time").expect_err("blank issue time");
+        assert!(
+            empty.to_string().contains("Empty issue time"),
+            "unexpected: {empty}"
+        );
+
+        let missing =
+            xpath_text(eval, &doc, "//cbc:IssueDate", "issue date").expect_err("absent issue date");
+        assert!(
+            missing.to_string().contains("Missing issue date"),
+            "unexpected: {missing}"
+        );
+    }
 
     fn sample_invoice() -> FinalizedInvoice {
         let seller = Party::<SellerRole>::new(

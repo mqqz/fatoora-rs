@@ -3,27 +3,23 @@ use crate::invoice::QrPayload;
 use crate::invoice::xml::ToXml;
 use crate::invoice::{FinalizedInvoice, SignedInvoice};
 use base64ct::{Base64, Encoding};
+use bergshamra_c14n::{C14nMode, canonicalize_doc};
 use k256::ecdsa::{Signature, SigningKey};
 use k256::pkcs8::DecodePrivateKey;
 use k256::pkcs8::EncodePublicKey;
-use libxml::{
-    parser::Parser,
-    tree::Node,
-    tree::{Document, c14n},
-    xpath,
-};
 use sha2::{Digest, Sha256};
 use std::fmt::Write;
 use thiserror::Error;
+use uppsala::{Document, NodeId, XPathEvaluator};
 use x509_cert::{
     Certificate,
     der::{Decode, DecodePem, Encode},
 };
 
 use crate::invoice::xml::constants::{
-    CAC_NS, CAC_SIGNATURE_TEMPLATE, CBC_NS, DS_NS, EXT_NS, INVOICE_NS, QR_REFERENCE_TEMPLATE,
-    SAC_NS, SBC_NS, SIG_NS, UBL_EXTENSIONS_TEMPLATE, XADES_NS,
+    CAC_SIGNATURE_TEMPLATE, QR_REFERENCE_TEMPLATE, UBL_EXTENSIONS_TEMPLATE,
 };
+use crate::invoice::xml::dom;
 /// Errors emitted by signing operations.
 #[derive(Debug, Error)]
 pub enum SigningError {
@@ -84,7 +80,7 @@ impl SignedProperties {
 
     // TODO can't think of a better name
     fn from_parts(
-        doc: &Document,
+        doc: &Document<'_>,
         cert: &Certificate,
         key: &SigningKey,
     ) -> Result<SignedProperties, SigningError> {
@@ -186,9 +182,8 @@ impl InvoiceSigner {
         let unsigned_xml = invoice
             .to_xml()
             .map_err(|e| SigningError::SigningError(e.to_string()))?;
-        let mut doc = Parser::default()
-            .parse_string(&unsigned_xml)
-            .map_err(|e| SigningError::SigningError(format!("XML parse error: {e:?}")))?;
+        let mut doc = dom::parse(&unsigned_xml)
+            .map_err(|e| SigningError::SigningError(format!("XML parse error: {e}")))?;
 
         ensure_signature_structure(&mut doc)?;
 
@@ -201,7 +196,7 @@ impl InvoiceSigner {
         apply_signed_properties_values(&mut doc, &signing)?;
         apply_signature_values(&mut doc, &signing, &self.csid, signed_invoice.qr_code())?;
 
-        let signed_xml = doc.to_string();
+        let signed_xml = doc.to_xml();
         Ok(signed_invoice.with_xml(signed_xml))
     }
 
@@ -211,9 +206,8 @@ impl InvoiceSigner {
     /// Returns [`SigningError`] if XML parsing or signature application fails.
     // TODO maybe return SignedInvoice instead?
     pub fn sign_xml(&self, xml: &str) -> Result<String, SigningError> {
-        let mut doc = Parser::default()
-            .parse_string(xml)
-            .map_err(|e| SigningError::SigningError(format!("XML parse error: {e:?}")))?;
+        let mut doc = dom::parse(xml)
+            .map_err(|e| SigningError::SigningError(format!("XML parse error: {e}")))?;
 
         ensure_signature_structure(&mut doc)?;
 
@@ -232,7 +226,7 @@ impl InvoiceSigner {
         apply_signed_properties_values(&mut doc, &signing)?;
         apply_signature_values(&mut doc, &signing, &self.csid, &qr_code)?;
 
-        Ok(doc.to_string())
+        Ok(doc.to_xml())
     }
     pub fn certificate(&self) -> &Certificate {
         &self.csid
@@ -241,18 +235,16 @@ impl InvoiceSigner {
 
 // TODO this pattern (hash -> base64) is repeated, (Use base64 func for that)
 // Internal helper: compute the base64 invoice hash from a parsed XML document.
-pub(crate) fn invoice_hash_base64(doc: &Document) -> Result<String, SigningError> {
-    let canonicalized = canonicalize_invoice(doc)?;
-    let hash = Sha256::digest(canonicalized.as_bytes());
-    let invoice_hash_b64 = Base64::encode_string(&hash);
-    Ok(invoice_hash_b64)
+pub(crate) fn invoice_hash_base64(doc: &Document<'_>) -> Result<String, SigningError> {
+    let stripped = strip_for_hashing(doc)?;
+    hash_canonical(&stripped)
 }
 
 pub(crate) fn invoice_hash_base64_from_xml(xml: &str) -> Result<String, SigningError> {
-    let doc = Parser::default()
-        .parse_string(xml)
-        .map_err(|e| SigningError::SigningError(format!("XML parse error: {e:?}")))?;
-    invoice_hash_base64(&doc)
+    let mut doc =
+        dom::parse(xml).map_err(|e| SigningError::SigningError(format!("XML parse error: {e}")))?;
+    remove_hash_exclusions(&mut doc)?;
+    hash_canonical(&doc)
 }
 
 /// Compute the base64 invoice hash from an XML string.
@@ -273,16 +265,12 @@ pub fn invoice_hash_base64_from_xml_str(xml: &str) -> Result<String, SigningErro
     invoice_hash_base64_from_xml(xml)
 }
 
-fn signing_time_from_doc(doc: &Document) -> Result<String, SigningError> {
-    let ctx = xpath::Context::new(doc)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("cbc", CBC_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("xades", XADES_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
+fn signing_time_from_doc(doc: &Document<'_>) -> Result<String, SigningError> {
+    let eval = dom::evaluator();
 
     if let Ok(signing_time) = xpath_text_value(
-        &ctx,
+        eval,
+        doc,
         "//*[local-name()='SignedProperties']//*[local-name()='SigningTime']",
         "signing time",
     ) {
@@ -293,8 +281,8 @@ fn signing_time_from_doc(doc: &Document) -> Result<String, SigningError> {
         return Ok(parsed.format("%Y-%m-%dT%H:%M:%S").to_string());
     }
 
-    let issue_date = xpath_text_value(&ctx, "//cbc:IssueDate", "issue date")?;
-    let issue_time = xpath_text_value(&ctx, "//cbc:IssueTime", "issue time")?;
+    let issue_date = xpath_text_value(eval, doc, "//cbc:IssueDate", "issue date")?;
+    let issue_time = xpath_text_value(eval, doc, "//cbc:IssueTime", "issue time")?;
     let date = chrono::NaiveDate::parse_from_str(&issue_date, "%Y-%m-%d").map_err(|e| {
         SigningError::SigningError(format!("Invalid issue date '{issue_date}': {e:?}"))
     })?;
@@ -305,26 +293,39 @@ fn signing_time_from_doc(doc: &Document) -> Result<String, SigningError> {
     Ok(naive.format("%Y-%m-%dT%H:%M:%S").to_string())
 }
 
-fn canonicalize_invoice(doc: &Document) -> Result<String, SigningError> {
-    let xml = doc
-        .dup()
-        .map_err(|e| SigningError::SigningError(format!("Failed to duplicate xml: {e:?}")))?;
-    remove_hash_exclusions(&xml)?;
-
-    let canon_opts = c14n::CanonicalizationOptions {
-        mode: c14n::CanonicalizationMode::Canonical1_1,
-        inclusive_ns_prefixes: vec![],
-        with_comments: false,
-    };
-    xml.canonicalize(canon_opts, None)
-        .map_err(|e| SigningError::SigningError(format!("Failed to canonicalize xml: {e:?}")))
+/// Copy `doc` with the hash-excluded subtrees removed.
+///
+/// `Document` is an arena of nodes borrowing the source text, so cloning it
+/// copies the node table without re-lexing the XML — much cheaper than
+/// serialising and reparsing just to get a tree that can be stripped.
+fn strip_for_hashing<'a>(doc: &Document<'a>) -> Result<Document<'a>, SigningError> {
+    let mut copy = doc.clone();
+    remove_hash_exclusions(&mut copy)?;
+    Ok(copy)
 }
 
-fn remove_hash_exclusions(doc: &Document) -> Result<(), SigningError> {
-    let ctx = xpath::Context::new(doc)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("cbc", CBC_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
+/// Base64 SHA-256 of the canonical form of an already-stripped document.
+///
+/// The digest is defined over the canonical octets, so the bytes are hashed
+/// directly rather than being validated into a `String` first.
+fn hash_canonical(doc: &Document<'_>) -> Result<String, SigningError> {
+    let canonical = canonicalize_doc::<&str>(doc, C14nMode::Inclusive11, None, &[])
+        .map_err(|e| SigningError::SigningError(format!("Failed to canonicalize xml: {e}")))?;
+    Ok(Base64::encode_string(&Sha256::digest(&canonical)))
+}
+
+/// Canonical XML of `doc` with the hash-excluded subtrees removed.
+#[cfg(test)]
+fn canonicalize_invoice(doc: &Document<'_>) -> Result<String, SigningError> {
+    let stripped = strip_for_hashing(doc)?;
+    let canonical = canonicalize_doc::<&str>(&stripped, C14nMode::Inclusive11, None, &[])
+        .map_err(|e| SigningError::SigningError(format!("Failed to canonicalize xml: {e}")))?;
+    String::from_utf8(canonical)
+        .map_err(|e| SigningError::SigningError(format!("Canonical XML is not UTF-8: {e}")))
+}
+
+fn remove_hash_exclusions(doc: &mut Document<'_>) -> Result<(), SigningError> {
+    let eval = dom::evaluator();
 
     let xpaths = [
         "/*[local-name()='Invoice']//*[local-name()='UBLExtensions']",
@@ -332,33 +333,42 @@ fn remove_hash_exclusions(doc: &Document) -> Result<(), SigningError> {
         "/*[local-name()='Invoice']//*[local-name()='Signature']",
     ];
 
+    // The matches overlap: expression 3 also picks up the `ds:Signature`
+    // nested inside the `ext:UBLExtensions` of expression 1. Detaching a node
+    // whose ancestor is already detached only unlinks it from that orphaned
+    // subtree, so collecting every match before detaching any still strips
+    // exactly the same nodes from the document as one pass per expression.
+    let mut excluded = Vec::new();
     for xp in xpaths {
-        let nodes = ctx
-            .evaluate(xp)
-            .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
-            .get_nodes_as_vec();
-        for mut node in nodes {
-            node.unlink();
-        }
+        excluded.extend(
+            dom::nodes(eval, doc, xp)
+                .map_err(|e| SigningError::SigningError(format!("XPath error: {e}")))?,
+        );
     }
+    for node in excluded {
+        doc.detach(node);
+    }
+    doc.prepare_xpath();
     Ok(())
 }
 
-fn xpath_text_value(ctx: &xpath::Context, expr: &str, label: &str) -> Result<String, SigningError> {
-    let nodes = ctx
-        .evaluate(expr)
-        .map_err(|e| SigningError::SigningError(format!("XPath error for {label}: {e:?}")))?
-        .get_nodes_as_vec();
-    let node = nodes
-        .first()
-        .ok_or_else(|| SigningError::SigningError(format!("Missing {label} in invoice XML")))?;
-    let value = node.get_content().trim().to_string();
-    if value.is_empty() {
-        return Err(SigningError::SigningError(format!(
+fn xpath_text_value(
+    eval: &XPathEvaluator,
+    doc: &Document<'_>,
+    expr: &str,
+    label: &str,
+) -> Result<String, SigningError> {
+    match dom::text_present(eval, doc, expr)
+        .map_err(|e| SigningError::SigningError(format!("XPath error for {label}: {e}")))?
+    {
+        Some(value) if !value.is_empty() => Ok(value),
+        Some(_) => Err(SigningError::SigningError(format!(
             "Empty {label} in invoice XML"
-        )));
+        ))),
+        None => Err(SigningError::SigningError(format!(
+            "Missing {label} in invoice XML"
+        ))),
     }
-    Ok(value)
 }
 
 fn sign_hash(key: &SigningKey, hash_b64: &str) -> Result<String, SigningError> {
@@ -497,95 +507,104 @@ fn public_key_base64(key: &SigningKey) -> String {
     )
 }
 
-fn ensure_signature_structure(doc: &mut Document) -> Result<(), SigningError> {
-    let mut root = doc
-        .get_root_element()
+fn ensure_signature_structure(doc: &mut Document<'_>) -> Result<(), SigningError> {
+    let eval = dom::evaluator();
+    let root = doc
+        .document_element()
         .ok_or_else(|| SigningError::SigningError("missing Invoice root".into()))?;
-    let ctx = xpath::Context::new(doc)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    register_namespaces(&ctx)?;
 
-    if ctx
-        .evaluate("//ext:UBLExtensions")
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
-        .get_nodes_as_vec()
-        .is_empty()
-    {
-        let mut ext_node = import_fragment(doc, UBL_EXTENSIONS_TEMPLATE)?;
-        if let Some(mut first_child) = first_element_child(&root) {
-            first_child
-                .add_prev_sibling(&mut ext_node)
-                .map_err(|e| SigningError::SigningError(e.to_string()))?;
-        } else {
-            root.add_child(&mut ext_node)
-                .map_err(|e| SigningError::SigningError(e.to_string()))?;
+    if nodes_at(eval, doc, "//ext:UBLExtensions")?.is_empty() {
+        let ext_node = import_fragment(doc, UBL_EXTENSIONS_TEMPLATE)?;
+        match first_element_child(doc, root) {
+            Some(first_child) => doc.insert_before(root, ext_node, first_child),
+            None => doc.append_child(root, ext_node),
         }
+        check_attached(doc, ext_node, root, "UBLExtensions")?;
+        doc.prepare_xpath();
     }
 
-    if ctx
-        .evaluate("//cac:Signature")
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
-        .get_nodes_as_vec()
-        .is_empty()
-    {
-        let mut sig_node = import_fragment(doc, CAC_SIGNATURE_TEMPLATE)?;
-        let mut references = ctx
-            .evaluate("//cac:AdditionalDocumentReference")
-            .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
-            .get_nodes_as_vec();
-
-        if let Some(mut last_ref) = references.pop() {
-            last_ref
-                .add_next_sibling(&mut sig_node)
-                .map_err(|e| SigningError::SigningError(e.to_string()))?;
-        } else {
-            if let Some(mut supplier) = first_matching_node(&ctx, "//cac:AccountingSupplierParty")?
-            {
-                supplier
-                    .add_prev_sibling(&mut sig_node)
-                    .map_err(|e| SigningError::SigningError(e.to_string()))?;
-            }
-            root.add_child(&mut sig_node)
-                .map_err(|e| SigningError::SigningError(e.to_string()))?;
-        }
+    if nodes_at(eval, doc, "//cac:Signature")?.is_empty() {
+        let sig_node = import_fragment(doc, CAC_SIGNATURE_TEMPLATE)?;
+        let references = nodes_at(eval, doc, "//cac:AdditionalDocumentReference")?;
+        let parent = insert_after_last_reference(doc, sig_node, &references, root);
+        check_attached(doc, sig_node, parent, "cac:Signature")?;
+        doc.prepare_xpath();
     }
 
     Ok(())
 }
 
-fn import_fragment(doc: &mut Document, xml: &str) -> Result<Node, SigningError> {
-    let fragment = Parser::default()
-        .parse_string(xml)
-        .map_err(|e| SigningError::SigningError(format!("XML parse error: {e:?}")))?;
-    let mut node = fragment
-        .get_root_element()
-        .ok_or_else(|| SigningError::SigningError("missing fragment root".into()))?;
-    node.unlink();
-    doc.import_node(&mut node)
-        .map_err(|_| SigningError::SigningError("failed to import fragment".into()))
-}
-
-fn first_element_child(root: &Node) -> Option<Node> {
-    let mut current = root.get_first_child();
-    while let Some(node) = current {
-        if node.is_element_node() {
-            return Some(node);
+/// Graft `node` after the last of `references`, falling back to the invoice root.
+///
+/// Returns the parent the node should have ended up under. An anchor that is
+/// itself detached has no usable parent, so the root is the only sound place
+/// left to put the node — `insert_after` would silently do nothing there.
+fn insert_after_last_reference(
+    doc: &mut Document<'_>,
+    node: NodeId,
+    references: &[NodeId],
+    root: NodeId,
+) -> NodeId {
+    match references
+        .last()
+        .and_then(|&last| doc.parent(last).map(|parent| (last, parent)))
+    {
+        Some((last_ref, parent)) => {
+            doc.insert_after(parent, node, last_ref);
+            parent
         }
-        current = node.get_next_sibling();
+        None => {
+            doc.append_child(root, node);
+            root
+        }
     }
-    None
 }
 
-fn first_matching_node(ctx: &xpath::Context, path: &str) -> Result<Option<Node>, SigningError> {
-    let nodes = ctx
-        .evaluate(path)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
-        .get_nodes_as_vec();
-    Ok(nodes.into_iter().next())
+/// Confirm an insertion actually happened.
+///
+/// uppsala's `insert_before` / `insert_after` / `append_child` return `()` and
+/// no-op when a precondition fails, so nothing but the resulting parent link
+/// distinguishes a grafted node from one still floating in the arena. The
+/// libxml calls these replaced returned a `Result`; this restores that.
+fn check_attached(
+    doc: &Document<'_>,
+    node: NodeId,
+    parent: NodeId,
+    what: &str,
+) -> Result<(), SigningError> {
+    if doc.parent(node) == Some(parent) {
+        Ok(())
+    } else {
+        Err(SigningError::SigningError(format!(
+            "failed to insert {what} into the invoice"
+        )))
+    }
+}
+
+/// Evaluate `expr` over the whole document, mapping errors into [`SigningError`].
+fn nodes_at(
+    eval: &XPathEvaluator,
+    doc: &Document<'_>,
+    expr: &str,
+) -> Result<Vec<NodeId>, SigningError> {
+    dom::nodes(eval, doc, expr)
+        .map_err(|e| SigningError::SigningError(format!("XPath error for {expr}: {e}")))
+}
+
+fn import_fragment(doc: &mut Document<'_>, xml: &str) -> Result<NodeId, SigningError> {
+    dom::import_fragment(doc, xml)
+        .map_err(|e| SigningError::SigningError(format!("XML parse error: {e}")))?
+        .ok_or_else(|| SigningError::SigningError("failed to import fragment".into()))
+}
+
+fn first_element_child(doc: &Document<'_>, parent: NodeId) -> Option<NodeId> {
+    doc.children(parent)
+        .into_iter()
+        .find(|&id| doc.element(id).is_some())
 }
 
 fn apply_signed_properties_values(
-    doc: &mut Document,
+    doc: &mut Document<'_>,
     signing: &SignedProperties,
 ) -> Result<(), SigningError> {
     // TODO this is a bit redundant
@@ -599,160 +618,139 @@ fn apply_signed_properties_values(
 }
 
 fn apply_signed_properties_values_raw(
-    doc: &mut Document,
+    doc: &mut Document<'_>,
     signing_time: &str,
     cert_hash_b64: &str,
     issuer: &str,
     serial: &str,
 ) -> Result<(), SigningError> {
-    let ctx = xpath::Context::new(doc)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    register_namespaces(&ctx)?;
+    let eval = dom::evaluator();
 
-    set_xpath_text(
-        &ctx,
-        "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:Object/xades:QualifyingProperties/xades:SignedProperties/xades:SignedSignatureProperties/xades:SigningTime",
-        signing_time,
-    )?;
-    set_xpath_text(
-        &ctx,
-        "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:Object/xades:QualifyingProperties/xades:SignedProperties/xades:SignedSignatureProperties/xades:SigningCertificate/xades:Cert/xades:CertDigest/ds:DigestValue",
-        cert_hash_b64,
-    )?;
-    set_xpath_text(
-        &ctx,
-        "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:Object/xades:QualifyingProperties/xades:SignedProperties/xades:SignedSignatureProperties/xades:SigningCertificate/xades:Cert/xades:IssuerSerial/ds:X509IssuerName",
-        issuer,
-    )?;
-    set_xpath_text(
-        &ctx,
-        "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:Object/xades:QualifyingProperties/xades:SignedProperties/xades:SignedSignatureProperties/xades:SigningCertificate/xades:Cert/xades:IssuerSerial/ds:X509SerialNumber",
-        serial,
-    )?;
-    Ok(())
+    set_xpath_texts(
+        eval,
+        doc,
+        &[
+            (
+                "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:Object/xades:QualifyingProperties/xades:SignedProperties/xades:SignedSignatureProperties/xades:SigningTime",
+                signing_time,
+            ),
+            (
+                "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:Object/xades:QualifyingProperties/xades:SignedProperties/xades:SignedSignatureProperties/xades:SigningCertificate/xades:Cert/xades:CertDigest/ds:DigestValue",
+                cert_hash_b64,
+            ),
+            (
+                "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:Object/xades:QualifyingProperties/xades:SignedProperties/xades:SignedSignatureProperties/xades:SigningCertificate/xades:Cert/xades:IssuerSerial/ds:X509IssuerName",
+                issuer,
+            ),
+            (
+                "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:Object/xades:QualifyingProperties/xades:SignedProperties/xades:SignedSignatureProperties/xades:SigningCertificate/xades:Cert/xades:IssuerSerial/ds:X509SerialNumber",
+                serial,
+            ),
+        ],
+    )
 }
 
 fn apply_signature_values(
-    doc: &mut Document,
+    doc: &mut Document<'_>,
     signing: &SignedProperties,
     cert: &Certificate,
     qr_code: &str,
 ) -> Result<(), SigningError> {
-    let ctx = xpath::Context::new(doc)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    register_namespaces(&ctx)?;
+    let eval = dom::evaluator();
+    let cert_b64 = Base64::encode_string(
+        cert.to_der()
+            .map_err(|e| {
+                SigningError::SigningError(format!("Certificate DER encoding error: {e:?}"))
+            })?
+            .as_ref(),
+    );
 
-    set_xpath_text(
-        &ctx,
-        "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:SignatureValue",
-        &signing.signature,
-    )?;
-    set_xpath_text(
-        &ctx,
-        "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
-        &Base64::encode_string(
-            cert.to_der()
-                .map_err(|e| {
-                    SigningError::SigningError(format!("Certificate DER encoding error: {e:?}"))
-                })?
-                .as_ref(),
-        ),
-    )?;
-    set_xpath_text(
-        &ctx,
-        "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:SignedInfo/ds:Reference[@URI='#xadesSignedProperties']/ds:DigestValue",
-        &signing.signed_props_hash,
-    )?;
-    set_xpath_text(
-        &ctx,
-        "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:SignedInfo/ds:Reference[@Id='invoiceSignedData']/ds:DigestValue",
-        &signing.invoice_hash,
+    set_xpath_texts(
+        eval,
+        doc,
+        &[
+            (
+                "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:SignatureValue",
+                &signing.signature,
+            ),
+            (
+                "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
+                &cert_b64,
+            ),
+            (
+                "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:SignedInfo/ds:Reference[@URI='#xadesSignedProperties']/ds:DigestValue",
+                &signing.signed_props_hash,
+            ),
+            (
+                "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:SignedInfo/ds:Reference[@Id='invoiceSignedData']/ds:DigestValue",
+                &signing.invoice_hash,
+            ),
+        ],
     )?;
 
     set_qr_code(doc, qr_code)?;
     Ok(())
 }
 
-fn set_qr_code(doc: &mut Document, qr_code: &str) -> Result<(), SigningError> {
-    let ctx = xpath::Context::new(doc)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    register_namespaces(&ctx)?;
+fn set_qr_code(doc: &mut Document<'_>, qr_code: &str) -> Result<(), SigningError> {
+    let eval = dom::evaluator();
     let qr_path = "//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]";
-    let refs = ctx
-        .evaluate(qr_path)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
-        .get_nodes_as_vec();
 
-    if refs.is_empty() {
-        let mut node = import_fragment(doc, QR_REFERENCE_TEMPLATE)?;
-        let mut inserted = false;
-        let mut references = ctx
-            .evaluate("//cac:AdditionalDocumentReference")
-            .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
-            .get_nodes_as_vec();
-        if let Some(mut last_ref) = references.pop() {
-            last_ref
-                .add_next_sibling(&mut node)
-                .map_err(|e| SigningError::SigningError(e.to_string()))?;
-            inserted = true;
-        }
-        if !inserted {
-            let mut root = doc
-                .get_root_element()
-                .ok_or_else(|| SigningError::SigningError("missing Invoice root".into()))?;
-            root.add_child(&mut node)
-                .map_err(|e| SigningError::SigningError(e.to_string()))?;
-        }
+    if nodes_at(eval, doc, qr_path)?.is_empty() {
+        let node = import_fragment(doc, QR_REFERENCE_TEMPLATE)?;
+        let root = doc
+            .document_element()
+            .ok_or_else(|| SigningError::SigningError("missing Invoice root".into()))?;
+        let references = nodes_at(eval, doc, "//cac:AdditionalDocumentReference")?;
+        let parent = insert_after_last_reference(doc, node, &references, root);
+        check_attached(doc, node, parent, "QR document reference")?;
+        // Re-index so the freshly grafted reference is visible to the query below.
+        doc.prepare_xpath();
     }
 
-    let value_nodes = ctx
-        .evaluate("//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]/cac:Attachment/cbc:EmbeddedDocumentBinaryObject")
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
-        .get_nodes_as_vec();
-    for mut node in value_nodes {
-        node.set_content(qr_code)
-            .map_err(|e| SigningError::SigningError(e.to_string()))?;
-    }
-    Ok(())
+    // An invoice can arrive with a QR reference that carries no binary object —
+    // the template above is skipped for it, so this is the only place left that
+    // would notice, and a signed invoice without its QR payload is not signed.
+    set_xpath_texts(
+        eval,
+        doc,
+        &[(
+            "//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]/cac:Attachment/cbc:EmbeddedDocumentBinaryObject",
+            qr_code,
+        )],
+    )
 }
 
-fn set_xpath_text(ctx: &xpath::Context, path: &str, value: &str) -> Result<(), SigningError> {
-    let nodes = ctx
-        .evaluate(path)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
-        .get_nodes_as_vec();
-    if nodes.is_empty() {
-        return Err(SigningError::SigningError(format!(
-            "XPath target not found: {path}"
-        )));
+/// Set the text of every node matched by each path, erroring on an empty match.
+///
+/// The whole batch is resolved before anything is written so the document is
+/// re-indexed once instead of once per path: `prepare_xpath` rebuilds the
+/// attribute map and document order for the entire tree, which on a large
+/// invoice costs far more than the edits themselves. Resolving up front is safe
+/// because these paths select distinct text-only leaves and none of them match
+/// on the text another entry rewrites.
+fn set_xpath_texts(
+    eval: &XPathEvaluator,
+    doc: &mut Document<'_>,
+    entries: &[(&str, &str)],
+) -> Result<(), SigningError> {
+    let mut targets = Vec::with_capacity(entries.len());
+    for &(path, value) in entries {
+        let nodes = nodes_at(eval, doc, path)?;
+        if nodes.is_empty() {
+            return Err(SigningError::SigningError(format!(
+                "XPath target not found: {path}"
+            )));
+        }
+        targets.push((nodes, value));
     }
-    for mut node in nodes {
-        node.set_content(value)
-            .map_err(|e| SigningError::SigningError(e.to_string()))?;
-    }
-    Ok(())
-}
 
-fn register_namespaces(ctx: &xpath::Context) -> Result<(), SigningError> {
-    // TODO reuse context
-    ctx.register_namespace("cbc", CBC_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("ubl", INVOICE_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("cac", CAC_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("ext", EXT_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("sig", SIG_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("sac", SAC_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("sbc", SBC_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("ds", DS_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("xades", XADES_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
+    for (nodes, value) in targets {
+        for node in nodes {
+            dom::set_text(doc, node, value);
+        }
+    }
+    doc.prepare_xpath();
     Ok(())
 }
 
@@ -782,7 +780,7 @@ mod tests {
         let xml_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("tests/fixtures/invoices/sample-simplified-invoice.xml");
         let xml = std::fs::read_to_string(xml_path).expect("read sample invoice");
-        let doc = Parser::default().parse_string(&xml).expect("parse invoice");
+        let doc = dom::parse(&xml).expect("parse invoice");
         let canonicalized = canonicalize_invoice(&doc).expect("canonicalize invoice");
 
         assert!(!canonicalized.contains("<ext:UBLExtensions"));
@@ -795,27 +793,25 @@ mod tests {
         let xml_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("tests/fixtures/invoices/sample-simplified-invoice.xml");
         let xml = std::fs::read_to_string(xml_path).expect("read sample invoice");
-        let doc = Parser::default().parse_string(&xml).expect("parse invoice");
-        let ctx = xpath::Context::new(&doc).expect("xpath context");
-        register_namespaces(&ctx).expect("register namespaces");
+        let doc = dom::parse(&xml).expect("parse invoice");
 
         let signing_time_value = xml_text(
-            &ctx,
+            &doc,
             "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:Object/xades:QualifyingProperties/xades:SignedProperties/xades:SignedSignatureProperties/xades:SigningTime",
             "SigningTime",
         );
         let cert_hash = xml_text(
-            &ctx,
+            &doc,
             "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:Object/xades:QualifyingProperties/xades:SignedProperties/xades:SignedSignatureProperties/xades:SigningCertificate/xades:Cert/xades:CertDigest/ds:DigestValue",
             "CertDigest",
         );
         let issuer = xml_text(
-            &ctx,
+            &doc,
             "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:Object/xades:QualifyingProperties/xades:SignedProperties/xades:SignedSignatureProperties/xades:SigningCertificate/xades:Cert/xades:IssuerSerial/ds:X509IssuerName",
             "IssuerName",
         );
         let serial = xml_text(
-            &ctx,
+            &doc,
             "/ubl:Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/sig:UBLDocumentSignatures/sac:SignatureInformation/ds:Signature/ds:Object/xades:QualifyingProperties/xades:SignedProperties/xades:SignedSignatureProperties/xades:SigningCertificate/xades:Cert/xades:IssuerSerial/ds:X509SerialNumber",
             "SerialNumber",
         );
@@ -837,17 +833,13 @@ mod tests {
     #[test]
     fn ensure_signature_structure_inserts_missing_nodes() {
         let mut doc = load_sample_doc();
-        let ctx = xpath::Context::new(&doc).expect("xpath context");
-        register_namespaces(&ctx).expect("register namespaces");
-        remove_nodes(&ctx, "//ext:UBLExtensions");
-        remove_nodes(&ctx, "//cac:Signature");
+        remove_nodes(&mut doc, "//ext:UBLExtensions");
+        remove_nodes(&mut doc, "//cac:Signature");
 
         ensure_signature_structure(&mut doc).expect("ensure structure");
 
-        let ctx = xpath::Context::new(&doc).expect("xpath context");
-        register_namespaces(&ctx).expect("register namespaces");
-        assert!(!select_nodes(&ctx, "//ext:UBLExtensions").is_empty());
-        assert!(!select_nodes(&ctx, "//cac:Signature").is_empty());
+        assert!(!select_nodes(&doc, "//ext:UBLExtensions").is_empty());
+        assert!(!select_nodes(&doc, "//cac:Signature").is_empty());
     }
 
     #[test]
@@ -863,15 +855,13 @@ mod tests {
         )
         .expect("apply signed properties");
 
-        let ctx = xpath::Context::new(&doc).expect("xpath context");
-        register_namespaces(&ctx).expect("register namespaces");
         assert_eq!(
-            xml_text(&ctx, "//*[local-name()='SigningTime']", "SigningTime",),
+            xml_text(&doc, "//*[local-name()='SigningTime']", "SigningTime",),
             "2024-02-02T10:30:00"
         );
         assert_eq!(
             xml_text(
-                &ctx,
+                &doc,
                 "//*[local-name()='CertDigest']//*[local-name()='DigestValue']",
                 "CertDigest",
             ),
@@ -879,7 +869,7 @@ mod tests {
         );
         assert_eq!(
             xml_text(
-                &ctx,
+                &doc,
                 "//*[local-name()='IssuerSerial']//*[local-name()='X509IssuerName']",
                 "IssuerName",
             ),
@@ -887,7 +877,7 @@ mod tests {
         );
         assert_eq!(
             xml_text(
-                &ctx,
+                &doc,
                 "//*[local-name()='IssuerSerial']//*[local-name()='X509SerialNumber']",
                 "SerialNumber",
             ),
@@ -897,13 +887,11 @@ mod tests {
 
     #[test]
     fn signing_time_from_doc_falls_back_to_issue_date_time() {
-        let doc = load_sample_doc();
-        let ctx = xpath::Context::new(&doc).expect("xpath context");
-        register_namespaces(&ctx).expect("register namespaces");
-        remove_nodes(&ctx, "//*[local-name()='SigningTime']");
+        let mut doc = load_sample_doc();
+        remove_nodes(&mut doc, "//*[local-name()='SigningTime']");
 
-        let issue_date = xml_text(&ctx, "//cbc:IssueDate", "IssueDate");
-        let issue_time = xml_text(&ctx, "//cbc:IssueTime", "IssueTime");
+        let issue_date = xml_text(&doc, "//cbc:IssueDate", "IssueDate");
+        let issue_time = xml_text(&doc, "//cbc:IssueTime", "IssueTime");
         let date = chrono::NaiveDate::parse_from_str(&issue_date, "%Y-%m-%d").unwrap();
         let time = chrono::NaiveTime::parse_from_str(&issue_time, "%H:%M:%S").unwrap();
         let expected = chrono::NaiveDateTime::new(date, time)
@@ -917,10 +905,8 @@ mod tests {
     #[test]
     fn apply_signature_values_sets_signature_and_qr() {
         let mut doc = load_sample_doc();
-        let ctx = xpath::Context::new(&doc).expect("xpath context");
-        register_namespaces(&ctx).expect("register namespaces");
         remove_nodes(
-            &ctx,
+            &mut doc,
             "//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]",
         );
 
@@ -941,15 +927,13 @@ mod tests {
         let cert = build_test_cert(&key);
         apply_signature_values(&mut doc, &signing, &cert, "QR_PAYLOAD").expect("apply signature");
 
-        let ctx = xpath::Context::new(&doc).expect("xpath context");
-        register_namespaces(&ctx).expect("register namespaces");
         assert_eq!(
-            xml_text(&ctx, "//ds:SignatureValue", "SignatureValue"),
+            xml_text(&doc, "//ds:SignatureValue", "SignatureValue"),
             "signature_b64"
         );
         assert_eq!(
             xml_text(
-                &ctx,
+                &doc,
                 "//ds:Reference[@URI='#xadesSignedProperties']/ds:DigestValue",
                 "SignedPropertiesDigest",
             ),
@@ -957,7 +941,7 @@ mod tests {
         );
         assert_eq!(
             xml_text(
-                &ctx,
+                &doc,
                 "//ds:Reference[@Id='invoiceSignedData']/ds:DigestValue",
                 "InvoiceDigest",
             ),
@@ -965,7 +949,7 @@ mod tests {
         );
         assert_eq!(
             xml_text(
-                &ctx,
+                &doc,
                 "//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]/cac:Attachment/cbc:EmbeddedDocumentBinaryObject",
                 "QR",
             ),
@@ -978,11 +962,9 @@ mod tests {
         let mut doc = load_sample_doc();
         set_qr_code(&mut doc, "NEW_QR").expect("set qr code");
 
-        let ctx = xpath::Context::new(&doc).expect("xpath context");
-        register_namespaces(&ctx).expect("register namespaces");
         assert_eq!(
             xml_text(
-                &ctx,
+                &doc,
                 "//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]/cac:Attachment/cbc:EmbeddedDocumentBinaryObject",
                 "QR",
             ),
@@ -992,15 +974,83 @@ mod tests {
 
     #[test]
     fn set_xpath_text_rejects_missing_target() {
-        let doc = load_sample_doc();
-        let ctx = xpath::Context::new(&doc).expect("xpath context");
-        register_namespaces(&ctx).expect("register namespaces");
-        let err = set_xpath_text(&ctx, "//cbc:DoesNotExist", "value").expect_err("missing path");
+        let mut doc = load_sample_doc();
+        let err = set_xpath_texts(
+            dom::evaluator(),
+            &mut doc,
+            &[("//cbc:DoesNotExist", "value")],
+        )
+        .expect_err("missing path");
         match err {
             SigningError::SigningError(msg) => {
                 assert!(msg.contains("XPath target not found"));
             }
         }
+    }
+
+    #[test]
+    fn set_qr_code_rejects_reference_without_binary_object() {
+        let mut doc = load_sample_doc();
+        // A QR reference is present, so no template is grafted in; without the
+        // binary object there is nowhere to put the payload.
+        remove_nodes(
+            &mut doc,
+            "//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]/cac:Attachment",
+        );
+
+        let err = set_qr_code(&mut doc, "NEW_QR").expect_err("no QR value node");
+        match err {
+            SigningError::SigningError(msg) => {
+                assert!(msg.contains("XPath target not found"), "unexpected: {msg}");
+            }
+        }
+    }
+
+    #[test]
+    fn xpath_text_value_distinguishes_empty_from_missing() {
+        let mut doc = load_sample_doc();
+        for node in select_nodes(&doc, "//cbc:IssueTime") {
+            dom::set_text(&mut doc, node, "   ");
+        }
+        doc.prepare_xpath();
+
+        let eval = dom::evaluator();
+        let empty = xpath_text_value(eval, &doc, "//cbc:IssueTime", "issue time")
+            .expect_err("blank issue time");
+        match empty {
+            SigningError::SigningError(msg) => {
+                assert!(msg.contains("Empty issue time"), "unexpected: {msg}");
+            }
+        }
+
+        let missing = xpath_text_value(eval, &doc, "//cbc:NotAnElement", "issue time")
+            .expect_err("absent issue time");
+        match missing {
+            SigningError::SigningError(msg) => {
+                assert!(msg.contains("Missing issue time"), "unexpected: {msg}");
+            }
+        }
+    }
+
+    #[test]
+    fn invoice_hash_handles_invoices_with_many_lines() {
+        // uppsala's default XPath budget is 100,000 node visits, which an
+        // invoice of this size blows straight through: every `//` expression in
+        // the hashing path charges one visit per node walked.
+        let xml = sample_xml();
+        let start = xml.find("<cac:InvoiceLine>").expect("invoice line");
+        let end =
+            xml.rfind("</cac:InvoiceLine>").expect("invoice line end") + "</cac:InvoiceLine>".len();
+        let line = &xml[start..end];
+
+        let mut inflated = String::with_capacity(xml.len() + line.len() * 2_000);
+        inflated.push_str(&xml[..start]);
+        for _ in 0..2_000 {
+            inflated.push_str(line);
+        }
+        inflated.push_str(&xml[end..]);
+
+        invoice_hash_base64_from_xml_str(&inflated).expect("hash a large invoice");
     }
 
     #[test]
@@ -1020,19 +1070,24 @@ mod tests {
     #[test]
     fn first_element_child_skips_text_nodes() {
         let xml = "<root>\n  <child>ok</child>\n</root>";
-        let doc = Parser::default().parse_string(xml).expect("parse");
-        let root = doc.get_root_element().expect("root");
-        let child = first_element_child(&root).expect("first element");
-        assert_eq!(child.get_name(), "child");
+        let doc = dom::parse(xml).expect("parse");
+        let root = doc.document_element().expect("root");
+        let child = first_element_child(&doc, root).expect("first element");
+        assert_eq!(
+            doc.element(child)
+                .expect("element")
+                .name
+                .local_name
+                .as_ref(),
+            "child"
+        );
     }
 
     #[test]
-    fn first_matching_node_returns_none_for_missing_path() {
+    fn xpath_returns_no_nodes_for_missing_path() {
         let doc = load_sample_doc();
-        let ctx = xpath::Context::new(&doc).expect("xpath context");
-        register_namespaces(&ctx).expect("register namespaces");
-        let result = first_matching_node(&ctx, "//cbc:DoesNotExist").expect("xpath");
-        assert!(result.is_none());
+        let result = dom::nodes(dom::evaluator(), &doc, "//cbc:DoesNotExist").expect("xpath");
+        assert!(result.is_empty());
     }
 
     #[test]
@@ -1108,37 +1163,37 @@ mod tests {
             .expect("certificate")
     }
 
-    fn load_sample_doc() -> Document {
-        let xml_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("tests/fixtures/invoices/sample-simplified-invoice.xml");
-        let xml = std::fs::read_to_string(xml_path).expect("read sample invoice");
-        Parser::default().parse_string(&xml).expect("parse invoice")
+    /// The sample invoice text, read once and shared by every test.
+    ///
+    /// Documents borrow their source, so holding the text in a `static` is what
+    /// lets `load_sample_doc` hand back a document with no lifetime attached.
+    fn sample_xml() -> &'static str {
+        static XML: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+        XML.get_or_init(|| {
+            let xml_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("tests/fixtures/invoices/sample-simplified-invoice.xml");
+            std::fs::read_to_string(xml_path).expect("read sample invoice")
+        })
     }
 
-    fn select_nodes(ctx: &xpath::Context, expr: &str) -> Vec<Node> {
-        ctx.evaluate(expr)
-            .unwrap_or_else(|_| panic!("XPath error for {expr}"))
-            .get_nodes_as_vec()
+    fn load_sample_doc() -> Document<'static> {
+        dom::parse(sample_xml()).expect("parse invoice")
     }
 
-    fn remove_nodes(ctx: &xpath::Context, expr: &str) {
-        for mut node in select_nodes(ctx, expr) {
-            node.unlink();
+    fn select_nodes(doc: &Document<'_>, expr: &str) -> Vec<NodeId> {
+        dom::nodes(dom::evaluator(), doc, expr).unwrap_or_else(|_| panic!("XPath error for {expr}"))
+    }
+
+    fn remove_nodes(doc: &mut Document<'_>, expr: &str) {
+        for node in select_nodes(doc, expr) {
+            doc.detach(node);
         }
+        doc.prepare_xpath();
     }
 
-    fn xml_text(ctx: &xpath::Context, expr: &str, label: &str) -> String {
-        let nodes = ctx
-            .evaluate(expr)
+    fn xml_text(doc: &Document<'_>, expr: &str, label: &str) -> String {
+        dom::text(dom::evaluator(), doc, expr)
             .unwrap_or_else(|_| panic!("XPath error for {label}"))
-            .get_nodes_as_vec();
-        let node = nodes
-            .first()
-            .unwrap_or_else(|| panic!("Missing {label} in invoice XML"));
-        let value = node.get_content().trim().to_string();
-        if value.is_empty() {
-            panic!("Empty {label} in invoice XML");
-        }
-        value
+            .unwrap_or_else(|| panic!("Missing {label} in invoice XML"))
     }
 }
