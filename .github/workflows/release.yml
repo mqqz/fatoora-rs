@@ -89,6 +89,9 @@ jobs:
         run: |
           mkdir -p dist
           cp target/${{ matrix.target }}/release/fatoora-rs-cli dist/fatoora-rs-cli-${{ matrix.target }}
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            cp LICENSE-MIT LICENSE-APACHE THIRD_PARTY_NOTICES.md dist/
+          fi
 
       - name: Package CLI (windows)
         if: runner.os == 'Windows'
@@ -183,7 +186,7 @@ jobs:
           cp target/${{ matrix.target }}/release/libfatoora_ffi.${{ matrix.lib_ext }} dist/$pkg/
           cp fatoora-ffi/include/fatoora_ffi.h dist/$pkg/include/
           cp fatoora-ffi/include/fatoora.h dist/$pkg/include/
-          cp LICENSE dist/$pkg/
+          cp LICENSE-MIT LICENSE-APACHE THIRD_PARTY_NOTICES.md dist/$pkg/
           cp README.md dist/$pkg/README.md
           tar -czf dist/${pkg}.tar.gz -C dist/$pkg .
 
@@ -201,7 +204,7 @@ jobs:
           }
           Copy-Item "fatoora-ffi\\include\\fatoora_ffi.h" "dist\\$pkg\\include\\"
           Copy-Item "fatoora-ffi\\include\\fatoora.h" "dist\\$pkg\\include\\"
-          Copy-Item "LICENSE" "dist\\$pkg\\"
+          Copy-Item "LICENSE-MIT", "LICENSE-APACHE", "THIRD_PARTY_NOTICES.md" "dist\\$pkg\\"
           Copy-Item "README.md" "dist\\$pkg\\README.md"
           Compress-Archive -Path "dist\\$pkg\\*" -DestinationPath "dist\\$pkg.zip"
 

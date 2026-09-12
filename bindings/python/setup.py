@@ -67,6 +67,14 @@ class BinaryDistribution(Distribution):
         return True
 
 
+# Stage the root licenses before setuptools collects package metadata.
+license_root = build_py._resolve_repo_root()
+for license_name in ("LICENSE-MIT", "LICENSE-APACHE", "THIRD_PARTY_NOTICES.md"):
+    source = license_root / license_name
+    if source.is_file():
+        shutil.copy2(source, Path(__file__).resolve().parent / license_name)
+
+
 setup(
     cmdclass={"build_py": build_py, "bdist_wheel": bdist_wheel},
     distclass=BinaryDistribution,

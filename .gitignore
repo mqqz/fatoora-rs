@@ -43,3 +43,8 @@ MANIFEST
 
 # Helpful to have in root
 zatca-einvoicing-sdk*
+
+# Generated from the root licenses by Python packaging
+/bindings/python/LICENSE-MIT
+/bindings/python/LICENSE-APACHE
+/bindings/python/THIRD_PARTY_NOTICES.md

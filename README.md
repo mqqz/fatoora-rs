@@ -6,7 +6,7 @@
   </a>
 </h1>
 <p align="center">
-<a target="_blank" href="https://choosealicense.com/licenses/mit"><img src="https://img.shields.io/badge/License-MIT-green.svg"/></a> 
+<a target="_blank" href="#license"><img src="https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-green.svg"/></a>
 <a href="https://codecov.io/gh/mqqz/fatoora-rs"><img src="https://codecov.io/gh/mqqz/fatoora-rs/graph/badge.svg?token=JRI6609XU6"/></a>
 </p>
 <p align="center">
@@ -257,12 +257,20 @@ best to keep the project maintained and responsive to issues. Contributions,
 feedback, and suggestions are always welcome.
 
 If you or your team are working on fintech or ZATCA integrations and need help building
-reliable scalable infrastructure, from someone who knows his way around this,
-feel free to get in touch ;)
-
-[mosadhan.com](https://mosadhan.com)
+reliable scalable infrastructure, feel free to get in touch.
 
 ## 🔗 Relevant Links
 - [ZATCA E-Invoicing Homepage](https://zatca.gov.sa/en/E-Invoicing/Pages/default.aspx)
 - [ZATCA Fatoora SDK](https://sandbox.zatca.gov.sa/downloadSDK)
 - [ZATCA API Sandbox](https://sandbox.zatca.gov.sa/IntegrationSandbox)
+
+## License
+
+This project's code is licensed under either the [MIT License](LICENSE-MIT) or the
+[Apache License, Version 2.0](LICENSE-APACHE), at your option.
+
+Third-party schemas, fixtures, templates, and dependencies retain their applicable
+upstream licenses and notices. The project license does not relicense those materials.
+
+See [third-party notices](THIRD_PARTY_NOTICES.md) for attribution, applicable
+terms, and outstanding permission questions.
