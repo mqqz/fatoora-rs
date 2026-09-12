@@ -7,3 +7,6 @@ members = [
     "fatoora-rs-cli",
     "fatoora-ffi",
 ]
+
+[patch.crates-io]
+uppsala = { git = "https://github.com/mqqz/uppsala.git", branch = "main" }

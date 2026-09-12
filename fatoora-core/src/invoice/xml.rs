@@ -204,6 +204,7 @@ mod helpers {
 }
 
 pub(crate) mod constants;
+pub(crate) mod dom;
 pub mod parse;
 
 struct InvoiceTotals<'a> {

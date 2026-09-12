@@ -1,6 +1,6 @@
 //! XML parsing for invoices.
 use crate::invoice::sign::SignedProperties;
-use crate::invoice::xml::constants::{CAC_NS, CBC_NS, DS_NS, INVOICE_NS, XADES_NS};
+use crate::invoice::xml::dom;
 use crate::invoice::{
     Address, CountryCode, CurrencyCode, FinalizedInvoice, InvoiceBuilder, InvoiceDate,
     InvoiceSubType, InvoiceTimestamp, InvoiceType, LineItem, OriginalInvoiceRef, OtherId, Party,
@@ -8,9 +8,9 @@ use crate::invoice::{
 };
 use base64ct::{Base64, Encoding};
 use chrono::{NaiveDateTime, NaiveTime};
-use libxml::{parser::Parser, tree::Document, xpath};
 use std::path::Path;
 use thiserror::Error;
+use uppsala::{Document, XPathEvaluator};
 
 /// Errors emitted while parsing XML invoices.
 #[derive(Debug, Error)]
@@ -40,9 +40,7 @@ pub enum ParseError {
 /// # Errors
 /// Returns [`ParseError`] if the XML is invalid or required fields are missing.
 pub fn parse_finalized_invoice_xml(xml: &str) -> Result<FinalizedInvoice, ParseError> {
-    let doc = Parser::default()
-        .parse_string(xml)
-        .map_err(|e| ParseError::XmlParse(format!("{e:?}")))?;
+    let doc = dom::parse(xml).map_err(|e| ParseError::XmlParse(format!("{e}")))?;
     parse_finalized_invoice_doc(&doc)
 }
 
@@ -64,14 +62,12 @@ pub fn parse_finalized_invoice_xml_file(
 /// # Errors
 /// Returns [`ParseError`] if the XML is invalid or required fields are missing.
 pub fn parse_signed_invoice_xml(xml: &str) -> Result<SignedInvoice, ParseError> {
-    let doc = Parser::default()
-        .parse_string(xml)
-        .map_err(|e| ParseError::XmlParse(format!("{e:?}")))?;
+    let doc = dom::parse(xml).map_err(|e| ParseError::XmlParse(format!("{e}")))?;
     let finalized = parse_finalized_invoice_doc(&doc)?;
     let signing = parse_signed_properties(&doc)?;
     let signed = finalized
         .sign_with_bundle(signing, xml.to_string())
-        .map_err(|e| ParseError::XmlParse(format!("{e:?}")))?;
+        .map_err(|e| ParseError::XmlParse(format!("{e}")))?;
     Ok(signed)
 }
 
@@ -86,8 +82,8 @@ pub fn parse_signed_invoice_xml_file(path: impl AsRef<Path>) -> Result<SignedInv
     parse_signed_invoice_xml(&xml)
 }
 
-fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, ParseError> {
-    let ctx = build_context(doc)?;
+fn parse_finalized_invoice_doc(doc: &Document<'_>) -> Result<FinalizedInvoice, ParseError> {
+    let ctx = build_context(doc);
 
     let id = xpath_text_required(&ctx, "/ubl:Invoice/cbc:ID", "ID")?;
     let uuid = xpath_text_required(&ctx, "/ubl:Invoice/cbc:UUID", "UUID")?;
@@ -193,15 +189,11 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
 
     builder
         .build()
-        .map_err(|e| ParseError::XmlParse(format!("{e:?}")))
+        .map_err(|e| ParseError::XmlParse(format!("{e}")))
 }
 
-fn parse_signed_properties(doc: &Document) -> Result<SignedProperties, ParseError> {
-    let ctx = build_context(doc)?;
-    ctx.register_namespace("ds", DS_NS)
-        .map_err(|e| ParseError::XPath(format!("{e:?}")))?;
-    ctx.register_namespace("xades", XADES_NS)
-        .map_err(|e| ParseError::XPath(format!("{e:?}")))?;
+fn parse_signed_properties(doc: &Document<'_>) -> Result<SignedProperties, ParseError> {
+    let ctx = build_context(doc);
 
     let qr = xpath_text_required(
         &ctx,
@@ -312,7 +304,7 @@ fn parse_invoice_type(
     }
 }
 
-fn parse_original_ref(ctx: &xpath::Context) -> Result<OriginalInvoiceRef, ParseError> {
+fn parse_original_ref(ctx: &Ctx<'_, '_>) -> Result<OriginalInvoiceRef, ParseError> {
     let id = xpath_text_required(
         ctx,
         "/ubl:Invoice/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID",
@@ -338,7 +330,7 @@ fn parse_original_ref(ctx: &xpath::Context) -> Result<OriginalInvoiceRef, ParseE
     Ok(original)
 }
 
-fn parse_seller(ctx: &xpath::Context) -> Result<Party<SellerRole>, ParseError> {
+fn parse_seller(ctx: &Ctx<'_, '_>) -> Result<Party<SellerRole>, ParseError> {
     let name = xpath_text_required(
         ctx,
         "/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName",
@@ -366,10 +358,10 @@ fn parse_seller(ctx: &xpath::Context) -> Result<Party<SellerRole>, ParseError> {
     };
 
     Party::<SellerRole>::new(name, address, vat, other_id)
-        .map_err(|e| ParseError::XmlParse(format!("{e:?}")))
+        .map_err(|e| ParseError::XmlParse(format!("{e}")))
 }
 
-fn parse_address(ctx: &xpath::Context) -> Result<Address, ParseError> {
+fn parse_address(ctx: &Ctx<'_, '_>) -> Result<Address, ParseError> {
     let street = xpath_text_required(
         ctx,
         "/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:StreetName",
@@ -417,7 +409,7 @@ fn parse_address(ctx: &xpath::Context) -> Result<Address, ParseError> {
     })
 }
 
-fn parse_vat_category(ctx: &xpath::Context) -> Result<VatCategory, ParseError> {
+fn parse_vat_category(ctx: &Ctx<'_, '_>) -> Result<VatCategory, ParseError> {
     let category = xpath_text_required(
         ctx,
         "/ubl:Invoice/cac:InvoiceLine[1]/cac:Item/cac:ClassifiedTaxCategory/cbc:ID",
@@ -435,55 +427,52 @@ fn parse_vat_category(ctx: &xpath::Context) -> Result<VatCategory, ParseError> {
     }
 }
 
-fn parse_line_items(ctx: &xpath::Context) -> Result<Vec<LineItem>, ParseError> {
-    let nodes = ctx
-        .evaluate("//cac:InvoiceLine")
-        .map_err(|e| ParseError::XPath(format!("{e:?}")))?
-        .get_nodes_as_vec();
+/// Read a required field of one invoice line, relative to that line's node.
+fn line_text(
+    ctx: &Ctx<'_, '_>,
+    line: uppsala::NodeId,
+    expr: &str,
+    label: &'static str,
+) -> Result<String, ParseError> {
+    dom::text_from(ctx.eval, ctx.doc, line, expr)
+        .map_err(|e| ParseError::XPath(format!("{e}")))?
+        .ok_or(ParseError::MissingField(label))
+}
+
+fn parse_line_items(ctx: &Ctx<'_, '_>) -> Result<Vec<LineItem>, ParseError> {
+    let nodes = dom::nodes(ctx.eval, ctx.doc, "//cac:InvoiceLine")
+        .map_err(|e| ParseError::XPath(format!("{e}")))?;
     if nodes.is_empty() {
         return Err(ParseError::MissingField("InvoiceLine"));
     }
 
     let mut items = Vec::with_capacity(nodes.len());
-    for idx in 1..=nodes.len() {
-        let base = format!("(//cac:InvoiceLine)[{idx}]");
-        let _id = xpath_text_required(ctx, &format!("{base}/cbc:ID"), "LineID")?;
-        let name = xpath_text_required(ctx, &format!("{base}/cac:Item/cbc:Name"), "LineName")?;
-        let quantity = xpath_text_required(
+    for line in nodes {
+        let _id = line_text(ctx, line, "cbc:ID", "LineID")?;
+        let name = line_text(ctx, line, "cac:Item/cbc:Name", "LineName")?;
+        let quantity = line_text(ctx, line, "cbc:InvoicedQuantity", "InvoicedQuantity")?;
+        let unit_code = line_text(
             ctx,
-            &format!("{base}/cbc:InvoicedQuantity"),
-            "InvoicedQuantity",
-        )?;
-        let unit_code = xpath_text_required(
-            ctx,
-            &format!("{base}/cbc:InvoicedQuantity/@unitCode"),
+            line,
+            "cbc:InvoicedQuantity/@unitCode",
             "InvoicedQuantity@unitCode",
         )?;
-        let line_extension = xpath_text_required(
+        let line_extension =
+            line_text(ctx, line, "cbc:LineExtensionAmount", "LineExtensionAmount")?;
+        let price = line_text(ctx, line, "cac:Price/cbc:PriceAmount", "PriceAmount")?;
+        let vat_rate = line_text(
             ctx,
-            &format!("{base}/cbc:LineExtensionAmount"),
-            "LineExtensionAmount",
-        )?;
-        let price = xpath_text_required(
-            ctx,
-            &format!("{base}/cac:Price/cbc:PriceAmount"),
-            "PriceAmount",
-        )?;
-        let vat_rate = xpath_text_required(
-            ctx,
-            &format!("{base}/cac:Item/cac:ClassifiedTaxCategory/cbc:Percent"),
+            line,
+            "cac:Item/cac:ClassifiedTaxCategory/cbc:Percent",
             "LineVatPercent",
         )?;
-        let vat_category = xpath_text_required(
+        let vat_category = line_text(
             ctx,
-            &format!("{base}/cac:Item/cac:ClassifiedTaxCategory/cbc:ID"),
+            line,
+            "cac:Item/cac:ClassifiedTaxCategory/cbc:ID",
             "LineVatCategory",
         )?;
-        let vat_amount = xpath_text_required(
-            ctx,
-            &format!("{base}/cac:TaxTotal/cbc:TaxAmount"),
-            "LineTaxAmount",
-        )?;
+        let vat_amount = line_text(ctx, line, "cac:TaxTotal/cbc:TaxAmount", "LineTaxAmount")?;
 
         let vat_category = match vat_category.as_str() {
             "S" => VatCategory::Standard,
@@ -569,39 +558,33 @@ fn parse_datetime(date: &str, time: &str) -> Result<String, ParseError> {
     Ok(timestamp)
 }
 
-fn build_context(doc: &Document) -> Result<xpath::Context, ParseError> {
-    let ctx = xpath::Context::new(doc).map_err(|e| ParseError::XPath(format!("{e:?}")))?;
-    ctx.register_namespace("ubl", INVOICE_NS)
-        .map_err(|e| ParseError::XPath(format!("{e:?}")))?;
-    ctx.register_namespace("cbc", CBC_NS)
-        .map_err(|e| ParseError::XPath(format!("{e:?}")))?;
-    ctx.register_namespace("cac", CAC_NS)
-        .map_err(|e| ParseError::XPath(format!("{e:?}")))?;
-    Ok(ctx)
+/// A document paired with a namespace-bound evaluator.
+///
+/// uppsala keeps the prefix bindings on the evaluator rather than on a
+/// per-document context, so this pairs the two back up and lets the parsing
+/// helpers keep passing a single `ctx` around.
+struct Ctx<'a, 'i> {
+    doc: &'a Document<'i>,
+    eval: &'static XPathEvaluator,
+}
+
+fn build_context<'a, 'i>(doc: &'a Document<'i>) -> Ctx<'a, 'i> {
+    Ctx {
+        doc,
+        eval: dom::evaluator(),
+    }
 }
 
 fn xpath_text_required(
-    ctx: &xpath::Context,
+    ctx: &Ctx<'_, '_>,
     expr: &str,
     label: &'static str,
 ) -> Result<String, ParseError> {
     xpath_text_optional(ctx, expr)?.ok_or(ParseError::MissingField(label))
 }
 
-fn xpath_text_optional(ctx: &xpath::Context, expr: &str) -> Result<Option<String>, ParseError> {
-    let nodes = ctx
-        .evaluate(expr)
-        .map_err(|e| ParseError::XPath(format!("{e:?}")))?
-        .get_nodes_as_vec();
-    let node = match nodes.first() {
-        Some(node) => node,
-        None => return Ok(None),
-    };
-    let value = node.get_content().trim().to_string();
-    if value.is_empty() {
-        return Ok(None);
-    }
-    Ok(Some(value))
+fn xpath_text_optional(ctx: &Ctx<'_, '_>, expr: &str) -> Result<Option<String>, ParseError> {
+    dom::text(ctx.eval, ctx.doc, expr).map_err(|e| ParseError::XPath(format!("{e}")))
 }
 
 fn decode_qr_tlv(qr_b64: &str) -> Result<std::collections::HashMap<u8, Vec<u8>>, ParseError> {

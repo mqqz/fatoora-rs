@@ -7,11 +7,10 @@ use fatoora_core::invoice::sign::{InvoiceSigner, SigningError};
 use fatoora_core::invoice::xml::ToXml;
 use k256::ecdsa::SigningKey as K256SigningKey;
 use k256::pkcs8::DecodePrivateKey;
-use libxml::parser::Parser;
-use libxml::xpath;
 use std::path::Path;
 use std::str::FromStr;
 use std::time::Duration;
+use uppsala::{XPathEvaluator, XPathValue};
 use x509_cert::builder::{Builder, CertificateBuilder, profile};
 use x509_cert::der::Encode;
 use x509_cert::name::Name;
@@ -45,19 +44,19 @@ fn sign_invoice_emits_signature_and_qr() {
     println!("{}", xml);
     assert!(xml.contains("ds:SignatureValue"));
 
-    let doc = Parser::default()
-        .parse_string(&xml)
-        .expect("parse signed xml");
-    let ctx = xpath::Context::new(&doc).expect("xpath context");
-    ctx.register_namespace("cbc", CBC_NS).expect("cbc ns");
-    ctx.register_namespace("cac", CAC_NS).expect("cac ns");
+    let mut doc = uppsala::parse(&xml).expect("parse signed xml");
+    doc.prepare_xpath();
+    let mut eval = XPathEvaluator::new();
+    eval.add_namespace("cbc", CBC_NS);
+    eval.add_namespace("cac", CAC_NS);
 
-    let nodes = ctx
-        .evaluate("//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]/cac:Attachment/cbc:EmbeddedDocumentBinaryObject")
-        .expect("qr xpath")
-        .get_nodes_as_vec();
+    let nodes = select(
+        &eval,
+        &doc,
+        "//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]/cac:Attachment/cbc:EmbeddedDocumentBinaryObject",
+    );
     assert!(!nodes.is_empty(), "missing QR node");
-    let qr_value = nodes[0].get_content();
+    let qr_value = doc.text_content_deep(nodes[0]);
     assert!(!qr_value.trim().is_empty(), "empty QR value");
 }
 
@@ -132,16 +131,12 @@ fn sign_xml_emits_signature_and_signing_time() {
     let signed_xml = signer.sign_xml(&unsigned_xml).expect("sign xml");
     assert!(signed_xml.contains("ds:SignatureValue"));
 
-    let doc = Parser::default()
-        .parse_string(&signed_xml)
-        .expect("parse signed xml");
-    let ctx = xpath::Context::new(&doc).expect("xpath context");
-    let nodes = ctx
-        .evaluate("//*[local-name()='SigningTime']")
-        .expect("signing time xpath")
-        .get_nodes_as_vec();
+    let mut doc = uppsala::parse(&signed_xml).expect("parse signed xml");
+    doc.prepare_xpath();
+    let eval = XPathEvaluator::new();
+    let nodes = select(&eval, &doc, "//*[local-name()='SigningTime']");
     assert!(!nodes.is_empty(), "missing SigningTime");
-    let signing_time = nodes[0].get_content();
+    let signing_time = doc.text_content_deep(nodes[0]);
     assert_eq!(signing_time.trim(), "2024-01-01T12:30:00");
 }
 
@@ -214,4 +209,12 @@ fn pem_wrap(label: &str, der: &[u8]) -> String {
     out.push_str(label);
     out.push_str("-----\n");
     out
+}
+
+/// Evaluate an XPath expression and return the matching nodes.
+fn select(eval: &XPathEvaluator, doc: &uppsala::Document<'_>, expr: &str) -> Vec<uppsala::NodeId> {
+    match eval.evaluate(doc, doc.root(), expr).expect("xpath") {
+        XPathValue::NodeSet(nodes) => nodes,
+        other => panic!("expected a node set from {expr}, got {other:?}"),
+    }
 }

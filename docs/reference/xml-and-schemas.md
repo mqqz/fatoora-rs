@@ -6,7 +6,7 @@ Details about XML handling, templates, and bundled schemas.
 
 ???+ note "UBL 2.1"
     - UBL 2.1 XSD is bundled at:
-      fatoora-core/assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd
+      fatoora-core/assets/schemas/UBL2.1/xsd/UBL-Invoice-2.1.xsd
     - Validation always loads this bundled schema.
 
 ## Signing Templates
