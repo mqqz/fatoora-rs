@@ -100,3 +100,17 @@ Benchmark data lives in `bench/`. The CLI benchmark results are tracked in `benc
 
 ## Releases
 If you need a release, open an issue with the scope and crate(s) to publish.
+
+## Licensing contributions
+
+By submitting original code for inclusion in this project, you agree to license it
+under both MIT and Apache-2.0, allowing recipients to choose either license.
+Identify any third-party material you include and preserve its applicable license
+and notices.
+
+The root `LICENSE-MIT`, `LICENSE-APACHE`, and `THIRD_PARTY_NOTICES.md` files
+are the maintained copies.
+Each Rust crate links to them with relative symlinks; Cargo includes the target
+contents in published packages. On Windows, enable Git symlink support before
+checking out the repository if you will package crates locally.
+Python packaging stages the files automatically.
