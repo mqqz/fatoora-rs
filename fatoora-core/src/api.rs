@@ -11,6 +11,7 @@ use thiserror::Error;
 
 /// Errors returned by the ZATCA API client.
 #[derive(Error, Debug)]
+#[non_exhaustive]
 pub enum ZatcaError {
     #[error("Network error: {0}")]
     NetworkError(String),
@@ -24,6 +25,20 @@ pub enum ZatcaError {
     Http(String),
     #[error("Client state error: {0}")]
     ClientState(String),
+}
+
+impl ZatcaError {
+    /// Shared classification used by bindings.
+    pub fn kind(&self) -> crate::ErrorKind {
+        match self {
+            Self::NetworkError(_) => crate::ErrorKind::Network,
+            Self::InvalidResponse(_) => crate::ErrorKind::Parse,
+            Self::Unauthorized(_) => crate::ErrorKind::Unauthorized,
+            Self::ServerError(_) => crate::ErrorKind::Api,
+            Self::Http(_) => crate::ErrorKind::Network,
+            Self::ClientState(_) => crate::ErrorKind::Internal,
+        }
+    }
 }
 
 /// Marker trait for API token scope, either Compliance (CCSID) or Production (PCSID).

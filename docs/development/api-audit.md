@@ -4,7 +4,7 @@ This page captures the current public surface, the target shape, and a checklist
 
 ## Current Surface (Updated)
 - Core modules: `config`, `csr`, `invoice`, `invoice::sign`, `invoice::xml`, `invoice::validation`, `api` (see `fatoora-core/src/lib.rs`).
-- Core public API uses crate-owned types only; external types no longer appear in public signatures (HTTP errors and signing time are strings).
+- Core operation signatures use crate-owned or standard-library types. Backend error payloads, certificate exports, and invoice flag iterators are crate-owned. Serde integration remains available.
 - CSR + signing keys are wrapped in crate-owned types (`SigningKey`, `Csr`) with string/bytes constructors and serializers.
 - Invoice timestamp/currency/country codes are validated string wrappers (`InvoiceTimestamp`, `CurrencyCode`, `CountryCode`).
 - FFI exports cover config, CSR, signing keys, invoice builder/sign/parse/accessors, validation, and ZATCA API (`fatoora-ffi/src/lib.rs`).

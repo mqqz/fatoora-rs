@@ -6,45 +6,79 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-enum FfiEnvironment {
+enum FfiEnvironment
+#ifdef __cplusplus
+  : int32_t
+#endif // __cplusplus
+ {
   FfiEnvironment_NonProduction = 0,
   FfiEnvironment_Simulation = 1,
   FfiEnvironment_Production = 2,
 };
+#ifndef __cplusplus
 typedef int32_t FfiEnvironment;
+#endif // __cplusplus
 
-enum FfiInvoiceTypeKind {
+enum FfiInvoiceTypeKind
+#ifdef __cplusplus
+  : int32_t
+#endif // __cplusplus
+ {
   FfiInvoiceTypeKind_Tax = 0,
   FfiInvoiceTypeKind_Prepayment = 1,
   FfiInvoiceTypeKind_CreditNote = 2,
   FfiInvoiceTypeKind_DebitNote = 3,
 };
+#ifndef __cplusplus
 typedef int32_t FfiInvoiceTypeKind;
+#endif // __cplusplus
 
-enum FfiInvoiceSubType {
+enum FfiInvoiceSubType
+#ifdef __cplusplus
+  : int32_t
+#endif // __cplusplus
+ {
   FfiInvoiceSubType_Standard = 0,
   FfiInvoiceSubType_Simplified = 1,
 };
+#ifndef __cplusplus
 typedef int32_t FfiInvoiceSubType;
+#endif // __cplusplus
 
-enum FfiVatCategory {
+enum FfiVatCategory
+#ifdef __cplusplus
+  : int32_t
+#endif // __cplusplus
+ {
   FfiVatCategory_Exempt = 0,
   FfiVatCategory_Standard = 1,
   FfiVatCategory_Zero = 2,
   FfiVatCategory_OutOfScope = 3,
 };
+#ifndef __cplusplus
 typedef int32_t FfiVatCategory;
+#endif // __cplusplus
 
-enum FfiInvoiceFlag {
+enum FfiInvoiceFlag
+#ifdef __cplusplus
+  : uint8_t
+#endif // __cplusplus
+ {
   FfiInvoiceFlag_ThirdParty = 1,
   FfiInvoiceFlag_Nominal = 2,
   FfiInvoiceFlag_Export = 4,
   FfiInvoiceFlag_Summary = 8,
   FfiInvoiceFlag_SelfBilled = 16,
 };
+#ifndef __cplusplus
 typedef uint8_t FfiInvoiceFlag;
+#endif // __cplusplus
 
-enum FfiErrorKind {
+enum FfiErrorKind
+#ifdef __cplusplus
+  : int32_t
+#endif // __cplusplus
+ {
   FfiErrorKind_InvalidInput = 1,
   FfiErrorKind_Validation = 2,
   FfiErrorKind_Parse = 3,
@@ -56,7 +90,15 @@ enum FfiErrorKind {
   FfiErrorKind_Internal = 9,
   FfiErrorKind_Api = 10,
 };
+#ifndef __cplusplus
 typedef int32_t FfiErrorKind;
+#endif // __cplusplus
+
+/**
+ * Opaque error handle. Inspect through accessors and release with `fatoora_error_free`.
+ * Its Rust layout is intentionally not part of the C ABI.
+ */
+typedef struct FfiError FfiError;
 
 typedef struct FfiString {
   char *ptr;
@@ -75,11 +117,6 @@ typedef struct FfiBytesList {
 typedef struct FfiConfig {
   void *ptr;
 } FfiConfig;
-
-typedef struct FfiError {
-  int32_t code;
-  char *message;
-} FfiError;
 
 typedef struct FfiResult_FfiEnvironment {
   bool ok;
@@ -330,6 +367,10 @@ typedef struct FfiResult_FfiOtherId {
   struct FfiOtherId value;
   struct FfiError *error;
 } FfiResult_FfiOtherId;
+
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
 /**
  * # Safety
@@ -1824,21 +1865,44 @@ struct FfiResult_FfiString fatoora_signed_invoice_totals_payable_rounding_amount
 struct FfiResult_FfiString fatoora_signed_invoice_totals_payable_amount(struct FfiSignedInvoice *handle);
 
 /**
+ * Release an error handle. Null is accepted.
+ *
  * # Safety
- * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ * `error` must be null or a live handle returned by this library, freed exactly once.
  */
 void fatoora_error_free(struct FfiError *error);
 
 /**
+ * Read the stable numeric classification. Null returns zero (no error).
+ *
  * # Safety
- * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ * `error` must be null or a live error handle.
  */
 int32_t fatoora_error_code(struct FfiError *error);
 
 /**
+ * Copy the UTF-8 message. Free the returned string with `fatoora_string_free`.
+ * The copy remains valid after the error handle is freed. Null returns a null string.
+ * Embedded NUL characters are displayed as the two characters `\0`.
+ *
  * # Safety
- * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ * `error` must be null or a live error handle.
  */
 struct FfiString fatoora_error_message(struct FfiError *error);
+
+/**
+ * Copy structured error details as UTF-8 JSON. Every object has a `type` field.
+ * Consumers must tolerate unknown types and additional fields.
+ * Free the returned string with `fatoora_string_free`; it remains valid after
+ * the error handle is freed. Null returns a null string.
+ *
+ * # Safety
+ * `error` must be null or a live error handle.
+ */
+struct FfiString fatoora_error_details_json(struct FfiError *error);
+
+#ifdef __cplusplus
+}  // extern "C"
+#endif  // __cplusplus
 
 #endif  /* FATOORA_FFI_H */

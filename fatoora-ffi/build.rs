@@ -46,10 +46,15 @@ fn write_alias_header(header_path: &PathBuf, out_path: &PathBuf) -> Result<(), S
 
     for line in header.lines() {
         let trimmed = line.trim();
-        if trimmed.starts_with("typedef enum ") {
+        if trimmed.starts_with("typedef enum ") || trimmed.starts_with("enum ") {
+            let name_index = if trimmed.starts_with("typedef ") {
+                2
+            } else {
+                1
+            };
             let name = trimmed
                 .split_whitespace()
-                .nth(2)
+                .nth(name_index)
                 .unwrap_or_default()
                 .trim_end_matches('{')
                 .to_string();

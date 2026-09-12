@@ -5,12 +5,15 @@ use fatoora_core::config::EnvironmentType;
 use fatoora_core::invoice::{InvoiceSubType, VatCategory};
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiConfig {
     pub ptr: *mut c_void,
 }
 
 #[repr(i32)]
+#[derive(Default)]
 pub enum FfiEnvironment {
+    #[default]
     NonProduction = 0,
     Simulation = 1,
     Production = 2,
@@ -37,7 +40,9 @@ impl From<EnvironmentType> for FfiEnvironment {
 }
 
 #[repr(i32)]
+#[derive(Default)]
 pub enum FfiInvoiceSubType {
+    #[default]
     Standard = 0,
     Simplified = 1,
 }
@@ -61,7 +66,9 @@ impl From<InvoiceSubType> for FfiInvoiceSubType {
 }
 
 #[repr(i32)]
+#[derive(Default)]
 pub enum FfiInvoiceTypeKind {
+    #[default]
     Tax = 0,
     Prepayment = 1,
     CreditNote = 2,
@@ -69,7 +76,9 @@ pub enum FfiInvoiceTypeKind {
 }
 
 #[repr(i32)]
+#[derive(Default)]
 pub enum FfiVatCategory {
+    #[default]
     Exempt = 0,
     Standard = 1,
     Zero = 2,
@@ -99,17 +108,20 @@ impl From<VatCategory> for FfiVatCategory {
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiString {
     pub ptr: *mut std::os::raw::c_char,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiBytes {
     pub ptr: *mut u8,
     pub len: usize,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiBytesList {
     pub ptr: *mut FfiBytes,
     pub len: usize,
@@ -130,21 +142,25 @@ impl From<String> for FfiString {
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiInvoiceBuilder {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiFinalizedInvoice {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiSignedInvoice {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiSigner {
     pub ptr: *mut c_void,
 }
@@ -159,76 +175,91 @@ pub enum FfiInvoiceFlag {
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiCsrProperties {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiCsr {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiSigningKey {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiZatcaClient {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiCsidCompliance {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiCsidProduction {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiAddress {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiParty {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiVatId {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiOtherId {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiInvoiceNote {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiOriginalInvoiceRef {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiValidationResponse {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiValidationResults {
     pub ptr: *mut c_void,
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct FfiValidationMessage {
     pub ptr: *mut c_void,
 }

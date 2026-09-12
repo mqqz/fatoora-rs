@@ -8,6 +8,7 @@ use crate::invoice::xml::constants::{CAC_NS, CBC_NS};
 
 /// Errors emitted when building or encoding QR payloads.
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum QrCodeError {
     #[error("seller legal name is missing")]
     MissingSellerName,
@@ -19,6 +20,19 @@ pub enum QrCodeError {
     EncodedTooLong { len: usize },
     #[error("QR XML error: {0}")]
     Xml(String),
+}
+
+impl QrCodeError {
+    /// Shared classification used by bindings.
+    pub fn kind(&self) -> crate::ErrorKind {
+        match self {
+            Self::MissingSellerName
+            | Self::MissingSellerVat
+            | Self::ValueTooLong { .. }
+            | Self::EncodedTooLong { .. } => crate::ErrorKind::InvalidInput,
+            Self::Xml(_) => crate::ErrorKind::Xml,
+        }
+    }
 }
 
 /// QR result alias.

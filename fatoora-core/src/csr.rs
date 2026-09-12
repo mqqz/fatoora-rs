@@ -16,7 +16,7 @@ use thiserror::Error;
 use x509_cert::{
     builder::{Builder, RequestBuilder},
     der::{
-        Decode, Encode, EncodePem, Error as DerError, Length, Result as DerResult, Writer, asn1,
+        Decode, Encode, EncodePem, Length, Result as DerResult, Writer, asn1,
         pem::LineEnding as CsrLineEnding,
     },
     ext::{
@@ -29,6 +29,7 @@ use x509_cert::{
 
 /// Errors that can occur while generating or validating CSRs.
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum CsrError {
     #[error("failed to open CSR config file '{path}': {source}")]
     Io {
@@ -41,7 +42,7 @@ pub enum CsrError {
     PropertiesRead {
         path: PathBuf,
         #[source]
-        source: java_properties::PropertiesError,
+        source: crate::Diagnostic,
     },
 
     #[error("missing required CSR property '{key}' in file '{path}'")]
@@ -75,11 +76,31 @@ pub enum CsrError {
     DerEncode {
         context: &'static str,
         #[source]
-        source: DerError,
+        source: crate::Diagnostic,
     },
 
     #[error("validation error: {message}")]
     Validation { message: String },
+}
+
+impl CsrError {
+    /// Shared classification used by bindings.
+    pub fn kind(&self) -> crate::ErrorKind {
+        match self {
+            Self::Io { .. } => crate::ErrorKind::Io,
+            Self::PropertiesRead { .. } => crate::ErrorKind::Parse,
+            Self::MissingProperty { .. } => crate::ErrorKind::InvalidInput,
+            Self::InvalidSubject { .. } => crate::ErrorKind::InvalidInput,
+            Self::InvalidSan { .. } => crate::ErrorKind::InvalidInput,
+            Self::RequestBuild { .. } => crate::ErrorKind::Crypto,
+            Self::AddExtension { .. } => crate::ErrorKind::Crypto,
+            Self::CsrBuild { .. } => crate::ErrorKind::Crypto,
+            Self::DerEncode { .. } => crate::ErrorKind::Crypto,
+            Self::KeyDecode { .. } => crate::ErrorKind::InvalidInput,
+            Self::KeyEncode { .. } => crate::ErrorKind::Crypto,
+            Self::Validation { .. } => crate::ErrorKind::Validation,
+        }
+    }
 }
 
 struct TemplateNameExtension(pub asn1::OctetString);
@@ -184,7 +205,7 @@ impl Csr {
     pub fn from_der(der: &[u8]) -> Result<Self, CsrError> {
         let inner = CertReq::from_der(der).map_err(|e| CsrError::DerEncode {
             context: "certificate request (DER)",
-            source: e,
+            source: crate::Diagnostic::new(e.to_string()),
         })?;
         Ok(Self { inner })
     }
@@ -192,7 +213,7 @@ impl Csr {
     pub fn to_der(&self) -> Result<Vec<u8>, CsrError> {
         let der_bytes = self.inner.to_der().map_err(|e| CsrError::DerEncode {
             context: "certificate request",
-            source: e,
+            source: crate::Diagnostic::new(e.to_string()),
         })?;
         Ok(der_bytes)
     }
@@ -203,7 +224,7 @@ impl Csr {
             .to_pem(CsrLineEnding::LF)
             .map_err(|e| CsrError::DerEncode {
                 context: "certificate request (PEM)",
-                source: e,
+                source: crate::Diagnostic::new(e.to_string()),
             })?;
         Ok(pem)
     }
@@ -347,7 +368,7 @@ impl CsrProperties {
         let cursor = Cursor::new(properties.as_bytes());
         let dst_map = read(cursor).map_err(|e| CsrError::PropertiesRead {
             path: pathbuf.clone(),
-            source: e,
+            source: crate::Diagnostic::from_properties(e),
         })?;
 
         let req = |key: &str| -> Result<String, CsrError> {
@@ -396,8 +417,15 @@ impl CsrProperties {
             path: pathbuf.clone(),
             source: e,
         })?;
-        let csr = CsrProperties::from_properties_str(&contents)?;
-        Ok(csr)
+        CsrProperties::from_properties_str(&contents).map_err(|mut error| {
+            match &mut error {
+                CsrError::PropertiesRead { path, .. } | CsrError::MissingProperty { path, .. } => {
+                    *path = pathbuf
+                }
+                _ => {}
+            }
+            error
+        })
     }
 }
 

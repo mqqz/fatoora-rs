@@ -48,6 +48,11 @@ Signing helpers and signature metadata.
 
 ???+ note "Read signer certificate as PEM"
 
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceSigner::certificate_pem(&self) -> Result<String, SigningError>
+        ```
+
     === "{{ lang.python }}"
         ```python
         Signer.certificate_pem() -> str
@@ -61,6 +66,11 @@ Signing helpers and signature metadata.
 ### `certificate_der`
 
 ???+ note "Read signer certificate as DER"
+
+    === "{{ lang.rust }}"
+        ```rust
+        InvoiceSigner::certificate_der(&self) -> Result<Vec<u8>, SigningError>
+        ```
 
     === "{{ lang.python }}"
         ```python

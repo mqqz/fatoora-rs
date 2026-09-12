@@ -17,7 +17,7 @@ use std::fmt::Write;
 use thiserror::Error;
 use x509_cert::{
     Certificate,
-    der::{Decode, DecodePem, Encode},
+    der::{Decode, DecodePem, Encode, EncodePem, pem::LineEnding},
 };
 
 use crate::invoice::xml::constants::{
@@ -26,9 +26,34 @@ use crate::invoice::xml::constants::{
 };
 /// Errors emitted by signing operations.
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum SigningError {
     #[error("Signing error: {0}")]
     SigningError(String),
+    #[error("XML signing error: {0}")]
+    Xml(#[source] crate::Diagnostic),
+    #[error("invalid signing input: {0}")]
+    InvalidInput(#[source] crate::Diagnostic),
+    #[error("{0}")]
+    Serialize(#[from] super::xml::InvoiceXmlError),
+    #[error("{0}")]
+    Invoice(#[from] super::InvoiceError),
+    #[error("{0}")]
+    Qr(#[from] super::QrCodeError),
+}
+
+impl SigningError {
+    /// Shared classification used by bindings.
+    pub fn kind(&self) -> crate::ErrorKind {
+        match self {
+            Self::SigningError(_) => crate::ErrorKind::Crypto,
+            Self::Xml(_) => crate::ErrorKind::Xml,
+            Self::InvalidInput(_) => crate::ErrorKind::InvalidInput,
+            Self::Serialize(err) => err.kind(),
+            Self::Invoice(err) => err.kind(),
+            Self::Qr(err) => err.kind(),
+        }
+    }
 }
 
 /// Signed properties extracted from or applied to an invoice.
@@ -98,7 +123,7 @@ impl SignedProperties {
         let signed_props_hash_b64 = signed_properties_hash_base64(&signed_props_xml)?;
         let public_key_b64 = public_key_base64(key);
         // let public_key_b64 = extract_signature_b64_from_cert(cert);
-        let cert_signature_b64 = certificate_signature_base64(cert);
+        let cert_signature_b64 = certificate_signature_base64(cert)?;
 
         Ok(SignedProperties {
             invoice_hash: invoice_hash_b64,
@@ -157,10 +182,16 @@ impl InvoiceSigner {
     /// # Errors
     /// Returns [`SigningError`] if the certificate or key cannot be parsed.
     pub fn from_der(cert_der: &[u8], private_key_der: &[u8]) -> Result<Self, SigningError> {
-        let cert = Certificate::from_der(cert_der)
-            .map_err(|e| SigningError::SigningError(format!("Certificate parse error: {e:?}")))?;
-        let private_key = SigningKey::from_pkcs8_der(private_key_der)
-            .map_err(|e| SigningError::SigningError(format!("Private key parse error: {e:?}")))?;
+        let cert = Certificate::from_der(cert_der).map_err(|e| {
+            SigningError::InvalidInput(crate::Diagnostic::new(format!(
+                "Certificate parse error: {e:?}"
+            )))
+        })?;
+        let private_key = SigningKey::from_pkcs8_der(private_key_der).map_err(|e| {
+            SigningError::InvalidInput(crate::Diagnostic::new(format!(
+                "Private key parse error: {e:?}"
+            )))
+        })?;
         Ok(Self {
             csid: cert,
             private_key,
@@ -172,10 +203,16 @@ impl InvoiceSigner {
     /// # Errors
     /// Returns [`SigningError`] if the certificate or key cannot be parsed.
     pub fn from_pem(cert_pem: &str, private_key_pem: &str) -> Result<Self, SigningError> {
-        let cert = Certificate::from_pem(cert_pem.as_bytes())
-            .map_err(|e| SigningError::SigningError(format!("Certificate parse error: {e:?}")))?;
-        let private_key = SigningKey::from_pkcs8_pem(private_key_pem)
-            .map_err(|e| SigningError::SigningError(format!("Private key parse error: {e:?}")))?;
+        let cert = Certificate::from_pem(cert_pem.as_bytes()).map_err(|e| {
+            SigningError::InvalidInput(crate::Diagnostic::new(format!(
+                "Certificate parse error: {e:?}"
+            )))
+        })?;
+        let private_key = SigningKey::from_pkcs8_pem(private_key_pem).map_err(|e| {
+            SigningError::InvalidInput(crate::Diagnostic::new(format!(
+                "Private key parse error: {e:?}"
+            )))
+        })?;
         Ok(Self {
             csid: cert,
             private_key,
@@ -183,12 +220,10 @@ impl InvoiceSigner {
     }
 
     pub(crate) fn sign(&self, invoice: FinalizedInvoice) -> Result<SignedInvoice, SigningError> {
-        let unsigned_xml = invoice
-            .to_xml()
-            .map_err(|e| SigningError::SigningError(e.to_string()))?;
-        let mut doc = Parser::default()
-            .parse_string(&unsigned_xml)
-            .map_err(|e| SigningError::SigningError(format!("XML parse error: {e:?}")))?;
+        let unsigned_xml = invoice.to_xml().map_err(SigningError::from)?;
+        let mut doc = Parser::default().parse_string(&unsigned_xml).map_err(|e| {
+            SigningError::Xml(crate::Diagnostic::new(format!("XML parse error: {e:?}")))
+        })?;
 
         ensure_signature_structure(&mut doc)?;
 
@@ -196,7 +231,7 @@ impl InvoiceSigner {
 
         let signed_invoice = invoice
             .sign_with_bundle(signing.clone(), String::new())
-            .map_err(|e| SigningError::SigningError(e.to_string()))?;
+            .map_err(SigningError::from)?;
 
         apply_signed_properties_values(&mut doc, &signing)?;
         apply_signature_values(&mut doc, &signing, &self.csid, signed_invoice.qr_code())?;
@@ -211,15 +246,15 @@ impl InvoiceSigner {
     /// Returns [`SigningError`] if XML parsing or signature application fails.
     // TODO maybe return SignedInvoice instead?
     pub fn sign_xml(&self, xml: &str) -> Result<String, SigningError> {
-        let mut doc = Parser::default()
-            .parse_string(xml)
-            .map_err(|e| SigningError::SigningError(format!("XML parse error: {e:?}")))?;
+        let mut doc = Parser::default().parse_string(xml).map_err(|e| {
+            SigningError::Xml(crate::Diagnostic::new(format!("XML parse error: {e:?}")))
+        })?;
 
         ensure_signature_structure(&mut doc)?;
 
         let signing = SignedProperties::from_parts(&doc, &self.csid, &self.private_key)?;
         let qr_code = QrPayload::from_xml(&doc)
-            .map_err(|e| SigningError::SigningError(e.to_string()))?
+            .map_err(SigningError::from)?
             .with_signing_parts(
                 Some(signing.invoice_hash()),
                 Some(signing.signature()),
@@ -227,15 +262,25 @@ impl InvoiceSigner {
                 signing.zatca_key_signature(),
             )
             .encode()
-            .map_err(|e| SigningError::SigningError(e.to_string()))?;
+            .map_err(SigningError::from)?;
 
         apply_signed_properties_values(&mut doc, &signing)?;
         apply_signature_values(&mut doc, &signing, &self.csid, &qr_code)?;
 
         Ok(doc.to_string())
     }
-    pub fn certificate(&self) -> &Certificate {
-        &self.csid
+    /// Export the certificate as DER bytes without exposing the certificate backend.
+    pub fn certificate_der(&self) -> Result<Vec<u8>, SigningError> {
+        self.csid
+            .to_der()
+            .map_err(|e| SigningError::SigningError(e.to_string()))
+    }
+
+    /// Export the certificate as PEM with LF line endings.
+    pub fn certificate_pem(&self) -> Result<String, SigningError> {
+        self.csid
+            .to_pem(LineEnding::LF)
+            .map_err(|e| SigningError::SigningError(e.to_string()))
     }
 }
 
@@ -249,9 +294,9 @@ pub(crate) fn invoice_hash_base64(doc: &Document) -> Result<String, SigningError
 }
 
 pub(crate) fn invoice_hash_base64_from_xml(xml: &str) -> Result<String, SigningError> {
-    let doc = Parser::default()
-        .parse_string(xml)
-        .map_err(|e| SigningError::SigningError(format!("XML parse error: {e:?}")))?;
+    let doc = Parser::default().parse_string(xml).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!("XML parse error: {e:?}")))
+    })?;
     invoice_hash_base64(&doc)
 }
 
@@ -274,12 +319,21 @@ pub fn invoice_hash_base64_from_xml_str(xml: &str) -> Result<String, SigningErro
 }
 
 fn signing_time_from_doc(doc: &Document) -> Result<String, SigningError> {
-    let ctx = xpath::Context::new(doc)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("cbc", CBC_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("xades", XADES_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
+    let ctx = xpath::Context::new(doc).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
+    ctx.register_namespace("cbc", CBC_NS).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
+    ctx.register_namespace("xades", XADES_NS).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
 
     if let Ok(signing_time) = xpath_text_value(
         &ctx,
@@ -288,7 +342,9 @@ fn signing_time_from_doc(doc: &Document) -> Result<String, SigningError> {
     ) {
         let parsed = chrono::NaiveDateTime::parse_from_str(&signing_time, "%Y-%m-%dT%H:%M:%S")
             .map_err(|e| {
-                SigningError::SigningError(format!("Invalid signing time '{signing_time}': {e:?}"))
+                SigningError::InvalidInput(crate::Diagnostic::new(format!(
+                    "Invalid signing time '{signing_time}': {e:?}"
+                )))
             })?;
         return Ok(parsed.format("%Y-%m-%dT%H:%M:%S").to_string());
     }
@@ -296,19 +352,25 @@ fn signing_time_from_doc(doc: &Document) -> Result<String, SigningError> {
     let issue_date = xpath_text_value(&ctx, "//cbc:IssueDate", "issue date")?;
     let issue_time = xpath_text_value(&ctx, "//cbc:IssueTime", "issue time")?;
     let date = chrono::NaiveDate::parse_from_str(&issue_date, "%Y-%m-%d").map_err(|e| {
-        SigningError::SigningError(format!("Invalid issue date '{issue_date}': {e:?}"))
+        SigningError::InvalidInput(crate::Diagnostic::new(format!(
+            "Invalid issue date '{issue_date}': {e:?}"
+        )))
     })?;
     let time = chrono::NaiveTime::parse_from_str(&issue_time, "%H:%M:%S").map_err(|e| {
-        SigningError::SigningError(format!("Invalid issue time '{issue_time}': {e:?}"))
+        SigningError::InvalidInput(crate::Diagnostic::new(format!(
+            "Invalid issue time '{issue_time}': {e:?}"
+        )))
     })?;
     let naive = chrono::NaiveDateTime::new(date, time);
     Ok(naive.format("%Y-%m-%dT%H:%M:%S").to_string())
 }
 
 fn canonicalize_invoice(doc: &Document) -> Result<String, SigningError> {
-    let xml = doc
-        .dup()
-        .map_err(|e| SigningError::SigningError(format!("Failed to duplicate xml: {e:?}")))?;
+    let xml = doc.dup().map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "Failed to duplicate xml: {e:?}"
+        )))
+    })?;
     remove_hash_exclusions(&xml)?;
 
     let canon_opts = c14n::CanonicalizationOptions {
@@ -316,15 +378,24 @@ fn canonicalize_invoice(doc: &Document) -> Result<String, SigningError> {
         inclusive_ns_prefixes: vec![],
         with_comments: false,
     };
-    xml.canonicalize(canon_opts, None)
-        .map_err(|e| SigningError::SigningError(format!("Failed to canonicalize xml: {e:?}")))
+    xml.canonicalize(canon_opts, None).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "Failed to canonicalize xml: {e:?}"
+        )))
+    })
 }
 
 fn remove_hash_exclusions(doc: &Document) -> Result<(), SigningError> {
-    let ctx = xpath::Context::new(doc)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("cbc", CBC_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
+    let ctx = xpath::Context::new(doc).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
+    ctx.register_namespace("cbc", CBC_NS).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
 
     let xpaths = [
         "/*[local-name()='Invoice']//*[local-name()='UBLExtensions']",
@@ -335,7 +406,11 @@ fn remove_hash_exclusions(doc: &Document) -> Result<(), SigningError> {
     for xp in xpaths {
         let nodes = ctx
             .evaluate(xp)
-            .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
+            .map_err(|e| {
+                SigningError::Xml(crate::Diagnostic::new(format!(
+                    "XPath context error: {e:?}"
+                )))
+            })?
             .get_nodes_as_vec();
         for mut node in nodes {
             node.unlink();
@@ -347,16 +422,22 @@ fn remove_hash_exclusions(doc: &Document) -> Result<(), SigningError> {
 fn xpath_text_value(ctx: &xpath::Context, expr: &str, label: &str) -> Result<String, SigningError> {
     let nodes = ctx
         .evaluate(expr)
-        .map_err(|e| SigningError::SigningError(format!("XPath error for {label}: {e:?}")))?
+        .map_err(|e| {
+            SigningError::Xml(crate::Diagnostic::new(format!(
+                "XPath error for {label}: {e:?}"
+            )))
+        })?
         .get_nodes_as_vec();
-    let node = nodes
-        .first()
-        .ok_or_else(|| SigningError::SigningError(format!("Missing {label} in invoice XML")))?;
+    let node = nodes.first().ok_or_else(|| {
+        SigningError::InvalidInput(crate::Diagnostic::new(format!(
+            "Missing {label} in invoice XML"
+        )))
+    })?;
     let value = node.get_content().trim().to_string();
     if value.is_empty() {
-        return Err(SigningError::SigningError(format!(
+        return Err(SigningError::InvalidInput(crate::Diagnostic::new(format!(
             "Empty {label} in invoice XML"
-        )));
+        ))));
     }
     Ok(value)
 }
@@ -380,11 +461,13 @@ fn certificate_hash_base64(cert: &Certificate) -> Result<String, SigningError> {
     Ok(hex_hash_to_base64(&hash))
 }
 
-fn certificate_signature_base64(cert: &Certificate) -> String {
-    let signature = cert.signature();
-
-    let bytes = signature.as_bytes().unwrap();
-    Base64::encode_string(bytes)
+fn certificate_signature_base64(cert: &Certificate) -> Result<String, SigningError> {
+    let bytes = cert.signature().as_bytes().ok_or_else(|| {
+        SigningError::InvalidInput(crate::Diagnostic::new(
+            "certificate signature is not byte-aligned",
+        ))
+    })?;
+    Ok(Base64::encode_string(bytes))
 }
 
 fn issuer_and_serial(cert: &Certificate) -> Result<(String, String), SigningError> {
@@ -500,14 +583,21 @@ fn public_key_base64(key: &SigningKey) -> String {
 fn ensure_signature_structure(doc: &mut Document) -> Result<(), SigningError> {
     let mut root = doc
         .get_root_element()
-        .ok_or_else(|| SigningError::SigningError("missing Invoice root".into()))?;
-    let ctx = xpath::Context::new(doc)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
+        .ok_or_else(|| SigningError::Xml(crate::Diagnostic::new("missing Invoice root")))?;
+    let ctx = xpath::Context::new(doc).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
     register_namespaces(&ctx)?;
 
     if ctx
         .evaluate("//ext:UBLExtensions")
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
+        .map_err(|e| {
+            SigningError::Xml(crate::Diagnostic::new(format!(
+                "XPath context error: {e:?}"
+            )))
+        })?
         .get_nodes_as_vec()
         .is_empty()
     {
@@ -515,38 +605,46 @@ fn ensure_signature_structure(doc: &mut Document) -> Result<(), SigningError> {
         if let Some(mut first_child) = first_element_child(&root) {
             first_child
                 .add_prev_sibling(&mut ext_node)
-                .map_err(|e| SigningError::SigningError(e.to_string()))?;
+                .map_err(|e| SigningError::Xml(crate::Diagnostic::new(e.to_string())))?;
         } else {
             root.add_child(&mut ext_node)
-                .map_err(|e| SigningError::SigningError(e.to_string()))?;
+                .map_err(|e| SigningError::Xml(crate::Diagnostic::new(e.to_string())))?;
         }
     }
 
     if ctx
         .evaluate("//cac:Signature")
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
+        .map_err(|e| {
+            SigningError::Xml(crate::Diagnostic::new(format!(
+                "XPath context error: {e:?}"
+            )))
+        })?
         .get_nodes_as_vec()
         .is_empty()
     {
         let mut sig_node = import_fragment(doc, CAC_SIGNATURE_TEMPLATE)?;
         let mut references = ctx
             .evaluate("//cac:AdditionalDocumentReference")
-            .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
+            .map_err(|e| {
+                SigningError::Xml(crate::Diagnostic::new(format!(
+                    "XPath context error: {e:?}"
+                )))
+            })?
             .get_nodes_as_vec();
 
         if let Some(mut last_ref) = references.pop() {
             last_ref
                 .add_next_sibling(&mut sig_node)
-                .map_err(|e| SigningError::SigningError(e.to_string()))?;
+                .map_err(|e| SigningError::Xml(crate::Diagnostic::new(e.to_string())))?;
         } else {
             if let Some(mut supplier) = first_matching_node(&ctx, "//cac:AccountingSupplierParty")?
             {
                 supplier
                     .add_prev_sibling(&mut sig_node)
-                    .map_err(|e| SigningError::SigningError(e.to_string()))?;
+                    .map_err(|e| SigningError::Xml(crate::Diagnostic::new(e.to_string())))?;
             }
             root.add_child(&mut sig_node)
-                .map_err(|e| SigningError::SigningError(e.to_string()))?;
+                .map_err(|e| SigningError::Xml(crate::Diagnostic::new(e.to_string())))?;
         }
     }
 
@@ -554,15 +652,15 @@ fn ensure_signature_structure(doc: &mut Document) -> Result<(), SigningError> {
 }
 
 fn import_fragment(doc: &mut Document, xml: &str) -> Result<Node, SigningError> {
-    let fragment = Parser::default()
-        .parse_string(xml)
-        .map_err(|e| SigningError::SigningError(format!("XML parse error: {e:?}")))?;
+    let fragment = Parser::default().parse_string(xml).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!("XML parse error: {e:?}")))
+    })?;
     let mut node = fragment
         .get_root_element()
-        .ok_or_else(|| SigningError::SigningError("missing fragment root".into()))?;
+        .ok_or_else(|| SigningError::Xml(crate::Diagnostic::new("missing fragment root")))?;
     node.unlink();
     doc.import_node(&mut node)
-        .map_err(|_| SigningError::SigningError("failed to import fragment".into()))
+        .map_err(|_| SigningError::Xml(crate::Diagnostic::new("failed to import fragment")))
 }
 
 fn first_element_child(root: &Node) -> Option<Node> {
@@ -579,7 +677,11 @@ fn first_element_child(root: &Node) -> Option<Node> {
 fn first_matching_node(ctx: &xpath::Context, path: &str) -> Result<Option<Node>, SigningError> {
     let nodes = ctx
         .evaluate(path)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
+        .map_err(|e| {
+            SigningError::Xml(crate::Diagnostic::new(format!(
+                "XPath context error: {e:?}"
+            )))
+        })?
         .get_nodes_as_vec();
     Ok(nodes.into_iter().next())
 }
@@ -605,8 +707,11 @@ fn apply_signed_properties_values_raw(
     issuer: &str,
     serial: &str,
 ) -> Result<(), SigningError> {
-    let ctx = xpath::Context::new(doc)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
+    let ctx = xpath::Context::new(doc).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
     register_namespaces(&ctx)?;
 
     set_xpath_text(
@@ -638,8 +743,11 @@ fn apply_signature_values(
     cert: &Certificate,
     qr_code: &str,
 ) -> Result<(), SigningError> {
-    let ctx = xpath::Context::new(doc)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
+    let ctx = xpath::Context::new(doc).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
     register_namespaces(&ctx)?;
 
     set_xpath_text(
@@ -674,13 +782,20 @@ fn apply_signature_values(
 }
 
 fn set_qr_code(doc: &mut Document, qr_code: &str) -> Result<(), SigningError> {
-    let ctx = xpath::Context::new(doc)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
+    let ctx = xpath::Context::new(doc).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
     register_namespaces(&ctx)?;
     let qr_path = "//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]";
     let refs = ctx
         .evaluate(qr_path)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
+        .map_err(|e| {
+            SigningError::Xml(crate::Diagnostic::new(format!(
+                "XPath context error: {e:?}"
+            )))
+        })?
         .get_nodes_as_vec();
 
     if refs.is_empty() {
@@ -688,30 +803,34 @@ fn set_qr_code(doc: &mut Document, qr_code: &str) -> Result<(), SigningError> {
         let mut inserted = false;
         let mut references = ctx
             .evaluate("//cac:AdditionalDocumentReference")
-            .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
+            .map_err(|e| {
+                SigningError::Xml(crate::Diagnostic::new(format!(
+                    "XPath context error: {e:?}"
+                )))
+            })?
             .get_nodes_as_vec();
         if let Some(mut last_ref) = references.pop() {
             last_ref
                 .add_next_sibling(&mut node)
-                .map_err(|e| SigningError::SigningError(e.to_string()))?;
+                .map_err(|e| SigningError::Xml(crate::Diagnostic::new(e.to_string())))?;
             inserted = true;
         }
         if !inserted {
             let mut root = doc
                 .get_root_element()
-                .ok_or_else(|| SigningError::SigningError("missing Invoice root".into()))?;
+                .ok_or_else(|| SigningError::Xml(crate::Diagnostic::new("missing Invoice root")))?;
             root.add_child(&mut node)
-                .map_err(|e| SigningError::SigningError(e.to_string()))?;
+                .map_err(|e| SigningError::Xml(crate::Diagnostic::new(e.to_string())))?;
         }
     }
 
     let value_nodes = ctx
         .evaluate("//cac:AdditionalDocumentReference[cbc:ID[normalize-space(text())='QR']]/cac:Attachment/cbc:EmbeddedDocumentBinaryObject")
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
+        .map_err(|e| SigningError::Xml(crate::Diagnostic::new(format!("XPath context error: {e:?}"))))?
         .get_nodes_as_vec();
     for mut node in value_nodes {
         node.set_content(qr_code)
-            .map_err(|e| SigningError::SigningError(e.to_string()))?;
+            .map_err(|e| SigningError::Xml(crate::Diagnostic::new(e.to_string())))?;
     }
     Ok(())
 }
@@ -719,40 +838,71 @@ fn set_qr_code(doc: &mut Document, qr_code: &str) -> Result<(), SigningError> {
 fn set_xpath_text(ctx: &xpath::Context, path: &str, value: &str) -> Result<(), SigningError> {
     let nodes = ctx
         .evaluate(path)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?
+        .map_err(|e| {
+            SigningError::Xml(crate::Diagnostic::new(format!(
+                "XPath context error: {e:?}"
+            )))
+        })?
         .get_nodes_as_vec();
     if nodes.is_empty() {
-        return Err(SigningError::SigningError(format!(
+        return Err(SigningError::Xml(crate::Diagnostic::new(format!(
             "XPath target not found: {path}"
-        )));
+        ))));
     }
     for mut node in nodes {
         node.set_content(value)
-            .map_err(|e| SigningError::SigningError(e.to_string()))?;
+            .map_err(|e| SigningError::Xml(crate::Diagnostic::new(e.to_string())))?;
     }
     Ok(())
 }
 
 fn register_namespaces(ctx: &xpath::Context) -> Result<(), SigningError> {
     // TODO reuse context
-    ctx.register_namespace("cbc", CBC_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("ubl", INVOICE_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("cac", CAC_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("ext", EXT_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("sig", SIG_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("sac", SAC_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("sbc", SBC_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("ds", DS_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
-    ctx.register_namespace("xades", XADES_NS)
-        .map_err(|e| SigningError::SigningError(format!("XPath context error: {e:?}")))?;
+    ctx.register_namespace("cbc", CBC_NS).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
+    ctx.register_namespace("ubl", INVOICE_NS).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
+    ctx.register_namespace("cac", CAC_NS).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
+    ctx.register_namespace("ext", EXT_NS).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
+    ctx.register_namespace("sig", SIG_NS).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
+    ctx.register_namespace("sac", SAC_NS).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
+    ctx.register_namespace("sbc", SBC_NS).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
+    ctx.register_namespace("ds", DS_NS).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
+    ctx.register_namespace("xades", XADES_NS).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
     Ok(())
 }
 
@@ -997,9 +1147,11 @@ mod tests {
         register_namespaces(&ctx).expect("register namespaces");
         let err = set_xpath_text(&ctx, "//cbc:DoesNotExist", "value").expect_err("missing path");
         match err {
-            SigningError::SigningError(msg) => {
+            SigningError::Xml(diagnostic) => {
+                let msg = diagnostic.message();
                 assert!(msg.contains("XPath target not found"));
             }
+            other => panic!("expected XML failure: {other}"),
         }
     }
 
@@ -1008,12 +1160,14 @@ mod tests {
         let mut doc = load_sample_doc();
         let err = import_fragment(&mut doc, "").expect_err("invalid fragment");
         match err {
-            SigningError::SigningError(msg) => {
+            SigningError::Xml(diagnostic) => {
+                let msg = diagnostic.message();
                 assert!(
                     msg.contains("XML parse error") || msg.contains("missing fragment root"),
                     "unexpected: {msg}"
                 );
             }
+            other => panic!("expected XML failure: {other}"),
         }
     }
 

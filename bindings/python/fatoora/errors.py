@@ -23,8 +23,9 @@ class FfiErrorKind(IntEnum):
 class FfiError(FatooraError):
     """Error raised when the FFI layer reports a failure."""
 
-    def __init__(self, message: str, code: int | None = None) -> None:
+    def __init__(self, message: str, code: int | None = None, details: dict | None = None) -> None:
         super().__init__(message)
+        self.details = details if details is not None else {}
         self.code = code
         self.kind = FfiErrorKind(code) if code in FfiErrorKind._value2member_map_ else None
 

@@ -5,7 +5,9 @@ macro_rules! ffi_decimal {
         match fatoora_core::Decimal::parse(&text) {
             Ok(value) => value,
             Err(err) => {
-                return FfiResult::err(ffi_error_invalid_input(format!("{}: {}", $label, err)));
+                return FfiResult::err(
+                    crate::error::ffi_error_from_core(err.into()).with_context($label),
+                );
             }
         }
     }};
@@ -22,17 +24,14 @@ use fatoora_core::api::{
 };
 use fatoora_core::config::Config;
 use fatoora_core::csr::{Csr, CsrProperties, SigningKey};
-use fatoora_core::invoice::sign::{InvoiceSigner, SigningError};
+use fatoora_core::invoice::sign::InvoiceSigner;
 use fatoora_core::invoice::validation::validate_xml_invoice_from_str;
 use fatoora_core::invoice::xml::ToXml;
-use fatoora_core::invoice::xml::parse::{parse_finalized_invoice_xml, parse_signed_invoice_xml};
 use fatoora_core::invoice::{
     Address, CountryCode, FinalizedInvoice, InvoiceBuilder, InvoiceData, InvoiceFlags, InvoiceNote,
     InvoiceSubType, InvoiceTimestamp, InvoiceType, LineItem, OriginalInvoiceRef, OtherId, Party,
     PartyRole, SellerRole, SignedInvoice, VatId,
 };
-use x509_cert::der::pem::LineEnding;
-use x509_cert::der::{Encode, EncodePem};
 
 mod error;
 mod macros;
@@ -43,7 +42,8 @@ use crate::macros::{
     ffi_take_handle,
 };
 pub use error::{
-    FfiErrorDetails, FfiErrorKind, FfiResult, fatoora_error_free, ffi_error_from_api,
+    FfiError, FfiErrorDetails, FfiErrorKind, FfiResult, fatoora_error_code,
+    fatoora_error_details_json, fatoora_error_free, fatoora_error_message, ffi_error_from_api,
     ffi_error_from_csr, ffi_error_from_invoice, ffi_error_from_parse, ffi_error_from_qr,
     ffi_error_from_signing, ffi_error_from_validation, ffi_error_from_xml, ffi_error_internal,
     ffi_error_invalid_input,
@@ -415,11 +415,13 @@ pub unsafe extern "C" fn fatoora_config_new(env: FfiEnvironment) -> *mut FfiConf
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_config_env(config: *mut FfiConfig) -> FfiResult<FfiEnvironment> {
-    let config = match borrow_config(config) {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    FfiResult::ok(config.env().into())
+    crate::error::boundary(|| {
+        let config = match borrow_config(config) {
+            Ok(value) => value,
+            Err(message) => return FfiResult::err(message),
+        };
+        FfiResult::ok(config.env().into())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -448,23 +450,25 @@ pub unsafe extern "C" fn fatoora_address_new(
     subdivision: *const c_char,
     district: *const c_char,
 ) -> FfiResult<FfiAddress> {
-    match build_address(
-        country_code,
-        city,
-        street,
-        additional_street,
-        building_number,
-        additional_number,
-        postal_code,
-        subdivision,
-        district,
-        "address",
-    ) {
-        Ok(address) => FfiResult::ok(FfiAddress {
-            ptr: Box::into_raw(Box::new(address)) as *mut std::os::raw::c_void,
-        }),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        match build_address(
+            country_code,
+            city,
+            street,
+            additional_street,
+            building_number,
+            additional_number,
+            postal_code,
+            subdivision,
+            district,
+            "address",
+        ) {
+            Ok(address) => FfiResult::ok(FfiAddress {
+                ptr: Box::into_raw(Box::new(address)) as *mut std::os::raw::c_void,
+            }),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -473,13 +477,15 @@ pub unsafe extern "C" fn fatoora_address_new(
 pub unsafe extern "C" fn fatoora_csr_properties_from_str(
     properties: *const c_char,
 ) -> FfiResult<FfiCsrProperties> {
-    let properties = ffi_required_string!(properties, "csr properties");
-    match CsrProperties::from_properties_str(&properties) {
-        Ok(props) => FfiResult::ok(FfiCsrProperties {
-            ptr: Box::into_raw(Box::new(props)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
-    }
+    crate::error::boundary(|| {
+        let properties = ffi_required_string!(properties, "csr properties");
+        match CsrProperties::from_properties_str(&properties) {
+            Ok(props) => FfiResult::ok(FfiCsrProperties {
+                ptr: Box::into_raw(Box::new(props)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_csr(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -496,35 +502,37 @@ pub unsafe extern "C" fn fatoora_csr_properties_new(
     location_address: *const c_char,
     industry_business_category: *const c_char,
 ) -> FfiResult<FfiCsrProperties> {
-    let common_name = ffi_required_string!(common_name, "common name");
-    let serial_number = ffi_required_string!(serial_number, "serial number");
-    let organization_identifier =
-        ffi_required_string!(organization_identifier, "organization identifier");
-    let organization_unit_name =
-        ffi_required_string!(organization_unit_name, "organization unit name");
-    let organization_name = ffi_required_string!(organization_name, "organization name");
-    let country_name = ffi_required_string!(country_name, "country name");
-    let invoice_type = ffi_required_string!(invoice_type, "invoice type");
-    let location_address = ffi_required_string!(location_address, "location address");
-    let industry_business_category =
-        ffi_required_string!(industry_business_category, "industry business category");
+    crate::error::boundary(|| {
+        let common_name = ffi_required_string!(common_name, "common name");
+        let serial_number = ffi_required_string!(serial_number, "serial number");
+        let organization_identifier =
+            ffi_required_string!(organization_identifier, "organization identifier");
+        let organization_unit_name =
+            ffi_required_string!(organization_unit_name, "organization unit name");
+        let organization_name = ffi_required_string!(organization_name, "organization name");
+        let country_name = ffi_required_string!(country_name, "country name");
+        let invoice_type = ffi_required_string!(invoice_type, "invoice type");
+        let location_address = ffi_required_string!(location_address, "location address");
+        let industry_business_category =
+            ffi_required_string!(industry_business_category, "industry business category");
 
-    match CsrProperties::new(
-        common_name,
-        serial_number,
-        organization_identifier,
-        organization_unit_name,
-        organization_name,
-        country_name,
-        invoice_type,
-        location_address,
-        industry_business_category,
-    ) {
-        Ok(props) => FfiResult::ok(FfiCsrProperties {
-            ptr: Box::into_raw(Box::new(props)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
-    }
+        match CsrProperties::new(
+            common_name,
+            serial_number,
+            organization_identifier,
+            organization_unit_name,
+            organization_name,
+            country_name,
+            invoice_type,
+            location_address,
+            industry_business_category,
+        ) {
+            Ok(props) => FfiResult::ok(FfiCsrProperties {
+                ptr: Box::into_raw(Box::new(props)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_csr(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -533,13 +541,15 @@ pub unsafe extern "C" fn fatoora_csr_properties_new(
 pub unsafe extern "C" fn fatoora_csr_properties_parse_csr_config(
     properties: *const c_char,
 ) -> FfiResult<FfiCsrProperties> {
-    let properties = ffi_required_string!(properties, "csr properties");
-    match CsrProperties::from_properties_str(&properties) {
-        Ok(props) => FfiResult::ok(FfiCsrProperties {
-            ptr: Box::into_raw(Box::new(props)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
-    }
+    crate::error::boundary(|| {
+        let properties = ffi_required_string!(properties, "csr properties");
+        match CsrProperties::from_properties_str(&properties) {
+            Ok(props) => FfiResult::ok(FfiCsrProperties {
+                ptr: Box::into_raw(Box::new(props)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_csr(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -548,22 +558,15 @@ pub unsafe extern "C" fn fatoora_csr_properties_parse_csr_config(
 pub unsafe extern "C" fn fatoora_csr_properties_parse_csr_config_file(
     path: *const c_char,
 ) -> FfiResult<FfiCsrProperties> {
-    let path = ffi_required_string!(path, "csr properties path");
-    let contents = match std::fs::read_to_string(&path) {
-        Ok(value) => value,
-        Err(err) => {
-            return FfiResult::err(FfiErrorDetails::new(
-                FfiErrorKind::Io,
-                format!("failed to read {path}: {err}"),
-            ));
+    crate::error::boundary(|| {
+        let path = ffi_required_string!(path, "csr properties path");
+        match CsrProperties::parse_csr_config_file(&path) {
+            Ok(props) => FfiResult::ok(FfiCsrProperties {
+                ptr: Box::into_raw(Box::new(props)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_csr(err)),
         }
-    };
-    match CsrProperties::from_properties_str(&contents) {
-        Ok(props) => FfiResult::ok(FfiCsrProperties {
-            ptr: Box::into_raw(Box::new(props)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
-    }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -579,13 +582,15 @@ pub unsafe extern "C" fn fatoora_csr_properties_free(props: *mut FfiCsrPropertie
 pub unsafe extern "C" fn fatoora_signing_key_from_pem(
     pem: *const c_char,
 ) -> FfiResult<FfiSigningKey> {
-    let pem = ffi_required_string!(pem, "signing key pem");
-    match SigningKey::from_pem(&pem) {
-        Ok(key) => FfiResult::ok(FfiSigningKey {
-            ptr: Box::into_raw(Box::new(key)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(FfiErrorDetails::new(FfiErrorKind::Crypto, err.to_string())),
-    }
+    crate::error::boundary(|| {
+        let pem = ffi_required_string!(pem, "signing key pem");
+        match SigningKey::from_pem(&pem) {
+            Ok(key) => FfiResult::ok(FfiSigningKey {
+                ptr: Box::into_raw(Box::new(key)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_csr(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -595,25 +600,29 @@ pub unsafe extern "C" fn fatoora_signing_key_from_der(
     der: *const u8,
     len: usize,
 ) -> FfiResult<FfiSigningKey> {
-    if der.is_null() {
-        return FfiResult::err(ffi_error_invalid_input("null der pointer"));
-    }
-    let data = unsafe { std::slice::from_raw_parts(der, len) };
-    match SigningKey::from_der(data) {
-        Ok(key) => FfiResult::ok(FfiSigningKey {
-            ptr: Box::into_raw(Box::new(key)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(FfiErrorDetails::new(FfiErrorKind::Crypto, err.to_string())),
-    }
+    crate::error::boundary(|| {
+        if der.is_null() {
+            return FfiResult::err(ffi_error_invalid_input("null der pointer"));
+        }
+        let data = unsafe { std::slice::from_raw_parts(der, len) };
+        match SigningKey::from_der(data) {
+            Ok(key) => FfiResult::ok(FfiSigningKey {
+                ptr: Box::into_raw(Box::new(key)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_csr(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signing_key_generate() -> FfiResult<FfiSigningKey> {
-    let key = SigningKey::generate();
-    FfiResult::ok(FfiSigningKey {
-        ptr: Box::into_raw(Box::new(key)) as *mut std::os::raw::c_void,
+    crate::error::boundary(|| {
+        let key = SigningKey::generate();
+        FfiResult::ok(FfiSigningKey {
+            ptr: Box::into_raw(Box::new(key)) as *mut std::os::raw::c_void,
+        })
     })
 }
 
@@ -623,11 +632,13 @@ pub unsafe extern "C" fn fatoora_signing_key_generate() -> FfiResult<FfiSigningK
 pub unsafe extern "C" fn fatoora_signing_key_to_pem(
     key: *mut FfiSigningKey,
 ) -> FfiResult<FfiString> {
-    let key = ffi_borrow!(key, "signing key", SigningKey);
-    match key.to_pem() {
-        Ok(pem) => ffi_string_from_owned(pem),
-        Err(err) => FfiResult::err(FfiErrorDetails::new(FfiErrorKind::Crypto, err.to_string())),
-    }
+    crate::error::boundary(|| {
+        let key = ffi_borrow!(key, "signing key", SigningKey);
+        match key.to_pem() {
+            Ok(pem) => ffi_string_from_owned(pem),
+            Err(err) => FfiResult::err(ffi_error_from_csr(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -636,11 +647,13 @@ pub unsafe extern "C" fn fatoora_signing_key_to_pem(
 pub unsafe extern "C" fn fatoora_signing_key_to_der(
     key: *mut FfiSigningKey,
 ) -> FfiResult<FfiBytes> {
-    let key = ffi_borrow!(key, "signing key", SigningKey);
-    match key.to_der() {
-        Ok(value) => FfiResult::ok(vec_to_ffi_bytes(value)),
-        Err(err) => FfiResult::err(FfiErrorDetails::new(FfiErrorKind::Crypto, err.to_string())),
-    }
+    crate::error::boundary(|| {
+        let key = ffi_borrow!(key, "signing key", SigningKey);
+        match key.to_der() {
+            Ok(value) => FfiResult::ok(vec_to_ffi_bytes(value)),
+            Err(err) => FfiResult::err(ffi_error_from_csr(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -658,82 +671,96 @@ pub unsafe extern "C" fn fatoora_csr_build(
     key: *mut FfiSigningKey,
     env: FfiEnvironment,
 ) -> FfiResult<FfiCsr> {
-    let props = ffi_borrow!(props, "csr properties", CsrProperties);
-    let key = ffi_borrow!(key, "signing key", SigningKey);
-    match props.build(key, env.into()) {
-        Ok(csr) => FfiResult::ok(FfiCsr {
-            ptr: Box::into_raw(Box::new(csr)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
-    }
+    crate::error::boundary(|| {
+        let props = ffi_borrow!(props, "csr properties", CsrProperties);
+        let key = ffi_borrow!(key, "signing key", SigningKey);
+        match props.build(key, env.into()) {
+            Ok(csr) => FfiResult::ok(FfiCsr {
+                ptr: Box::into_raw(Box::new(csr)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_csr(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_csr_from_der(der: *const u8, len: usize) -> FfiResult<FfiCsr> {
-    if der.is_null() {
-        return FfiResult::err(ffi_error_invalid_input("null der pointer"));
-    }
-    let data = unsafe { std::slice::from_raw_parts(der, len) };
-    match Csr::from_der(data) {
-        Ok(csr) => FfiResult::ok(FfiCsr {
-            ptr: Box::into_raw(Box::new(csr)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
-    }
+    crate::error::boundary(|| {
+        if der.is_null() {
+            return FfiResult::err(ffi_error_invalid_input("null der pointer"));
+        }
+        let data = unsafe { std::slice::from_raw_parts(der, len) };
+        match Csr::from_der(data) {
+            Ok(csr) => FfiResult::ok(FfiCsr {
+                ptr: Box::into_raw(Box::new(csr)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_csr(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_csr_to_base64(csr: *mut FfiCsr) -> FfiResult<FfiString> {
-    let csr = ffi_borrow!(csr, "csr", Csr);
-    match csr.to_base64() {
-        Ok(value) => ffi_string_from_owned(value),
-        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
-    }
+    crate::error::boundary(|| {
+        let csr = ffi_borrow!(csr, "csr", Csr);
+        match csr.to_base64() {
+            Ok(value) => ffi_string_from_owned(value),
+            Err(err) => FfiResult::err(ffi_error_from_csr(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_csr_to_pem_base64(csr: *mut FfiCsr) -> FfiResult<FfiString> {
-    let csr = ffi_borrow!(csr, "csr", Csr);
-    match csr.to_pem_base64() {
-        Ok(value) => ffi_string_from_owned(value),
-        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
-    }
+    crate::error::boundary(|| {
+        let csr = ffi_borrow!(csr, "csr", Csr);
+        match csr.to_pem_base64() {
+            Ok(value) => ffi_string_from_owned(value),
+            Err(err) => FfiResult::err(ffi_error_from_csr(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_csr_to_der(csr: *mut FfiCsr) -> FfiResult<FfiBytes> {
-    let csr = ffi_borrow!(csr, "csr", Csr);
-    match csr.to_der() {
-        Ok(value) => FfiResult::ok(vec_to_ffi_bytes(value)),
-        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
-    }
+    crate::error::boundary(|| {
+        let csr = ffi_borrow!(csr, "csr", Csr);
+        match csr.to_der() {
+            Ok(value) => FfiResult::ok(vec_to_ffi_bytes(value)),
+            Err(err) => FfiResult::err(ffi_error_from_csr(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_csr_to_pem(csr: *mut FfiCsr) -> FfiResult<FfiString> {
-    let csr = ffi_borrow!(csr, "csr", Csr);
-    match csr.to_pem() {
-        Ok(value) => ffi_string_from_owned(value),
-        Err(err) => FfiResult::err(ffi_error_from_csr(err)),
-    }
+    crate::error::boundary(|| {
+        let csr = ffi_borrow!(csr, "csr", Csr);
+        match csr.to_pem() {
+            Ok(value) => ffi_string_from_owned(value),
+            Err(err) => FfiResult::err(ffi_error_from_csr(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_csr_subject_string(csr: *mut FfiCsr) -> FfiResult<FfiString> {
-    let csr = ffi_borrow!(csr, "csr", Csr);
-    ffi_string_from_owned(csr.subject_string())
+    crate::error::boundary(|| {
+        let csr = ffi_borrow!(csr, "csr", Csr);
+        ffi_string_from_owned(csr.subject_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -742,9 +769,11 @@ pub unsafe extern "C" fn fatoora_csr_subject_string(csr: *mut FfiCsr) -> FfiResu
 pub unsafe extern "C" fn fatoora_csr_extension_values_der(
     csr: *mut FfiCsr,
 ) -> FfiResult<FfiBytesList> {
-    let csr = ffi_borrow!(csr, "csr", Csr);
-    let values = csr.extension_values_der();
-    FfiResult::ok(vec_list_to_ffi_bytes_list(values))
+    crate::error::boundary(|| {
+        let csr = ffi_borrow!(csr, "csr", Csr);
+        let values = csr.extension_values_der();
+        FfiResult::ok(vec_list_to_ffi_bytes_list(values))
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -760,16 +789,18 @@ pub unsafe extern "C" fn fatoora_csr_free(csr: *mut FfiCsr) {
 pub unsafe extern "C" fn fatoora_zatca_client_new(
     config: *mut FfiConfig,
 ) -> FfiResult<FfiZatcaClient> {
-    let config = match borrow_config(config) {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    match ZatcaClient::new(config.clone()) {
-        Ok(client) => FfiResult::ok(FfiZatcaClient {
-            ptr: Box::into_raw(Box::new(client)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(ffi_error_from_api(err)),
-    }
+    crate::error::boundary(|| {
+        let config = match borrow_config(config) {
+            Ok(value) => value,
+            Err(message) => return FfiResult::err(message),
+        };
+        match ZatcaClient::new(config.clone()) {
+            Ok(client) => FfiResult::ok(FfiZatcaClient {
+                ptr: Box::into_raw(Box::new(client)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_api(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -788,15 +819,17 @@ pub unsafe extern "C" fn fatoora_csid_compliance_new(
     token: *const c_char,
     secret: *const c_char,
 ) -> FfiResult<FfiCsidCompliance> {
-    let token = ffi_required_string!(token, "csid token");
-    let secret = ffi_required_string!(secret, "csid secret");
-    let request_id = match optional_string(request_id, "csid request id") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let creds = CsidCredentials::<Compliance>::new(env.into(), request_id, token, secret);
-    FfiResult::ok(FfiCsidCompliance {
-        ptr: Box::into_raw(Box::new(creds)) as *mut std::os::raw::c_void,
+    crate::error::boundary(|| {
+        let token = ffi_required_string!(token, "csid token");
+        let secret = ffi_required_string!(secret, "csid secret");
+        let request_id = match optional_string(request_id, "csid request id") {
+            Ok(value) => value,
+            Err(message) => return FfiResult::err(message),
+        };
+        let creds = CsidCredentials::<Compliance>::new(env.into(), request_id, token, secret);
+        FfiResult::ok(FfiCsidCompliance {
+            ptr: Box::into_raw(Box::new(creds)) as *mut std::os::raw::c_void,
+        })
     })
 }
 
@@ -809,15 +842,17 @@ pub unsafe extern "C" fn fatoora_csid_production_new(
     token: *const c_char,
     secret: *const c_char,
 ) -> FfiResult<FfiCsidProduction> {
-    let token = ffi_required_string!(token, "csid token");
-    let secret = ffi_required_string!(secret, "csid secret");
-    let request_id = match optional_string(request_id, "csid request id") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let creds = CsidCredentials::<Production>::new(env.into(), request_id, token, secret);
-    FfiResult::ok(FfiCsidProduction {
-        ptr: Box::into_raw(Box::new(creds)) as *mut std::os::raw::c_void,
+    crate::error::boundary(|| {
+        let token = ffi_required_string!(token, "csid token");
+        let secret = ffi_required_string!(secret, "csid secret");
+        let request_id = match optional_string(request_id, "csid request id") {
+            Ok(value) => value,
+            Err(message) => return FfiResult::err(message),
+        };
+        let creds = CsidCredentials::<Production>::new(env.into(), request_id, token, secret);
+        FfiResult::ok(FfiCsidProduction {
+            ptr: Box::into_raw(Box::new(creds)) as *mut std::os::raw::c_void,
+        })
     })
 }
 
@@ -827,8 +862,10 @@ pub unsafe extern "C" fn fatoora_csid_production_new(
 pub unsafe extern "C" fn fatoora_csid_compliance_request_id(
     creds: *mut FfiCsidCompliance,
 ) -> FfiResult<FfiString> {
-    let creds = ffi_borrow!(creds, "csid", CsidCredentials<Compliance>);
-    ffi_string_from_owned(creds.request_id().unwrap_or("").to_string())
+    crate::error::boundary(|| {
+        let creds = ffi_borrow!(creds, "csid", CsidCredentials<Compliance>);
+        ffi_string_from_owned(creds.request_id().unwrap_or("").to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -837,8 +874,10 @@ pub unsafe extern "C" fn fatoora_csid_compliance_request_id(
 pub unsafe extern "C" fn fatoora_csid_compliance_env(
     creds: *mut FfiCsidCompliance,
 ) -> FfiResult<FfiEnvironment> {
-    let creds = ffi_borrow!(creds, "csid", CsidCredentials<Compliance>);
-    FfiResult::ok(creds.env().into())
+    crate::error::boundary(|| {
+        let creds = ffi_borrow!(creds, "csid", CsidCredentials<Compliance>);
+        FfiResult::ok(creds.env().into())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -847,8 +886,10 @@ pub unsafe extern "C" fn fatoora_csid_compliance_env(
 pub unsafe extern "C" fn fatoora_csid_production_request_id(
     creds: *mut FfiCsidProduction,
 ) -> FfiResult<FfiString> {
-    let creds = ffi_borrow!(creds, "csid", CsidCredentials<Production>);
-    ffi_string_from_owned(creds.request_id().unwrap_or("").to_string())
+    crate::error::boundary(|| {
+        let creds = ffi_borrow!(creds, "csid", CsidCredentials<Production>);
+        ffi_string_from_owned(creds.request_id().unwrap_or("").to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -857,8 +898,10 @@ pub unsafe extern "C" fn fatoora_csid_production_request_id(
 pub unsafe extern "C" fn fatoora_csid_production_env(
     creds: *mut FfiCsidProduction,
 ) -> FfiResult<FfiEnvironment> {
-    let creds = ffi_borrow!(creds, "csid", CsidCredentials<Production>);
-    FfiResult::ok(creds.env().into())
+    crate::error::boundary(|| {
+        let creds = ffi_borrow!(creds, "csid", CsidCredentials<Production>);
+        FfiResult::ok(creds.env().into())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -867,9 +910,11 @@ pub unsafe extern "C" fn fatoora_csid_production_env(
 pub unsafe extern "C" fn fatoora_csid_compliance_binary_security_token(
     handle: *mut FfiCsidCompliance,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "csid", CsidCredentials<Compliance>);
-    let creds: &CsidCredentials<Compliance> = value;
-    ffi_string_from_owned(creds.binary_security_token().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "csid", CsidCredentials<Compliance>);
+        let creds: &CsidCredentials<Compliance> = value;
+        ffi_string_from_owned(creds.binary_security_token().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -878,9 +923,11 @@ pub unsafe extern "C" fn fatoora_csid_compliance_binary_security_token(
 pub unsafe extern "C" fn fatoora_csid_compliance_secret(
     handle: *mut FfiCsidCompliance,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "csid", CsidCredentials<Compliance>);
-    let creds: &CsidCredentials<Compliance> = value;
-    ffi_string_from_owned(creds.secret().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "csid", CsidCredentials<Compliance>);
+        let creds: &CsidCredentials<Compliance> = value;
+        ffi_string_from_owned(creds.secret().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -889,9 +936,11 @@ pub unsafe extern "C" fn fatoora_csid_compliance_secret(
 pub unsafe extern "C" fn fatoora_csid_production_binary_security_token(
     handle: *mut FfiCsidProduction,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "csid", CsidCredentials<Production>);
-    let creds: &CsidCredentials<Production> = value;
-    ffi_string_from_owned(creds.binary_security_token().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "csid", CsidCredentials<Production>);
+        let creds: &CsidCredentials<Production> = value;
+        ffi_string_from_owned(creds.binary_security_token().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -900,9 +949,11 @@ pub unsafe extern "C" fn fatoora_csid_production_binary_security_token(
 pub unsafe extern "C" fn fatoora_csid_production_secret(
     handle: *mut FfiCsidProduction,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "csid", CsidCredentials<Production>);
-    let creds: &CsidCredentials<Production> = value;
-    ffi_string_from_owned(creds.secret().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "csid", CsidCredentials<Production>);
+        let creds: &CsidCredentials<Production> = value;
+        ffi_string_from_owned(creds.secret().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -927,15 +978,17 @@ pub unsafe extern "C" fn fatoora_zatca_post_csr_for_ccsid(
     csr: *mut FfiCsr,
     otp: *const c_char,
 ) -> FfiResult<FfiCsidCompliance> {
-    let client = ffi_borrow!(client, "client", ZatcaClient);
-    let csr = ffi_borrow!(csr, "csr", Csr);
-    let otp = ffi_required_string!(otp, "otp");
-    match run_async(client.post_csr_for_ccsid(csr, &otp)) {
-        Ok(creds) => FfiResult::ok(FfiCsidCompliance {
-            ptr: Box::into_raw(Box::new(creds)) as *mut std::os::raw::c_void,
-        }),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let client = ffi_borrow!(client, "client", ZatcaClient);
+        let csr = ffi_borrow!(csr, "csr", Csr);
+        let otp = ffi_required_string!(otp, "otp");
+        match run_async(client.post_csr_for_ccsid(csr, &otp)) {
+            Ok(creds) => FfiResult::ok(FfiCsidCompliance {
+                ptr: Box::into_raw(Box::new(creds)) as *mut std::os::raw::c_void,
+            }),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -945,14 +998,16 @@ pub unsafe extern "C" fn fatoora_zatca_post_ccsid_for_pcsid(
     client: *mut FfiZatcaClient,
     ccsid: *mut FfiCsidCompliance,
 ) -> FfiResult<FfiCsidProduction> {
-    let client = ffi_borrow!(client, "client", ZatcaClient);
-    let ccsid = ffi_borrow!(ccsid, "csid", CsidCredentials<Compliance>);
-    match run_async(client.post_ccsid_for_pcsid(ccsid)) {
-        Ok(creds) => FfiResult::ok(FfiCsidProduction {
-            ptr: Box::into_raw(Box::new(creds)) as *mut std::os::raw::c_void,
-        }),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let client = ffi_borrow!(client, "client", ZatcaClient);
+        let ccsid = ffi_borrow!(ccsid, "csid", CsidCredentials<Compliance>);
+        match run_async(client.post_ccsid_for_pcsid(ccsid)) {
+            Ok(creds) => FfiResult::ok(FfiCsidProduction {
+                ptr: Box::into_raw(Box::new(creds)) as *mut std::os::raw::c_void,
+            }),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -965,20 +1020,22 @@ pub unsafe extern "C" fn fatoora_zatca_renew_csid(
     otp: *const c_char,
     accept_language: *const c_char,
 ) -> FfiResult<FfiCsidProduction> {
-    let client = ffi_borrow!(client, "client", ZatcaClient);
-    let pcsid = ffi_borrow!(pcsid, "csid", CsidCredentials<Production>);
-    let csr = ffi_borrow!(csr, "csr", Csr);
-    let otp = ffi_required_string!(otp, "otp");
-    let language = match optional_string_nonempty(accept_language, "accept language") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    match run_async(client.renew_csid(pcsid, csr, &otp, language.as_deref())) {
-        Ok(creds) => FfiResult::ok(FfiCsidProduction {
-            ptr: Box::into_raw(Box::new(creds)) as *mut std::os::raw::c_void,
-        }),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let client = ffi_borrow!(client, "client", ZatcaClient);
+        let pcsid = ffi_borrow!(pcsid, "csid", CsidCredentials<Production>);
+        let csr = ffi_borrow!(csr, "csr", Csr);
+        let otp = ffi_required_string!(otp, "otp");
+        let language = match optional_string_nonempty(accept_language, "accept language") {
+            Ok(value) => value,
+            Err(message) => return FfiResult::err(message),
+        };
+        match run_async(client.renew_csid(pcsid, csr, &otp, language.as_deref())) {
+            Ok(creds) => FfiResult::ok(FfiCsidProduction {
+                ptr: Box::into_raw(Box::new(creds)) as *mut std::os::raw::c_void,
+            }),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -989,15 +1046,17 @@ pub unsafe extern "C" fn fatoora_zatca_check_invoice_compliance(
     invoice: *mut FfiSignedInvoice,
     ccsid: *mut FfiCsidCompliance,
 ) -> FfiResult<FfiValidationResponse> {
-    let client = ffi_borrow!(client, "client", ZatcaClient);
-    let invoice = ffi_borrow!(invoice, "invoice", SignedInvoice);
-    let ccsid = ffi_borrow!(ccsid, "csid", CsidCredentials<Compliance>);
-    match run_async(client.check_invoice_compliance(invoice, ccsid)) {
-        Ok(response) => FfiResult::ok(FfiValidationResponse {
-            ptr: Box::into_raw(Box::new(response)) as *mut std::os::raw::c_void,
-        }),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let client = ffi_borrow!(client, "client", ZatcaClient);
+        let invoice = ffi_borrow!(invoice, "invoice", SignedInvoice);
+        let ccsid = ffi_borrow!(ccsid, "csid", CsidCredentials<Compliance>);
+        match run_async(client.check_invoice_compliance(invoice, ccsid)) {
+            Ok(response) => FfiResult::ok(FfiValidationResponse {
+                ptr: Box::into_raw(Box::new(response)) as *mut std::os::raw::c_void,
+            }),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1010,24 +1069,26 @@ pub unsafe extern "C" fn fatoora_zatca_report_simplified_invoice(
     clearance_status: bool,
     accept_language: *const c_char,
 ) -> FfiResult<FfiValidationResponse> {
-    let client = ffi_borrow!(client, "client", ZatcaClient);
-    let invoice = ffi_borrow!(invoice, "invoice", SignedInvoice);
-    let pcsid = ffi_borrow!(pcsid, "csid", CsidCredentials<Production>);
-    let language = match optional_string_nonempty(accept_language, "accept language") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    match run_async(client.report_simplified_invoice(
-        invoice,
-        pcsid,
-        clearance_status,
-        language.as_deref(),
-    )) {
-        Ok(response) => FfiResult::ok(FfiValidationResponse {
-            ptr: Box::into_raw(Box::new(response)) as *mut std::os::raw::c_void,
-        }),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let client = ffi_borrow!(client, "client", ZatcaClient);
+        let invoice = ffi_borrow!(invoice, "invoice", SignedInvoice);
+        let pcsid = ffi_borrow!(pcsid, "csid", CsidCredentials<Production>);
+        let language = match optional_string_nonempty(accept_language, "accept language") {
+            Ok(value) => value,
+            Err(message) => return FfiResult::err(message),
+        };
+        match run_async(client.report_simplified_invoice(
+            invoice,
+            pcsid,
+            clearance_status,
+            language.as_deref(),
+        )) {
+            Ok(response) => FfiResult::ok(FfiValidationResponse {
+                ptr: Box::into_raw(Box::new(response)) as *mut std::os::raw::c_void,
+            }),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1040,24 +1101,26 @@ pub unsafe extern "C" fn fatoora_zatca_clear_standard_invoice(
     clearance_status: bool,
     accept_language: *const c_char,
 ) -> FfiResult<FfiValidationResponse> {
-    let client = ffi_borrow!(client, "client", ZatcaClient);
-    let invoice = ffi_borrow!(invoice, "invoice", SignedInvoice);
-    let pcsid = ffi_borrow!(pcsid, "csid", CsidCredentials<Production>);
-    let language = match optional_string_nonempty(accept_language, "accept language") {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    match run_async(client.clear_standard_invoice(
-        invoice,
-        pcsid,
-        clearance_status,
-        language.as_deref(),
-    )) {
-        Ok(response) => FfiResult::ok(FfiValidationResponse {
-            ptr: Box::into_raw(Box::new(response)) as *mut std::os::raw::c_void,
-        }),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let client = ffi_borrow!(client, "client", ZatcaClient);
+        let invoice = ffi_borrow!(invoice, "invoice", SignedInvoice);
+        let pcsid = ffi_borrow!(pcsid, "csid", CsidCredentials<Production>);
+        let language = match optional_string_nonempty(accept_language, "accept language") {
+            Ok(value) => value,
+            Err(message) => return FfiResult::err(message),
+        };
+        match run_async(client.clear_standard_invoice(
+            invoice,
+            pcsid,
+            clearance_status,
+            language.as_deref(),
+        )) {
+            Ok(response) => FfiResult::ok(FfiValidationResponse {
+                ptr: Box::into_raw(Box::new(response)) as *mut std::os::raw::c_void,
+            }),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1073,9 +1136,11 @@ pub unsafe extern "C" fn fatoora_validation_response_free(response: *mut FfiVali
 pub unsafe extern "C" fn fatoora_validation_response_reporting_status(
     handle: *mut FfiValidationResponse,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "response", ValidationResponse);
-    let response: &ValidationResponse = value;
-    ffi_string_result(response.reporting_status())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "response", ValidationResponse);
+        let response: &ValidationResponse = value;
+        ffi_string_result(response.reporting_status())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1084,9 +1149,11 @@ pub unsafe extern "C" fn fatoora_validation_response_reporting_status(
 pub unsafe extern "C" fn fatoora_validation_response_clearance_status(
     handle: *mut FfiValidationResponse,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "response", ValidationResponse);
-    let response: &ValidationResponse = value;
-    ffi_string_result(response.clearance_status())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "response", ValidationResponse);
+        let response: &ValidationResponse = value;
+        ffi_string_result(response.clearance_status())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1095,9 +1162,11 @@ pub unsafe extern "C" fn fatoora_validation_response_clearance_status(
 pub unsafe extern "C" fn fatoora_validation_response_qr_seller_status(
     handle: *mut FfiValidationResponse,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "response", ValidationResponse);
-    let response: &ValidationResponse = value;
-    ffi_string_result(response.qr_seller_status())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "response", ValidationResponse);
+        let response: &ValidationResponse = value;
+        ffi_string_result(response.qr_seller_status())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1106,9 +1175,11 @@ pub unsafe extern "C" fn fatoora_validation_response_qr_seller_status(
 pub unsafe extern "C" fn fatoora_validation_response_qr_buyer_status(
     handle: *mut FfiValidationResponse,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "response", ValidationResponse);
-    let response: &ValidationResponse = value;
-    ffi_string_result(response.qr_buyer_status())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "response", ValidationResponse);
+        let response: &ValidationResponse = value;
+        ffi_string_result(response.qr_buyer_status())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1117,13 +1188,15 @@ pub unsafe extern "C" fn fatoora_validation_response_qr_buyer_status(
 pub unsafe extern "C" fn fatoora_validation_response_validation_results(
     handle: *mut FfiValidationResponse,
 ) -> FfiResult<FfiValidationResults> {
-    let value = ffi_borrow!(handle, "response", ValidationResponse);
-    let response: &ValidationResponse = value;
-    FfiResult::ok({
-        let results = response.validation_results().clone();
-        FfiValidationResults {
-            ptr: Box::into_raw(Box::new(results)) as *mut std::os::raw::c_void,
-        }
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "response", ValidationResponse);
+        let response: &ValidationResponse = value;
+        FfiResult::ok({
+            let results = response.validation_results().clone();
+            FfiValidationResults {
+                ptr: Box::into_raw(Box::new(results)) as *mut std::os::raw::c_void,
+            }
+        })
     })
 }
 
@@ -1140,9 +1213,11 @@ pub unsafe extern "C" fn fatoora_validation_results_free(results: *mut FfiValida
 pub unsafe extern "C" fn fatoora_validation_results_status(
     handle: *mut FfiValidationResults,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "results", ValidationResults);
-    let results: &ValidationResults = value;
-    ffi_string_result(results.status())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "results", ValidationResults);
+        let results: &ValidationResults = value;
+        ffi_string_result(results.status())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1151,9 +1226,11 @@ pub unsafe extern "C" fn fatoora_validation_results_status(
 pub unsafe extern "C" fn fatoora_validation_results_info_len(
     handle: *mut FfiValidationResults,
 ) -> FfiResult<u64> {
-    let value = ffi_borrow!(handle, "results", ValidationResults);
-    let results: &ValidationResults = value;
-    FfiResult::ok(message_list_len(results.info_messages()) as u64)
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "results", ValidationResults);
+        let results: &ValidationResults = value;
+        FfiResult::ok(message_list_len(results.info_messages()) as u64)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1162,9 +1239,11 @@ pub unsafe extern "C" fn fatoora_validation_results_info_len(
 pub unsafe extern "C" fn fatoora_validation_results_warning_len(
     handle: *mut FfiValidationResults,
 ) -> FfiResult<u64> {
-    let value = ffi_borrow!(handle, "results", ValidationResults);
-    let results: &ValidationResults = value;
-    FfiResult::ok(results.warning_messages().len() as u64)
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "results", ValidationResults);
+        let results: &ValidationResults = value;
+        FfiResult::ok(results.warning_messages().len() as u64)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1173,9 +1252,11 @@ pub unsafe extern "C" fn fatoora_validation_results_warning_len(
 pub unsafe extern "C" fn fatoora_validation_results_error_len(
     handle: *mut FfiValidationResults,
 ) -> FfiResult<u64> {
-    let value = ffi_borrow!(handle, "results", ValidationResults);
-    let results: &ValidationResults = value;
-    FfiResult::ok(results.error_messages().len() as u64)
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "results", ValidationResults);
+        let results: &ValidationResults = value;
+        FfiResult::ok(results.error_messages().len() as u64)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1185,13 +1266,17 @@ pub unsafe extern "C" fn fatoora_validation_results_info_message(
     results: *mut FfiValidationResults,
     index: u64,
 ) -> FfiResult<FfiValidationMessage> {
-    let results = ffi_borrow!(results, "results", ValidationResults);
-    let message = match message_list_get(results.info_messages(), index as usize) {
-        Some(value) => value,
-        None => return FfiResult::err(ffi_error_invalid_input("info message index out of range")),
-    };
-    FfiResult::ok(FfiValidationMessage {
-        ptr: Box::into_raw(Box::new(message.clone())) as *mut std::os::raw::c_void,
+    crate::error::boundary(|| {
+        let results = ffi_borrow!(results, "results", ValidationResults);
+        let message = match message_list_get(results.info_messages(), index as usize) {
+            Some(value) => value,
+            None => {
+                return FfiResult::err(ffi_error_invalid_input("info message index out of range"));
+            }
+        };
+        FfiResult::ok(FfiValidationMessage {
+            ptr: Box::into_raw(Box::new(message.clone())) as *mut std::os::raw::c_void,
+        })
     })
 }
 
@@ -1202,17 +1287,19 @@ pub unsafe extern "C" fn fatoora_validation_results_warning_message(
     results: *mut FfiValidationResults,
     index: u64,
 ) -> FfiResult<FfiValidationMessage> {
-    let results = ffi_borrow!(results, "results", ValidationResults);
-    let message = match results.warning_messages().get(index as usize) {
-        Some(value) => value,
-        None => {
-            return FfiResult::err(ffi_error_invalid_input(
-                "warning message index out of range",
-            ));
-        }
-    };
-    FfiResult::ok(FfiValidationMessage {
-        ptr: Box::into_raw(Box::new(message.clone())) as *mut std::os::raw::c_void,
+    crate::error::boundary(|| {
+        let results = ffi_borrow!(results, "results", ValidationResults);
+        let message = match results.warning_messages().get(index as usize) {
+            Some(value) => value,
+            None => {
+                return FfiResult::err(ffi_error_invalid_input(
+                    "warning message index out of range",
+                ));
+            }
+        };
+        FfiResult::ok(FfiValidationMessage {
+            ptr: Box::into_raw(Box::new(message.clone())) as *mut std::os::raw::c_void,
+        })
     })
 }
 
@@ -1223,13 +1310,17 @@ pub unsafe extern "C" fn fatoora_validation_results_error_message(
     results: *mut FfiValidationResults,
     index: u64,
 ) -> FfiResult<FfiValidationMessage> {
-    let results = ffi_borrow!(results, "results", ValidationResults);
-    let message = match results.error_messages().get(index as usize) {
-        Some(value) => value,
-        None => return FfiResult::err(ffi_error_invalid_input("error message index out of range")),
-    };
-    FfiResult::ok(FfiValidationMessage {
-        ptr: Box::into_raw(Box::new(message.clone())) as *mut std::os::raw::c_void,
+    crate::error::boundary(|| {
+        let results = ffi_borrow!(results, "results", ValidationResults);
+        let message = match results.error_messages().get(index as usize) {
+            Some(value) => value,
+            None => {
+                return FfiResult::err(ffi_error_invalid_input("error message index out of range"));
+            }
+        };
+        FfiResult::ok(FfiValidationMessage {
+            ptr: Box::into_raw(Box::new(message.clone())) as *mut std::os::raw::c_void,
+        })
     })
 }
 
@@ -1246,9 +1337,11 @@ pub unsafe extern "C" fn fatoora_validation_message_free(message: *mut FfiValida
 pub unsafe extern "C" fn fatoora_validation_message_type(
     handle: *mut FfiValidationMessage,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "message", ValidationMessage);
-    let message: &ValidationMessage = value;
-    ffi_string_result(message.message_type())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "message", ValidationMessage);
+        let message: &ValidationMessage = value;
+        ffi_string_result(message.message_type())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1257,9 +1350,11 @@ pub unsafe extern "C" fn fatoora_validation_message_type(
 pub unsafe extern "C" fn fatoora_validation_message_code(
     handle: *mut FfiValidationMessage,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "message", ValidationMessage);
-    let message: &ValidationMessage = value;
-    ffi_string_result(message.code())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "message", ValidationMessage);
+        let message: &ValidationMessage = value;
+        ffi_string_result(message.code())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1268,9 +1363,11 @@ pub unsafe extern "C" fn fatoora_validation_message_code(
 pub unsafe extern "C" fn fatoora_validation_message_category(
     handle: *mut FfiValidationMessage,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "message", ValidationMessage);
-    let message: &ValidationMessage = value;
-    ffi_string_result(message.category())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "message", ValidationMessage);
+        let message: &ValidationMessage = value;
+        ffi_string_result(message.category())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1279,9 +1376,11 @@ pub unsafe extern "C" fn fatoora_validation_message_category(
 pub unsafe extern "C" fn fatoora_validation_message_text(
     handle: *mut FfiValidationMessage,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "message", ValidationMessage);
-    let message: &ValidationMessage = value;
-    ffi_string_result(message.message())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "message", ValidationMessage);
+        let message: &ValidationMessage = value;
+        ffi_string_result(message.message())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1290,9 +1389,11 @@ pub unsafe extern "C" fn fatoora_validation_message_text(
 pub unsafe extern "C" fn fatoora_validation_message_status(
     handle: *mut FfiValidationMessage,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "message", ValidationMessage);
-    let message: &ValidationMessage = value;
-    ffi_string_result(message.status())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "message", ValidationMessage);
+        let message: &ValidationMessage = value;
+        ffi_string_result(message.status())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1302,15 +1403,17 @@ pub unsafe extern "C" fn fatoora_validate_xml_invoice_from_str(
     config: *mut FfiConfig,
     xml: *const c_char,
 ) -> FfiResult<bool> {
-    let config = match borrow_config(config) {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let xml = ffi_required_string!(xml, "xml");
-    match validate_xml_invoice_from_str(&xml, config) {
-        Ok(()) => FfiResult::ok(true),
-        Err(err) => FfiResult::err(ffi_error_from_validation(err)),
-    }
+    crate::error::boundary(|| {
+        let config = match borrow_config(config) {
+            Ok(value) => value,
+            Err(message) => return FfiResult::err(message),
+        };
+        let xml = ffi_required_string!(xml, "xml");
+        match validate_xml_invoice_from_str(&xml, config) {
+            Ok(()) => FfiResult::ok(true),
+            Err(err) => FfiResult::err(ffi_error_from_validation(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1324,32 +1427,37 @@ pub unsafe extern "C" fn fatoora_invoice_builder_new(
     original_invoice_issue_date: *const c_char,
     original_invoice_reason: *const c_char,
 ) -> FfiResult<FfiInvoiceBuilder> {
-    let invoice_type = match invoice_type_from_parts(
-        invoice_type_kind,
-        invoice_sub_type,
-        match optional_string_nonempty(original_invoice_id, "original invoice id") {
+    crate::error::boundary(|| {
+        let invoice_type = match invoice_type_from_parts(
+            invoice_type_kind,
+            invoice_sub_type,
+            match optional_string_nonempty(original_invoice_id, "original invoice id") {
+                Ok(value) => value,
+                Err(message) => return FfiResult::err(message),
+            },
+            match optional_string_nonempty(original_invoice_uuid, "original invoice uuid") {
+                Ok(value) => value,
+                Err(message) => return FfiResult::err(message),
+            },
+            match optional_string_nonempty(
+                original_invoice_issue_date,
+                "original invoice issue date",
+            ) {
+                Ok(value) => value,
+                Err(message) => return FfiResult::err(message),
+            },
+            match optional_string_nonempty(original_invoice_reason, "original invoice reason") {
+                Ok(value) => value,
+                Err(message) => return FfiResult::err(message),
+            },
+        ) {
             Ok(value) => value,
             Err(message) => return FfiResult::err(message),
-        },
-        match optional_string_nonempty(original_invoice_uuid, "original invoice uuid") {
-            Ok(value) => value,
-            Err(message) => return FfiResult::err(message),
-        },
-        match optional_string_nonempty(original_invoice_issue_date, "original invoice issue date") {
-            Ok(value) => value,
-            Err(message) => return FfiResult::err(message),
-        },
-        match optional_string_nonempty(original_invoice_reason, "original invoice reason") {
-            Ok(value) => value,
-            Err(message) => return FfiResult::err(message),
-        },
-    ) {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let builder = InvoiceBuilder::new(invoice_type);
-    FfiResult::ok(FfiInvoiceBuilder {
-        ptr: Box::into_raw(Box::new(builder)) as *mut std::os::raw::c_void,
+        };
+        let builder = InvoiceBuilder::new(invoice_type);
+        FfiResult::ok(FfiInvoiceBuilder {
+            ptr: Box::into_raw(Box::new(builder)) as *mut std::os::raw::c_void,
+        })
     })
 }
 
@@ -1360,10 +1468,12 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_id(
     builder: *mut FfiInvoiceBuilder,
     id: *const c_char,
 ) -> FfiResult<bool> {
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-    let id = ffi_required_string!(id, "invoice id");
-    builder.set_id(id);
-    FfiResult::ok(true)
+    crate::error::boundary(|| {
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let id = ffi_required_string!(id, "invoice id");
+        builder.set_id(id);
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1373,10 +1483,12 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_uuid(
     builder: *mut FfiInvoiceBuilder,
     uuid: *const c_char,
 ) -> FfiResult<bool> {
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-    let uuid = ffi_required_string!(uuid, "invoice uuid");
-    builder.set_uuid(uuid);
-    FfiResult::ok(true)
+    crate::error::boundary(|| {
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let uuid = ffi_required_string!(uuid, "invoice uuid");
+        builder.set_uuid(uuid);
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1386,16 +1498,18 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_issue_datetime(
     builder: *mut FfiInvoiceBuilder,
     issue_timestamp: *const c_char,
 ) -> FfiResult<bool> {
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-    let issue_timestamp = ffi_required_string!(issue_timestamp, "issue timestamp");
-    let parsed = match InvoiceTimestamp::parse(&issue_timestamp) {
-        Ok(value) => value,
-        Err(_) => {
-            return FfiResult::err(ffi_error_invalid_input("Invalid issue timestamp"));
-        }
-    };
-    builder.set_issue_datetime(parsed.as_str());
-    FfiResult::ok(true)
+    crate::error::boundary(|| {
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let issue_timestamp = ffi_required_string!(issue_timestamp, "issue timestamp");
+        let parsed = match InvoiceTimestamp::parse(&issue_timestamp) {
+            Ok(value) => value,
+            Err(_) => {
+                return FfiResult::err(ffi_error_invalid_input("Invalid issue timestamp"));
+            }
+        };
+        builder.set_issue_datetime(parsed.as_str());
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1405,15 +1519,17 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_currency(
     builder: *mut FfiInvoiceBuilder,
     currency_code: *const c_char,
 ) -> FfiResult<bool> {
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-    let currency_code = ffi_required_string!(currency_code, "currency code");
-    if fatoora_core::invoice::CurrencyCode::parse(&currency_code).is_err() {
-        return FfiResult::err(ffi_error_invalid_input(format!(
-            "Invalid currency code: {currency_code}"
-        )));
-    }
-    builder.set_currency(currency_code);
-    FfiResult::ok(true)
+    crate::error::boundary(|| {
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let currency_code = ffi_required_string!(currency_code, "currency code");
+        if fatoora_core::invoice::CurrencyCode::parse(&currency_code).is_err() {
+            return FfiResult::err(ffi_error_invalid_input(format!(
+                "Invalid currency code: {currency_code}"
+            )));
+        }
+        builder.set_currency(currency_code);
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1423,10 +1539,12 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_previous_hash(
     builder: *mut FfiInvoiceBuilder,
     hash: *const c_char,
 ) -> FfiResult<bool> {
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-    let hash = ffi_required_string!(hash, "previous invoice hash");
-    builder.set_previous_invoice_hash(hash);
-    FfiResult::ok(true)
+    crate::error::boundary(|| {
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let hash = ffi_required_string!(hash, "previous invoice hash");
+        builder.set_previous_invoice_hash(hash);
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1436,9 +1554,11 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_invoice_counter(
     builder: *mut FfiInvoiceBuilder,
     counter: u64,
 ) -> FfiResult<bool> {
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-    builder.set_invoice_counter(counter);
-    FfiResult::ok(true)
+    crate::error::boundary(|| {
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        builder.set_invoice_counter(counter);
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1448,10 +1568,12 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_payment_means_code(
     builder: *mut FfiInvoiceBuilder,
     payment_means_code: *const c_char,
 ) -> FfiResult<bool> {
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-    let payment_means_code = ffi_required_string!(payment_means_code, "payment means code");
-    builder.set_payment_means_code(payment_means_code);
-    FfiResult::ok(true)
+    crate::error::boundary(|| {
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let payment_means_code = ffi_required_string!(payment_means_code, "payment means code");
+        builder.set_payment_means_code(payment_means_code);
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1461,9 +1583,11 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_vat_category(
     builder: *mut FfiInvoiceBuilder,
     vat_category: FfiVatCategory,
 ) -> FfiResult<bool> {
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-    builder.set_vat_category(vat_category.into());
-    FfiResult::ok(true)
+    crate::error::boundary(|| {
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        builder.set_vat_category(vat_category.into());
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1485,40 +1609,42 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_seller(
     other_id_value: *const c_char,
     other_id_scheme: *const c_char,
 ) -> FfiResult<bool> {
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-    let address = match build_address(
-        country_code,
-        city,
-        street,
-        additional_street,
-        building_number,
-        additional_number,
-        postal_code,
-        subdivision,
-        district,
-        "seller",
-    ) {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
-    let other = optional_other_id(
-        match optional_string_nonempty(other_id_value, "seller other id") {
+    crate::error::boundary(|| {
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let address = match build_address(
+            country_code,
+            city,
+            street,
+            additional_street,
+            building_number,
+            additional_number,
+            postal_code,
+            subdivision,
+            district,
+            "seller",
+        ) {
             Ok(value) => value,
             Err(message) => return FfiResult::err(message),
-        },
-        match optional_string_nonempty(other_id_scheme, "seller other id scheme") {
+        };
+        let other = optional_other_id(
+            match optional_string_nonempty(other_id_value, "seller other id") {
+                Ok(value) => value,
+                Err(message) => return FfiResult::err(message),
+            },
+            match optional_string_nonempty(other_id_scheme, "seller other id scheme") {
+                Ok(value) => value,
+                Err(message) => return FfiResult::err(message),
+            },
+        );
+        let name = ffi_required_string!(name, "seller name");
+        let vat_id = ffi_required_string!(vat_id, "seller vat id");
+        let seller = match Party::<SellerRole>::new(name, address, vat_id, other) {
             Ok(value) => value,
-            Err(message) => return FfiResult::err(message),
-        },
-    );
-    let name = ffi_required_string!(name, "seller name");
-    let vat_id = ffi_required_string!(vat_id, "seller vat id");
-    let seller = match Party::<SellerRole>::new(name, address, vat_id, other) {
-        Ok(value) => value,
-        Err(err) => return FfiResult::err(ffi_error_from_invoice(err)),
-    };
-    builder.set_seller(seller);
-    FfiResult::ok(true)
+            Err(err) => return FfiResult::err(ffi_error_from_invoice(err)),
+        };
+        builder.set_seller(seller);
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1528,9 +1654,11 @@ pub unsafe extern "C" fn fatoora_invoice_builder_flags(
     builder: *mut FfiInvoiceBuilder,
     flags: u8,
 ) -> FfiResult<bool> {
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-    builder.flags(flags_from_bits(flags));
-    FfiResult::ok(true)
+    crate::error::boundary(|| {
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        builder.flags(flags_from_bits(flags));
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1540,10 +1668,12 @@ pub unsafe extern "C" fn fatoora_invoice_builder_invoice_level_charge(
     builder: *mut FfiInvoiceBuilder,
     charge: *const c_char,
 ) -> FfiResult<bool> {
-    let charge = ffi_decimal!(charge, "charge");
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-    builder.invoice_level_charge(charge);
-    FfiResult::ok(true)
+    crate::error::boundary(|| {
+        let charge = ffi_decimal!(charge, "charge");
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        builder.invoice_level_charge(charge);
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1553,10 +1683,12 @@ pub unsafe extern "C" fn fatoora_invoice_builder_invoice_level_discount(
     builder: *mut FfiInvoiceBuilder,
     discount: *const c_char,
 ) -> FfiResult<bool> {
-    let discount = ffi_decimal!(discount, "discount");
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-    builder.invoice_level_discount(discount);
-    FfiResult::ok(true)
+    crate::error::boundary(|| {
+        let discount = ffi_decimal!(discount, "discount");
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        builder.invoice_level_discount(discount);
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1566,10 +1698,12 @@ pub unsafe extern "C" fn fatoora_invoice_builder_allowance_reason(
     builder: *mut FfiInvoiceBuilder,
     reason: *const c_char,
 ) -> FfiResult<bool> {
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-    let reason = ffi_required_string!(reason, "allowance reason");
-    builder.allowance_reason(reason);
-    FfiResult::ok(true)
+    crate::error::boundary(|| {
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let reason = ffi_required_string!(reason, "allowance reason");
+        builder.allowance_reason(reason);
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1584,27 +1718,29 @@ pub unsafe extern "C" fn fatoora_invoice_builder_add_line_item(
     vat_rate: *const c_char,
     vat_category: FfiVatCategory,
 ) -> FfiResult<bool> {
-    let vat_rate = ffi_decimal!(vat_rate, "vat_rate");
-    let unit_price = ffi_decimal!(unit_price, "unit_price");
-    let quantity = ffi_decimal!(quantity, "quantity");
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+    crate::error::boundary(|| {
+        let vat_rate = ffi_decimal!(vat_rate, "vat_rate");
+        let unit_price = ffi_decimal!(unit_price, "unit_price");
+        let quantity = ffi_decimal!(quantity, "quantity");
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
 
-    let description = ffi_required_string!(description, "line item description");
-    let unit_code = ffi_required_string!(unit_code, "line item unit code");
-    let item = LineItem::new(
-        description,
-        quantity,
-        unit_code,
-        unit_price,
-        vat_rate,
-        vat_category.into(),
-    );
-    let item = match item {
-        Ok(item) => item,
-        Err(err) => return FfiResult::err(ffi_error_from_invoice(err)),
-    };
-    builder.add_line_item(item);
-    FfiResult::ok(true)
+        let description = ffi_required_string!(description, "line item description");
+        let unit_code = ffi_required_string!(unit_code, "line item unit code");
+        let item = LineItem::new(
+            description,
+            quantity,
+            unit_code,
+            unit_price,
+            vat_rate,
+            vat_category.into(),
+        );
+        let item = match item {
+            Ok(item) => item,
+            Err(err) => return FfiResult::err(ffi_error_from_invoice(err)),
+        };
+        builder.add_line_item(item);
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1626,48 +1762,50 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_buyer(
     other_id_value: *const c_char,
     other_id_scheme: *const c_char,
 ) -> FfiResult<bool> {
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-    let address = match build_address(
-        country_code,
-        city,
-        street,
-        additional_street,
-        building_number,
-        additional_number,
-        postal_code,
-        subdivision,
-        district,
-        "buyer",
-    ) {
-        Ok(value) => value,
-        Err(message) => return FfiResult::err(message),
-    };
+    crate::error::boundary(|| {
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let address = match build_address(
+            country_code,
+            city,
+            street,
+            additional_street,
+            building_number,
+            additional_number,
+            postal_code,
+            subdivision,
+            district,
+            "buyer",
+        ) {
+            Ok(value) => value,
+            Err(message) => return FfiResult::err(message),
+        };
 
-    let other = optional_other_id(
-        match optional_string_nonempty(other_id_value, "buyer other id") {
+        let other = optional_other_id(
+            match optional_string_nonempty(other_id_value, "buyer other id") {
+                Ok(value) => value,
+                Err(message) => return FfiResult::err(message),
+            },
+            match optional_string_nonempty(other_id_scheme, "buyer other id scheme") {
+                Ok(value) => value,
+                Err(message) => return FfiResult::err(message),
+            },
+        );
+        let name = ffi_required_string!(name, "buyer name");
+        let buyer = match Party::<fatoora_core::invoice::BuyerRole>::new(
+            name,
+            address,
+            match optional_string_nonempty(vat_id, "buyer vat id") {
+                Ok(value) => value,
+                Err(message) => return FfiResult::err(message),
+            },
+            other,
+        ) {
             Ok(value) => value,
-            Err(message) => return FfiResult::err(message),
-        },
-        match optional_string_nonempty(other_id_scheme, "buyer other id scheme") {
-            Ok(value) => value,
-            Err(message) => return FfiResult::err(message),
-        },
-    );
-    let name = ffi_required_string!(name, "buyer name");
-    let buyer = match Party::<fatoora_core::invoice::BuyerRole>::new(
-        name,
-        address,
-        match optional_string_nonempty(vat_id, "buyer vat id") {
-            Ok(value) => value,
-            Err(message) => return FfiResult::err(message),
-        },
-        other,
-    ) {
-        Ok(value) => value,
-        Err(err) => return FfiResult::err(ffi_error_from_invoice(err)),
-    };
-    builder.set_buyer(buyer);
-    FfiResult::ok(true)
+            Err(err) => return FfiResult::err(ffi_error_from_invoice(err)),
+        };
+        builder.set_buyer(buyer);
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1678,12 +1816,14 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_note(
     language: *const c_char,
     text: *const c_char,
 ) -> FfiResult<bool> {
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-    let language = ffi_required_string!(language, "note language");
-    let text = ffi_required_string!(text, "note text");
-    let note = InvoiceNote::new(&language, &text);
-    builder.set_note(note);
-    FfiResult::ok(true)
+    crate::error::boundary(|| {
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let language = ffi_required_string!(language, "note language");
+        let text = ffi_required_string!(text, "note text");
+        let note = InvoiceNote::new(&language, &text);
+        builder.set_note(note);
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1694,11 +1834,13 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_allowance(
     reason: *const c_char,
     amount: *const c_char,
 ) -> FfiResult<bool> {
-    let amount = ffi_decimal!(amount, "amount");
-    let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-    let reason = ffi_required_string!(reason, "allowance reason");
-    builder.set_allowance(&reason, amount);
-    FfiResult::ok(true)
+    crate::error::boundary(|| {
+        let amount = ffi_decimal!(amount, "amount");
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let reason = ffi_required_string!(reason, "allowance reason");
+        builder.set_allowance(&reason, amount);
+        FfiResult::ok(true)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1714,14 +1856,16 @@ pub unsafe extern "C" fn fatoora_invoice_builder_free(builder: *mut FfiInvoiceBu
 pub unsafe extern "C" fn fatoora_invoice_builder_build(
     builder: *mut FfiInvoiceBuilder,
 ) -> FfiResult<FfiFinalizedInvoice> {
-    let builder = ffi_take_handle!(builder, "builder", InvoiceBuilder);
+    crate::error::boundary(|| {
+        let builder = ffi_take_handle!(builder, "builder", InvoiceBuilder);
 
-    match builder.build() {
-        Ok(invoice) => FfiResult::ok(FfiFinalizedInvoice {
-            ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(ffi_error_from_invoice(err)),
-    }
+        match builder.build() {
+            Ok(invoice) => FfiResult::ok(FfiFinalizedInvoice {
+                ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_invoice(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1730,13 +1874,15 @@ pub unsafe extern "C" fn fatoora_invoice_builder_build(
 pub unsafe extern "C" fn fatoora_parse_finalized_invoice_xml(
     xml: *const c_char,
 ) -> FfiResult<FfiFinalizedInvoice> {
-    let xml = ffi_required_string!(xml, "xml");
-    match fatoora_core::invoice::xml::parse::parse_finalized_invoice_xml(&xml) {
-        Ok(invoice) => FfiResult::ok(FfiFinalizedInvoice {
-            ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(ffi_error_from_parse(err)),
-    }
+    crate::error::boundary(|| {
+        let xml = ffi_required_string!(xml, "xml");
+        match fatoora_core::invoice::xml::parse::parse_finalized_invoice_xml(&xml) {
+            Ok(invoice) => FfiResult::ok(FfiFinalizedInvoice {
+                ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_parse(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1745,22 +1891,15 @@ pub unsafe extern "C" fn fatoora_parse_finalized_invoice_xml(
 pub unsafe extern "C" fn fatoora_parse_finalized_invoice_xml_file(
     path: *const c_char,
 ) -> FfiResult<FfiFinalizedInvoice> {
-    let path = ffi_required_string!(path, "invoice xml path");
-    let contents = match std::fs::read_to_string(&path) {
-        Ok(value) => value,
-        Err(err) => {
-            return FfiResult::err(FfiErrorDetails::new(
-                FfiErrorKind::Io,
-                format!("failed to read {path}: {err}"),
-            ));
+    crate::error::boundary(|| {
+        let path = ffi_required_string!(path, "invoice xml path");
+        match fatoora_core::invoice::xml::parse::parse_finalized_invoice_xml_file(&path) {
+            Ok(invoice) => FfiResult::ok(FfiFinalizedInvoice {
+                ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_parse(err)),
         }
-    };
-    match parse_finalized_invoice_xml(&contents) {
-        Ok(invoice) => FfiResult::ok(FfiFinalizedInvoice {
-            ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(ffi_error_from_parse(err)),
-    }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1769,13 +1908,15 @@ pub unsafe extern "C" fn fatoora_parse_finalized_invoice_xml_file(
 pub unsafe extern "C" fn fatoora_parse_signed_invoice_xml(
     xml: *const c_char,
 ) -> FfiResult<FfiSignedInvoice> {
-    let xml = ffi_required_string!(xml, "xml");
-    match fatoora_core::invoice::xml::parse::parse_signed_invoice_xml(&xml) {
-        Ok(invoice) => FfiResult::ok(FfiSignedInvoice {
-            ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(ffi_error_from_parse(err)),
-    }
+    crate::error::boundary(|| {
+        let xml = ffi_required_string!(xml, "xml");
+        match fatoora_core::invoice::xml::parse::parse_signed_invoice_xml(&xml) {
+            Ok(invoice) => FfiResult::ok(FfiSignedInvoice {
+                ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_parse(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1784,22 +1925,15 @@ pub unsafe extern "C" fn fatoora_parse_signed_invoice_xml(
 pub unsafe extern "C" fn fatoora_parse_signed_invoice_xml_file(
     path: *const c_char,
 ) -> FfiResult<FfiSignedInvoice> {
-    let path = ffi_required_string!(path, "signed invoice xml path");
-    let contents = match std::fs::read_to_string(&path) {
-        Ok(value) => value,
-        Err(err) => {
-            return FfiResult::err(FfiErrorDetails::new(
-                FfiErrorKind::Io,
-                format!("failed to read {path}: {err}"),
-            ));
+    crate::error::boundary(|| {
+        let path = ffi_required_string!(path, "signed invoice xml path");
+        match fatoora_core::invoice::xml::parse::parse_signed_invoice_xml_file(&path) {
+            Ok(invoice) => FfiResult::ok(FfiSignedInvoice {
+                ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_parse(err)),
         }
-    };
-    match parse_signed_invoice_xml(&contents) {
-        Ok(invoice) => FfiResult::ok(FfiSignedInvoice {
-            ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(ffi_error_from_parse(err)),
-    }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1808,8 +1942,10 @@ pub unsafe extern "C" fn fatoora_parse_signed_invoice_xml_file(
 pub unsafe extern "C" fn fatoora_invoice_line_item_count(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<u64> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    FfiResult::ok(invoice.data().line_items().len() as u64)
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        FfiResult::ok(invoice.data().line_items().len() as u64)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1818,8 +1954,10 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_count(
 pub unsafe extern "C" fn fatoora_signed_invoice_line_item_count(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<u64> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    FfiResult::ok(signed.data().line_items().len() as u64)
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        FfiResult::ok(signed.data().line_items().len() as u64)
+    })
 }
 
 fn line_item_from_invoice(invoice: &InvoiceData, index: u64) -> Result<&LineItem, FfiErrorDetails> {
@@ -1837,11 +1975,13 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_description(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    match line_item_from_invoice(invoice.data(), index) {
-        Ok(item) => ffi_string_from_owned(item.description().to_string()),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        match line_item_from_invoice(invoice.data(), index) {
+            Ok(item) => ffi_string_from_owned(item.description().to_string()),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1851,11 +1991,13 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_unit_code(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    match line_item_from_invoice(invoice.data(), index) {
-        Ok(item) => ffi_string_from_owned(item.unit_code().to_string()),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        match line_item_from_invoice(invoice.data(), index) {
+            Ok(item) => ffi_string_from_owned(item.unit_code().to_string()),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1865,11 +2007,13 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_quantity(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    match line_item_from_invoice(invoice.data(), index) {
-        Ok(item) => ffi_string_from_owned((item.quantity()).to_string()),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        match line_item_from_invoice(invoice.data(), index) {
+            Ok(item) => ffi_string_from_owned((item.quantity()).to_string()),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1879,11 +2023,13 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_unit_price(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    match line_item_from_invoice(invoice.data(), index) {
-        Ok(item) => ffi_string_from_owned((item.unit_price()).to_string()),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        match line_item_from_invoice(invoice.data(), index) {
+            Ok(item) => ffi_string_from_owned((item.unit_price()).to_string()),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1893,11 +2039,13 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_total_amount(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    match line_item_from_invoice(invoice.data(), index) {
-        Ok(item) => ffi_string_from_owned((item.total_amount()).to_string()),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        match line_item_from_invoice(invoice.data(), index) {
+            Ok(item) => ffi_string_from_owned((item.total_amount()).to_string()),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1907,11 +2055,13 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_vat_rate(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    match line_item_from_invoice(invoice.data(), index) {
-        Ok(item) => ffi_string_from_owned((item.vat_rate()).to_string()),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        match line_item_from_invoice(invoice.data(), index) {
+            Ok(item) => ffi_string_from_owned((item.vat_rate()).to_string()),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1921,11 +2071,13 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_vat_amount(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    match line_item_from_invoice(invoice.data(), index) {
-        Ok(item) => ffi_string_from_owned((item.vat_amount()).to_string()),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        match line_item_from_invoice(invoice.data(), index) {
+            Ok(item) => ffi_string_from_owned((item.vat_amount()).to_string()),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1935,11 +2087,13 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_vat_category(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
 ) -> FfiResult<u8> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    match line_item_from_invoice(invoice.data(), index) {
-        Ok(item) => FfiResult::ok(item.vat_category() as u8),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        match line_item_from_invoice(invoice.data(), index) {
+            Ok(item) => FfiResult::ok(item.vat_category() as u8),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1949,11 +2103,13 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_description(
     signed: *mut FfiSignedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    match line_item_from_invoice(signed.data(), index) {
-        Ok(item) => ffi_string_from_owned(item.description().to_string()),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        match line_item_from_invoice(signed.data(), index) {
+            Ok(item) => ffi_string_from_owned(item.description().to_string()),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1963,11 +2119,13 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_unit_code(
     signed: *mut FfiSignedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    match line_item_from_invoice(signed.data(), index) {
-        Ok(item) => ffi_string_from_owned(item.unit_code().to_string()),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        match line_item_from_invoice(signed.data(), index) {
+            Ok(item) => ffi_string_from_owned(item.unit_code().to_string()),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1977,11 +2135,13 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_quantity(
     signed: *mut FfiSignedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    match line_item_from_invoice(signed.data(), index) {
-        Ok(item) => ffi_string_from_owned((item.quantity()).to_string()),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        match line_item_from_invoice(signed.data(), index) {
+            Ok(item) => ffi_string_from_owned((item.quantity()).to_string()),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -1991,11 +2151,13 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_unit_price(
     signed: *mut FfiSignedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    match line_item_from_invoice(signed.data(), index) {
-        Ok(item) => ffi_string_from_owned((item.unit_price()).to_string()),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        match line_item_from_invoice(signed.data(), index) {
+            Ok(item) => ffi_string_from_owned((item.unit_price()).to_string()),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2005,11 +2167,13 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_total_amount(
     signed: *mut FfiSignedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    match line_item_from_invoice(signed.data(), index) {
-        Ok(item) => ffi_string_from_owned((item.total_amount()).to_string()),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        match line_item_from_invoice(signed.data(), index) {
+            Ok(item) => ffi_string_from_owned((item.total_amount()).to_string()),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2019,11 +2183,13 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_vat_rate(
     signed: *mut FfiSignedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    match line_item_from_invoice(signed.data(), index) {
-        Ok(item) => ffi_string_from_owned((item.vat_rate()).to_string()),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        match line_item_from_invoice(signed.data(), index) {
+            Ok(item) => ffi_string_from_owned((item.vat_rate()).to_string()),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2033,11 +2199,13 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_vat_amount(
     signed: *mut FfiSignedInvoice,
     index: u64,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    match line_item_from_invoice(signed.data(), index) {
-        Ok(item) => ffi_string_from_owned((item.vat_amount()).to_string()),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        match line_item_from_invoice(signed.data(), index) {
+            Ok(item) => ffi_string_from_owned((item.vat_amount()).to_string()),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2047,11 +2215,13 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_vat_category(
     signed: *mut FfiSignedInvoice,
     index: u64,
 ) -> FfiResult<u8> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    match line_item_from_invoice(signed.data(), index) {
-        Ok(item) => FfiResult::ok(item.vat_category() as u8),
-        Err(message) => FfiResult::err(message),
-    }
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        match line_item_from_invoice(signed.data(), index) {
+            Ok(item) => FfiResult::ok(item.vat_category() as u8),
+            Err(message) => FfiResult::err(message),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2060,9 +2230,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_vat_category(
 pub unsafe extern "C" fn fatoora_invoice_totals_tax_inclusive(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    let invoice: &FinalizedInvoice = value;
-    ffi_string_from_owned((invoice.totals().tax_inclusive_amount()).to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        let invoice: &FinalizedInvoice = value;
+        ffi_string_from_owned((invoice.totals().tax_inclusive_amount()).to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2071,9 +2243,11 @@ pub unsafe extern "C" fn fatoora_invoice_totals_tax_inclusive(
 pub unsafe extern "C" fn fatoora_invoice_totals_tax_amount(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    let invoice: &FinalizedInvoice = value;
-    ffi_string_from_owned((invoice.totals().tax_amount()).to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        let invoice: &FinalizedInvoice = value;
+        ffi_string_from_owned((invoice.totals().tax_amount()).to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2082,9 +2256,11 @@ pub unsafe extern "C" fn fatoora_invoice_totals_tax_amount(
 pub unsafe extern "C" fn fatoora_invoice_totals_line_extension(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    let invoice: &FinalizedInvoice = value;
-    ffi_string_from_owned((invoice.totals().line_extension()).to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        let invoice: &FinalizedInvoice = value;
+        ffi_string_from_owned((invoice.totals().line_extension()).to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2093,9 +2269,11 @@ pub unsafe extern "C" fn fatoora_invoice_totals_line_extension(
 pub unsafe extern "C" fn fatoora_invoice_totals_allowance_total(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    let invoice: &FinalizedInvoice = value;
-    ffi_string_from_owned((invoice.totals().allowance_total()).to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        let invoice: &FinalizedInvoice = value;
+        ffi_string_from_owned((invoice.totals().allowance_total()).to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2104,9 +2282,11 @@ pub unsafe extern "C" fn fatoora_invoice_totals_allowance_total(
 pub unsafe extern "C" fn fatoora_invoice_totals_charge_total(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    let invoice: &FinalizedInvoice = value;
-    ffi_string_from_owned((invoice.totals().charge_total()).to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        let invoice: &FinalizedInvoice = value;
+        ffi_string_from_owned((invoice.totals().charge_total()).to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2115,9 +2295,11 @@ pub unsafe extern "C" fn fatoora_invoice_totals_charge_total(
 pub unsafe extern "C" fn fatoora_invoice_totals_taxable_amount(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    let invoice: &FinalizedInvoice = value;
-    ffi_string_from_owned((invoice.totals().taxable_amount()).to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        let invoice: &FinalizedInvoice = value;
+        ffi_string_from_owned((invoice.totals().taxable_amount()).to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2126,9 +2308,11 @@ pub unsafe extern "C" fn fatoora_invoice_totals_taxable_amount(
 pub unsafe extern "C" fn fatoora_signed_invoice_totals_tax_inclusive(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    ffi_string_from_owned((signed.totals().tax_inclusive_amount()).to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        ffi_string_from_owned((signed.totals().tax_inclusive_amount()).to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2137,9 +2321,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_totals_tax_inclusive(
 pub unsafe extern "C" fn fatoora_signed_invoice_totals_tax_amount(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    ffi_string_from_owned((signed.totals().tax_amount()).to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        ffi_string_from_owned((signed.totals().tax_amount()).to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2148,9 +2334,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_totals_tax_amount(
 pub unsafe extern "C" fn fatoora_signed_invoice_totals_line_extension(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    ffi_string_from_owned((signed.totals().line_extension()).to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        ffi_string_from_owned((signed.totals().line_extension()).to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2159,9 +2347,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_totals_line_extension(
 pub unsafe extern "C" fn fatoora_signed_invoice_totals_allowance_total(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    ffi_string_from_owned((signed.totals().allowance_total()).to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        ffi_string_from_owned((signed.totals().allowance_total()).to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2170,9 +2360,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_totals_allowance_total(
 pub unsafe extern "C" fn fatoora_signed_invoice_totals_charge_total(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    ffi_string_from_owned((signed.totals().charge_total()).to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        ffi_string_from_owned((signed.totals().charge_total()).to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2181,18 +2373,22 @@ pub unsafe extern "C" fn fatoora_signed_invoice_totals_charge_total(
 pub unsafe extern "C" fn fatoora_signed_invoice_totals_taxable_amount(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    ffi_string_from_owned((signed.totals().taxable_amount()).to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        ffi_string_from_owned((signed.totals().taxable_amount()).to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_flags(handle: *mut FfiFinalizedInvoice) -> FfiResult<u8> {
-    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    let invoice: &FinalizedInvoice = value;
-    FfiResult::ok(flags_to_bits(invoice.data().flags()))
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        let invoice: &FinalizedInvoice = value;
+        FfiResult::ok(flags_to_bits(invoice.data().flags()))
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2201,9 +2397,11 @@ pub unsafe extern "C" fn fatoora_invoice_flags(handle: *mut FfiFinalizedInvoice)
 pub unsafe extern "C" fn fatoora_signed_invoice_flags(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<u8> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    FfiResult::ok(flags_to_bits(signed.data().flags()))
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        FfiResult::ok(flags_to_bits(signed.data().flags()))
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2212,9 +2410,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_flags(
 pub unsafe extern "C" fn fatoora_invoice_is_third_party(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<bool> {
-    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    let invoice: &FinalizedInvoice = value;
-    FfiResult::ok(invoice.data().is_third_party())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        let invoice: &FinalizedInvoice = value;
+        FfiResult::ok(invoice.data().is_third_party())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2223,9 +2423,11 @@ pub unsafe extern "C" fn fatoora_invoice_is_third_party(
 pub unsafe extern "C" fn fatoora_invoice_is_nominal(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<bool> {
-    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    let invoice: &FinalizedInvoice = value;
-    FfiResult::ok(invoice.data().is_nominal())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        let invoice: &FinalizedInvoice = value;
+        FfiResult::ok(invoice.data().is_nominal())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2234,9 +2436,11 @@ pub unsafe extern "C" fn fatoora_invoice_is_nominal(
 pub unsafe extern "C" fn fatoora_invoice_is_export(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<bool> {
-    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    let invoice: &FinalizedInvoice = value;
-    FfiResult::ok(invoice.data().is_export())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        let invoice: &FinalizedInvoice = value;
+        FfiResult::ok(invoice.data().is_export())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2245,9 +2449,11 @@ pub unsafe extern "C" fn fatoora_invoice_is_export(
 pub unsafe extern "C" fn fatoora_invoice_is_summary(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<bool> {
-    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    let invoice: &FinalizedInvoice = value;
-    FfiResult::ok(invoice.data().is_summary())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        let invoice: &FinalizedInvoice = value;
+        FfiResult::ok(invoice.data().is_summary())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2256,9 +2462,11 @@ pub unsafe extern "C" fn fatoora_invoice_is_summary(
 pub unsafe extern "C" fn fatoora_invoice_is_self_billed(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<bool> {
-    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    let invoice: &FinalizedInvoice = value;
-    FfiResult::ok(invoice.data().is_self_billed())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        let invoice: &FinalizedInvoice = value;
+        FfiResult::ok(invoice.data().is_self_billed())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2267,9 +2475,11 @@ pub unsafe extern "C" fn fatoora_invoice_is_self_billed(
 pub unsafe extern "C" fn fatoora_invoice_is_simplified(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<bool> {
-    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    let invoice: &FinalizedInvoice = value;
-    FfiResult::ok(invoice.data().invoice_type().is_simplified())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        let invoice: &FinalizedInvoice = value;
+        FfiResult::ok(invoice.data().invoice_type().is_simplified())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2278,9 +2488,11 @@ pub unsafe extern "C" fn fatoora_invoice_is_simplified(
 pub unsafe extern "C" fn fatoora_signed_invoice_is_third_party(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<bool> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    FfiResult::ok(signed.data().is_third_party())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        FfiResult::ok(signed.data().is_third_party())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2289,9 +2501,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_is_third_party(
 pub unsafe extern "C" fn fatoora_signed_invoice_is_nominal(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<bool> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    FfiResult::ok(signed.data().is_nominal())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        FfiResult::ok(signed.data().is_nominal())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2300,9 +2514,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_is_nominal(
 pub unsafe extern "C" fn fatoora_signed_invoice_is_export(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<bool> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    FfiResult::ok(signed.data().is_export())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        FfiResult::ok(signed.data().is_export())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2311,9 +2527,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_is_export(
 pub unsafe extern "C" fn fatoora_signed_invoice_is_summary(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<bool> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    FfiResult::ok(signed.data().is_summary())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        FfiResult::ok(signed.data().is_summary())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2322,9 +2540,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_is_summary(
 pub unsafe extern "C" fn fatoora_signed_invoice_is_self_billed(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<bool> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    FfiResult::ok(signed.data().is_self_billed())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        FfiResult::ok(signed.data().is_self_billed())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2333,9 +2553,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_is_self_billed(
 pub unsafe extern "C" fn fatoora_signed_invoice_is_simplified(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<bool> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    FfiResult::ok(signed.data().invoice_type().is_simplified())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        FfiResult::ok(signed.data().invoice_type().is_simplified())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2344,11 +2566,13 @@ pub unsafe extern "C" fn fatoora_signed_invoice_is_simplified(
 pub unsafe extern "C" fn fatoora_invoice_to_xml(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    match invoice.to_xml() {
-        Ok(xml) => ffi_string_from_owned(xml),
-        Err(err) => FfiResult::err(ffi_error_from_xml(err)),
-    }
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        match invoice.to_xml() {
+            Ok(xml) => ffi_string_from_owned(xml),
+            Err(err) => FfiResult::err(ffi_error_from_xml(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2357,11 +2581,13 @@ pub unsafe extern "C" fn fatoora_invoice_to_xml(
 pub unsafe extern "C" fn fatoora_invoice_hash_base64(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    match invoice.hash_base64() {
-        Ok(hash) => ffi_string_from_owned(hash),
-        Err(err) => FfiResult::err(ffi_error_from_signing(err)),
-    }
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        match invoice.hash_base64() {
+            Ok(hash) => ffi_string_from_owned(hash),
+            Err(err) => FfiResult::err(ffi_error_from_signing(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2378,14 +2604,16 @@ pub unsafe extern "C" fn fatoora_signer_from_pem(
     cert_pem: *const c_char,
     key_pem: *const c_char,
 ) -> FfiResult<FfiSigner> {
-    let cert_pem = ffi_required_string!(cert_pem, "cert pem");
-    let key_pem = ffi_required_string!(key_pem, "key pem");
-    match InvoiceSigner::from_pem(&cert_pem, &key_pem) {
-        Ok(signer) => FfiResult::ok(FfiSigner {
-            ptr: Box::into_raw(Box::new(signer)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(ffi_error_from_signing(err)),
-    }
+    crate::error::boundary(|| {
+        let cert_pem = ffi_required_string!(cert_pem, "cert pem");
+        let key_pem = ffi_required_string!(key_pem, "key pem");
+        match InvoiceSigner::from_pem(&cert_pem, &key_pem) {
+            Ok(signer) => FfiResult::ok(FfiSigner {
+                ptr: Box::into_raw(Box::new(signer)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_signing(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2397,17 +2625,19 @@ pub unsafe extern "C" fn fatoora_signer_from_der(
     key_der: *const u8,
     key_len: usize,
 ) -> FfiResult<FfiSigner> {
-    if cert_der.is_null() || key_der.is_null() {
-        return FfiResult::err(ffi_error_invalid_input("null der pointers"));
-    }
-    let cert = unsafe { std::slice::from_raw_parts(cert_der, cert_len) };
-    let key = unsafe { std::slice::from_raw_parts(key_der, key_len) };
-    match InvoiceSigner::from_der(cert, key) {
-        Ok(signer) => FfiResult::ok(FfiSigner {
-            ptr: Box::into_raw(Box::new(signer)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(ffi_error_from_signing(err)),
-    }
+    crate::error::boundary(|| {
+        if cert_der.is_null() || key_der.is_null() {
+            return FfiResult::err(ffi_error_invalid_input("null der pointers"));
+        }
+        let cert = unsafe { std::slice::from_raw_parts(cert_der, cert_len) };
+        let key = unsafe { std::slice::from_raw_parts(key_der, key_len) };
+        match InvoiceSigner::from_der(cert, key) {
+            Ok(signer) => FfiResult::ok(FfiSigner {
+                ptr: Box::into_raw(Box::new(signer)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_signing(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2423,13 +2653,13 @@ pub unsafe extern "C" fn fatoora_signer_free(signer: *mut FfiSigner) {
 pub unsafe extern "C" fn fatoora_signer_certificate_der(
     signer: *mut FfiSigner,
 ) -> FfiResult<FfiBytes> {
-    let signer = ffi_borrow!(signer, "signer", InvoiceSigner);
-    match signer.certificate().to_der() {
-        Ok(der) => FfiResult::ok(vec_to_ffi_bytes(der)),
-        Err(err) => FfiResult::err(ffi_error_from_signing(SigningError::SigningError(format!(
-            "Certificate DER encoding error: {err:?}"
-        )))),
-    }
+    crate::error::boundary(|| {
+        let signer = ffi_borrow!(signer, "signer", InvoiceSigner);
+        match signer.certificate_der() {
+            Ok(der) => FfiResult::ok(vec_to_ffi_bytes(der)),
+            Err(err) => FfiResult::err(ffi_error_from_signing(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2438,13 +2668,13 @@ pub unsafe extern "C" fn fatoora_signer_certificate_der(
 pub unsafe extern "C" fn fatoora_signer_certificate_pem(
     signer: *mut FfiSigner,
 ) -> FfiResult<FfiString> {
-    let signer = ffi_borrow!(signer, "signer", InvoiceSigner);
-    match signer.certificate().to_pem(LineEnding::LF) {
-        Ok(pem) => ffi_string_from_owned(pem),
-        Err(err) => FfiResult::err(ffi_error_from_signing(SigningError::SigningError(format!(
-            "Certificate PEM encoding error: {err:?}"
-        )))),
-    }
+    crate::error::boundary(|| {
+        let signer = ffi_borrow!(signer, "signer", InvoiceSigner);
+        match signer.certificate_pem() {
+            Ok(pem) => ffi_string_from_owned(pem),
+            Err(err) => FfiResult::err(ffi_error_from_signing(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2454,16 +2684,18 @@ pub unsafe extern "C" fn fatoora_invoice_sign(
     invoice: *mut FfiFinalizedInvoice,
     signer: *mut FfiSigner,
 ) -> FfiResult<FfiSignedInvoice> {
-    let invoice = ffi_take_handle!(invoice, "invoice", FinalizedInvoice);
+    crate::error::boundary(|| {
+        let invoice = ffi_take_handle!(invoice, "invoice", FinalizedInvoice);
 
-    let signer = ffi_borrow!(signer, "signer", InvoiceSigner);
+        let signer = ffi_borrow!(signer, "signer", InvoiceSigner);
 
-    match invoice.sign(signer) {
-        Ok(signed) => FfiResult::ok(FfiSignedInvoice {
-            ptr: Box::into_raw(Box::new(signed)) as *mut std::os::raw::c_void,
-        }),
-        Err(err) => FfiResult::err(ffi_error_from_signing(err)),
-    }
+        match invoice.sign(signer) {
+            Ok(signed) => FfiResult::ok(FfiSignedInvoice {
+                ptr: Box::into_raw(Box::new(signed)) as *mut std::os::raw::c_void,
+            }),
+            Err(err) => FfiResult::err(ffi_error_from_signing(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2472,8 +2704,10 @@ pub unsafe extern "C" fn fatoora_invoice_sign(
 pub unsafe extern "C" fn fatoora_signed_invoice_xml(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    ffi_string_from_owned(signed.xml().to_string())
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        ffi_string_from_owned(signed.xml().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2482,8 +2716,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_xml(
 pub unsafe extern "C" fn fatoora_signed_invoice_qr_code(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    ffi_string_from_owned(signed.qr_code().to_string())
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        ffi_string_from_owned(signed.qr_code().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2492,8 +2728,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_qr_code(
 pub unsafe extern "C" fn fatoora_signed_invoice_uuid(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    ffi_string_from_owned(signed.uuid().to_string())
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        ffi_string_from_owned(signed.uuid().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2502,8 +2740,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_uuid(
 pub unsafe extern "C" fn fatoora_signed_invoice_hash(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    ffi_string_from_owned(signed.invoice_hash().to_string())
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        ffi_string_from_owned(signed.invoice_hash().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2512,11 +2752,13 @@ pub unsafe extern "C" fn fatoora_signed_invoice_hash(
 pub unsafe extern "C" fn fatoora_signed_invoice_hash_base64(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    match signed.hash_base64() {
-        Ok(hash) => ffi_string_from_owned(hash),
-        Err(err) => FfiResult::err(ffi_error_from_signing(err)),
-    }
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        match signed.hash_base64() {
+            Ok(hash) => ffi_string_from_owned(hash),
+            Err(err) => FfiResult::err(ffi_error_from_signing(err)),
+        }
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2525,9 +2767,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_hash_base64(
 pub unsafe extern "C" fn fatoora_signed_invoice_signature(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    ffi_string_from_owned(signed.signature().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        ffi_string_from_owned(signed.signature().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2536,9 +2780,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_signature(
 pub unsafe extern "C" fn fatoora_signed_invoice_public_key(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    ffi_string_from_owned(signed.public_key().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        ffi_string_from_owned(signed.public_key().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2547,9 +2793,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_public_key(
 pub unsafe extern "C" fn fatoora_signed_invoice_zatca_key_signature(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    ffi_string_result(signed.zatca_key_signature())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        ffi_string_result(signed.zatca_key_signature())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2558,9 +2806,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_zatca_key_signature(
 pub unsafe extern "C" fn fatoora_signed_invoice_cert_hash(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    ffi_string_from_owned(signed.signed_properties().cert_hash().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        ffi_string_from_owned(signed.signed_properties().cert_hash().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2569,9 +2819,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_cert_hash(
 pub unsafe extern "C" fn fatoora_signed_invoice_signed_props_hash(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    ffi_string_from_owned(signed.signed_properties().signed_props_hash().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        ffi_string_from_owned(signed.signed_properties().signed_props_hash().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2580,10 +2832,12 @@ pub unsafe extern "C" fn fatoora_signed_invoice_signed_props_hash(
 pub unsafe extern "C" fn fatoora_signed_invoice_signing_time(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    let time = signed.signed_properties().signing_time();
-    ffi_string_from_owned(time.to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        let time = signed.signed_properties().signing_time();
+        ffi_string_from_owned(time.to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2592,9 +2846,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_signing_time(
 pub unsafe extern "C" fn fatoora_signed_invoice_issuer(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    ffi_string_from_owned(signed.signed_properties().issuer().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        ffi_string_from_owned(signed.signed_properties().issuer().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2603,9 +2859,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_issuer(
 pub unsafe extern "C" fn fatoora_signed_invoice_serial(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    ffi_string_from_owned(signed.signed_properties().serial().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        ffi_string_from_owned(signed.signed_properties().serial().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2614,10 +2872,12 @@ pub unsafe extern "C" fn fatoora_signed_invoice_serial(
 pub unsafe extern "C" fn fatoora_invoice_seller(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiParty> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    let seller = PartyOwned::from(invoice.data().seller());
-    FfiResult::ok(FfiParty {
-        ptr: Box::into_raw(Box::new(seller)) as *mut std::os::raw::c_void,
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        let seller = PartyOwned::from(invoice.data().seller());
+        FfiResult::ok(FfiParty {
+            ptr: Box::into_raw(Box::new(seller)) as *mut std::os::raw::c_void,
+        })
     })
 }
 
@@ -2627,10 +2887,12 @@ pub unsafe extern "C" fn fatoora_invoice_seller(
 pub unsafe extern "C" fn fatoora_invoice_buyer(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiParty> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    let buyer = invoice.data().buyer().map(PartyOwned::from);
-    FfiResult::ok(FfiParty {
-        ptr: optional_handle(buyer),
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        let buyer = invoice.data().buyer().map(PartyOwned::from);
+        FfiResult::ok(FfiParty {
+            ptr: optional_handle(buyer),
+        })
     })
 }
 
@@ -2640,10 +2902,12 @@ pub unsafe extern "C" fn fatoora_invoice_buyer(
 pub unsafe extern "C" fn fatoora_invoice_note(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiInvoiceNote> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    let note = invoice.data().note().cloned();
-    FfiResult::ok(FfiInvoiceNote {
-        ptr: optional_handle(note),
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        let note = invoice.data().note().cloned();
+        FfiResult::ok(FfiInvoiceNote {
+            ptr: optional_handle(note),
+        })
     })
 }
 
@@ -2653,8 +2917,10 @@ pub unsafe extern "C" fn fatoora_invoice_note(
 pub unsafe extern "C" fn fatoora_invoice_id(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    ffi_string_from_owned(invoice.data().id().to_string())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        ffi_string_from_owned(invoice.data().id().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2663,8 +2929,10 @@ pub unsafe extern "C" fn fatoora_invoice_id(
 pub unsafe extern "C" fn fatoora_invoice_uuid(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    ffi_string_from_owned(invoice.data().uuid().to_string())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        ffi_string_from_owned(invoice.data().uuid().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2673,8 +2941,10 @@ pub unsafe extern "C" fn fatoora_invoice_uuid(
 pub unsafe extern "C" fn fatoora_invoice_issue_datetime(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    ffi_string_from_owned(invoice.data().issue_datetime().as_str().to_string())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        ffi_string_from_owned(invoice.data().issue_datetime().as_str().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2683,8 +2953,10 @@ pub unsafe extern "C" fn fatoora_invoice_issue_datetime(
 pub unsafe extern "C" fn fatoora_invoice_currency(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    ffi_string_from_owned(invoice.data().currency().as_str().to_string())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        ffi_string_from_owned(invoice.data().currency().as_str().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2693,8 +2965,10 @@ pub unsafe extern "C" fn fatoora_invoice_currency(
 pub unsafe extern "C" fn fatoora_invoice_previous_hash(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    ffi_string_from_owned(invoice.data().previous_invoice_hash().to_string())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        ffi_string_from_owned(invoice.data().previous_invoice_hash().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2703,8 +2977,10 @@ pub unsafe extern "C" fn fatoora_invoice_previous_hash(
 pub unsafe extern "C" fn fatoora_invoice_counter(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<u64> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    FfiResult::ok(invoice.data().invoice_counter())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        FfiResult::ok(invoice.data().invoice_counter())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2713,8 +2989,10 @@ pub unsafe extern "C" fn fatoora_invoice_counter(
 pub unsafe extern "C" fn fatoora_invoice_payment_means_code(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    ffi_string_from_owned(invoice.data().payment_means_code().to_string())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        ffi_string_from_owned(invoice.data().payment_means_code().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2723,8 +3001,10 @@ pub unsafe extern "C" fn fatoora_invoice_payment_means_code(
 pub unsafe extern "C" fn fatoora_invoice_vat_category(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiVatCategory> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    FfiResult::ok(FfiVatCategory::from(invoice.data().vat_category()))
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        FfiResult::ok(FfiVatCategory::from(invoice.data().vat_category()))
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2733,8 +3013,10 @@ pub unsafe extern "C" fn fatoora_invoice_vat_category(
 pub unsafe extern "C" fn fatoora_invoice_allowance_reason(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    ffi_string_result(invoice.data().allowance_reason())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        ffi_string_result(invoice.data().allowance_reason())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2743,8 +3025,10 @@ pub unsafe extern "C" fn fatoora_invoice_allowance_reason(
 pub unsafe extern "C" fn fatoora_invoice_level_charge(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    ffi_string_from_owned((invoice.data().invoice_level_charge()).to_string())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        ffi_string_from_owned((invoice.data().invoice_level_charge()).to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2753,8 +3037,10 @@ pub unsafe extern "C" fn fatoora_invoice_level_charge(
 pub unsafe extern "C" fn fatoora_invoice_level_discount(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    ffi_string_from_owned((invoice.data().invoice_level_discount()).to_string())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        ffi_string_from_owned((invoice.data().invoice_level_discount()).to_string())
+    })
 }
 
 fn invoice_type_parts(
@@ -2789,11 +3075,13 @@ fn invoice_type_parts(
 pub unsafe extern "C" fn fatoora_invoice_type_kind(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiInvoiceTypeKind> {
-    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    let invoice: &FinalizedInvoice = value;
-    FfiResult::ok({
-        let (kind, _, _, _) = invoice_type_parts(invoice.data().invoice_type());
-        kind
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        let invoice: &FinalizedInvoice = value;
+        FfiResult::ok({
+            let (kind, _, _, _) = invoice_type_parts(invoice.data().invoice_type());
+            kind
+        })
     })
 }
 
@@ -2803,11 +3091,13 @@ pub unsafe extern "C" fn fatoora_invoice_type_kind(
 pub unsafe extern "C" fn fatoora_invoice_sub_type(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiInvoiceSubType> {
-    let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    let invoice: &FinalizedInvoice = value;
-    FfiResult::ok({
-        let (_, sub_type, _, _) = invoice_type_parts(invoice.data().invoice_type());
-        sub_type
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        let invoice: &FinalizedInvoice = value;
+        FfiResult::ok({
+            let (_, sub_type, _, _) = invoice_type_parts(invoice.data().invoice_type());
+            sub_type
+        })
     })
 }
 
@@ -2817,10 +3107,12 @@ pub unsafe extern "C" fn fatoora_invoice_sub_type(
 pub unsafe extern "C" fn fatoora_invoice_original_ref(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiOriginalInvoiceRef> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    let (_, _, reference, _) = invoice_type_parts(invoice.data().invoice_type());
-    FfiResult::ok(FfiOriginalInvoiceRef {
-        ptr: optional_handle(reference),
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        let (_, _, reference, _) = invoice_type_parts(invoice.data().invoice_type());
+        FfiResult::ok(FfiOriginalInvoiceRef {
+            ptr: optional_handle(reference),
+        })
     })
 }
 
@@ -2830,9 +3122,11 @@ pub unsafe extern "C" fn fatoora_invoice_original_ref(
 pub unsafe extern "C" fn fatoora_invoice_original_reason(
     invoice: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    let (_, _, _, reason) = invoice_type_parts(invoice.data().invoice_type());
-    ffi_string_result(reason.as_deref())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
+        let (_, _, _, reason) = invoice_type_parts(invoice.data().invoice_type());
+        ffi_string_result(reason.as_deref())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2841,10 +3135,12 @@ pub unsafe extern "C" fn fatoora_invoice_original_reason(
 pub unsafe extern "C" fn fatoora_signed_invoice_seller(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiParty> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    let seller = PartyOwned::from(signed.data().seller());
-    FfiResult::ok(FfiParty {
-        ptr: Box::into_raw(Box::new(seller)) as *mut std::os::raw::c_void,
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        let seller = PartyOwned::from(signed.data().seller());
+        FfiResult::ok(FfiParty {
+            ptr: Box::into_raw(Box::new(seller)) as *mut std::os::raw::c_void,
+        })
     })
 }
 
@@ -2854,10 +3150,12 @@ pub unsafe extern "C" fn fatoora_signed_invoice_seller(
 pub unsafe extern "C" fn fatoora_signed_invoice_buyer(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiParty> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    let buyer = signed.data().buyer().map(PartyOwned::from);
-    FfiResult::ok(FfiParty {
-        ptr: optional_handle(buyer),
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        let buyer = signed.data().buyer().map(PartyOwned::from);
+        FfiResult::ok(FfiParty {
+            ptr: optional_handle(buyer),
+        })
     })
 }
 
@@ -2867,10 +3165,12 @@ pub unsafe extern "C" fn fatoora_signed_invoice_buyer(
 pub unsafe extern "C" fn fatoora_signed_invoice_note(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiInvoiceNote> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    let note = signed.data().note().cloned();
-    FfiResult::ok(FfiInvoiceNote {
-        ptr: optional_handle(note),
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        let note = signed.data().note().cloned();
+        FfiResult::ok(FfiInvoiceNote {
+            ptr: optional_handle(note),
+        })
     })
 }
 
@@ -2880,8 +3180,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_note(
 pub unsafe extern "C" fn fatoora_signed_invoice_id(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    ffi_string_from_owned(signed.data().id().to_string())
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        ffi_string_from_owned(signed.data().id().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2890,8 +3192,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_id(
 pub unsafe extern "C" fn fatoora_signed_invoice_issue_datetime(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    ffi_string_from_owned(signed.data().issue_datetime().as_str().to_string())
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        ffi_string_from_owned(signed.data().issue_datetime().as_str().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2900,8 +3204,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_issue_datetime(
 pub unsafe extern "C" fn fatoora_signed_invoice_currency(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    ffi_string_from_owned(signed.data().currency().as_str().to_string())
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        ffi_string_from_owned(signed.data().currency().as_str().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2910,8 +3216,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_currency(
 pub unsafe extern "C" fn fatoora_signed_invoice_previous_hash(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    ffi_string_from_owned(signed.data().previous_invoice_hash().to_string())
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        ffi_string_from_owned(signed.data().previous_invoice_hash().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2920,8 +3228,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_previous_hash(
 pub unsafe extern "C" fn fatoora_signed_invoice_counter(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<u64> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    FfiResult::ok(signed.data().invoice_counter())
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        FfiResult::ok(signed.data().invoice_counter())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2930,8 +3240,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_counter(
 pub unsafe extern "C" fn fatoora_signed_invoice_payment_means_code(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    ffi_string_from_owned(signed.data().payment_means_code().to_string())
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        ffi_string_from_owned(signed.data().payment_means_code().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2940,8 +3252,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_payment_means_code(
 pub unsafe extern "C" fn fatoora_signed_invoice_vat_category(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiVatCategory> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    FfiResult::ok(FfiVatCategory::from(signed.data().vat_category()))
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        FfiResult::ok(FfiVatCategory::from(signed.data().vat_category()))
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2950,8 +3264,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_vat_category(
 pub unsafe extern "C" fn fatoora_signed_invoice_allowance_reason(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    ffi_string_result(signed.data().allowance_reason())
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        ffi_string_result(signed.data().allowance_reason())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2960,8 +3276,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_allowance_reason(
 pub unsafe extern "C" fn fatoora_signed_invoice_level_charge(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    ffi_string_from_owned((signed.data().invoice_level_charge()).to_string())
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        ffi_string_from_owned((signed.data().invoice_level_charge()).to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2970,8 +3288,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_level_charge(
 pub unsafe extern "C" fn fatoora_signed_invoice_level_discount(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    ffi_string_from_owned((signed.data().invoice_level_discount()).to_string())
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        ffi_string_from_owned((signed.data().invoice_level_discount()).to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -2980,11 +3300,13 @@ pub unsafe extern "C" fn fatoora_signed_invoice_level_discount(
 pub unsafe extern "C" fn fatoora_signed_invoice_type_kind(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiInvoiceTypeKind> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    FfiResult::ok({
-        let (kind, _, _, _) = invoice_type_parts(signed.data().invoice_type());
-        kind
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        FfiResult::ok({
+            let (kind, _, _, _) = invoice_type_parts(signed.data().invoice_type());
+            kind
+        })
     })
 }
 
@@ -2994,11 +3316,13 @@ pub unsafe extern "C" fn fatoora_signed_invoice_type_kind(
 pub unsafe extern "C" fn fatoora_signed_invoice_sub_type(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiInvoiceSubType> {
-    let value = ffi_borrow!(handle, "signed", SignedInvoice);
-    let signed: &SignedInvoice = value;
-    FfiResult::ok({
-        let (_, sub_type, _, _) = invoice_type_parts(signed.data().invoice_type());
-        sub_type
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "signed", SignedInvoice);
+        let signed: &SignedInvoice = value;
+        FfiResult::ok({
+            let (_, sub_type, _, _) = invoice_type_parts(signed.data().invoice_type());
+            sub_type
+        })
     })
 }
 
@@ -3008,10 +3332,12 @@ pub unsafe extern "C" fn fatoora_signed_invoice_sub_type(
 pub unsafe extern "C" fn fatoora_signed_invoice_original_ref(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiOriginalInvoiceRef> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    let (_, _, reference, _) = invoice_type_parts(signed.data().invoice_type());
-    FfiResult::ok(FfiOriginalInvoiceRef {
-        ptr: optional_handle(reference),
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        let (_, _, reference, _) = invoice_type_parts(signed.data().invoice_type());
+        FfiResult::ok(FfiOriginalInvoiceRef {
+            ptr: optional_handle(reference),
+        })
     })
 }
 
@@ -3021,9 +3347,11 @@ pub unsafe extern "C" fn fatoora_signed_invoice_original_ref(
 pub unsafe extern "C" fn fatoora_signed_invoice_original_reason(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    let (_, _, _, reason) = invoice_type_parts(signed.data().invoice_type());
-    ffi_string_result(reason.as_deref())
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        let (_, _, _, reason) = invoice_type_parts(signed.data().invoice_type());
+        ffi_string_result(reason.as_deref())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3037,22 +3365,26 @@ pub unsafe extern "C" fn fatoora_party_free(party: *mut FfiParty) {
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_party_name(handle: *mut FfiParty) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "party", PartyOwned);
-    let party: &PartyOwned = value;
-    ffi_string_from_owned(party.name.to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "party", PartyOwned);
+        let party: &PartyOwned = value;
+        ffi_string_from_owned(party.name.to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_party_address(handle: *mut FfiParty) -> FfiResult<FfiAddress> {
-    let value = ffi_borrow!(handle, "party", PartyOwned);
-    let party: &PartyOwned = value;
-    FfiResult::ok({
-        let address = party.address.clone();
-        FfiAddress {
-            ptr: Box::into_raw(Box::new(address)) as *mut std::os::raw::c_void,
-        }
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "party", PartyOwned);
+        let party: &PartyOwned = value;
+        FfiResult::ok({
+            let address = party.address.clone();
+            FfiAddress {
+                ptr: Box::into_raw(Box::new(address)) as *mut std::os::raw::c_void,
+            }
+        })
     })
 }
 
@@ -3060,13 +3392,15 @@ pub unsafe extern "C" fn fatoora_party_address(handle: *mut FfiParty) -> FfiResu
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_party_vat_id(handle: *mut FfiParty) -> FfiResult<FfiVatId> {
-    let value = ffi_borrow!(handle, "party", PartyOwned);
-    let party: &PartyOwned = value;
-    FfiResult::ok({
-        let vat = party.vat_id.clone();
-        FfiVatId {
-            ptr: optional_handle(vat),
-        }
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "party", PartyOwned);
+        let party: &PartyOwned = value;
+        FfiResult::ok({
+            let vat = party.vat_id.clone();
+            FfiVatId {
+                ptr: optional_handle(vat),
+            }
+        })
     })
 }
 
@@ -3074,13 +3408,15 @@ pub unsafe extern "C" fn fatoora_party_vat_id(handle: *mut FfiParty) -> FfiResul
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_party_other_id(handle: *mut FfiParty) -> FfiResult<FfiOtherId> {
-    let value = ffi_borrow!(handle, "party", PartyOwned);
-    let party: &PartyOwned = value;
-    FfiResult::ok({
-        let other = party.other_id.clone();
-        FfiOtherId {
-            ptr: optional_handle(other),
-        }
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "party", PartyOwned);
+        let party: &PartyOwned = value;
+        FfiResult::ok({
+            let other = party.other_id.clone();
+            FfiOtherId {
+                ptr: optional_handle(other),
+            }
+        })
     })
 }
 
@@ -3097,27 +3433,33 @@ pub unsafe extern "C" fn fatoora_address_free(address: *mut FfiAddress) {
 pub unsafe extern "C" fn fatoora_address_country_code(
     handle: *mut FfiAddress,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "address", Address);
-    let address: &Address = value;
-    ffi_string_from_owned(address.country_code().as_str().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "address", Address);
+        let address: &Address = value;
+        ffi_string_from_owned(address.country_code().as_str().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_address_city(handle: *mut FfiAddress) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "address", Address);
-    let address: &Address = value;
-    ffi_string_from_owned(address.city().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "address", Address);
+        let address: &Address = value;
+        ffi_string_from_owned(address.city().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_address_street(handle: *mut FfiAddress) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "address", Address);
-    let address: &Address = value;
-    ffi_string_from_owned(address.street().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "address", Address);
+        let address: &Address = value;
+        ffi_string_from_owned(address.street().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3126,9 +3468,11 @@ pub unsafe extern "C" fn fatoora_address_street(handle: *mut FfiAddress) -> FfiR
 pub unsafe extern "C" fn fatoora_address_additional_street(
     handle: *mut FfiAddress,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "address", Address);
-    let address: &Address = value;
-    ffi_string_result(address.additional_street())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "address", Address);
+        let address: &Address = value;
+        ffi_string_result(address.additional_street())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3137,9 +3481,11 @@ pub unsafe extern "C" fn fatoora_address_additional_street(
 pub unsafe extern "C" fn fatoora_address_building_number(
     handle: *mut FfiAddress,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "address", Address);
-    let address: &Address = value;
-    ffi_string_from_owned(address.building_number().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "address", Address);
+        let address: &Address = value;
+        ffi_string_from_owned(address.building_number().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3148,9 +3494,11 @@ pub unsafe extern "C" fn fatoora_address_building_number(
 pub unsafe extern "C" fn fatoora_address_additional_number(
     handle: *mut FfiAddress,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "address", Address);
-    let address: &Address = value;
-    ffi_string_result(address.additional_number())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "address", Address);
+        let address: &Address = value;
+        ffi_string_result(address.additional_number())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3159,9 +3507,11 @@ pub unsafe extern "C" fn fatoora_address_additional_number(
 pub unsafe extern "C" fn fatoora_address_postal_code(
     handle: *mut FfiAddress,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "address", Address);
-    let address: &Address = value;
-    ffi_string_from_owned(address.postal_code().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "address", Address);
+        let address: &Address = value;
+        ffi_string_from_owned(address.postal_code().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3170,18 +3520,22 @@ pub unsafe extern "C" fn fatoora_address_postal_code(
 pub unsafe extern "C" fn fatoora_address_subdivision(
     handle: *mut FfiAddress,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "address", Address);
-    let address: &Address = value;
-    ffi_string_result(address.subdivision())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "address", Address);
+        let address: &Address = value;
+        ffi_string_result(address.subdivision())
+    })
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_address_district(handle: *mut FfiAddress) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "address", Address);
-    let address: &Address = value;
-    ffi_string_result(address.district())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "address", Address);
+        let address: &Address = value;
+        ffi_string_result(address.district())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3195,9 +3549,11 @@ pub unsafe extern "C" fn fatoora_vat_id_free(vat: *mut FfiVatId) {
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_vat_id_value(handle: *mut FfiVatId) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "vat id", VatId);
-    let vat: &VatId = value;
-    ffi_string_from_owned(vat.as_str().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "vat id", VatId);
+        let vat: &VatId = value;
+        ffi_string_from_owned(vat.as_str().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3211,18 +3567,22 @@ pub unsafe extern "C" fn fatoora_other_id_free(other: *mut FfiOtherId) {
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_other_id_value(handle: *mut FfiOtherId) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "other id", OtherId);
-    let other: &OtherId = value;
-    ffi_string_from_owned(other.as_str().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "other id", OtherId);
+        let other: &OtherId = value;
+        ffi_string_from_owned(other.as_str().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_other_id_scheme(handle: *mut FfiOtherId) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "other id", OtherId);
-    let other: &OtherId = value;
-    ffi_string_result(other.scheme_id())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "other id", OtherId);
+        let other: &OtherId = value;
+        ffi_string_result(other.scheme_id())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3238,9 +3598,11 @@ pub unsafe extern "C" fn fatoora_invoice_note_free(note: *mut FfiInvoiceNote) {
 pub unsafe extern "C" fn fatoora_invoice_note_language(
     handle: *mut FfiInvoiceNote,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "invoice note", InvoiceNote);
-    let note: &InvoiceNote = value;
-    ffi_string_from_owned(note.language().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice note", InvoiceNote);
+        let note: &InvoiceNote = value;
+        ffi_string_from_owned(note.language().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3249,9 +3611,11 @@ pub unsafe extern "C" fn fatoora_invoice_note_language(
 pub unsafe extern "C" fn fatoora_invoice_note_text(
     handle: *mut FfiInvoiceNote,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "invoice note", InvoiceNote);
-    let note: &InvoiceNote = value;
-    ffi_string_from_owned(note.text().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "invoice note", InvoiceNote);
+        let note: &InvoiceNote = value;
+        ffi_string_from_owned(note.text().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3267,9 +3631,11 @@ pub unsafe extern "C" fn fatoora_original_invoice_ref_free(reference: *mut FfiOr
 pub unsafe extern "C" fn fatoora_original_invoice_ref_id(
     handle: *mut FfiOriginalInvoiceRef,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "original ref", OriginalInvoiceRef);
-    let reference: &OriginalInvoiceRef = value;
-    ffi_string_from_owned(reference.id().to_string())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "original ref", OriginalInvoiceRef);
+        let reference: &OriginalInvoiceRef = value;
+        ffi_string_from_owned(reference.id().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3278,9 +3644,11 @@ pub unsafe extern "C" fn fatoora_original_invoice_ref_id(
 pub unsafe extern "C" fn fatoora_original_invoice_ref_uuid(
     handle: *mut FfiOriginalInvoiceRef,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "original ref", OriginalInvoiceRef);
-    let reference: &OriginalInvoiceRef = value;
-    ffi_string_result(reference.uuid())
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "original ref", OriginalInvoiceRef);
+        let reference: &OriginalInvoiceRef = value;
+        ffi_string_result(reference.uuid())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3289,10 +3657,12 @@ pub unsafe extern "C" fn fatoora_original_invoice_ref_uuid(
 pub unsafe extern "C" fn fatoora_original_invoice_ref_issue_date(
     handle: *mut FfiOriginalInvoiceRef,
 ) -> FfiResult<FfiString> {
-    let value = ffi_borrow!(handle, "original ref", OriginalInvoiceRef);
-    let reference: &OriginalInvoiceRef = value;
-    let date = reference.issue_date().map(|value| value.as_str());
-    ffi_string_result(date)
+    crate::error::boundary(|| {
+        let value = ffi_borrow!(handle, "original ref", OriginalInvoiceRef);
+        let reference: &OriginalInvoiceRef = value;
+        let date = reference.issue_date().map(|value| value.as_str());
+        ffi_string_result(date)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3301,8 +3671,10 @@ pub unsafe extern "C" fn fatoora_original_invoice_ref_issue_date(
 pub unsafe extern "C" fn fatoora_signed_invoice_to_xml_base64(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    ffi_string_from_owned(signed.to_xml_base64())
+    crate::error::boundary(|| {
+        let signed = ffi_borrow!(signed, "signed", SignedInvoice);
+        ffi_string_from_owned(signed.to_xml_base64())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3319,8 +3691,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_free(signed: *mut FfiSignedInvoi
 pub unsafe extern "C" fn fatoora_invoice_totals_prepaid_amount(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    ffi_string_from_owned(invoice.totals().prepaid_amount().to_string())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        ffi_string_from_owned(invoice.totals().prepaid_amount().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3330,8 +3704,10 @@ pub unsafe extern "C" fn fatoora_invoice_totals_prepaid_amount(
 pub unsafe extern "C" fn fatoora_invoice_totals_payable_rounding_amount(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    ffi_string_from_owned(invoice.totals().payable_rounding_amount().to_string())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        ffi_string_from_owned(invoice.totals().payable_rounding_amount().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3341,8 +3717,10 @@ pub unsafe extern "C" fn fatoora_invoice_totals_payable_rounding_amount(
 pub unsafe extern "C" fn fatoora_invoice_totals_payable_amount(
     handle: *mut FfiFinalizedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(handle, "invoice", FinalizedInvoice);
-    ffi_string_from_owned(invoice.totals().payable_amount().to_string())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+        ffi_string_from_owned(invoice.totals().payable_amount().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3352,8 +3730,10 @@ pub unsafe extern "C" fn fatoora_invoice_totals_payable_amount(
 pub unsafe extern "C" fn fatoora_signed_invoice_totals_prepaid_amount(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(handle, "invoice", SignedInvoice);
-    ffi_string_from_owned(invoice.totals().prepaid_amount().to_string())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(handle, "invoice", SignedInvoice);
+        ffi_string_from_owned(invoice.totals().prepaid_amount().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3363,8 +3743,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_totals_prepaid_amount(
 pub unsafe extern "C" fn fatoora_signed_invoice_totals_payable_rounding_amount(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(handle, "invoice", SignedInvoice);
-    ffi_string_from_owned(invoice.totals().payable_rounding_amount().to_string())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(handle, "invoice", SignedInvoice);
+        ffi_string_from_owned(invoice.totals().payable_rounding_amount().to_string())
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -3374,8 +3756,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_totals_payable_rounding_amount(
 pub unsafe extern "C" fn fatoora_signed_invoice_totals_payable_amount(
     handle: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
-    let invoice = ffi_borrow!(handle, "invoice", SignedInvoice);
-    ffi_string_from_owned(invoice.totals().payable_amount().to_string())
+    crate::error::boundary(|| {
+        let invoice = ffi_borrow!(handle, "invoice", SignedInvoice);
+        ffi_string_from_owned(invoice.totals().payable_amount().to_string())
+    })
 }
 
 #[cfg(test)]

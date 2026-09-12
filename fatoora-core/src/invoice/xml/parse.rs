@@ -15,7 +15,20 @@ use thiserror::Error;
 
 /// Errors emitted while parsing XML invoices.
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum ParseError {
+    #[error("{0}")]
+    Qr(#[from] crate::invoice::QrCodeError),
+    #[error("{0}")]
+    Invoice(#[from] crate::invoice::InvoiceError),
+    #[error("{0}")]
+    Decimal(#[from] crate::DecimalError),
+    #[error("failed to read {path}: {source}")]
+    Io {
+        path: std::path::PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
     #[error("XML parse error: {0}")]
     XmlParse(String),
     #[error("XPath error: {0}")]
@@ -24,6 +37,21 @@ pub enum ParseError {
     MissingField(&'static str),
     #[error("Invalid value for {field}: {value}")]
     InvalidValue { field: &'static str, value: String },
+}
+
+impl ParseError {
+    /// Shared classification used by bindings.
+    pub fn kind(&self) -> crate::ErrorKind {
+        match self {
+            Self::Qr(error) => error.kind(),
+            Self::Invoice(error) => error.kind(),
+            Self::Decimal(error) => error.kind(),
+            Self::Io { .. } => crate::ErrorKind::Io,
+            Self::XmlParse(_) => crate::ErrorKind::Xml,
+            Self::XPath(_) => crate::ErrorKind::Parse,
+            Self::MissingField(_) | Self::InvalidValue { .. } => crate::ErrorKind::InvalidInput,
+        }
+    }
 }
 
 /// Parse a finalized invoice from XML string.
@@ -55,8 +83,10 @@ pub fn parse_finalized_invoice_xml_file(
     path: impl AsRef<Path>,
 ) -> Result<FinalizedInvoice, ParseError> {
     let path = path.as_ref();
-    let xml = std::fs::read_to_string(path)
-        .map_err(|e| ParseError::XmlParse(format!("failed to read {}: {e}", path.display())))?;
+    let xml = std::fs::read_to_string(path).map_err(|e| ParseError::Io {
+        path: path.to_path_buf(),
+        source: e,
+    })?;
     parse_finalized_invoice_xml(&xml)
 }
 
@@ -72,7 +102,7 @@ pub fn parse_signed_invoice_xml(xml: &str) -> Result<SignedInvoice, ParseError> 
     let signing = parse_signed_properties(&doc)?;
     let signed = finalized
         .sign_with_bundle(signing, xml.to_string())
-        .map_err(|e| ParseError::XmlParse(format!("{e:?}")))?;
+        .map_err(ParseError::from)?;
     Ok(signed)
 }
 
@@ -82,8 +112,10 @@ pub fn parse_signed_invoice_xml(xml: &str) -> Result<SignedInvoice, ParseError> 
 /// Returns [`ParseError`] if the file cannot be read or the XML is invalid.
 pub fn parse_signed_invoice_xml_file(path: impl AsRef<Path>) -> Result<SignedInvoice, ParseError> {
     let path = path.as_ref();
-    let xml = std::fs::read_to_string(path)
-        .map_err(|e| ParseError::XmlParse(format!("failed to read {}: {e}", path.display())))?;
+    let xml = std::fs::read_to_string(path).map_err(|e| ParseError::Io {
+        path: path.to_path_buf(),
+        source: e,
+    })?;
     parse_signed_invoice_xml(&xml)
 }
 
@@ -227,8 +259,8 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
             "ChargeIndicator",
         )?;
         match is_charge.as_str() {
-            "true" | "1" => charge = charge.add(amount).map_err(decimal_parse_error)?,
-            "false" | "0" => discount = discount.add(amount).map_err(decimal_parse_error)?,
+            "true" | "1" => charge = charge.add(amount).map_err(ParseError::from)?,
+            "false" | "0" => discount = discount.add(amount).map_err(ParseError::from)?,
             _ => {
                 return Err(ParseError::InvalidValue {
                     field: "ChargeIndicator",
@@ -251,9 +283,7 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
     builder
         .invoice_level_discount(discount)
         .invoice_level_charge(charge);
-    let mut invoice = builder
-        .build()
-        .map_err(|e| ParseError::XmlParse(format!("{e:?}")))?;
+    let mut invoice = builder.build().map_err(ParseError::from)?;
     if let Some((category, rate)) = adjustment_tax
         && !invoice
             .totals()
@@ -355,7 +385,7 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
             &ctx,
             &format!("/ubl:Invoice/cac:LegalMonetaryTotal/cbc:{field}"),
         )? {
-            *dest = value.parse().map_err(decimal_parse_error)?;
+            *dest = value.parse().map_err(ParseError::from)?;
             if dest.scale() > 2 {
                 return Err(ParseError::InvalidValue { field, value });
             }
@@ -372,7 +402,7 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
         .tax_inclusive_amount()
         .sub(prepaid)
         .and_then(|v| v.add(rounding))
-        .map_err(decimal_parse_error)?;
+        .map_err(ParseError::from)?;
     if let Some(value) = xpath_text_optional(
         &ctx,
         "/ubl:Invoice/cac:LegalMonetaryTotal/cbc:PayableAmount",
@@ -554,8 +584,7 @@ fn parse_seller(ctx: &xpath::Context) -> Result<Party<SellerRole>, ParseError> {
         _ => None,
     };
 
-    Party::<SellerRole>::new(name, address, vat, other_id)
-        .map_err(|e| ParseError::XmlParse(format!("{e:?}")))
+    Party::<SellerRole>::new(name, address, vat, other_id).map_err(ParseError::from)
 }
 
 fn parse_address(ctx: &xpath::Context) -> Result<Address, ParseError> {
@@ -729,7 +758,7 @@ fn parse_line_items(ctx: &xpath::Context) -> Result<Vec<LineItem>, ParseError> {
         }
         let expected = quantity
             .product_rounded(unit_price, false)
-            .map_err(decimal_parse_error)?;
+            .map_err(ParseError::from)?;
         check_amount("LineExtensionAmount", &total_amount.to_string(), expected)?;
         if let Some(gross) =
             xpath_text_optional(ctx, &format!("{base}/cac:TaxTotal/cbc:RoundingAmount"))?
@@ -737,7 +766,7 @@ fn parse_line_items(ctx: &xpath::Context) -> Result<Vec<LineItem>, ParseError> {
             check_amount(
                 "LineGrossAmount",
                 &gross,
-                total_amount.add(vat_amount).map_err(decimal_parse_error)?,
+                total_amount.add(vat_amount).map_err(ParseError::from)?,
             )?;
         }
         let line_item = LineItem {
@@ -842,12 +871,6 @@ fn bytes_to_string(bytes: &Vec<u8>) -> Option<String> {
     String::from_utf8(bytes.clone()).ok()
 }
 
-fn decimal_parse_error(error: crate::DecimalError) -> ParseError {
-    ParseError::InvalidValue {
-        field: "Decimal",
-        value: error.to_string(),
-    }
-}
 fn decimal_required(
     ctx: &xpath::Context,
     path: &str,

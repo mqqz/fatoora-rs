@@ -69,9 +69,11 @@ fn signer_from_der_rejects_invalid_cert() {
         Err(err) => err,
     };
     match err {
-        SigningError::SigningError(msg) => {
+        SigningError::InvalidInput(diagnostic) => {
+            let msg = diagnostic.message();
             assert!(msg.contains("Certificate parse error"), "unexpected: {msg}");
         }
+        other => panic!("expected invalid input: {other}"),
     }
     drop(signer_key);
 }
@@ -84,9 +86,11 @@ fn signer_from_der_rejects_invalid_key() {
         Err(err) => err,
     };
     match err {
-        SigningError::SigningError(msg) => {
+        SigningError::InvalidInput(diagnostic) => {
+            let msg = diagnostic.message();
             assert!(msg.contains("Private key parse error"), "unexpected: {msg}");
         }
+        other => panic!("expected invalid input: {other}"),
     }
     drop(key_der);
 }
@@ -97,7 +101,8 @@ fn signer_from_pem_accepts_valid_pem() {
     let cert_pem = pem_wrap("CERTIFICATE", &cert_der);
     let key_pem = pem_wrap("PRIVATE KEY", &key_der);
     let signer = InvoiceSigner::from_pem(&cert_pem, &key_pem).expect("valid pem signer");
-    let _ = signer.certificate();
+    assert_eq!(signer.certificate_der().unwrap(), cert_der);
+    assert_eq!(signer.certificate_pem().unwrap(), cert_pem);
 }
 
 #[test]
@@ -111,17 +116,15 @@ fn signer_from_pem_rejects_invalid_cert() {
 #[test]
 fn sign_xml_rejects_invalid_xml() {
     let (signer, _key) = build_test_signer();
-    let err = match signer.sign_xml("<Invoice>") {
+    let err = match signer.sign_xml("") {
         Ok(_) => panic!("invalid xml rejected"),
         Err(err) => err,
     };
-    match err {
-        SigningError::SigningError(msg) => {
-            let is_parse_error = msg.contains("XML parse error");
-            let is_missing = msg.contains("Missing issue date") || msg.contains("Missing");
-            assert!(is_parse_error || is_missing, "unexpected: {msg}");
-        }
-    }
+    assert!(
+        matches!(err, SigningError::Xml(_)),
+        "expected XML failure: {err}"
+    );
+    assert_eq!(err.kind(), fatoora_core::ErrorKind::Xml);
 }
 
 #[test]
@@ -214,4 +217,26 @@ fn pem_wrap(label: &str, der: &[u8]) -> String {
     out.push_str(label);
     out.push_str("-----\n");
     out
+}
+
+#[test]
+fn non_byte_aligned_certificate_signature_returns_an_input_error() {
+    use x509_cert::Certificate;
+    use x509_cert::der::Decode;
+
+    let (_, key_der, mut cert_der) = build_test_signing_material();
+    let certificate = Certificate::from_der(&cert_der).unwrap();
+    let signature_len = certificate.signature().as_bytes().unwrap().len();
+    // Certificate's last field is a BIT STRING. Keep the DER lengths unchanged
+    // but set one unused bit, producing valid ASN.1 that is not a byte string.
+    let unused_bits_offset = cert_der.len() - signature_len - 1;
+    assert_eq!(cert_der[unused_bits_offset], 0);
+    cert_der[unused_bits_offset] = 1;
+    *cert_der.last_mut().unwrap() &= 0xfe;
+    let certificate = Certificate::from_der(&cert_der).unwrap();
+    assert!(certificate.signature().as_bytes().is_none());
+
+    let signer = InvoiceSigner::from_der(&cert_der, &key_der).unwrap();
+    let error = common::dummy_finalized_invoice().sign(&signer).unwrap_err();
+    assert_eq!(error.kind(), fatoora_core::ErrorKind::InvalidInput);
 }

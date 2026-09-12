@@ -1,6 +1,8 @@
 //! Invoice domain types and builders.
 use crate::Decimal;
 mod builder;
+mod flags;
+pub use flags::{InvoiceFlagNames, InvoiceFlags, InvoiceFlagsIter};
 mod qr;
 pub mod sign;
 pub mod validation;
@@ -8,8 +10,6 @@ pub mod xml;
 pub use builder::{FinalizedInvoice, InvoiceBuilder, InvoiceView, SignedInvoice};
 pub use qr::{QrCodeError, QrPayload, QrResult};
 
-#[allow(unused_imports)]
-use bitflags::bitflags;
 use chrono::{NaiveDate, NaiveDateTime};
 use iso_currency::Currency as IsoCurrency;
 use isocountry::CountryCode as IsoCountryCode;
@@ -22,6 +22,7 @@ type Result<T> = std::result::Result<T, InvoiceError>;
 
 /// Invoice-related errors.
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum InvoiceError {
     #[error(transparent)]
     Decimal(#[from] crate::DecimalError),
@@ -41,6 +42,23 @@ pub enum InvoiceError {
     MissingBuyerId,
     #[error("Invalid VAT ID format")]
     InvalidVatFormat,
+}
+
+impl InvoiceError {
+    /// Shared classification used by bindings.
+    pub fn kind(&self) -> crate::ErrorKind {
+        match self {
+            Self::Decimal(_) => crate::ErrorKind::InvalidInput,
+            Self::Validation(_) => crate::ErrorKind::Validation,
+            Self::InvalidCountryCode(_)
+            | Self::InvalidCurrencyCode(_)
+            | Self::InvalidTimestamp(_)
+            | Self::InvalidIssueDate(_)
+            | Self::MissingVatForSeller
+            | Self::MissingBuyerId
+            | Self::InvalidVatFormat => crate::ErrorKind::InvalidInput,
+        }
+    }
 }
 
 /// Structured validation error with field-level issues.
@@ -926,26 +944,6 @@ impl LineItem {
 /// assert_eq!(items.len(), 1);
 /// ```
 pub type LineItems = Vec<LineItem>;
-
-bitflags! {
-    /// Invoice boolean flags packed into a bitset.
-    ///
-    /// # Examples
-    /// ```rust
-    /// use fatoora_core::invoice::InvoiceFlags;
-    ///
-    /// let flags = InvoiceFlags::EXPORT | InvoiceFlags::SELF_BILLED;
-    /// assert!(flags.contains(InvoiceFlags::EXPORT));
-    /// ```
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    pub struct InvoiceFlags: u8 {
-        const THIRD_PARTY = 0b00001;
-        const NOMINAL = 0b00010;
-        const EXPORT = 0b00100;
-        const SUMMARY = 0b01000;
-        const SELF_BILLED = 0b10000;
-    }
-}
 
 /// Core invoice data model.
 ///

@@ -25,7 +25,7 @@ uv build --wheel
 - The build step compiles `fatoora-ffi` with `cargo build -p fatoora-ffi --release`.
 - The shared library is bundled into the Python package.
 - ZATCA API responses are exposed via opaque handles with getters (no JSON payloads).
-- Errors are raised as typed exceptions mapped from FFI error codes (see `FfiErrorKind`).
+- Errors are raised as typed exceptions mapped from FFI error codes (see `FfiErrorKind`). Each exception exposes `.code`, `.kind`, and `.details`, a dictionary containing structured validation issues or diagnostics. Unknown codes remain available on a generic `FfiError`.
 - For local dev without install, set `FATOORA_FFI_PATH` or build and use the repo `target/` output.
 - If a `fatoora_ffi.h` header is present (from `FATOORA_CBINDGEN=1 cargo build -p fatoora-ffi`),
   the Python wrapper will load its declarations automatically. You can override the header with

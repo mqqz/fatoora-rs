@@ -29,9 +29,17 @@ pub enum EnvironmentType {
 
 /// Error returned when parsing an [`EnvironmentType`] from a string.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Error)]
+#[non_exhaustive]
 pub enum EnvironmentParseError {
     #[error("invalid environment type: {input}")]
     Invalid { input: String },
+}
+
+impl EnvironmentParseError {
+    /// Shared classification used by bindings.
+    pub fn kind(&self) -> crate::ErrorKind {
+        crate::ErrorKind::InvalidInput
+    }
 }
 
 impl FromStr for EnvironmentType {

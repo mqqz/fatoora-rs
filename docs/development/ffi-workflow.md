@@ -21,3 +21,30 @@ Use this when adding or changing any public capability exposed via the C ABI.
 - Use opaque handles and `*_free` functions for ownership.
 
 - Return `FfiResult<T>` everywhere and map errors via `FfiErrorKind`.
+
+## Error contract smoke test
+
+After building `fatoora-ffi`, run the C ownership and structured-details check
+(on Linux):
+
+```sh
+cc -std=c11 -Wall -Wextra -Werror -I fatoora-ffi/include \
+  fatoora-ffi/tests/error_contract.c -L target/debug -lfatoora_ffi \
+  -Wl,-rpath,"$PWD/target/debug" -o /tmp/fatoora-error-contract
+/tmp/fatoora-error-contract
+
+c++ -x c++ -std=c++17 -Wall -Wextra -Werror -I fatoora-ffi/include \
+  fatoora-ffi/tests/error_contract.c -L target/debug -lfatoora_ffi \
+  -Wl,-rpath,"$PWD/target/debug" -o /tmp/fatoora-error-contract-cpp
+/tmp/fatoora-error-contract-cpp
+```
+
+Wrap fallible exports in `crate::error::boundary` and pass core errors through
+`ffi_error_from_core` or a module helper. These preserve classification and JSON
+details. Never convert a core error to a message before passing it to the helper.
+The `value` member of a failed result is a default placeholder and must be ignored.
+See [Errors](../reference/errors.md) for the wire schema and ownership rules.
+
+Keep `cpp_compat` enabled in cbindgen so enum declarations and function linkage
+work in both C and C++. Python reads the C branch of this generated header and
+uses CFFI's native pointer-sized integer types for each platform.

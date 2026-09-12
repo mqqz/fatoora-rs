@@ -9,7 +9,7 @@ use helpers::{
     currency_amount, id_with_scheme, id_with_scheme_with_agency, quantity_with_unit,
     vat_category_code,
 };
-use quick_xml::se::{SeError, Serializer as QuickXmlSerializer};
+use quick_xml::se::Serializer as QuickXmlSerializer;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 use thiserror::Error;
 
@@ -19,12 +19,20 @@ pub struct InvoiceXml<'a, T: InvoiceView + ?Sized>(pub &'a T);
 
 /// XML serialization error.
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum InvoiceXmlError {
     #[error("failed to serialize invoice to XML: {source}")]
     Serialize {
-        #[from]
-        source: SeError,
+        #[source]
+        source: crate::Diagnostic,
     },
+}
+
+impl InvoiceXmlError {
+    /// Shared classification used by bindings.
+    pub fn kind(&self) -> crate::ErrorKind {
+        crate::ErrorKind::Xml
+    }
 }
 
 /// XML formatting options.
@@ -1063,7 +1071,11 @@ fn to_xml_with_format<T: InvoiceView + ?Sized>(
         {
             serializer.indent(indent_char, indent_size);
         }
-        InvoiceXml(invoice).serialize(serializer)?;
+        InvoiceXml(invoice)
+            .serialize(serializer)
+            .map_err(|error| InvoiceXmlError::Serialize {
+                source: crate::Diagnostic::new(error.to_string()),
+            })?;
     }
 
     Ok(buffer)

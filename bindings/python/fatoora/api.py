@@ -1,4 +1,5 @@
 from __future__ import annotations
+import json
 from decimal import Decimal
 
 from dataclasses import dataclass
@@ -81,14 +82,17 @@ def _flags_from_bits(bits: int) -> set[InvoiceFlag]:
     return {flag for flag in InvoiceFlag if bits & flag.value}
 
 
-def _decode_error(ffi, lib, err_ptr) -> tuple[str, int | None]:
+def _decode_error(ffi, lib, err_ptr) -> tuple[str, int | None, dict]:
     if not err_ptr:
-        return "unknown error", None
-    code = int(lib.fatoora_error_code(err_ptr))
-    message = lib.fatoora_error_message(err_ptr)
-    decoded = _decode_optional_string(ffi, lib, message)
-    lib.fatoora_error_free(err_ptr)
-    return decoded or "unknown error", code
+        return "unknown error", None, {}
+    try:
+        code = int(lib.fatoora_error_code(err_ptr))
+        message = _decode_optional_string(ffi, lib, lib.fatoora_error_message(err_ptr))
+        encoded_details = _decode_optional_string(ffi, lib, lib.fatoora_error_details_json(err_ptr))
+        details = json.loads(encoded_details) if encoded_details else {}
+        return message or "unknown error", code, details
+    finally:
+        lib.fatoora_error_free(err_ptr)
 
 
 def _decimal_bytes(value: Decimal | str | int) -> bytes:
@@ -148,8 +152,8 @@ def _decode_bytes_list(ffi, lib, value) -> list[bytes]:
 
 def _result_or_raise(ffi, lib, result, value_attr: str = "value"):
     if not result.ok:
-        message, code = _decode_error(ffi, lib, result.error)
-        raise error_class_for_code(code)(message, code)
+        message, code, details = _decode_error(ffi, lib, result.error)
+        raise error_class_for_code(code)(message, code, details)
     return getattr(result, value_attr)
 
 

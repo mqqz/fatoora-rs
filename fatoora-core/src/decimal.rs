@@ -8,11 +8,19 @@ use std::{fmt, str::FromStr};
 pub struct Decimal(rust_decimal::Decimal);
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[non_exhaustive]
 pub enum DecimalError {
     #[error("expected decimal notation with digits before and after any decimal point")]
     InvalidSyntax,
     #[error("decimal precision or range exceeded")]
     OutOfRange,
+}
+
+impl DecimalError {
+    /// Shared classification used by bindings.
+    pub fn kind(&self) -> crate::ErrorKind {
+        crate::ErrorKind::InvalidInput
+    }
 }
 impl Decimal {
     pub const ZERO: Self = Self(rust_decimal::Decimal::ZERO);
