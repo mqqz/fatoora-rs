@@ -7,6 +7,8 @@
 //! let config = Config::new(EnvironmentType::NonProduction);
 //! # let _ = config;
 //! ```
+mod decimal;
+pub use decimal::{Decimal, DecimalError};
 pub mod api;
 pub mod config;
 pub mod csr;
@@ -89,6 +91,7 @@ impl From<csr::CsrError> for Error {
 impl From<invoice::InvoiceError> for Error {
     fn from(err: invoice::InvoiceError) -> Self {
         let kind = match err {
+            invoice::InvoiceError::Decimal(_) => ErrorKind::InvalidInput,
             invoice::InvoiceError::Validation(_) => ErrorKind::Validation,
             invoice::InvoiceError::InvalidCountryCode(_)
             | invoice::InvoiceError::InvalidCurrencyCode(_)

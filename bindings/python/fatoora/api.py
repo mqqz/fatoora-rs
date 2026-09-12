@@ -1,4 +1,5 @@
 from __future__ import annotations
+from decimal import Decimal
 
 from dataclasses import dataclass
 from enum import IntEnum
@@ -45,22 +46,25 @@ class InvoiceFlag(IntEnum):
 class InvoiceLineItem:
     description: str
     unit_code: str
-    quantity: float
-    unit_price: float
-    total_amount: float
-    vat_rate: float
-    vat_amount: float
+    quantity: Decimal
+    unit_price: Decimal
+    total_amount: Decimal
+    vat_rate: Decimal
+    vat_amount: Decimal
     vat_category: VatCategory
 
 
 @dataclass(frozen=True)
 class InvoiceTotals:
-    tax_inclusive: float
-    tax_amount: float
-    line_extension: float
-    allowance_total: float
-    charge_total: float
-    taxable_amount: float
+    tax_inclusive: Decimal
+    tax_amount: Decimal
+    line_extension: Decimal
+    allowance_total: Decimal
+    charge_total: Decimal
+    taxable_amount: Decimal
+    prepaid_amount: Decimal
+    payable_rounding_amount: Decimal
+    payable_amount: Decimal
 
 
 def _opt_cstr(ffi, value: Optional[str]):
@@ -85,6 +89,18 @@ def _decode_error(ffi, lib, err_ptr) -> tuple[str, int | None]:
     decoded = _decode_optional_string(ffi, lib, message)
     lib.fatoora_error_free(err_ptr)
     return decoded or "unknown error", code
+
+
+def _decimal_bytes(value: Decimal | str | int) -> bytes:
+    if isinstance(value, (float, bool)) or not isinstance(value, (Decimal, str, int)):
+        raise TypeError("decimal values must be Decimal, str, or int")
+    if isinstance(value, Decimal):
+        value = format(value, "f")
+    return str(value).encode("ascii")
+
+
+def _decimal_result(ffi, lib, result) -> Decimal:
+    return Decimal(_decode_string(ffi, lib, _result_or_raise(ffi, lib, result)))
 
 
 def _decode_string(ffi, lib, value) -> str:
@@ -1336,15 +1352,15 @@ class SignedInvoice:
         value = int(_result_or_raise(bindings.ffi, bindings.lib, result))
         return VatCategory(value)
 
-    def invoice_level_charge(self) -> float:
+    def invoice_level_charge(self) -> Decimal:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_signed_invoice_level_charge(self._handle)
-        return float(_result_or_raise(bindings.ffi, bindings.lib, result))
+        return _decimal_result(bindings.ffi, bindings.lib, result)
 
-    def invoice_level_discount(self) -> float:
+    def invoice_level_discount(self) -> Decimal:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_signed_invoice_level_discount(self._handle)
-        return float(_result_or_raise(bindings.ffi, bindings.lib, result))
+        return _decimal_result(bindings.ffi, bindings.lib, result)
 
     def allowance_reason(self) -> Optional[str]:
         bindings = _FfiBindings.instance()
@@ -1494,10 +1510,10 @@ class SignedInvoice:
             bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
         )
 
-    def _line_item_f64(self, func, index: int) -> float:
+    def _line_item_decimal(self, func, index: int) -> Decimal:
         bindings = _FfiBindings.instance()
         result = func(self._handle, int(index))
-        return float(_result_or_raise(bindings.ffi, bindings.lib, result))
+        return _decimal_result(bindings.ffi, bindings.lib, result)
 
     def _line_item_vat_category(self, func, index: int) -> VatCategory:
         bindings = _FfiBindings.instance()
@@ -1514,19 +1530,19 @@ class SignedInvoice:
             unit_code=self._line_item_string(
                 bindings.lib.fatoora_signed_invoice_line_item_unit_code, index
             ),
-            quantity=self._line_item_f64(
+            quantity=self._line_item_decimal(
                 bindings.lib.fatoora_signed_invoice_line_item_quantity, index
             ),
-            unit_price=self._line_item_f64(
+            unit_price=self._line_item_decimal(
                 bindings.lib.fatoora_signed_invoice_line_item_unit_price, index
             ),
-            total_amount=self._line_item_f64(
+            total_amount=self._line_item_decimal(
                 bindings.lib.fatoora_signed_invoice_line_item_total_amount, index
             ),
-            vat_rate=self._line_item_f64(
+            vat_rate=self._line_item_decimal(
                 bindings.lib.fatoora_signed_invoice_line_item_vat_rate, index
             ),
-            vat_amount=self._line_item_f64(
+            vat_amount=self._line_item_decimal(
                 bindings.lib.fatoora_signed_invoice_line_item_vat_amount, index
             ),
             vat_category=self._line_item_vat_category(
@@ -1540,43 +1556,46 @@ class SignedInvoice:
     def totals(self) -> InvoiceTotals:
         bindings = _FfiBindings.instance()
         return InvoiceTotals(
-            tax_inclusive=float(
-                _result_or_raise(
+            prepaid_amount=_decimal_result(bindings.ffi,bindings.lib,bindings.lib.fatoora_signed_invoice_totals_prepaid_amount(self._handle)),
+            payable_rounding_amount=_decimal_result(bindings.ffi,bindings.lib,bindings.lib.fatoora_signed_invoice_totals_payable_rounding_amount(self._handle)),
+            payable_amount=_decimal_result(bindings.ffi,bindings.lib,bindings.lib.fatoora_signed_invoice_totals_payable_amount(self._handle)),
+            tax_inclusive=Decimal(
+                _decimal_result(
                     bindings.ffi,
                     bindings.lib,
                     bindings.lib.fatoora_signed_invoice_totals_tax_inclusive(self._handle),
                 )
             ),
-            tax_amount=float(
-                _result_or_raise(
+            tax_amount=Decimal(
+                _decimal_result(
                     bindings.ffi,
                     bindings.lib,
                     bindings.lib.fatoora_signed_invoice_totals_tax_amount(self._handle),
                 )
             ),
-            line_extension=float(
-                _result_or_raise(
+            line_extension=Decimal(
+                _decimal_result(
                     bindings.ffi,
                     bindings.lib,
                     bindings.lib.fatoora_signed_invoice_totals_line_extension(self._handle),
                 )
             ),
-            allowance_total=float(
-                _result_or_raise(
+            allowance_total=Decimal(
+                _decimal_result(
                     bindings.ffi,
                     bindings.lib,
                     bindings.lib.fatoora_signed_invoice_totals_allowance_total(self._handle),
                 )
             ),
-            charge_total=float(
-                _result_or_raise(
+            charge_total=Decimal(
+                _decimal_result(
                     bindings.ffi,
                     bindings.lib,
                     bindings.lib.fatoora_signed_invoice_totals_charge_total(self._handle),
                 )
             ),
-            taxable_amount=float(
-                _result_or_raise(
+            taxable_amount=Decimal(
+                _decimal_result(
                     bindings.ffi,
                     bindings.lib,
                     bindings.lib.fatoora_signed_invoice_totals_taxable_amount(self._handle),
@@ -1694,15 +1713,15 @@ class FinalizedInvoice:
         value = int(_result_or_raise(bindings.ffi, bindings.lib, result))
         return VatCategory(value)
 
-    def invoice_level_charge(self) -> float:
+    def invoice_level_charge(self) -> Decimal:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_invoice_level_charge(self._handle)
-        return float(_result_or_raise(bindings.ffi, bindings.lib, result))
+        return _decimal_result(bindings.ffi, bindings.lib, result)
 
-    def invoice_level_discount(self) -> float:
+    def invoice_level_discount(self) -> Decimal:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_invoice_level_discount(self._handle)
-        return float(_result_or_raise(bindings.ffi, bindings.lib, result))
+        return _decimal_result(bindings.ffi, bindings.lib, result)
 
     def allowance_reason(self) -> Optional[str]:
         bindings = _FfiBindings.instance()
@@ -1806,10 +1825,10 @@ class FinalizedInvoice:
             bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
         )
 
-    def _line_item_f64(self, func, index: int) -> float:
+    def _line_item_decimal(self, func, index: int) -> Decimal:
         bindings = _FfiBindings.instance()
         result = func(self._handle, int(index))
-        return float(_result_or_raise(bindings.ffi, bindings.lib, result))
+        return _decimal_result(bindings.ffi, bindings.lib, result)
 
     def _line_item_vat_category(self, func, index: int) -> VatCategory:
         bindings = _FfiBindings.instance()
@@ -1826,19 +1845,19 @@ class FinalizedInvoice:
             unit_code=self._line_item_string(
                 bindings.lib.fatoora_invoice_line_item_unit_code, index
             ),
-            quantity=self._line_item_f64(
+            quantity=self._line_item_decimal(
                 bindings.lib.fatoora_invoice_line_item_quantity, index
             ),
-            unit_price=self._line_item_f64(
+            unit_price=self._line_item_decimal(
                 bindings.lib.fatoora_invoice_line_item_unit_price, index
             ),
-            total_amount=self._line_item_f64(
+            total_amount=self._line_item_decimal(
                 bindings.lib.fatoora_invoice_line_item_total_amount, index
             ),
-            vat_rate=self._line_item_f64(
+            vat_rate=self._line_item_decimal(
                 bindings.lib.fatoora_invoice_line_item_vat_rate, index
             ),
-            vat_amount=self._line_item_f64(
+            vat_amount=self._line_item_decimal(
                 bindings.lib.fatoora_invoice_line_item_vat_amount, index
             ),
             vat_category=self._line_item_vat_category(
@@ -1852,43 +1871,46 @@ class FinalizedInvoice:
     def totals(self) -> InvoiceTotals:
         bindings = _FfiBindings.instance()
         return InvoiceTotals(
-            tax_inclusive=float(
-                _result_or_raise(
+            prepaid_amount=_decimal_result(bindings.ffi,bindings.lib,bindings.lib.fatoora_invoice_totals_prepaid_amount(self._handle)),
+            payable_rounding_amount=_decimal_result(bindings.ffi,bindings.lib,bindings.lib.fatoora_invoice_totals_payable_rounding_amount(self._handle)),
+            payable_amount=_decimal_result(bindings.ffi,bindings.lib,bindings.lib.fatoora_invoice_totals_payable_amount(self._handle)),
+            tax_inclusive=Decimal(
+                _decimal_result(
                     bindings.ffi,
                     bindings.lib,
                     bindings.lib.fatoora_invoice_totals_tax_inclusive(self._handle),
                 )
             ),
-            tax_amount=float(
-                _result_or_raise(
+            tax_amount=Decimal(
+                _decimal_result(
                     bindings.ffi,
                     bindings.lib,
                     bindings.lib.fatoora_invoice_totals_tax_amount(self._handle),
                 )
             ),
-            line_extension=float(
-                _result_or_raise(
+            line_extension=Decimal(
+                _decimal_result(
                     bindings.ffi,
                     bindings.lib,
                     bindings.lib.fatoora_invoice_totals_line_extension(self._handle),
                 )
             ),
-            allowance_total=float(
-                _result_or_raise(
+            allowance_total=Decimal(
+                _decimal_result(
                     bindings.ffi,
                     bindings.lib,
                     bindings.lib.fatoora_invoice_totals_allowance_total(self._handle),
                 )
             ),
-            charge_total=float(
-                _result_or_raise(
+            charge_total=Decimal(
+                _decimal_result(
                     bindings.ffi,
                     bindings.lib,
                     bindings.lib.fatoora_invoice_totals_charge_total(self._handle),
                 )
             ),
-            taxable_amount=float(
-                _result_or_raise(
+            taxable_amount=Decimal(
+                _decimal_result(
                     bindings.ffi,
                     bindings.lib,
                     bindings.lib.fatoora_invoice_totals_taxable_amount(self._handle),
@@ -2124,20 +2146,20 @@ class InvoiceBuilder:
     def add_line_item(
         self,
         description: str,
-        quantity: float,
+        quantity: Decimal | str | int,
         unit_code: str,
-        unit_price: float,
-        vat_rate: float,
+        unit_price: Decimal | str | int,
+        vat_rate: Decimal | str | int,
         vat_category: VatCategory,
     ) -> None:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_invoice_builder_add_line_item(
             self._handle,
             _as_bytes(description),
-            float(quantity),
+            _decimal_bytes(quantity),
             _as_bytes(unit_code),
-            float(unit_price),
-            float(vat_rate),
+            _decimal_bytes(unit_price),
+            _decimal_bytes(vat_rate),
             int(vat_category),
         )
         _result_or_raise(bindings.ffi, bindings.lib, result)
@@ -2186,28 +2208,28 @@ class InvoiceBuilder:
         )
         _result_or_raise(bindings.ffi, bindings.lib, result)
 
-    def set_allowance(self, reason: str, amount: float) -> None:
+    def set_allowance(self, reason: str, amount: Decimal | str | int) -> None:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_invoice_builder_set_allowance(
             self._handle,
             _as_bytes(reason),
-            float(amount),
+            _decimal_bytes(amount),
         )
         _result_or_raise(bindings.ffi, bindings.lib, result)
 
-    def invoice_level_charge(self, charge: float) -> None:
+    def invoice_level_charge(self, charge: Decimal | str | int) -> None:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_invoice_builder_invoice_level_charge(
             self._handle,
-            float(charge),
+            _decimal_bytes(charge),
         )
         _result_or_raise(bindings.ffi, bindings.lib, result)
 
-    def invoice_level_discount(self, discount: float) -> None:
+    def invoice_level_discount(self, discount: Decimal | str | int) -> None:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_invoice_builder_invoice_level_discount(
             self._handle,
-            float(discount),
+            _decimal_bytes(discount),
         )
         _result_or_raise(bindings.ffi, bindings.lib, result)
 

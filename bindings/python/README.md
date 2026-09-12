@@ -74,10 +74,10 @@ builder.set_seller(
 )
 builder.add_line_item(
     description="Item",
-    quantity=1.0,
+    quantity="1.0",
     unit_code="PCE",
-    unit_price=100.0,
-    vat_rate=15.0,
+    unit_price="100.0",
+    vat_rate="15.0",
     vat_category=VatCategory.STANDARD,
 )
 invoice = builder.build()

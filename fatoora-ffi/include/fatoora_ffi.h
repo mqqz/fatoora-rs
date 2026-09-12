@@ -247,12 +247,6 @@ typedef struct FfiResult_FfiSignedInvoice {
   struct FfiError *error;
 } FfiResult_FfiSignedInvoice;
 
-typedef struct FfiResult_f64 {
-  bool ok;
-  double value;
-  struct FfiError *error;
-} FfiResult_f64;
-
 typedef struct FfiResult_u8 {
   bool ok;
   uint8_t value;
@@ -888,14 +882,14 @@ struct FfiResult_bool fatoora_invoice_builder_flags(struct FfiInvoiceBuilder *bu
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
 struct FfiResult_bool fatoora_invoice_builder_invoice_level_charge(struct FfiInvoiceBuilder *builder,
-                                                                   double charge);
+                                                                   const char *charge);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
 struct FfiResult_bool fatoora_invoice_builder_invoice_level_discount(struct FfiInvoiceBuilder *builder,
-                                                                     double discount);
+                                                                     const char *discount);
 
 /**
  * # Safety
@@ -910,10 +904,10 @@ struct FfiResult_bool fatoora_invoice_builder_allowance_reason(struct FfiInvoice
  */
 struct FfiResult_bool fatoora_invoice_builder_add_line_item(struct FfiInvoiceBuilder *builder,
                                                             const char *description,
-                                                            double quantity,
+                                                            const char *quantity,
                                                             const char *unit_code,
-                                                            double unit_price,
-                                                            double vat_rate,
+                                                            const char *unit_price,
+                                                            const char *vat_rate,
                                                             FfiVatCategory vat_category);
 
 /**
@@ -949,7 +943,7 @@ struct FfiResult_bool fatoora_invoice_builder_set_note(struct FfiInvoiceBuilder 
  */
 struct FfiResult_bool fatoora_invoice_builder_set_allowance(struct FfiInvoiceBuilder *builder,
                                                             const char *reason,
-                                                            double amount);
+                                                            const char *amount);
 
 /**
  * # Safety
@@ -1017,36 +1011,36 @@ struct FfiResult_FfiString fatoora_invoice_line_item_unit_code(struct FfiFinaliz
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_invoice_line_item_quantity(struct FfiFinalizedInvoice *invoice,
-                                                        uint64_t index);
+struct FfiResult_FfiString fatoora_invoice_line_item_quantity(struct FfiFinalizedInvoice *invoice,
+                                                              uint64_t index);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_invoice_line_item_unit_price(struct FfiFinalizedInvoice *invoice,
-                                                          uint64_t index);
+struct FfiResult_FfiString fatoora_invoice_line_item_unit_price(struct FfiFinalizedInvoice *invoice,
+                                                                uint64_t index);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_invoice_line_item_total_amount(struct FfiFinalizedInvoice *invoice,
-                                                            uint64_t index);
+struct FfiResult_FfiString fatoora_invoice_line_item_total_amount(struct FfiFinalizedInvoice *invoice,
+                                                                  uint64_t index);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_invoice_line_item_vat_rate(struct FfiFinalizedInvoice *invoice,
-                                                        uint64_t index);
+struct FfiResult_FfiString fatoora_invoice_line_item_vat_rate(struct FfiFinalizedInvoice *invoice,
+                                                              uint64_t index);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_invoice_line_item_vat_amount(struct FfiFinalizedInvoice *invoice,
-                                                          uint64_t index);
+struct FfiResult_FfiString fatoora_invoice_line_item_vat_amount(struct FfiFinalizedInvoice *invoice,
+                                                                uint64_t index);
 
 /**
  * # Safety
@@ -1073,36 +1067,36 @@ struct FfiResult_FfiString fatoora_signed_invoice_line_item_unit_code(struct Ffi
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_signed_invoice_line_item_quantity(struct FfiSignedInvoice *signed_,
-                                                               uint64_t index);
+struct FfiResult_FfiString fatoora_signed_invoice_line_item_quantity(struct FfiSignedInvoice *signed_,
+                                                                     uint64_t index);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_signed_invoice_line_item_unit_price(struct FfiSignedInvoice *signed_,
-                                                                 uint64_t index);
+struct FfiResult_FfiString fatoora_signed_invoice_line_item_unit_price(struct FfiSignedInvoice *signed_,
+                                                                       uint64_t index);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_signed_invoice_line_item_total_amount(struct FfiSignedInvoice *signed_,
-                                                                   uint64_t index);
+struct FfiResult_FfiString fatoora_signed_invoice_line_item_total_amount(struct FfiSignedInvoice *signed_,
+                                                                         uint64_t index);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_signed_invoice_line_item_vat_rate(struct FfiSignedInvoice *signed_,
-                                                               uint64_t index);
+struct FfiResult_FfiString fatoora_signed_invoice_line_item_vat_rate(struct FfiSignedInvoice *signed_,
+                                                                     uint64_t index);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_signed_invoice_line_item_vat_amount(struct FfiSignedInvoice *signed_,
-                                                                 uint64_t index);
+struct FfiResult_FfiString fatoora_signed_invoice_line_item_vat_amount(struct FfiSignedInvoice *signed_,
+                                                                       uint64_t index);
 
 /**
  * # Safety
@@ -1115,73 +1109,73 @@ struct FfiResult_u8 fatoora_signed_invoice_line_item_vat_category(struct FfiSign
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_invoice_totals_tax_inclusive(struct FfiFinalizedInvoice *handle);
+struct FfiResult_FfiString fatoora_invoice_totals_tax_inclusive(struct FfiFinalizedInvoice *handle);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_invoice_totals_tax_amount(struct FfiFinalizedInvoice *handle);
+struct FfiResult_FfiString fatoora_invoice_totals_tax_amount(struct FfiFinalizedInvoice *handle);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_invoice_totals_line_extension(struct FfiFinalizedInvoice *handle);
+struct FfiResult_FfiString fatoora_invoice_totals_line_extension(struct FfiFinalizedInvoice *handle);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_invoice_totals_allowance_total(struct FfiFinalizedInvoice *handle);
+struct FfiResult_FfiString fatoora_invoice_totals_allowance_total(struct FfiFinalizedInvoice *handle);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_invoice_totals_charge_total(struct FfiFinalizedInvoice *handle);
+struct FfiResult_FfiString fatoora_invoice_totals_charge_total(struct FfiFinalizedInvoice *handle);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_invoice_totals_taxable_amount(struct FfiFinalizedInvoice *handle);
+struct FfiResult_FfiString fatoora_invoice_totals_taxable_amount(struct FfiFinalizedInvoice *handle);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_signed_invoice_totals_tax_inclusive(struct FfiSignedInvoice *handle);
+struct FfiResult_FfiString fatoora_signed_invoice_totals_tax_inclusive(struct FfiSignedInvoice *handle);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_signed_invoice_totals_tax_amount(struct FfiSignedInvoice *handle);
+struct FfiResult_FfiString fatoora_signed_invoice_totals_tax_amount(struct FfiSignedInvoice *handle);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_signed_invoice_totals_line_extension(struct FfiSignedInvoice *handle);
+struct FfiResult_FfiString fatoora_signed_invoice_totals_line_extension(struct FfiSignedInvoice *handle);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_signed_invoice_totals_allowance_total(struct FfiSignedInvoice *handle);
+struct FfiResult_FfiString fatoora_signed_invoice_totals_allowance_total(struct FfiSignedInvoice *handle);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_signed_invoice_totals_charge_total(struct FfiSignedInvoice *handle);
+struct FfiResult_FfiString fatoora_signed_invoice_totals_charge_total(struct FfiSignedInvoice *handle);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_signed_invoice_totals_taxable_amount(struct FfiSignedInvoice *handle);
+struct FfiResult_FfiString fatoora_signed_invoice_totals_taxable_amount(struct FfiSignedInvoice *handle);
 
 /**
  * # Safety
@@ -1479,13 +1473,13 @@ struct FfiResult_FfiString fatoora_invoice_allowance_reason(struct FfiFinalizedI
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_invoice_level_charge(struct FfiFinalizedInvoice *invoice);
+struct FfiResult_FfiString fatoora_invoice_level_charge(struct FfiFinalizedInvoice *invoice);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_invoice_level_discount(struct FfiFinalizedInvoice *invoice);
+struct FfiResult_FfiString fatoora_invoice_level_discount(struct FfiFinalizedInvoice *invoice);
 
 /**
  * # Safety
@@ -1581,13 +1575,13 @@ struct FfiResult_FfiString fatoora_signed_invoice_allowance_reason(struct FfiSig
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_signed_invoice_level_charge(struct FfiSignedInvoice *signed_);
+struct FfiResult_FfiString fatoora_signed_invoice_level_charge(struct FfiSignedInvoice *signed_);
 
 /**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_f64 fatoora_signed_invoice_level_discount(struct FfiSignedInvoice *signed_);
+struct FfiResult_FfiString fatoora_signed_invoice_level_discount(struct FfiSignedInvoice *signed_);
 
 /**
  * # Safety
@@ -1786,6 +1780,48 @@ struct FfiResult_FfiString fatoora_signed_invoice_to_xml_base64(struct FfiSigned
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
 void fatoora_signed_invoice_free(struct FfiSignedInvoice *signed_);
+
+/**
+ * Return an owned decimal string; release it with `fatoora_string_free`.
+ * # Safety
+ * The invoice pointer must refer to a valid invoice handle.
+ */
+struct FfiResult_FfiString fatoora_invoice_totals_prepaid_amount(struct FfiFinalizedInvoice *handle);
+
+/**
+ * Return an owned decimal string; release it with `fatoora_string_free`.
+ * # Safety
+ * The invoice pointer must refer to a valid invoice handle.
+ */
+struct FfiResult_FfiString fatoora_invoice_totals_payable_rounding_amount(struct FfiFinalizedInvoice *handle);
+
+/**
+ * Return an owned decimal string; release it with `fatoora_string_free`.
+ * # Safety
+ * The invoice pointer must refer to a valid invoice handle.
+ */
+struct FfiResult_FfiString fatoora_invoice_totals_payable_amount(struct FfiFinalizedInvoice *handle);
+
+/**
+ * Return an owned decimal string; release it with `fatoora_string_free`.
+ * # Safety
+ * The invoice pointer must refer to a valid invoice handle.
+ */
+struct FfiResult_FfiString fatoora_signed_invoice_totals_prepaid_amount(struct FfiSignedInvoice *handle);
+
+/**
+ * Return an owned decimal string; release it with `fatoora_string_free`.
+ * # Safety
+ * The invoice pointer must refer to a valid invoice handle.
+ */
+struct FfiResult_FfiString fatoora_signed_invoice_totals_payable_rounding_amount(struct FfiSignedInvoice *handle);
+
+/**
+ * Return an owned decimal string; release it with `fatoora_string_free`.
+ * # Safety
+ * The invoice pointer must refer to a valid invoice handle.
+ */
+struct FfiResult_FfiString fatoora_signed_invoice_totals_payable_amount(struct FfiSignedInvoice *handle);
 
 /**
  * # Safety

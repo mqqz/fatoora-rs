@@ -4,6 +4,7 @@ use super::{
     InvoiceTimestamp, InvoiceTotalsData, InvoiceType, LineItems, QrPayload, QrResult, Seller,
     ValidationError, ValidationIssue, ValidationKind, VatCategory,
 };
+use crate::Decimal;
 use crate::invoice::sign::{
     InvoiceSigner, SignedProperties, SigningError, invoice_hash_base64_from_xml,
 };
@@ -12,7 +13,7 @@ use crate::invoice::sign::{
 #[derive(Debug, Clone, PartialEq)]
 pub struct FinalizedInvoice {
     data: InvoiceData,
-    totals: InvoiceTotalsData,
+    pub(crate) totals: InvoiceTotalsData,
 }
 
 // TODO maybe traits?
@@ -45,7 +46,7 @@ pub struct SignedInvoice {
 ///     .set_seller(seller)
 ///     .set_payment_means_code("10")
 ///     .set_vat_category(VatCategory::Standard)
-///     .add_line_item(LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard));
+///     .add_line_item(LineItem::new("Item", fatoora_core::Decimal::parse("1.0").unwrap(), "PCE", fatoora_core::Decimal::parse("100.0").unwrap(), fatoora_core::Decimal::parse("15.0").unwrap(), VatCategory::Standard).unwrap());
 ///
 /// let invoice = builder.build()?;
 /// # let _ = invoice;
@@ -68,8 +69,9 @@ pub struct InvoiceBuilder {
     payment_means_code: Option<String>,
     vat_category: Option<VatCategory>,
     flags: InvoiceFlags,
-    invoice_level_charge: f64,
-    invoice_level_discount: f64,
+    invoice_level_charge: Decimal,
+    invoice_level_discount: Decimal,
+    pub(crate) adjustment_vat_rate: Option<Decimal>,
     allowance_reason: Option<String>,
 }
 
@@ -91,8 +93,9 @@ impl InvoiceBuilder {
             payment_means_code: None,
             vat_category: None,
             flags: InvoiceFlags::empty(),
-            invoice_level_charge: 0.0,
-            invoice_level_discount: 0.0,
+            invoice_level_charge: Decimal::ZERO,
+            invoice_level_discount: Decimal::ZERO,
+            adjustment_vat_rate: None,
             allowance_reason: None,
         }
     }
@@ -132,12 +135,12 @@ impl InvoiceBuilder {
         self
     }
 
-    pub fn invoice_level_charge(&mut self, charge: f64) -> &mut Self {
+    pub fn invoice_level_charge(&mut self, charge: Decimal) -> &mut Self {
         self.invoice_level_charge = charge;
         self
     }
 
-    pub fn invoice_level_discount(&mut self, discount: f64) -> &mut Self {
+    pub fn invoice_level_discount(&mut self, discount: Decimal) -> &mut Self {
         self.invoice_level_discount = discount;
         self
     }
@@ -157,7 +160,7 @@ impl InvoiceBuilder {
         self
     }
 
-    pub fn set_allowance(&mut self, reason: impl Into<String>, amount: f64) -> &mut Self {
+    pub fn set_allowance(&mut self, reason: impl Into<String>, amount: Decimal) -> &mut Self {
         self.invoice_level_discount = amount;
         self.allowance_reason = Some(reason.into());
         self
@@ -297,41 +300,79 @@ impl InvoiceBuilder {
                         Some(idx),
                     );
                 }
-                if item.quantity() < 0.0 {
+                if item.quantity() < Decimal::ZERO {
                     push_issue(
                         InvoiceField::LineItemQuantity,
                         ValidationKind::OutOfRange,
                         Some(idx),
                     );
                 }
-                if item.unit_price() < 0.0 {
+                if item.unit_price() < Decimal::ZERO {
                     push_issue(
                         InvoiceField::LineItemUnitPrice,
                         ValidationKind::OutOfRange,
                         Some(idx),
                     );
                 }
-                if item.total_amount() < 0.0 {
+                if item.total_amount() < Decimal::ZERO {
                     push_issue(
                         InvoiceField::LineItemTotalAmount,
                         ValidationKind::OutOfRange,
                         Some(idx),
                     );
                 }
-                if item.vat_rate() < 0.0 {
+                if item.vat_rate() < Decimal::ZERO
+                    || item.vat_rate() > Decimal::from(100)
+                    || item.vat_rate().scale() > 2
+                {
                     push_issue(
                         InvoiceField::LineItemVatRate,
                         ValidationKind::OutOfRange,
                         Some(idx),
                     );
                 }
-                if item.vat_amount() < 0.0 {
+                if item.vat_amount() < Decimal::ZERO {
                     push_issue(
                         InvoiceField::LineItemVatAmount,
                         ValidationKind::OutOfRange,
                         Some(idx),
                     );
                 }
+                let expected = item.quantity().product_rounded(item.unit_price(), false)?;
+                if item.total_amount() != expected || item.total_amount().scale() > 2 {
+                    push_issue(
+                        InvoiceField::LineItemTotalAmount,
+                        ValidationKind::Mismatch,
+                        Some(idx),
+                    );
+                }
+                if item.vat_amount().scale() > 2 {
+                    push_issue(
+                        InvoiceField::LineItemVatAmount,
+                        ValidationKind::OutOfRange,
+                        Some(idx),
+                    );
+                }
+                if item.vat_category() != VatCategory::Standard && item.vat_rate() != Decimal::ZERO
+                {
+                    push_issue(
+                        InvoiceField::LineItemVatRate,
+                        ValidationKind::Mismatch,
+                        Some(idx),
+                    );
+                }
+                item.total_amount().add(item.vat_amount())?;
+            }
+        }
+        for (field, amount) in [
+            (
+                InvoiceField::InvoiceLevelDiscount,
+                self.invoice_level_discount,
+            ),
+            (InvoiceField::InvoiceLevelCharge, self.invoice_level_charge),
+        ] {
+            if amount < Decimal::ZERO || amount.scale() > 2 {
+                push_issue(field, ValidationKind::OutOfRange, None);
             }
         }
         if !issues.is_empty() {
@@ -359,11 +400,12 @@ impl InvoiceBuilder {
             flags: self.flags,
             invoice_level_charge: self.invoice_level_charge,
             invoice_level_discount: self.invoice_level_discount,
+            adjustment_vat_rate: self.adjustment_vat_rate,
             allowance_reason: self.allowance_reason,
         };
 
         Ok(FinalizedInvoice {
-            totals: InvoiceTotalsData::from_data(&invoice),
+            totals: InvoiceTotalsData::from_data(&invoice)?,
             data: invoice,
         })
     }

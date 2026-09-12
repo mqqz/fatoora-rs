@@ -67,36 +67,45 @@ pub fn complex_standard_invoice() -> FinalizedInvoice {
         .set_payment_means_code("30")
         .set_vat_category(VatCategory::Standard)
         .set_note(InvoiceNote::new("en", "Complex standard invoice"))
-        .invoice_level_charge(12.5)
-        .invoice_level_discount(20.0)
+        .invoice_level_charge(fatoora_core::Decimal::parse("12.5").unwrap())
+        .invoice_level_discount(fatoora_core::Decimal::parse("20.0").unwrap())
         .allowance_reason("Seasonal discount")
         .flags(InvoiceFlags::EXPORT | InvoiceFlags::SELF_BILLED);
 
     builder
-        .add_line_item(LineItem::new(
-            "Consulting Services",
-            2.0,
-            "HUR",
-            150.0,
-            15.0,
-            VatCategory::Standard,
-        ))
-        .add_line_item(LineItem::new(
-            "Software License",
-            1.0,
-            "EA",
-            500.0,
-            15.0,
-            VatCategory::Standard,
-        ))
-        .add_line_item(LineItem::new(
-            "Export Item",
-            3.0,
-            "EA",
-            200.0,
-            0.0,
-            VatCategory::Zero,
-        ));
+        .add_line_item(
+            LineItem::new(
+                "Consulting Services",
+                fatoora_core::Decimal::parse("2.0").unwrap(),
+                "HUR",
+                fatoora_core::Decimal::parse("150.0").unwrap(),
+                fatoora_core::Decimal::parse("15.0").unwrap(),
+                VatCategory::Standard,
+            )
+            .unwrap(),
+        )
+        .add_line_item(
+            LineItem::new(
+                "Software License",
+                fatoora_core::Decimal::parse("1.0").unwrap(),
+                "EA",
+                fatoora_core::Decimal::parse("500.0").unwrap(),
+                fatoora_core::Decimal::parse("15.0").unwrap(),
+                VatCategory::Standard,
+            )
+            .unwrap(),
+        )
+        .add_line_item(
+            LineItem::new(
+                "Export Item",
+                fatoora_core::Decimal::parse("3.0").unwrap(),
+                "EA",
+                fatoora_core::Decimal::parse("200.0").unwrap(),
+                fatoora_core::Decimal::parse("0.0").unwrap(),
+                VatCategory::Zero,
+            )
+            .unwrap(),
+        );
 
     builder.build().expect("build complex standard invoice")
 }
@@ -144,17 +153,20 @@ pub fn credit_note_standard_invoice() -> FinalizedInvoice {
         .set_payment_means_code("10")
         .set_vat_category(VatCategory::Standard)
         .set_note(InvoiceNote::new("en", "Credit note for returned items"))
-        .invoice_level_discount(15.0)
+        .invoice_level_discount(fatoora_core::Decimal::parse("15.0").unwrap())
         .allowance_reason("Return allowance");
 
-    builder.add_line_item(LineItem::new(
-        "Returned Item A",
-        1.0,
-        "EA",
-        250.0,
-        15.0,
-        VatCategory::Standard,
-    ));
+    builder.add_line_item(
+        LineItem::new(
+            "Returned Item A",
+            fatoora_core::Decimal::parse("1.0").unwrap(),
+            "EA",
+            fatoora_core::Decimal::parse("250.0").unwrap(),
+            fatoora_core::Decimal::parse("15.0").unwrap(),
+            VatCategory::Standard,
+        )
+        .unwrap(),
+    );
 
     builder.build().expect("build credit note")
 }
@@ -202,17 +214,20 @@ pub fn debit_note_standard_invoice() -> FinalizedInvoice {
         .set_payment_means_code("30")
         .set_vat_category(VatCategory::Standard)
         .set_note(InvoiceNote::new("en", "Debit note for extra charges"))
-        .invoice_level_charge(30.0)
+        .invoice_level_charge(fatoora_core::Decimal::parse("30.0").unwrap())
         .allowance_reason("Additional service charge");
 
-    builder.add_line_item(LineItem::new(
-        "Additional Service",
-        1.0,
-        "EA",
-        300.0,
-        15.0,
-        VatCategory::Standard,
-    ));
+    builder.add_line_item(
+        LineItem::new(
+            "Additional Service",
+            fatoora_core::Decimal::parse("1.0").unwrap(),
+            "EA",
+            fatoora_core::Decimal::parse("300.0").unwrap(),
+            fatoora_core::Decimal::parse("15.0").unwrap(),
+            VatCategory::Standard,
+        )
+        .unwrap(),
+    );
 
     builder.build().expect("build debit note")
 }
@@ -250,26 +265,32 @@ pub fn prepayment_standard_invoice() -> FinalizedInvoice {
         .set_payment_means_code("30")
         .set_vat_category(VatCategory::Standard)
         .set_note(InvoiceNote::new("en", "Prepayment invoice"))
-        .invoice_level_charge(5.0)
+        .invoice_level_charge(fatoora_core::Decimal::parse("5.0").unwrap())
         .flags(InvoiceFlags::THIRD_PARTY | InvoiceFlags::SUMMARY);
 
     builder
-        .add_line_item(LineItem::new(
-            "Prepayment Service A",
-            1.0,
-            "EA",
-            250.0,
-            15.0,
-            VatCategory::Standard,
-        ))
-        .add_line_item(LineItem::new(
-            "Prepayment Service B",
-            2.0,
-            "EA",
-            120.0,
-            15.0,
-            VatCategory::Standard,
-        ));
+        .add_line_item(
+            LineItem::new(
+                "Prepayment Service A",
+                fatoora_core::Decimal::parse("1.0").unwrap(),
+                "EA",
+                fatoora_core::Decimal::parse("250.0").unwrap(),
+                fatoora_core::Decimal::parse("15.0").unwrap(),
+                VatCategory::Standard,
+            )
+            .unwrap(),
+        )
+        .add_line_item(
+            LineItem::new(
+                "Prepayment Service B",
+                fatoora_core::Decimal::parse("2.0").unwrap(),
+                "EA",
+                fatoora_core::Decimal::parse("120.0").unwrap(),
+                fatoora_core::Decimal::parse("15.0").unwrap(),
+                VatCategory::Standard,
+            )
+            .unwrap(),
+        );
 
     builder.build().expect("build prepayment invoice")
 }
@@ -298,35 +319,44 @@ pub fn mixed_vat_simplified_invoice() -> FinalizedInvoice {
         .set_payment_means_code("10")
         .set_vat_category(VatCategory::Standard)
         .set_note(InvoiceNote::new("en", "Mixed VAT simplified invoice"))
-        .invoice_level_discount(5.0)
+        .invoice_level_discount(fatoora_core::Decimal::parse("5.0").unwrap())
         .allowance_reason("Promo")
         .flags(InvoiceFlags::NOMINAL | InvoiceFlags::SUMMARY);
 
     builder
-        .add_line_item(LineItem::new(
-            "Standard Rated Item",
-            2.0,
-            "EA",
-            80.0,
-            15.0,
-            VatCategory::Standard,
-        ))
-        .add_line_item(LineItem::new(
-            "Zero Rated Item",
-            1.0,
-            "EA",
-            200.0,
-            0.0,
-            VatCategory::Zero,
-        ))
-        .add_line_item(LineItem::new(
-            "Exempt Item",
-            1.0,
-            "EA",
-            150.0,
-            0.0,
-            VatCategory::Exempt,
-        ));
+        .add_line_item(
+            LineItem::new(
+                "Standard Rated Item",
+                fatoora_core::Decimal::parse("2.0").unwrap(),
+                "EA",
+                fatoora_core::Decimal::parse("80.0").unwrap(),
+                fatoora_core::Decimal::parse("15.0").unwrap(),
+                VatCategory::Standard,
+            )
+            .unwrap(),
+        )
+        .add_line_item(
+            LineItem::new(
+                "Zero Rated Item",
+                fatoora_core::Decimal::parse("1.0").unwrap(),
+                "EA",
+                fatoora_core::Decimal::parse("200.0").unwrap(),
+                fatoora_core::Decimal::parse("0.0").unwrap(),
+                VatCategory::Zero,
+            )
+            .unwrap(),
+        )
+        .add_line_item(
+            LineItem::new(
+                "Exempt Item",
+                fatoora_core::Decimal::parse("1.0").unwrap(),
+                "EA",
+                fatoora_core::Decimal::parse("150.0").unwrap(),
+                fatoora_core::Decimal::parse("0.0").unwrap(),
+                VatCategory::Exempt,
+            )
+            .unwrap(),
+        );
 
     builder.build().expect("build mixed vat simplified invoice")
 }
@@ -366,14 +396,17 @@ pub fn export_self_billed_standard_invoice() -> FinalizedInvoice {
         .set_note(InvoiceNote::new("en", "Export self-billed invoice"))
         .flags(InvoiceFlags::EXPORT | InvoiceFlags::SELF_BILLED);
 
-    builder.add_line_item(LineItem::new(
-        "Exported Goods",
-        5.0,
-        "EA",
-        120.0,
-        0.0,
-        VatCategory::Zero,
-    ));
+    builder.add_line_item(
+        LineItem::new(
+            "Exported Goods",
+            fatoora_core::Decimal::parse("5.0").unwrap(),
+            "EA",
+            fatoora_core::Decimal::parse("120.0").unwrap(),
+            fatoora_core::Decimal::parse("0.0").unwrap(),
+            VatCategory::Zero,
+        )
+        .unwrap(),
+    );
 
     builder.build().expect("build export self-billed invoice")
 }
@@ -413,14 +446,17 @@ pub fn out_of_scope_standard_invoice() -> FinalizedInvoice {
         .set_note(InvoiceNote::new("en", "Out of scope invoice"))
         .flags(InvoiceFlags::SUMMARY);
 
-    builder.add_line_item(LineItem::new(
-        "Out of Scope Service",
-        1.0,
-        "EA",
-        400.0,
-        0.0,
-        VatCategory::OutOfScope,
-    ));
+    builder.add_line_item(
+        LineItem::new(
+            "Out of Scope Service",
+            fatoora_core::Decimal::parse("1.0").unwrap(),
+            "EA",
+            fatoora_core::Decimal::parse("400.0").unwrap(),
+            fatoora_core::Decimal::parse("0.0").unwrap(),
+            VatCategory::OutOfScope,
+        )
+        .unwrap(),
+    );
 
     builder.build().expect("build out of scope invoice")
 }
@@ -459,17 +495,20 @@ pub fn simplified_credit_note_invoice() -> FinalizedInvoice {
         .set_payment_means_code("10")
         .set_vat_category(VatCategory::Standard)
         .set_note(InvoiceNote::new("en", "Simplified credit note"))
-        .invoice_level_discount(10.0)
+        .invoice_level_discount(fatoora_core::Decimal::parse("10.0").unwrap())
         .allowance_reason("Price adjustment");
 
-    builder.add_line_item(LineItem::new(
-        "Adjusted Item",
-        1.0,
-        "EA",
-        100.0,
-        15.0,
-        VatCategory::Standard,
-    ));
+    builder.add_line_item(
+        LineItem::new(
+            "Adjusted Item",
+            fatoora_core::Decimal::parse("1.0").unwrap(),
+            "EA",
+            fatoora_core::Decimal::parse("100.0").unwrap(),
+            fatoora_core::Decimal::parse("15.0").unwrap(),
+            VatCategory::Standard,
+        )
+        .unwrap(),
+    );
 
     builder.build().expect("build simplified credit note")
 }
@@ -508,17 +547,20 @@ pub fn simplified_debit_note_invoice() -> FinalizedInvoice {
         .set_payment_means_code("10")
         .set_vat_category(VatCategory::Standard)
         .set_note(InvoiceNote::new("en", "Simplified debit note"))
-        .invoice_level_charge(8.0)
+        .invoice_level_charge(fatoora_core::Decimal::parse("8.0").unwrap())
         .allowance_reason("Additional charge");
 
-    builder.add_line_item(LineItem::new(
-        "Extra Service",
-        1.0,
-        "EA",
-        80.0,
-        15.0,
-        VatCategory::Standard,
-    ));
+    builder.add_line_item(
+        LineItem::new(
+            "Extra Service",
+            fatoora_core::Decimal::parse("1.0").unwrap(),
+            "EA",
+            fatoora_core::Decimal::parse("80.0").unwrap(),
+            fatoora_core::Decimal::parse("15.0").unwrap(),
+            VatCategory::Standard,
+        )
+        .unwrap(),
+    );
 
     builder.build().expect("build simplified debit note")
 }
@@ -557,14 +599,17 @@ pub fn foreign_currency_standard_invoice() -> FinalizedInvoice {
         .set_vat_category(VatCategory::Standard)
         .set_note(InvoiceNote::new("en", "Foreign currency invoice"));
 
-    builder.add_line_item(LineItem::new(
-        "International Service",
-        1.0,
-        "EA",
-        300.0,
-        15.0,
-        VatCategory::Standard,
-    ));
+    builder.add_line_item(
+        LineItem::new(
+            "International Service",
+            fatoora_core::Decimal::parse("1.0").unwrap(),
+            "EA",
+            fatoora_core::Decimal::parse("300.0").unwrap(),
+            fatoora_core::Decimal::parse("15.0").unwrap(),
+            VatCategory::Standard,
+        )
+        .unwrap(),
+    );
 
     builder.build().expect("build foreign currency invoice")
 }
@@ -614,12 +659,15 @@ fn dummy_buyer_address() -> Address {
 
 #[allow(dead_code)]
 fn dummy_line_items() -> Vec<LineItem> {
-    vec![LineItem::new(
-        "Item",
-        1.0,
-        "PCE",
-        100.0,
-        15.0,
-        VatCategory::Standard,
-    )]
+    vec![
+        LineItem::new(
+            "Item",
+            fatoora_core::Decimal::parse("1.0").unwrap(),
+            "PCE",
+            fatoora_core::Decimal::parse("100.0").unwrap(),
+            fatoora_core::Decimal::parse("15.0").unwrap(),
+            VatCategory::Standard,
+        )
+        .unwrap(),
+    ]
 }

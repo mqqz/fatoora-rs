@@ -3,10 +3,11 @@ use super::{
     Address, Buyer, FinalizedInvoice, InvoiceData, InvoiceNote, InvoiceType, InvoiceView, LineItem,
     OtherId, Party, PartyRole, Seller, SignedInvoice, VatCategory, VatId,
 };
+use crate::Decimal;
 
 use helpers::{
-    FixedPrecision, currency_amount, currency_amount_with_precision, id_with_scheme,
-    id_with_scheme_with_agency, quantity_with_unit, vat_category_code,
+    currency_amount, id_with_scheme, id_with_scheme_with_agency, quantity_with_unit,
+    vat_category_code,
 };
 use quick_xml::se::{SeError, Serializer as QuickXmlSerializer};
 use serde::ser::{Serialize, SerializeStruct, Serializer};
@@ -39,6 +40,7 @@ pub enum XmlFormat {
 
 mod helpers {
     use super::VatCategory;
+    use crate::Decimal;
     use serde::ser::{Serialize, SerializeStruct, Serializer};
     use std::fmt::{self, Display, Formatter};
 
@@ -52,19 +54,19 @@ mod helpers {
     }
 
     pub(super) struct FixedPrecision {
-        value: f64,
+        value: Decimal,
         precision: usize,
     }
 
     impl FixedPrecision {
-        pub(super) fn new(value: f64, precision: usize) -> Self {
+        pub(super) fn new(value: Decimal, precision: usize) -> Self {
             Self { value, precision }
         }
     }
 
     impl Display for FixedPrecision {
         fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-            write!(f, "{:.*}", self.precision, self.value)
+            f.write_str(&self.value.fixed(self.precision))
         }
     }
 
@@ -80,34 +82,20 @@ mod helpers {
     struct CurrencyAmountSer<'a> {
         tag: &'static str,
         currency: &'a str,
-        value: f64,
+        value: Decimal,
         precision: usize,
     }
 
     pub(super) fn currency_amount<'a>(
         tag: &'static str,
         currency: &'a str,
-        value: f64,
+        value: Decimal,
     ) -> impl Serialize + 'a {
         CurrencyAmountSer {
             tag,
             currency,
             value,
             precision: 2,
-        }
-    }
-
-    pub(super) fn currency_amount_with_precision<'a>(
-        tag: &'static str,
-        currency: &'a str,
-        value: f64,
-        precision: usize,
-    ) -> impl Serialize + 'a {
-        CurrencyAmountSer {
-            tag,
-            currency,
-            value,
-            precision,
         }
     }
 
@@ -174,13 +162,13 @@ mod helpers {
 
     struct QuantityWithUnitSer<'a> {
         tag: &'static str,
-        value: f64,
+        value: Decimal,
         unit_code: &'a str,
     }
 
     pub(super) fn quantity_with_unit<'a>(
         tag: &'static str,
-        value: f64,
+        value: Decimal,
         unit_code: &'a str,
     ) -> impl Serialize + 'a {
         QuantityWithUnitSer {
@@ -197,7 +185,7 @@ mod helpers {
         {
             let mut st = s.serialize_struct(self.tag, 2)?;
             st.serialize_field("@unitCode", self.unit_code)?;
-            st.serialize_field("$text", &FixedPrecision::new(self.value, 6))?;
+            st.serialize_field("$text", &self.value)?;
             st.end()
         }
     }
@@ -208,7 +196,7 @@ pub mod parse;
 
 struct InvoiceTotals<'a> {
     currency: &'a str,
-    vat_percent: f64,
+    vat_percent: Decimal,
     vat_category: &'a VatCategory,
     totals: &'a super::InvoiceTotalsData,
 }
@@ -216,11 +204,13 @@ struct InvoiceTotals<'a> {
 impl<'a> InvoiceTotals<'a> {
     fn new<T: InvoiceView + ?Sized>(inv: &'a T) -> Self {
         let data = inv.data();
-        let vat_percent = data
-            .line_items
-            .first()
-            .map(|li| li.vat_rate)
-            .unwrap_or_default();
+        let vat_percent = data.adjustment_vat_rate.unwrap_or_else(|| {
+            data.line_items
+                .iter()
+                .find(|li| li.vat_category == data.vat_category)
+                .map(|li| li.vat_rate)
+                .unwrap_or_default()
+        });
 
         Self {
             currency: data.currency.as_str(),
@@ -234,31 +224,31 @@ impl<'a> InvoiceTotals<'a> {
         self.currency
     }
 
-    fn taxable_amount(&self) -> f64 {
+    fn taxable_amount(&self) -> Decimal {
         self.totals.taxable_amount()
     }
 
-    fn tax_inclusive_amount(&self) -> f64 {
+    fn tax_inclusive_amount(&self) -> Decimal {
         self.totals.tax_inclusive_amount()
     }
 
-    fn line_extension(&self) -> f64 {
+    fn line_extension(&self) -> Decimal {
         self.totals.line_extension()
     }
 
-    fn tax_amount(&self) -> f64 {
+    fn tax_amount(&self) -> Decimal {
         self.totals.tax_amount()
     }
 
-    fn allowance_total(&self) -> f64 {
+    fn allowance_total(&self) -> Decimal {
         self.totals.allowance_total()
     }
 
-    fn charge_total(&self) -> f64 {
+    fn charge_total(&self) -> Decimal {
         self.totals.charge_total()
     }
 
-    fn vat_percent(&self) -> f64 {
+    fn vat_percent(&self) -> Decimal {
         self.vat_percent
     }
 
@@ -542,7 +532,7 @@ impl<'a> Serialize for AttachmentXml<'a> {
 
 struct TaxCategoryXml<'a> {
     category: &'a VatCategory,
-    percent: f64,
+    percent: Decimal,
 }
 
 impl<'a> Serialize for TaxCategoryXml<'a> {
@@ -560,7 +550,7 @@ impl<'a> Serialize for TaxCategoryXml<'a> {
                 vat_category_code(self.category),
             ),
         )?;
-        st.serialize_field("cbc:Percent", &FixedPrecision::new(self.percent, 2))?;
+        st.serialize_field("cbc:Percent", &self.percent)?;
         st.serialize_field("cac:TaxScheme", &TaxSchemeXml)?;
         st.end()
     }
@@ -568,28 +558,28 @@ impl<'a> Serialize for TaxCategoryXml<'a> {
 
 #[derive(Clone)]
 struct TaxSubtotalData<'a> {
-    taxable_amount: f64,
-    tax_amount: f64,
+    taxable_amount: Decimal,
+    tax_amount: Decimal,
     currency: &'a str,
     category: &'a VatCategory,
-    percent: f64,
+    percent: Decimal,
 }
 
 fn allowance_charge<'a>(
     charge_indicator: bool,
-    amount: f64,
+    amount: Decimal,
     currency: &'a str,
     reason: &'a str,
     vat_category: &'a VatCategory,
-    percent: f64,
+    percent: Decimal,
 ) -> impl Serialize + 'a {
     struct AllowanceChargeSer<'a> {
         charge_indicator: bool,
-        amount: f64,
+        amount: Decimal,
         currency: &'a str,
         reason: &'a str,
         vat_category: &'a VatCategory,
-        percent: f64,
+        percent: Decimal,
     }
     impl<'a> Serialize for AllowanceChargeSer<'a> {
         fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
@@ -624,14 +614,14 @@ fn allowance_charge<'a>(
 }
 
 fn tax_total<'a>(
-    amount: f64,
+    amount: Decimal,
     currency: &'a str,
-    subtotal: Option<TaxSubtotalData<'a>>,
+    subtotal: Vec<TaxSubtotalData<'a>>,
 ) -> impl Serialize + 'a {
     struct TaxTotalSer<'a> {
-        amount: f64,
+        amount: Decimal,
         currency: &'a str,
-        subtotal: Option<TaxSubtotalData<'a>>,
+        subtotal: Vec<TaxSubtotalData<'a>>,
     }
     impl<'a> Serialize for TaxTotalSer<'a> {
         fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
@@ -643,7 +633,7 @@ fn tax_total<'a>(
                 "cbc:TaxAmount",
                 &currency_amount("cbc:TaxAmount", self.currency, self.amount),
             )?;
-            if let Some(subtotal) = &self.subtotal {
+            for subtotal in &self.subtotal {
                 st.serialize_field("cac:TaxSubtotal", &tax_subtotal(subtotal.clone()))?;
             }
             st.end()
@@ -690,21 +680,18 @@ fn tax_subtotal<'a>(data: TaxSubtotalData<'a>) -> impl Serialize + 'a {
 
 fn legal_monetary_total<'a>(
     currency: &'a str,
-    line_extension: f64,
-    tax_exclusive: f64,
-    tax_inclusive: f64,
-    allowance_total: f64,
-    prepaid: f64,
-    payable: f64,
+    totals: &super::InvoiceTotalsData,
 ) -> impl Serialize + 'a {
     struct LegalMonetaryTotalSer<'a> {
         currency: &'a str,
-        line_extension: f64,
-        tax_exclusive: f64,
-        tax_inclusive: f64,
-        allowance_total: f64,
-        prepaid: f64,
-        payable: f64,
+        line_extension: Decimal,
+        tax_exclusive: Decimal,
+        tax_inclusive: Decimal,
+        allowance_total: Decimal,
+        charge_total: Decimal,
+        prepaid: Decimal,
+        payable_rounding: Decimal,
+        payable: Decimal,
     }
     impl<'a> Serialize for LegalMonetaryTotalSer<'a> {
         fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
@@ -737,8 +724,20 @@ fn legal_monetary_total<'a>(
                 ),
             )?;
             st.serialize_field(
+                "cbc:ChargeTotalAmount",
+                &currency_amount("cbc:ChargeTotalAmount", self.currency, self.charge_total),
+            )?;
+            st.serialize_field(
                 "cbc:PrepaidAmount",
                 &currency_amount("cbc:PrepaidAmount", self.currency, self.prepaid),
+            )?;
+            st.serialize_field(
+                "cbc:PayableRoundingAmount",
+                &currency_amount(
+                    "cbc:PayableRoundingAmount",
+                    self.currency,
+                    self.payable_rounding,
+                ),
             )?;
             st.serialize_field(
                 "cbc:PayableAmount",
@@ -749,24 +748,26 @@ fn legal_monetary_total<'a>(
     }
     LegalMonetaryTotalSer {
         currency,
-        line_extension,
-        tax_exclusive,
-        tax_inclusive,
-        allowance_total,
-        prepaid,
-        payable,
+        line_extension: totals.line_extension(),
+        tax_exclusive: totals.taxable_amount(),
+        tax_inclusive: totals.tax_inclusive_amount(),
+        allowance_total: totals.allowance_total(),
+        charge_total: totals.charge_total(),
+        prepaid: totals.prepaid_amount(),
+        payable_rounding: totals.payable_rounding_amount(),
+        payable: totals.payable_amount(),
     }
 }
 
 fn invoice_line_tax_total<'a>(
     currency: &'a str,
-    tax_amount: f64,
-    rounding_amount: f64,
+    tax_amount: Decimal,
+    rounding_amount: Decimal,
 ) -> impl Serialize + 'a {
     struct InvoiceLineTaxTotalSer<'a> {
         currency: &'a str,
-        tax_amount: f64,
-        rounding_amount: f64,
+        tax_amount: Decimal,
+        rounding_amount: Decimal,
     }
     impl<'a> Serialize for InvoiceLineTaxTotalSer<'a> {
         fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
@@ -795,12 +796,12 @@ fn invoice_line_tax_total<'a>(
 fn invoice_item<'a>(
     description: &'a str,
     vat_category: &'a VatCategory,
-    vat_rate: f64,
+    vat_rate: Decimal,
 ) -> impl Serialize + 'a {
     struct InvoiceItemSer<'a> {
         description: &'a str,
         vat_category: &'a VatCategory,
-        vat_rate: f64,
+        vat_rate: Decimal,
     }
     impl<'a> Serialize for InvoiceItemSer<'a> {
         fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
@@ -826,10 +827,17 @@ fn invoice_item<'a>(
     }
 }
 
-fn invoice_line_price<'a>(currency: &'a str, unit_price: f64) -> impl Serialize + 'a {
+#[derive(serde::Serialize)]
+struct ExactPrice<'a> {
+    #[serde(rename = "@currencyID")]
+    currency: &'a str,
+    #[serde(rename = "$text")]
+    value: Decimal,
+}
+fn invoice_line_price<'a>(currency: &'a str, unit_price: Decimal) -> impl Serialize + 'a {
     struct InvoiceLinePriceSer<'a> {
         currency: &'a str,
-        unit_price: f64,
+        unit_price: Decimal,
     }
     impl<'a> Serialize for InvoiceLinePriceSer<'a> {
         fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
@@ -839,12 +847,10 @@ fn invoice_line_price<'a>(currency: &'a str, unit_price: f64) -> impl Serialize 
             let mut st = s.serialize_struct("cac:Price", 0)?;
             st.serialize_field(
                 "cbc:PriceAmount",
-                &currency_amount_with_precision(
-                    "cbc:PriceAmount",
-                    self.currency,
-                    self.unit_price,
-                    2,
-                ),
+                &ExactPrice {
+                    currency: self.currency,
+                    value: self.unit_price,
+                },
             )?;
             st.end()
         }
@@ -977,7 +983,9 @@ impl<'a> Serialize for InvoiceLineXml<'a> {
             &invoice_line_tax_total(
                 invoice.currency.as_str(),
                 li.vat_amount,
-                li.total_amount + li.vat_amount,
+                li.total_amount
+                    .add(li.vat_amount)
+                    .map_err(serde::ser::Error::custom)?,
             ),
         )?;
         st.serialize_field(
@@ -1158,7 +1166,7 @@ impl<'a, T: InvoiceView + ?Sized> Serialize for InvoiceXml<'a, T> {
         )?;
 
         // ---- allowance / charges ----
-        if totals.allowance_total() > 0.0 || data.allowance_reason.is_some() {
+        if totals.allowance_total() > Decimal::ZERO || data.allowance_reason.is_some() {
             root.serialize_field(
                 "cac:AllowanceCharge",
                 &allowance_charge(
@@ -1171,7 +1179,7 @@ impl<'a, T: InvoiceView + ?Sized> Serialize for InvoiceXml<'a, T> {
                 ),
             )?;
         }
-        if totals.charge_total() > 0.0 {
+        if totals.charge_total() > Decimal::ZERO {
             root.serialize_field(
                 "cac:AllowanceCharge",
                 &allowance_charge(
@@ -1186,34 +1194,31 @@ impl<'a, T: InvoiceView + ?Sized> Serialize for InvoiceXml<'a, T> {
         }
 
         // ---- tax totals ----
-        let tax_subtotal = TaxSubtotalData {
-            taxable_amount: totals.taxable_amount(),
-            tax_amount: totals.tax_amount(),
-            currency: currency_code,
-            category: totals.vat_category(),
-            percent: totals.vat_percent(),
-        };
+        let tax_subtotals = view
+            .totals()
+            .vat_breakdown()
+            .iter()
+            .map(|g| TaxSubtotalData {
+                taxable_amount: g.taxable_amount,
+                tax_amount: g.tax_amount,
+                currency: currency_code,
+                category: &g.category,
+                percent: g.rate,
+            })
+            .collect();
         root.serialize_field(
             "cac:TaxTotal",
-            &tax_total(totals.tax_amount(), currency_code, None),
+            &tax_total(totals.tax_amount(), currency_code, Vec::new()),
         )?;
         root.serialize_field(
             "cac:TaxTotal",
-            &tax_total(totals.tax_amount(), currency_code, Some(tax_subtotal)),
+            &tax_total(totals.tax_amount(), currency_code, tax_subtotals),
         )?;
 
         // ---- legal monetary totals ----
         root.serialize_field(
             "cac:LegalMonetaryTotal",
-            &legal_monetary_total(
-                currency_code,
-                totals.line_extension(),
-                totals.taxable_amount(),
-                totals.tax_inclusive_amount(),
-                totals.allowance_total(),
-                0.0,
-                totals.tax_inclusive_amount(),
-            ),
+            &legal_monetary_total(currency_code, view.totals()),
         )?;
 
         // ---- lines ----
@@ -1253,7 +1258,15 @@ mod tests {
         )
         .expect("valid seller");
 
-        let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
+        let line_item = LineItem::new(
+            "Item",
+            crate::Decimal::parse("1.0").unwrap(),
+            "PCE",
+            crate::Decimal::parse("100.0").unwrap(),
+            crate::Decimal::parse("15.0").unwrap(),
+            VatCategory::Standard,
+        )
+        .unwrap();
 
         let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified));
         builder

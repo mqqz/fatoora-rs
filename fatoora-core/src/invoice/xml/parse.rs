@@ -1,4 +1,5 @@
 //! XML parsing for invoices.
+use crate::Decimal;
 use crate::invoice::sign::SignedProperties;
 use crate::invoice::xml::constants::{CAC_NS, CBC_NS, DS_NS, INVOICE_NS, XADES_NS};
 use crate::invoice::{
@@ -179,21 +180,209 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
             text: note,
         });
     }
-    if let Some(reason) = xpath_text_optional(
-        &ctx,
-        "/ubl:Invoice/cac:AllowanceCharge/cbc:AllowanceChargeReason",
-    )? {
-        let amount = xpath_text_optional(&ctx, "/ubl:Invoice/cac:AllowanceCharge/cbc:Amount")?
-            .and_then(|v| v.parse::<f64>().ok())
-            .unwrap_or(0.0);
-        builder
-            .invoice_level_discount(amount)
-            .allowance_reason(reason);
+    let adjustment_nodes = ctx
+        .evaluate("/ubl:Invoice/cac:AllowanceCharge")
+        .map_err(|e| ParseError::XPath(format!("{e:?}")))?
+        .get_nodes_as_vec();
+    let mut discount = Decimal::ZERO;
+    let mut charge = Decimal::ZERO;
+    let mut adjustment_tax = None;
+    for index in 1..=adjustment_nodes.len() {
+        let base = format!("/ubl:Invoice/cac:AllowanceCharge[{index}]");
+        let amount = decimal_required(&ctx, &format!("{base}/cbc:Amount"), "AdjustmentAmount")?;
+        let category = xpath_text_required(
+            &ctx,
+            &format!("{base}/cac:TaxCategory/cbc:ID"),
+            "AdjustmentVatCategory",
+        )?;
+        let rate = decimal_required(
+            &ctx,
+            &format!("{base}/cac:TaxCategory/cbc:Percent"),
+            "AdjustmentVatRate",
+        )?;
+        let category = match category.as_str() {
+            "S" => VatCategory::Standard,
+            "Z" => VatCategory::Zero,
+            "E" => VatCategory::Exempt,
+            "O" => VatCategory::OutOfScope,
+            _ => {
+                return Err(ParseError::InvalidValue {
+                    field: "AdjustmentVatCategory",
+                    value: category,
+                });
+            }
+        };
+        if adjustment_tax.is_some_and(|tax| tax != (category, rate)) {
+            return Err(ParseError::InvalidValue {
+                field: "AllowanceCharge",
+                value: "multiple adjustment VAT groups are not supported".into(),
+            });
+        }
+        adjustment_tax = Some((category, rate));
+        builder.set_vat_category(category);
+        builder.adjustment_vat_rate = Some(rate);
+        let is_charge = xpath_text_required(
+            &ctx,
+            &format!("{base}/cbc:ChargeIndicator"),
+            "ChargeIndicator",
+        )?;
+        match is_charge.as_str() {
+            "true" | "1" => charge = charge.add(amount).map_err(decimal_parse_error)?,
+            "false" | "0" => discount = discount.add(amount).map_err(decimal_parse_error)?,
+            _ => {
+                return Err(ParseError::InvalidValue {
+                    field: "ChargeIndicator",
+                    value: is_charge,
+                });
+            }
+        }
+        if amount < Decimal::ZERO || amount.scale() > 2 {
+            return Err(ParseError::InvalidValue {
+                field: "AdjustmentAmount",
+                value: amount.to_string(),
+            });
+        }
+        if let Some(reason) =
+            xpath_text_optional(&ctx, &format!("{base}/cbc:AllowanceChargeReason"))?
+        {
+            builder.allowance_reason(reason);
+        }
     }
-
     builder
+        .invoice_level_discount(discount)
+        .invoice_level_charge(charge);
+    let mut invoice = builder
         .build()
-        .map_err(|e| ParseError::XmlParse(format!("{e:?}")))
+        .map_err(|e| ParseError::XmlParse(format!("{e:?}")))?;
+    if let Some((category, rate)) = adjustment_tax
+        && !invoice
+            .totals()
+            .vat_breakdown()
+            .iter()
+            .any(|g| g.category() == category && g.rate() == rate)
+    {
+        return Err(ParseError::InvalidValue {
+            field: "AdjustmentVatRate",
+            value: rate.to_string(),
+        });
+    }
+    // Validate the amounts we model before returning a finalized imported invoice.
+    for (field, expected) in [
+        ("LineExtensionAmount", invoice.totals().line_extension()),
+        ("TaxExclusiveAmount", invoice.totals().taxable_amount()),
+        (
+            "TaxInclusiveAmount",
+            invoice.totals().tax_inclusive_amount(),
+        ),
+        ("AllowanceTotalAmount", discount),
+        ("ChargeTotalAmount", charge),
+    ] {
+        let path = format!("/ubl:Invoice/cac:LegalMonetaryTotal/cbc:{field}");
+        if let Some(value) = xpath_text_optional(&ctx, &path)? {
+            check_amount(field, &value, expected)?;
+        }
+    }
+    let currency = invoice.data().currency().as_str();
+    let tax_path = format!("/ubl:Invoice/cac:TaxTotal/cbc:TaxAmount[@currencyID='{currency}']");
+    let count = ctx
+        .evaluate(&tax_path)
+        .map_err(|e| ParseError::XPath(format!("{e:?}")))?
+        .get_nodes_as_vec()
+        .len();
+    for index in 1..=count {
+        let value = xpath_text_required(&ctx, &format!("({tax_path})[{index}]"), "TaxAmount")?;
+        check_amount("TaxAmount", &value, invoice.totals().tax_amount())?;
+    }
+    let subtotal_path = format!(
+        "/ubl:Invoice/cac:TaxTotal[cbc:TaxAmount/@currencyID='{currency}']/cac:TaxSubtotal"
+    );
+    let subtotals = ctx
+        .evaluate(&subtotal_path)
+        .map_err(|e| ParseError::XPath(format!("{e:?}")))?
+        .get_nodes_as_vec();
+    let mut seen = Vec::new();
+    for index in 1..=subtotals.len() {
+        let base = format!("({subtotal_path})[{index}]");
+        let category = xpath_text_required(
+            &ctx,
+            &format!("{base}/cac:TaxCategory/cbc:ID"),
+            "VatCategory",
+        )?;
+        let rate = decimal_required(
+            &ctx,
+            &format!("{base}/cac:TaxCategory/cbc:Percent"),
+            "VatRate",
+        )?;
+        let group = invoice
+            .totals()
+            .vat_breakdown()
+            .iter()
+            .find(|g| {
+                let code = match g.category() {
+                    VatCategory::Standard => "S",
+                    VatCategory::Zero => "Z",
+                    VatCategory::Exempt => "E",
+                    VatCategory::OutOfScope => "O",
+                };
+                category == code && rate == g.rate()
+            })
+            .ok_or_else(|| ParseError::InvalidValue {
+                field: "TaxSubtotal",
+                value: format!("unknown category/rate {category}/{rate}"),
+            })?;
+        if seen.contains(&(category.clone(), rate)) {
+            return Err(ParseError::InvalidValue {
+                field: "TaxSubtotal",
+                value: "duplicate category/rate".into(),
+            });
+        }
+        seen.push((category, rate));
+        for (field, expected) in [
+            ("TaxableAmount", group.taxable_amount()),
+            ("TaxAmount", group.tax_amount()),
+        ] {
+            let value = xpath_text_required(&ctx, &format!("{base}/cbc:{field}"), field)?;
+            check_amount(field, &value, expected)?;
+        }
+    }
+    let mut prepaid = Decimal::ZERO;
+    let mut rounding = Decimal::ZERO;
+    for (field, dest) in [
+        ("PrepaidAmount", &mut prepaid),
+        ("PayableRoundingAmount", &mut rounding),
+    ] {
+        if let Some(value) = xpath_text_optional(
+            &ctx,
+            &format!("/ubl:Invoice/cac:LegalMonetaryTotal/cbc:{field}"),
+        )? {
+            *dest = value.parse().map_err(decimal_parse_error)?;
+            if dest.scale() > 2 {
+                return Err(ParseError::InvalidValue { field, value });
+            }
+        }
+    }
+    if prepaid < Decimal::ZERO {
+        return Err(ParseError::InvalidValue {
+            field: "PrepaidAmount",
+            value: prepaid.to_string(),
+        });
+    }
+    let payable = invoice
+        .totals()
+        .tax_inclusive_amount()
+        .sub(prepaid)
+        .and_then(|v| v.add(rounding))
+        .map_err(decimal_parse_error)?;
+    if let Some(value) = xpath_text_optional(
+        &ctx,
+        "/ubl:Invoice/cac:LegalMonetaryTotal/cbc:PayableAmount",
+    )? {
+        check_amount("PayableAmount", &value, payable)?;
+    }
+    invoice.totals.prepaid_amount = prepaid;
+    invoice.totals.payable_rounding_amount = rounding;
+    invoice.totals.payable_amount = payable;
+    Ok(invoice)
 }
 
 fn parse_signed_properties(doc: &Document) -> Result<SignedProperties, ParseError> {
@@ -499,36 +688,60 @@ fn parse_line_items(ctx: &xpath::Context) -> Result<Vec<LineItem>, ParseError> {
         };
 
         let quantity = quantity
-            .parse::<f64>()
+            .parse::<Decimal>()
             .map_err(|_| ParseError::InvalidValue {
                 field: "InvoicedQuantity",
                 value: quantity,
             })?;
-        let unit_price = price.parse::<f64>().map_err(|_| ParseError::InvalidValue {
-            field: "PriceAmount",
-            value: price,
-        })?;
-        let total_amount = line_extension
-            .parse::<f64>()
+        let unit_price = price
+            .parse::<Decimal>()
             .map_err(|_| ParseError::InvalidValue {
-                field: "LineExtensionAmount",
-                value: line_extension,
+                field: "PriceAmount",
+                value: price,
             })?;
+        let total_amount =
+            line_extension
+                .parse::<Decimal>()
+                .map_err(|_| ParseError::InvalidValue {
+                    field: "LineExtensionAmount",
+                    value: line_extension,
+                })?;
         let vat_rate = vat_rate
-            .parse::<f64>()
+            .parse::<Decimal>()
             .map_err(|_| ParseError::InvalidValue {
                 field: "LineVatPercent",
                 value: vat_rate,
             })?;
         let vat_amount = vat_amount
-            .parse::<f64>()
+            .parse::<Decimal>()
             .map_err(|_| ParseError::InvalidValue {
                 field: "LineTaxAmount",
                 value: vat_amount,
             })?;
 
-        let line_item = LineItem::try_from_parts(
-            name,
+        // BR-KSA-50 was removed in the May 2023 standard. Imported line VAT
+        // is supplied data; validate its scale and gross equation, not a guessed formula.
+        if total_amount.scale() > 2 || vat_amount.scale() > 2 {
+            return Err(ParseError::InvalidValue {
+                field: "LineItem",
+                value: "amounts require at most two decimals".into(),
+            });
+        }
+        let expected = quantity
+            .product_rounded(unit_price, false)
+            .map_err(decimal_parse_error)?;
+        check_amount("LineExtensionAmount", &total_amount.to_string(), expected)?;
+        if let Some(gross) =
+            xpath_text_optional(ctx, &format!("{base}/cac:TaxTotal/cbc:RoundingAmount"))?
+        {
+            check_amount(
+                "LineGrossAmount",
+                &gross,
+                total_amount.add(vat_amount).map_err(decimal_parse_error)?,
+            )?;
+        }
+        let line_item = LineItem {
+            description: name,
             quantity,
             unit_code,
             unit_price,
@@ -536,11 +749,7 @@ fn parse_line_items(ctx: &xpath::Context) -> Result<Vec<LineItem>, ParseError> {
             vat_rate,
             vat_amount,
             vat_category,
-        )
-        .map_err(|err| ParseError::InvalidValue {
-            field: "LineItem",
-            value: err.to_string(),
-        })?;
+        };
 
         items.push(line_item);
     }
@@ -631,4 +840,34 @@ fn decode_qr_tlv(qr_b64: &str) -> Result<std::collections::HashMap<u8, Vec<u8>>,
 #[allow(clippy::ptr_arg)]
 fn bytes_to_string(bytes: &Vec<u8>) -> Option<String> {
     String::from_utf8(bytes.clone()).ok()
+}
+
+fn decimal_parse_error(error: crate::DecimalError) -> ParseError {
+    ParseError::InvalidValue {
+        field: "Decimal",
+        value: error.to_string(),
+    }
+}
+fn decimal_required(
+    ctx: &xpath::Context,
+    path: &str,
+    field: &'static str,
+) -> Result<Decimal, ParseError> {
+    let value = xpath_text_required(ctx, path, field)?;
+    value
+        .parse()
+        .map_err(|_| ParseError::InvalidValue { field, value })
+}
+fn check_amount(field: &'static str, value: &str, expected: Decimal) -> Result<(), ParseError> {
+    let supplied: Decimal = value.parse().map_err(|_| ParseError::InvalidValue {
+        field,
+        value: value.into(),
+    })?;
+    if supplied.scale() > 2 || supplied != expected {
+        return Err(ParseError::InvalidValue {
+            field,
+            value: format!("supplied {supplied}, expected {expected}"),
+        });
+    }
+    Ok(())
 }

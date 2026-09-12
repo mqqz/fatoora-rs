@@ -88,7 +88,6 @@ typedef struct { _Bool ok; int value; FfiError* error; } FfiResult_FfiVatCategor
 typedef struct { _Bool ok; _Bool value; FfiError* error; } FfiResult_bool;
 typedef struct { _Bool ok; unsigned long long value; FfiError* error; } FfiResult_u64;
 typedef struct { _Bool ok; unsigned char value; FfiError* error; } FfiResult_u8;
-typedef struct { _Bool ok; double value; FfiError* error; } FfiResult_f64;
 
 void fatoora_error_free(FfiError* error);
 int fatoora_error_code(FfiError* error);
@@ -247,10 +246,10 @@ FfiResult_bool fatoora_invoice_builder_set_seller(
 FfiResult_bool fatoora_invoice_builder_add_line_item(
     FfiInvoiceBuilder* builder,
     const char* description,
-    double quantity,
+    const char* quantity,
     const char* unit_code,
-    double unit_price,
-    double vat_rate,
+    const char* unit_price,
+    const char* vat_rate,
     int vat_category
 );
 
@@ -280,10 +279,10 @@ FfiResult_bool fatoora_invoice_builder_set_note(
 FfiResult_bool fatoora_invoice_builder_set_allowance(
     FfiInvoiceBuilder* builder,
     const char* reason,
-    double amount
+    const char* amount
 );
-FfiResult_bool fatoora_invoice_builder_invoice_level_charge(FfiInvoiceBuilder* builder, double charge);
-FfiResult_bool fatoora_invoice_builder_invoice_level_discount(FfiInvoiceBuilder* builder, double discount);
+FfiResult_bool fatoora_invoice_builder_invoice_level_charge(FfiInvoiceBuilder* builder, const char* charge);
+FfiResult_bool fatoora_invoice_builder_invoice_level_discount(FfiInvoiceBuilder* builder, const char* discount);
 FfiResult_bool fatoora_invoice_builder_allowance_reason(FfiInvoiceBuilder* builder, const char* reason);
 
 FfiResult_bool fatoora_invoice_builder_flags(
@@ -303,35 +302,41 @@ FfiResult_u64 fatoora_invoice_line_item_count(FfiFinalizedInvoice* invoice);
 FfiResult_u64 fatoora_signed_invoice_line_item_count(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_invoice_line_item_description(FfiFinalizedInvoice* invoice, unsigned long long index);
 FfiResult_FfiString fatoora_invoice_line_item_unit_code(FfiFinalizedInvoice* invoice, unsigned long long index);
-FfiResult_f64 fatoora_invoice_line_item_quantity(FfiFinalizedInvoice* invoice, unsigned long long index);
-FfiResult_f64 fatoora_invoice_line_item_unit_price(FfiFinalizedInvoice* invoice, unsigned long long index);
-FfiResult_f64 fatoora_invoice_line_item_total_amount(FfiFinalizedInvoice* invoice, unsigned long long index);
-FfiResult_f64 fatoora_invoice_line_item_vat_rate(FfiFinalizedInvoice* invoice, unsigned long long index);
-FfiResult_f64 fatoora_invoice_line_item_vat_amount(FfiFinalizedInvoice* invoice, unsigned long long index);
+FfiResult_FfiString fatoora_invoice_line_item_quantity(FfiFinalizedInvoice* invoice, unsigned long long index);
+FfiResult_FfiString fatoora_invoice_line_item_unit_price(FfiFinalizedInvoice* invoice, unsigned long long index);
+FfiResult_FfiString fatoora_invoice_line_item_total_amount(FfiFinalizedInvoice* invoice, unsigned long long index);
+FfiResult_FfiString fatoora_invoice_line_item_vat_rate(FfiFinalizedInvoice* invoice, unsigned long long index);
+FfiResult_FfiString fatoora_invoice_line_item_vat_amount(FfiFinalizedInvoice* invoice, unsigned long long index);
 FfiResult_u8 fatoora_invoice_line_item_vat_category(FfiFinalizedInvoice* invoice, unsigned long long index);
 
 FfiResult_FfiString fatoora_signed_invoice_line_item_description(FfiSignedInvoice* signed, unsigned long long index);
 FfiResult_FfiString fatoora_signed_invoice_line_item_unit_code(FfiSignedInvoice* signed, unsigned long long index);
-FfiResult_f64 fatoora_signed_invoice_line_item_quantity(FfiSignedInvoice* signed, unsigned long long index);
-FfiResult_f64 fatoora_signed_invoice_line_item_unit_price(FfiSignedInvoice* signed, unsigned long long index);
-FfiResult_f64 fatoora_signed_invoice_line_item_total_amount(FfiSignedInvoice* signed, unsigned long long index);
-FfiResult_f64 fatoora_signed_invoice_line_item_vat_rate(FfiSignedInvoice* signed, unsigned long long index);
-FfiResult_f64 fatoora_signed_invoice_line_item_vat_amount(FfiSignedInvoice* signed, unsigned long long index);
+FfiResult_FfiString fatoora_signed_invoice_line_item_quantity(FfiSignedInvoice* signed, unsigned long long index);
+FfiResult_FfiString fatoora_signed_invoice_line_item_unit_price(FfiSignedInvoice* signed, unsigned long long index);
+FfiResult_FfiString fatoora_signed_invoice_line_item_total_amount(FfiSignedInvoice* signed, unsigned long long index);
+FfiResult_FfiString fatoora_signed_invoice_line_item_vat_rate(FfiSignedInvoice* signed, unsigned long long index);
+FfiResult_FfiString fatoora_signed_invoice_line_item_vat_amount(FfiSignedInvoice* signed, unsigned long long index);
 FfiResult_u8 fatoora_signed_invoice_line_item_vat_category(FfiSignedInvoice* signed, unsigned long long index);
 
-FfiResult_f64 fatoora_invoice_totals_tax_inclusive(FfiFinalizedInvoice* invoice);
-FfiResult_f64 fatoora_invoice_totals_tax_amount(FfiFinalizedInvoice* invoice);
-FfiResult_f64 fatoora_invoice_totals_line_extension(FfiFinalizedInvoice* invoice);
-FfiResult_f64 fatoora_invoice_totals_allowance_total(FfiFinalizedInvoice* invoice);
-FfiResult_f64 fatoora_invoice_totals_charge_total(FfiFinalizedInvoice* invoice);
-FfiResult_f64 fatoora_invoice_totals_taxable_amount(FfiFinalizedInvoice* invoice);
+FfiResult_FfiString fatoora_invoice_totals_prepaid_amount(FfiFinalizedInvoice* handle);
+FfiResult_FfiString fatoora_invoice_totals_payable_rounding_amount(FfiFinalizedInvoice* handle);
+FfiResult_FfiString fatoora_invoice_totals_payable_amount(FfiFinalizedInvoice* handle);
+FfiResult_FfiString fatoora_signed_invoice_totals_prepaid_amount(FfiSignedInvoice* handle);
+FfiResult_FfiString fatoora_signed_invoice_totals_payable_rounding_amount(FfiSignedInvoice* handle);
+FfiResult_FfiString fatoora_signed_invoice_totals_payable_amount(FfiSignedInvoice* handle);
+FfiResult_FfiString fatoora_invoice_totals_tax_inclusive(FfiFinalizedInvoice* invoice);
+FfiResult_FfiString fatoora_invoice_totals_tax_amount(FfiFinalizedInvoice* invoice);
+FfiResult_FfiString fatoora_invoice_totals_line_extension(FfiFinalizedInvoice* invoice);
+FfiResult_FfiString fatoora_invoice_totals_allowance_total(FfiFinalizedInvoice* invoice);
+FfiResult_FfiString fatoora_invoice_totals_charge_total(FfiFinalizedInvoice* invoice);
+FfiResult_FfiString fatoora_invoice_totals_taxable_amount(FfiFinalizedInvoice* invoice);
 
-FfiResult_f64 fatoora_signed_invoice_totals_tax_inclusive(FfiSignedInvoice* signed);
-FfiResult_f64 fatoora_signed_invoice_totals_tax_amount(FfiSignedInvoice* signed);
-FfiResult_f64 fatoora_signed_invoice_totals_line_extension(FfiSignedInvoice* signed);
-FfiResult_f64 fatoora_signed_invoice_totals_allowance_total(FfiSignedInvoice* signed);
-FfiResult_f64 fatoora_signed_invoice_totals_charge_total(FfiSignedInvoice* signed);
-FfiResult_f64 fatoora_signed_invoice_totals_taxable_amount(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_totals_tax_inclusive(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_totals_tax_amount(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_totals_line_extension(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_totals_allowance_total(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_totals_charge_total(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_totals_taxable_amount(FfiSignedInvoice* signed);
 
 FfiResult_u8 fatoora_invoice_flags(FfiFinalizedInvoice* invoice);
 FfiResult_u8 fatoora_signed_invoice_flags(FfiSignedInvoice* signed);
@@ -357,8 +362,8 @@ FfiResult_u64 fatoora_invoice_counter(FfiFinalizedInvoice* invoice);
 FfiResult_FfiString fatoora_invoice_payment_means_code(FfiFinalizedInvoice* invoice);
 FfiResult_FfiVatCategory fatoora_invoice_vat_category(FfiFinalizedInvoice* invoice);
 FfiResult_FfiString fatoora_invoice_allowance_reason(FfiFinalizedInvoice* invoice);
-FfiResult_f64 fatoora_invoice_level_charge(FfiFinalizedInvoice* invoice);
-FfiResult_f64 fatoora_invoice_level_discount(FfiFinalizedInvoice* invoice);
+FfiResult_FfiString fatoora_invoice_level_charge(FfiFinalizedInvoice* invoice);
+FfiResult_FfiString fatoora_invoice_level_discount(FfiFinalizedInvoice* invoice);
 
 FfiResult_FfiString fatoora_invoice_to_xml(FfiFinalizedInvoice* invoice);
 FfiResult_FfiString fatoora_invoice_hash_base64(FfiFinalizedInvoice* invoice);
@@ -401,8 +406,8 @@ FfiResult_u64 fatoora_signed_invoice_counter(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_payment_means_code(FfiSignedInvoice* signed);
 FfiResult_FfiVatCategory fatoora_signed_invoice_vat_category(FfiSignedInvoice* signed);
 FfiResult_FfiString fatoora_signed_invoice_allowance_reason(FfiSignedInvoice* signed);
-FfiResult_f64 fatoora_signed_invoice_level_charge(FfiSignedInvoice* signed);
-FfiResult_f64 fatoora_signed_invoice_level_discount(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_level_charge(FfiSignedInvoice* signed);
+FfiResult_FfiString fatoora_signed_invoice_level_discount(FfiSignedInvoice* signed);
 FfiResult_FfiParty fatoora_signed_invoice_seller(FfiSignedInvoice* signed);
 FfiResult_FfiParty fatoora_signed_invoice_buyer(FfiSignedInvoice* signed);
 FfiResult_FfiInvoiceNote fatoora_signed_invoice_note(FfiSignedInvoice* signed);

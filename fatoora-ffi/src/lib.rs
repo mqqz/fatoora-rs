@@ -1,4 +1,15 @@
 //! C ABI bindings for the fatoora SDK.
+macro_rules! ffi_decimal {
+    ($ptr:expr, $label:literal) => {{
+        let text = ffi_required_string!($ptr, $label);
+        match fatoora_core::Decimal::parse(&text) {
+            Ok(value) => value,
+            Err(err) => {
+                return FfiResult::err(ffi_error_invalid_input(format!("{}: {}", $label, err)));
+            }
+        }
+    }};
+}
 use std::ffi::CStr;
 use std::os::raw::c_char;
 
@@ -1527,8 +1538,9 @@ pub unsafe extern "C" fn fatoora_invoice_builder_flags(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_builder_invoice_level_charge(
     builder: *mut FfiInvoiceBuilder,
-    charge: f64,
+    charge: *const c_char,
 ) -> FfiResult<bool> {
+    let charge = ffi_decimal!(charge, "charge");
     let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
     builder.invoice_level_charge(charge);
     FfiResult::ok(true)
@@ -1539,8 +1551,9 @@ pub unsafe extern "C" fn fatoora_invoice_builder_invoice_level_charge(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_builder_invoice_level_discount(
     builder: *mut FfiInvoiceBuilder,
-    discount: f64,
+    discount: *const c_char,
 ) -> FfiResult<bool> {
+    let discount = ffi_decimal!(discount, "discount");
     let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
     builder.invoice_level_discount(discount);
     FfiResult::ok(true)
@@ -1565,12 +1578,15 @@ pub unsafe extern "C" fn fatoora_invoice_builder_allowance_reason(
 pub unsafe extern "C" fn fatoora_invoice_builder_add_line_item(
     builder: *mut FfiInvoiceBuilder,
     description: *const c_char,
-    quantity: f64,
+    quantity: *const c_char,
     unit_code: *const c_char,
-    unit_price: f64,
-    vat_rate: f64,
+    unit_price: *const c_char,
+    vat_rate: *const c_char,
     vat_category: FfiVatCategory,
 ) -> FfiResult<bool> {
+    let vat_rate = ffi_decimal!(vat_rate, "vat_rate");
+    let unit_price = ffi_decimal!(unit_price, "unit_price");
+    let quantity = ffi_decimal!(quantity, "quantity");
     let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
 
     let description = ffi_required_string!(description, "line item description");
@@ -1583,6 +1599,10 @@ pub unsafe extern "C" fn fatoora_invoice_builder_add_line_item(
         vat_rate,
         vat_category.into(),
     );
+    let item = match item {
+        Ok(item) => item,
+        Err(err) => return FfiResult::err(ffi_error_from_invoice(err)),
+    };
     builder.add_line_item(item);
     FfiResult::ok(true)
 }
@@ -1672,8 +1692,9 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_note(
 pub unsafe extern "C" fn fatoora_invoice_builder_set_allowance(
     builder: *mut FfiInvoiceBuilder,
     reason: *const c_char,
-    amount: f64,
+    amount: *const c_char,
 ) -> FfiResult<bool> {
+    let amount = ffi_decimal!(amount, "amount");
     let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
     let reason = ffi_required_string!(reason, "allowance reason");
     builder.set_allowance(&reason, amount);
@@ -1843,10 +1864,10 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_unit_code(
 pub unsafe extern "C" fn fatoora_invoice_line_item_quantity(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
     match line_item_from_invoice(invoice.data(), index) {
-        Ok(item) => FfiResult::ok(item.quantity()),
+        Ok(item) => ffi_string_from_owned((item.quantity()).to_string()),
         Err(message) => FfiResult::err(message),
     }
 }
@@ -1857,10 +1878,10 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_quantity(
 pub unsafe extern "C" fn fatoora_invoice_line_item_unit_price(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
     match line_item_from_invoice(invoice.data(), index) {
-        Ok(item) => FfiResult::ok(item.unit_price()),
+        Ok(item) => ffi_string_from_owned((item.unit_price()).to_string()),
         Err(message) => FfiResult::err(message),
     }
 }
@@ -1871,10 +1892,10 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_unit_price(
 pub unsafe extern "C" fn fatoora_invoice_line_item_total_amount(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
     match line_item_from_invoice(invoice.data(), index) {
-        Ok(item) => FfiResult::ok(item.total_amount()),
+        Ok(item) => ffi_string_from_owned((item.total_amount()).to_string()),
         Err(message) => FfiResult::err(message),
     }
 }
@@ -1885,10 +1906,10 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_total_amount(
 pub unsafe extern "C" fn fatoora_invoice_line_item_vat_rate(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
     match line_item_from_invoice(invoice.data(), index) {
-        Ok(item) => FfiResult::ok(item.vat_rate()),
+        Ok(item) => ffi_string_from_owned((item.vat_rate()).to_string()),
         Err(message) => FfiResult::err(message),
     }
 }
@@ -1899,10 +1920,10 @@ pub unsafe extern "C" fn fatoora_invoice_line_item_vat_rate(
 pub unsafe extern "C" fn fatoora_invoice_line_item_vat_amount(
     invoice: *mut FfiFinalizedInvoice,
     index: u64,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
     match line_item_from_invoice(invoice.data(), index) {
-        Ok(item) => FfiResult::ok(item.vat_amount()),
+        Ok(item) => ffi_string_from_owned((item.vat_amount()).to_string()),
         Err(message) => FfiResult::err(message),
     }
 }
@@ -1955,10 +1976,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_unit_code(
 pub unsafe extern "C" fn fatoora_signed_invoice_line_item_quantity(
     signed: *mut FfiSignedInvoice,
     index: u64,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     match line_item_from_invoice(signed.data(), index) {
-        Ok(item) => FfiResult::ok(item.quantity()),
+        Ok(item) => ffi_string_from_owned((item.quantity()).to_string()),
         Err(message) => FfiResult::err(message),
     }
 }
@@ -1969,10 +1990,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_quantity(
 pub unsafe extern "C" fn fatoora_signed_invoice_line_item_unit_price(
     signed: *mut FfiSignedInvoice,
     index: u64,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     match line_item_from_invoice(signed.data(), index) {
-        Ok(item) => FfiResult::ok(item.unit_price()),
+        Ok(item) => ffi_string_from_owned((item.unit_price()).to_string()),
         Err(message) => FfiResult::err(message),
     }
 }
@@ -1983,10 +2004,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_unit_price(
 pub unsafe extern "C" fn fatoora_signed_invoice_line_item_total_amount(
     signed: *mut FfiSignedInvoice,
     index: u64,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     match line_item_from_invoice(signed.data(), index) {
-        Ok(item) => FfiResult::ok(item.total_amount()),
+        Ok(item) => ffi_string_from_owned((item.total_amount()).to_string()),
         Err(message) => FfiResult::err(message),
     }
 }
@@ -1997,10 +2018,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_total_amount(
 pub unsafe extern "C" fn fatoora_signed_invoice_line_item_vat_rate(
     signed: *mut FfiSignedInvoice,
     index: u64,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     match line_item_from_invoice(signed.data(), index) {
-        Ok(item) => FfiResult::ok(item.vat_rate()),
+        Ok(item) => ffi_string_from_owned((item.vat_rate()).to_string()),
         Err(message) => FfiResult::err(message),
     }
 }
@@ -2011,10 +2032,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_vat_rate(
 pub unsafe extern "C" fn fatoora_signed_invoice_line_item_vat_amount(
     signed: *mut FfiSignedInvoice,
     index: u64,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let signed = ffi_borrow!(signed, "signed", SignedInvoice);
     match line_item_from_invoice(signed.data(), index) {
-        Ok(item) => FfiResult::ok(item.vat_amount()),
+        Ok(item) => ffi_string_from_owned((item.vat_amount()).to_string()),
         Err(message) => FfiResult::err(message),
     }
 }
@@ -2038,10 +2059,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_line_item_vat_category(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_totals_tax_inclusive(
     handle: *mut FfiFinalizedInvoice,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
     let invoice: &FinalizedInvoice = value;
-    FfiResult::ok(invoice.totals().tax_inclusive_amount())
+    ffi_string_from_owned((invoice.totals().tax_inclusive_amount()).to_string())
 }
 
 #[unsafe(no_mangle)]
@@ -2049,10 +2070,10 @@ pub unsafe extern "C" fn fatoora_invoice_totals_tax_inclusive(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_totals_tax_amount(
     handle: *mut FfiFinalizedInvoice,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
     let invoice: &FinalizedInvoice = value;
-    FfiResult::ok(invoice.totals().tax_amount())
+    ffi_string_from_owned((invoice.totals().tax_amount()).to_string())
 }
 
 #[unsafe(no_mangle)]
@@ -2060,10 +2081,10 @@ pub unsafe extern "C" fn fatoora_invoice_totals_tax_amount(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_totals_line_extension(
     handle: *mut FfiFinalizedInvoice,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
     let invoice: &FinalizedInvoice = value;
-    FfiResult::ok(invoice.totals().line_extension())
+    ffi_string_from_owned((invoice.totals().line_extension()).to_string())
 }
 
 #[unsafe(no_mangle)]
@@ -2071,10 +2092,10 @@ pub unsafe extern "C" fn fatoora_invoice_totals_line_extension(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_totals_allowance_total(
     handle: *mut FfiFinalizedInvoice,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
     let invoice: &FinalizedInvoice = value;
-    FfiResult::ok(invoice.totals().allowance_total())
+    ffi_string_from_owned((invoice.totals().allowance_total()).to_string())
 }
 
 #[unsafe(no_mangle)]
@@ -2082,10 +2103,10 @@ pub unsafe extern "C" fn fatoora_invoice_totals_allowance_total(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_totals_charge_total(
     handle: *mut FfiFinalizedInvoice,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
     let invoice: &FinalizedInvoice = value;
-    FfiResult::ok(invoice.totals().charge_total())
+    ffi_string_from_owned((invoice.totals().charge_total()).to_string())
 }
 
 #[unsafe(no_mangle)]
@@ -2093,10 +2114,10 @@ pub unsafe extern "C" fn fatoora_invoice_totals_charge_total(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_totals_taxable_amount(
     handle: *mut FfiFinalizedInvoice,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let value = ffi_borrow!(handle, "invoice", FinalizedInvoice);
     let invoice: &FinalizedInvoice = value;
-    FfiResult::ok(invoice.totals().taxable_amount())
+    ffi_string_from_owned((invoice.totals().taxable_amount()).to_string())
 }
 
 #[unsafe(no_mangle)]
@@ -2104,10 +2125,10 @@ pub unsafe extern "C" fn fatoora_invoice_totals_taxable_amount(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signed_invoice_totals_tax_inclusive(
     handle: *mut FfiSignedInvoice,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let value = ffi_borrow!(handle, "signed", SignedInvoice);
     let signed: &SignedInvoice = value;
-    FfiResult::ok(signed.totals().tax_inclusive_amount())
+    ffi_string_from_owned((signed.totals().tax_inclusive_amount()).to_string())
 }
 
 #[unsafe(no_mangle)]
@@ -2115,10 +2136,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_totals_tax_inclusive(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signed_invoice_totals_tax_amount(
     handle: *mut FfiSignedInvoice,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let value = ffi_borrow!(handle, "signed", SignedInvoice);
     let signed: &SignedInvoice = value;
-    FfiResult::ok(signed.totals().tax_amount())
+    ffi_string_from_owned((signed.totals().tax_amount()).to_string())
 }
 
 #[unsafe(no_mangle)]
@@ -2126,10 +2147,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_totals_tax_amount(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signed_invoice_totals_line_extension(
     handle: *mut FfiSignedInvoice,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let value = ffi_borrow!(handle, "signed", SignedInvoice);
     let signed: &SignedInvoice = value;
-    FfiResult::ok(signed.totals().line_extension())
+    ffi_string_from_owned((signed.totals().line_extension()).to_string())
 }
 
 #[unsafe(no_mangle)]
@@ -2137,10 +2158,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_totals_line_extension(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signed_invoice_totals_allowance_total(
     handle: *mut FfiSignedInvoice,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let value = ffi_borrow!(handle, "signed", SignedInvoice);
     let signed: &SignedInvoice = value;
-    FfiResult::ok(signed.totals().allowance_total())
+    ffi_string_from_owned((signed.totals().allowance_total()).to_string())
 }
 
 #[unsafe(no_mangle)]
@@ -2148,10 +2169,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_totals_allowance_total(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signed_invoice_totals_charge_total(
     handle: *mut FfiSignedInvoice,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let value = ffi_borrow!(handle, "signed", SignedInvoice);
     let signed: &SignedInvoice = value;
-    FfiResult::ok(signed.totals().charge_total())
+    ffi_string_from_owned((signed.totals().charge_total()).to_string())
 }
 
 #[unsafe(no_mangle)]
@@ -2159,10 +2180,10 @@ pub unsafe extern "C" fn fatoora_signed_invoice_totals_charge_total(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signed_invoice_totals_taxable_amount(
     handle: *mut FfiSignedInvoice,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let value = ffi_borrow!(handle, "signed", SignedInvoice);
     let signed: &SignedInvoice = value;
-    FfiResult::ok(signed.totals().taxable_amount())
+    ffi_string_from_owned((signed.totals().taxable_amount()).to_string())
 }
 
 #[unsafe(no_mangle)]
@@ -2721,9 +2742,9 @@ pub unsafe extern "C" fn fatoora_invoice_allowance_reason(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_level_charge(
     invoice: *mut FfiFinalizedInvoice,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    FfiResult::ok(invoice.data().invoice_level_charge())
+    ffi_string_from_owned((invoice.data().invoice_level_charge()).to_string())
 }
 
 #[unsafe(no_mangle)]
@@ -2731,9 +2752,9 @@ pub unsafe extern "C" fn fatoora_invoice_level_charge(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_level_discount(
     invoice: *mut FfiFinalizedInvoice,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let invoice = ffi_borrow!(invoice, "invoice", FinalizedInvoice);
-    FfiResult::ok(invoice.data().invoice_level_discount())
+    ffi_string_from_owned((invoice.data().invoice_level_discount()).to_string())
 }
 
 fn invoice_type_parts(
@@ -2938,9 +2959,9 @@ pub unsafe extern "C" fn fatoora_signed_invoice_allowance_reason(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signed_invoice_level_charge(
     signed: *mut FfiSignedInvoice,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    FfiResult::ok(signed.data().invoice_level_charge())
+    ffi_string_from_owned((signed.data().invoice_level_charge()).to_string())
 }
 
 #[unsafe(no_mangle)]
@@ -2948,9 +2969,9 @@ pub unsafe extern "C" fn fatoora_signed_invoice_level_charge(
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_signed_invoice_level_discount(
     signed: *mut FfiSignedInvoice,
-) -> FfiResult<f64> {
+) -> FfiResult<FfiString> {
     let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-    FfiResult::ok(signed.data().invoice_level_discount())
+    ffi_string_from_owned((signed.data().invoice_level_discount()).to_string())
 }
 
 #[unsafe(no_mangle)]
@@ -3291,6 +3312,72 @@ pub unsafe extern "C" fn fatoora_signed_invoice_free(signed: *mut FfiSignedInvoi
     ffi_handle_free!(signed, SignedInvoice);
 }
 
+#[unsafe(no_mangle)]
+/// Return an owned decimal string; release it with `fatoora_string_free`.
+/// # Safety
+/// The invoice pointer must refer to a valid invoice handle.
+pub unsafe extern "C" fn fatoora_invoice_totals_prepaid_amount(
+    handle: *mut FfiFinalizedInvoice,
+) -> FfiResult<FfiString> {
+    let invoice = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+    ffi_string_from_owned(invoice.totals().prepaid_amount().to_string())
+}
+
+#[unsafe(no_mangle)]
+/// Return an owned decimal string; release it with `fatoora_string_free`.
+/// # Safety
+/// The invoice pointer must refer to a valid invoice handle.
+pub unsafe extern "C" fn fatoora_invoice_totals_payable_rounding_amount(
+    handle: *mut FfiFinalizedInvoice,
+) -> FfiResult<FfiString> {
+    let invoice = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+    ffi_string_from_owned(invoice.totals().payable_rounding_amount().to_string())
+}
+
+#[unsafe(no_mangle)]
+/// Return an owned decimal string; release it with `fatoora_string_free`.
+/// # Safety
+/// The invoice pointer must refer to a valid invoice handle.
+pub unsafe extern "C" fn fatoora_invoice_totals_payable_amount(
+    handle: *mut FfiFinalizedInvoice,
+) -> FfiResult<FfiString> {
+    let invoice = ffi_borrow!(handle, "invoice", FinalizedInvoice);
+    ffi_string_from_owned(invoice.totals().payable_amount().to_string())
+}
+
+#[unsafe(no_mangle)]
+/// Return an owned decimal string; release it with `fatoora_string_free`.
+/// # Safety
+/// The invoice pointer must refer to a valid invoice handle.
+pub unsafe extern "C" fn fatoora_signed_invoice_totals_prepaid_amount(
+    handle: *mut FfiSignedInvoice,
+) -> FfiResult<FfiString> {
+    let invoice = ffi_borrow!(handle, "invoice", SignedInvoice);
+    ffi_string_from_owned(invoice.totals().prepaid_amount().to_string())
+}
+
+#[unsafe(no_mangle)]
+/// Return an owned decimal string; release it with `fatoora_string_free`.
+/// # Safety
+/// The invoice pointer must refer to a valid invoice handle.
+pub unsafe extern "C" fn fatoora_signed_invoice_totals_payable_rounding_amount(
+    handle: *mut FfiSignedInvoice,
+) -> FfiResult<FfiString> {
+    let invoice = ffi_borrow!(handle, "invoice", SignedInvoice);
+    ffi_string_from_owned(invoice.totals().payable_rounding_amount().to_string())
+}
+
+#[unsafe(no_mangle)]
+/// Return an owned decimal string; release it with `fatoora_string_free`.
+/// # Safety
+/// The invoice pointer must refer to a valid invoice handle.
+pub unsafe extern "C" fn fatoora_signed_invoice_totals_payable_amount(
+    handle: *mut FfiSignedInvoice,
+) -> FfiResult<FfiString> {
+    let invoice = ffi_borrow!(handle, "invoice", SignedInvoice);
+    ffi_string_from_owned(invoice.totals().payable_amount().to_string())
+}
+
 #[cfg(test)]
 mod test_support {
     use std::sync::{Mutex, OnceLock};
@@ -3409,7 +3496,15 @@ mod ffi_zatca_tests {
         )
         .expect("seller");
 
-        let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
+        let line_item = LineItem::new(
+            "Item",
+            fatoora_core::Decimal::from(1),
+            "PCE",
+            fatoora_core::Decimal::from(100),
+            fatoora_core::Decimal::from(15),
+            VatCategory::Standard,
+        )
+        .unwrap();
 
         let mut builder = InvoiceBuilder::new(invoice_type);
         builder
@@ -4345,10 +4440,10 @@ mod ffi_coverage_tests {
             let add_result = fatoora_invoice_builder_add_line_item(
                 &mut builder,
                 cstr("Item").as_ptr(),
-                1.0,
+                cstr("1.0").as_ptr(),
                 cstr("PCE").as_ptr(),
-                100.0,
-                15.0,
+                cstr("100.0").as_ptr(),
+                cstr("15.0").as_ptr(),
                 FfiVatCategory::Standard,
             );
             assert!(add_result.ok);
@@ -4424,10 +4519,10 @@ mod ffi_coverage_tests {
             let add_result = fatoora_invoice_builder_add_line_item(
                 &mut builder,
                 cstr("Item").as_ptr(),
-                1.0,
+                cstr("1.0").as_ptr(),
                 cstr("PCE").as_ptr(),
-                100.0,
-                15.0,
+                cstr("100.0").as_ptr(),
+                cstr("15.0").as_ptr(),
                 FfiVatCategory::Standard,
             );
             assert!(add_result.ok);
@@ -4472,10 +4567,10 @@ mod ffi_coverage_tests {
             let add_result = fatoora_invoice_builder_add_line_item(
                 &mut builder,
                 cstr("Item").as_ptr(),
-                1.0,
+                cstr("1.0").as_ptr(),
                 cstr("PCE").as_ptr(),
-                50.0,
-                15.0,
+                cstr("50.0").as_ptr(),
+                cstr("15.0").as_ptr(),
                 FfiVatCategory::Standard,
             );
             assert!(add_result.ok);
@@ -4496,8 +4591,14 @@ mod ffi_coverage_tests {
     fn builder_setters_and_accessors() {
         unsafe {
             let mut builder = build_invoice_builder();
-            assert!(fatoora_invoice_builder_invoice_level_charge(&mut builder, 10.0).ok);
-            assert!(fatoora_invoice_builder_invoice_level_discount(&mut builder, 5.0).ok);
+            assert!(
+                fatoora_invoice_builder_invoice_level_charge(&mut builder, cstr("10.0").as_ptr())
+                    .ok
+            );
+            assert!(
+                fatoora_invoice_builder_invoice_level_discount(&mut builder, cstr("5.0").as_ptr())
+                    .ok
+            );
             assert!(
                 fatoora_invoice_builder_allowance_reason(&mut builder, cstr("Promo").as_ptr()).ok
             );
@@ -4513,7 +4614,7 @@ mod ffi_coverage_tests {
                 fatoora_invoice_builder_set_allowance(
                     &mut builder,
                     cstr("Allowance").as_ptr(),
-                    2.0
+                    cstr("2.0").as_ptr()
                 )
                 .ok
             );
@@ -4540,10 +4641,10 @@ mod ffi_coverage_tests {
             let add_result = fatoora_invoice_builder_add_line_item(
                 &mut builder,
                 cstr("Item").as_ptr(),
-                1.0,
+                cstr("1.0").as_ptr(),
                 cstr("PCE").as_ptr(),
-                100.0,
-                15.0,
+                cstr("100.0").as_ptr(),
+                cstr("15.0").as_ptr(),
                 FfiVatCategory::Standard,
             );
             assert!(add_result.ok);
@@ -4822,10 +4923,10 @@ mod ffi_coverage_tests {
             let add_result = fatoora_invoice_builder_add_line_item(
                 &mut builder,
                 cstr("Item").as_ptr(),
-                1.0,
+                cstr("1.0").as_ptr(),
                 cstr("PCE").as_ptr(),
-                25.0,
-                15.0,
+                cstr("25.0").as_ptr(),
+                cstr("15.0").as_ptr(),
                 FfiVatCategory::Standard,
             );
             assert!(add_result.ok);
@@ -4982,10 +5083,10 @@ mod ffi_coverage_tests {
             let add_result = fatoora_invoice_builder_add_line_item(
                 &mut builder,
                 cstr("Item").as_ptr(),
-                1.0,
+                cstr("1.0").as_ptr(),
                 cstr("PCE").as_ptr(),
-                50.0,
-                15.0,
+                cstr("50.0").as_ptr(),
+                cstr("15.0").as_ptr(),
                 FfiVatCategory::Standard,
             );
             assert!(add_result.ok);
@@ -5085,7 +5186,7 @@ mod ffi_coverage_tests {
             let result = fatoora_invoice_builder_set_allowance(
                 std::ptr::null_mut(),
                 cstr("Disc").as_ptr(),
-                1.0,
+                cstr("1.0").as_ptr(),
             );
             assert!(!result.ok);
             if !result.error.is_null() {
@@ -5220,10 +5321,10 @@ mod ffi_coverage_tests {
             let add_result = fatoora_invoice_builder_add_line_item(
                 &mut builder,
                 cstr("Item").as_ptr(),
-                2.0,
+                cstr("2.0").as_ptr(),
                 cstr("PCE").as_ptr(),
-                50.0,
-                15.0,
+                cstr("50.0").as_ptr(),
+                cstr("15.0").as_ptr(),
                 FfiVatCategory::Standard,
             );
             assert!(add_result.ok);
@@ -5253,8 +5354,11 @@ mod ffi_coverage_tests {
             );
             assert!(note_result.ok);
 
-            let allowance_result =
-                fatoora_invoice_builder_set_allowance(&mut builder, cstr("Discount").as_ptr(), 5.0);
+            let allowance_result = fatoora_invoice_builder_set_allowance(
+                &mut builder,
+                cstr("Discount").as_ptr(),
+                cstr("5.0").as_ptr(),
+            );
             assert!(allowance_result.ok);
 
             let flags_result = fatoora_invoice_builder_flags(&mut builder, 0b00101);
@@ -5540,10 +5644,10 @@ mod ffi_coverage_tests {
             let add_result = fatoora_invoice_builder_add_line_item(
                 &mut builder,
                 cstr("Item").as_ptr(),
-                1.0,
+                cstr("1.0").as_ptr(),
                 cstr("PCE").as_ptr(),
-                50.0,
-                15.0,
+                cstr("50.0").as_ptr(),
+                cstr("15.0").as_ptr(),
                 FfiVatCategory::Standard,
             );
             assert!(add_result.ok);

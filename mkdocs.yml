@@ -31,6 +31,7 @@ nav:
           - C/C++ (FFI): reference/bindings/c.md
       - Invoice:
           - Model: reference/invoice-model.md
+          - Decimal numbers: reference/numbers.md
           - Signing: reference/invoice-signing.md
           - Validation: reference/invoice-validation.md
           - XML: reference/xml.md

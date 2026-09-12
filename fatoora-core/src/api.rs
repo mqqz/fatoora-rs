@@ -1678,7 +1678,15 @@ mod tests {
         )
         .expect("seller");
 
-        let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
+        let line_item = LineItem::new(
+            "Item",
+            crate::Decimal::from(1),
+            "PCE",
+            crate::Decimal::from(100),
+            crate::Decimal::from(15),
+            VatCategory::Standard,
+        )
+        .unwrap();
 
         let mut builder = InvoiceBuilder::new(invoice_type);
         builder

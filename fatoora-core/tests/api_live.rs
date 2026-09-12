@@ -272,14 +272,17 @@ async fn clear_invoice_with_live_pcsid() {
         )
         .expect("valid seller");
 
-        let line_items = vec![LineItem::new(
-            "Item",
-            1.0,
-            "PCE",
-            100.0,
-            15.0,
-            VatCategory::Standard,
-        )];
+        let line_items = vec![
+            LineItem::new(
+                "Item",
+                fatoora_core::Decimal::parse("1.0").unwrap(),
+                "PCE",
+                fatoora_core::Decimal::parse("100.0").unwrap(),
+                fatoora_core::Decimal::parse("15.0").unwrap(),
+                VatCategory::Standard,
+            )
+            .unwrap(),
+        ];
 
         let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Standard));
         builder

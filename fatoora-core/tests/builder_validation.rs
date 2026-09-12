@@ -56,7 +56,11 @@ fn build_reports_missing_required_fields() {
 #[test]
 fn build_reports_invalid_line_items() {
     let issue_datetime = "2024-01-01T12:30:00Z";
-    let line_item = LineItem::from_totals("", -1.0, "", -1.0, -1.0, 15.0, VatCategory::Standard);
+    let line_item: LineItem = serde_json::from_value(serde_json::json!({
+        "description":"", "quantity":"-1", "unit_code":"", "unit_price":"-1",
+        "total_amount":"-1", "vat_rate":"15", "vat_amount":"-0.15", "vat_category":"Standard"
+    }))
+    .unwrap();
     let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified));
     builder
         .set_id("INV-1")
@@ -121,16 +125,19 @@ fn build_reports_invalid_line_items() {
 fn line_item_try_from_parts_reports_mismatch() {
     let err = LineItem::try_from_parts(
         "Item",
-        1.0,
+        fatoora_core::Decimal::parse("1.0").unwrap(),
         "PCE",
-        100.0,
-        100.0,
-        15.0,
-        10.0,
+        fatoora_core::Decimal::parse("100.0").unwrap(),
+        fatoora_core::Decimal::parse("100.0").unwrap(),
+        fatoora_core::Decimal::parse("15.0").unwrap(),
+        fatoora_core::Decimal::parse("10.0").unwrap(),
         VatCategory::Standard,
     )
     .expect_err("expected mismatch error");
 
+    let InvoiceError::Validation(err) = err else {
+        panic!("expected validation error")
+    };
     assert!(err.issues().iter().any(|issue| {
         issue.field() == InvoiceField::LineItemVatAmount && issue.kind() == ValidationKind::Mismatch
     }));
@@ -172,7 +179,12 @@ fn credit_note_missing_required_fields_reports_issues() {
 #[test]
 fn credit_note_invalid_line_item_reports_issues() {
     let issue_datetime = "2024-01-01T12:30:00Z";
-    let line_item = LineItem::from_totals("", -1.0, "", -1.0, -1.0, 15.0, VatCategory::Standard);
+    let line_item: LineItem = serde_json::from_value(serde_json::json!({
+        "description":"", "quantity":"-1", "unit_code":"", "unit_price":"-1",
+        "total_amount":"-1", "vat_rate":"15", "vat_amount":"-0.15", "vat_category":"Standard"
+    }))
+    .unwrap();
+
     let mut builder = InvoiceBuilder::new(InvoiceType::CreditNote(
         InvoiceSubType::Simplified,
         fatoora_core::invoice::OriginalInvoiceRef::new("INV-ORIG"),

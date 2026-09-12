@@ -1,6 +1,6 @@
 # Invoice Model
 
-Core data types for building and inspecting invoices.
+Core data types for building and inspecting invoices. See [Decimal numbers and rounding](numbers.md) for numeric inputs, calculation rules and binding representations.
 
 ## InvoiceBuilder
 
@@ -239,17 +239,17 @@ Core data types for building and inspecting invoices.
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::set_allowance(reason: impl Into<String>, amount: f64) -> &mut Self
+        InvoiceBuilder::set_allowance(reason: impl Into<String>, amount: Decimal) -> &mut Self
         ```
 
     === "{{ lang.python }}"
         ```python
-        InvoiceBuilder.set_allowance(reason: str, amount: float) -> None
+        InvoiceBuilder.set_allowance(reason: str, amount: Decimal | str | int) -> None
         ```
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_bool fatoora_invoice_builder_set_allowance(FfiInvoiceBuilder* builder, const char* reason, double amount);
+        FfiResult_bool fatoora_invoice_builder_set_allowance(FfiInvoiceBuilder* builder, const char* reason, const char* amount);
         ```
 
 ### `invoice_level_charge`
@@ -258,17 +258,17 @@ Core data types for building and inspecting invoices.
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::invoice_level_charge(charge: f64) -> &mut Self
+        InvoiceBuilder::invoice_level_charge(charge: Decimal) -> &mut Self
         ```
 
     === "{{ lang.python }}"
         ```python
-        InvoiceBuilder.invoice_level_charge(charge: float) -> None
+        InvoiceBuilder.invoice_level_charge(charge: Decimal | str | int) -> None
         ```
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_bool fatoora_invoice_builder_invoice_level_charge(FfiInvoiceBuilder* builder, double charge);
+        FfiResult_bool fatoora_invoice_builder_invoice_level_charge(FfiInvoiceBuilder* builder, const char* charge);
         ```
 
 ### `invoice_level_discount`
@@ -277,17 +277,17 @@ Core data types for building and inspecting invoices.
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::invoice_level_discount(discount: f64) -> &mut Self
+        InvoiceBuilder::invoice_level_discount(discount: Decimal) -> &mut Self
         ```
 
     === "{{ lang.python }}"
         ```python
-        InvoiceBuilder.invoice_level_discount(discount: float) -> None
+        InvoiceBuilder.invoice_level_discount(discount: Decimal | str | int) -> None
         ```
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_bool fatoora_invoice_builder_invoice_level_discount(FfiInvoiceBuilder* builder, double discount);
+        FfiResult_bool fatoora_invoice_builder_invoice_level_discount(FfiInvoiceBuilder* builder, const char* discount);
         ```
 
 ### `allowance_reason`
@@ -339,12 +339,12 @@ Core data types for building and inspecting invoices.
 
     === "{{ lang.python }}"
         ```python
-        InvoiceBuilder.add_line_item(description: str, quantity: float, unit_code: str, unit_price: float, vat_rate: float, vat_category: VatCategory) -> None
+        InvoiceBuilder.add_line_item(description: str, quantity: Decimal | str | int, unit_code: str, unit_price: Decimal | str | int, vat_rate: Decimal | str | int, vat_category: VatCategory) -> None
         ```
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_bool fatoora_invoice_builder_add_line_item(FfiInvoiceBuilder* builder, const char* description, double quantity, const char* unit_code, double unit_price, double vat_rate, FfiVatCategory vat_category);
+        FfiResult_bool fatoora_invoice_builder_add_line_item(FfiInvoiceBuilder* builder, const char* description, const char* quantity, const char* unit_code, const char* unit_price, const char* vat_rate, FfiVatCategory vat_category);
         ```
 
 ### `build`
@@ -483,8 +483,8 @@ Core data types for building and inspecting invoices.
         FinalizedInvoice.invoice_counter() -> int
         FinalizedInvoice.payment_means_code() -> str
         FinalizedInvoice.vat_category() -> VatCategory
-        FinalizedInvoice.invoice_level_charge() -> float
-        FinalizedInvoice.invoice_level_discount() -> float
+        FinalizedInvoice.invoice_level_charge() -> Decimal
+        FinalizedInvoice.invoice_level_discount() -> Decimal
         FinalizedInvoice.allowance_reason() -> Optional[str]
         FinalizedInvoice.invoice_type_kind() -> InvoiceTypeKind
         FinalizedInvoice.invoice_sub_type() -> InvoiceSubType
@@ -512,7 +512,7 @@ Core data types for building and inspecting invoices.
         FfiResult_FfiString fatoora_invoice_uuid(FfiFinalizedInvoice* invoice);
         FfiResult_FfiString fatoora_invoice_to_xml(FfiFinalizedInvoice* invoice);
         FfiResult_u64 fatoora_invoice_line_item_count(FfiFinalizedInvoice* invoice);
-        FfiResult_f64 fatoora_invoice_totals_tax_inclusive(FfiFinalizedInvoice* invoice);
+        FfiResult_FfiString fatoora_invoice_totals_tax_inclusive(FfiFinalizedInvoice* invoice);
         /* plus remaining fatoora_invoice_* accessors */
         ```
 
@@ -664,8 +664,8 @@ Core data types for building and inspecting invoices.
         SignedInvoice.invoice_counter() -> int
         SignedInvoice.payment_means_code() -> str
         SignedInvoice.vat_category() -> VatCategory
-        SignedInvoice.invoice_level_charge() -> float
-        SignedInvoice.invoice_level_discount() -> float
+        SignedInvoice.invoice_level_charge() -> Decimal
+        SignedInvoice.invoice_level_discount() -> Decimal
         SignedInvoice.allowance_reason() -> Optional[str]
         SignedInvoice.invoice_type_kind() -> InvoiceTypeKind
         SignedInvoice.invoice_sub_type() -> InvoiceSubType
@@ -691,7 +691,7 @@ Core data types for building and inspecting invoices.
         FfiResult_FfiString fatoora_signed_invoice_id(FfiSignedInvoice* signed);
         FfiResult_FfiString fatoora_signed_invoice_uuid(FfiSignedInvoice* signed);
         FfiResult_u64 fatoora_signed_invoice_line_item_count(FfiSignedInvoice* signed);
-        FfiResult_f64 fatoora_signed_invoice_totals_tax_inclusive(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_totals_tax_inclusive(FfiSignedInvoice* signed);
         /* plus remaining fatoora_signed_invoice_* accessors */
         ```
 

@@ -113,17 +113,20 @@ fn invoice_builder_roundtrip() {
         );
         assert!(note_result.ok);
 
-        let allowance_result =
-            fatoora_invoice_builder_set_allowance(&mut builder, cstr("Discount").as_ptr(), 5.0);
+        let allowance_result = fatoora_invoice_builder_set_allowance(
+            &mut builder,
+            cstr("Discount").as_ptr(),
+            cstr("5.0").as_ptr(),
+        );
         assert!(allowance_result.ok);
 
         let add_result = fatoora_invoice_builder_add_line_item(
             &mut builder,
             cstr("Item").as_ptr(),
-            1.0,
+            cstr("1.0").as_ptr(),
             cstr("PCE").as_ptr(),
-            100.0,
-            15.0,
+            cstr("100.0").as_ptr(),
+            cstr("15.0").as_ptr(),
             FfiVatCategory::Standard,
         );
         assert!(add_result.ok, "add line item failed");
@@ -146,7 +149,11 @@ fn invoice_builder_roundtrip() {
 
         let totals = fatoora_invoice_totals_tax_inclusive(&mut invoice);
         assert!(totals.ok);
-        assert!(totals.value > 0.0);
+        assert_eq!(
+            std::ffi::CStr::from_ptr(totals.value.ptr).to_str().unwrap(),
+            "109.25"
+        );
+        fatoora_string_free(totals.value);
 
         let flags = fatoora_invoice_flags(&mut invoice);
         assert!(flags.ok);
@@ -216,10 +223,10 @@ fn parse_finalized_invoice_xml() {
         let add_result = fatoora_invoice_builder_add_line_item(
             &mut builder,
             cstr("Item").as_ptr(),
-            1.0,
+            cstr("1.0").as_ptr(),
             cstr("PCE").as_ptr(),
-            100.0,
-            15.0,
+            cstr("100.0").as_ptr(),
+            cstr("15.0").as_ptr(),
             FfiVatCategory::Standard,
         );
         assert!(add_result.ok);
@@ -327,10 +334,10 @@ fn credit_note_roundtrip() {
         let add_result = fatoora_invoice_builder_add_line_item(
             &mut builder,
             cstr("Item").as_ptr(),
-            1.0,
+            cstr("1.0").as_ptr(),
             cstr("PCE").as_ptr(),
-            100.0,
-            15.0,
+            cstr("100.0").as_ptr(),
+            cstr("15.0").as_ptr(),
             FfiVatCategory::Standard,
         );
         assert!(add_result.ok);
@@ -367,10 +374,10 @@ fn null_handles_return_error() {
         let add_result = fatoora_invoice_builder_add_line_item(
             std::ptr::null_mut(),
             cstr("Item").as_ptr(),
-            1.0,
+            cstr("1.0").as_ptr(),
             cstr("PCE").as_ptr(),
-            100.0,
-            15.0,
+            cstr("100.0").as_ptr(),
+            cstr("15.0").as_ptr(),
             FfiVatCategory::Standard,
         );
         assert!(!add_result.ok);

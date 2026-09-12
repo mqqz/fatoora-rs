@@ -43,29 +43,68 @@ fn parse_sample_simplified_invoice() {
     assert_eq!(address.country_code().as_str(), "SAU");
 
     let totals = invoice.totals();
-    assert_eq!(totals.line_extension(), 201.0);
-    assert_eq!(totals.tax_amount(), 30.15);
-    assert_eq!(totals.tax_inclusive_amount(), 231.15);
+    assert_eq!(
+        totals.line_extension(),
+        fatoora_core::Decimal::parse("201.0").unwrap()
+    );
+    assert_eq!(
+        totals.tax_amount(),
+        fatoora_core::Decimal::parse("30.15").unwrap()
+    );
+    assert_eq!(
+        totals.tax_inclusive_amount(),
+        fatoora_core::Decimal::parse("231.15").unwrap()
+    );
 
     assert_eq!(data.line_items().len(), 2);
     assert_eq!(data.line_items()[0].description(), "كتاب");
-    assert_eq!(data.line_items()[0].quantity(), 33.0);
+    assert_eq!(
+        data.line_items()[0].quantity(),
+        fatoora_core::Decimal::parse("33.0").unwrap()
+    );
     assert_eq!(data.line_items()[0].unit_code(), "PCE");
-    assert_eq!(data.line_items()[0].total_amount(), 99.0);
-    assert_eq!(data.line_items()[0].unit_price(), 3.0);
-    assert_eq!(data.line_items()[0].vat_rate(), 15.0);
-    assert_eq!(data.line_items()[0].vat_amount(), 14.85);
+    assert_eq!(
+        data.line_items()[0].total_amount(),
+        fatoora_core::Decimal::parse("99.0").unwrap()
+    );
+    assert_eq!(
+        data.line_items()[0].unit_price(),
+        fatoora_core::Decimal::parse("3.0").unwrap()
+    );
+    assert_eq!(
+        data.line_items()[0].vat_rate(),
+        fatoora_core::Decimal::parse("15.0").unwrap()
+    );
+    assert_eq!(
+        data.line_items()[0].vat_amount(),
+        fatoora_core::Decimal::parse("14.85").unwrap()
+    );
     assert!(matches!(
         data.line_items()[0].vat_category(),
         fatoora_core::invoice::VatCategory::Standard
     ));
     assert_eq!(data.line_items()[1].description(), "قلم");
-    assert_eq!(data.line_items()[1].quantity(), 3.0);
+    assert_eq!(
+        data.line_items()[1].quantity(),
+        fatoora_core::Decimal::parse("3.0").unwrap()
+    );
     assert_eq!(data.line_items()[1].unit_code(), "PCE");
-    assert_eq!(data.line_items()[1].total_amount(), 102.0);
-    assert_eq!(data.line_items()[1].unit_price(), 34.0);
-    assert_eq!(data.line_items()[1].vat_rate(), 15.0);
-    assert_eq!(data.line_items()[1].vat_amount(), 15.30);
+    assert_eq!(
+        data.line_items()[1].total_amount(),
+        fatoora_core::Decimal::parse("102.0").unwrap()
+    );
+    assert_eq!(
+        data.line_items()[1].unit_price(),
+        fatoora_core::Decimal::parse("34.0").unwrap()
+    );
+    assert_eq!(
+        data.line_items()[1].vat_rate(),
+        fatoora_core::Decimal::parse("15.0").unwrap()
+    );
+    assert_eq!(
+        data.line_items()[1].vat_amount(),
+        fatoora_core::Decimal::parse("15.30").unwrap()
+    );
     assert!(matches!(
         data.line_items()[1].vat_category(),
         fatoora_core::invoice::VatCategory::Standard
@@ -199,7 +238,15 @@ fn parse_signed_rejects_invalid_signing_time() {
 fn credit_note_serializes_billing_reference_and_reason() {
     let seller = build_seller();
 
-    let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
+    let line_item = LineItem::new(
+        "Item",
+        fatoora_core::Decimal::parse("1.0").unwrap(),
+        "PCE",
+        fatoora_core::Decimal::parse("100.0").unwrap(),
+        fatoora_core::Decimal::parse("15.0").unwrap(),
+        VatCategory::Standard,
+    )
+    .unwrap();
 
     let original = OriginalInvoiceRef::new("INV-ORIG")
         .with_uuid("uuid-orig")
@@ -235,7 +282,15 @@ fn credit_note_serializes_billing_reference_and_reason() {
 #[test]
 fn debit_note_serializes_billing_reference_and_reason() {
     let seller = build_seller();
-    let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
+    let line_item = LineItem::new(
+        "Item",
+        fatoora_core::Decimal::parse("1.0").unwrap(),
+        "PCE",
+        fatoora_core::Decimal::parse("100.0").unwrap(),
+        fatoora_core::Decimal::parse("15.0").unwrap(),
+        VatCategory::Standard,
+    )
+    .unwrap();
 
     let original = OriginalInvoiceRef::new("INV-ORIG")
         .with_uuid("uuid-orig")
@@ -378,7 +433,15 @@ fn parse_debit_note_type_and_reason() {
 #[test]
 fn credit_note_serialization_omits_instruction_note_when_reason_blank() {
     let seller = build_seller();
-    let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
+    let line_item = LineItem::new(
+        "Item",
+        fatoora_core::Decimal::parse("1.0").unwrap(),
+        "PCE",
+        fatoora_core::Decimal::parse("100.0").unwrap(),
+        fatoora_core::Decimal::parse("15.0").unwrap(),
+        VatCategory::Standard,
+    )
+    .unwrap();
 
     let original = OriginalInvoiceRef::new("INV-ORIG");
     let mut builder = InvoiceBuilder::new(InvoiceType::CreditNote(
@@ -406,7 +469,15 @@ fn credit_note_serialization_omits_instruction_note_when_reason_blank() {
 #[test]
 fn credit_note_allowance_discount_round_trip() {
     let seller = build_seller();
-    let line_item = LineItem::new("Item", 2.0, "PCE", 50.0, 15.0, VatCategory::Standard);
+    let line_item = LineItem::new(
+        "Item",
+        fatoora_core::Decimal::parse("2.0").unwrap(),
+        "PCE",
+        fatoora_core::Decimal::parse("50.0").unwrap(),
+        fatoora_core::Decimal::parse("15.0").unwrap(),
+        VatCategory::Standard,
+    )
+    .unwrap();
 
     let original = OriginalInvoiceRef::new("INV-ORIG");
     let mut builder = InvoiceBuilder::new(InvoiceType::CreditNote(
@@ -424,16 +495,28 @@ fn credit_note_allowance_discount_round_trip() {
         .set_seller(seller)
         .set_payment_means_code("10")
         .set_vat_category(VatCategory::Standard)
-        .invoice_level_discount(10.0)
+        .invoice_level_discount(fatoora_core::Decimal::parse("10.0").unwrap())
         .allowance_reason("Discount")
         .add_line_item(line_item);
     let invoice = builder.build().expect("build credit note");
 
     let totals = invoice.totals();
-    assert_eq!(totals.allowance_total(), 10.0);
-    assert_eq!(totals.charge_total(), 0.0);
-    assert_eq!(totals.taxable_amount(), 90.0);
-    assert_eq!(totals.tax_inclusive_amount(), 105.0);
+    assert_eq!(
+        totals.allowance_total(),
+        fatoora_core::Decimal::parse("10.0").unwrap()
+    );
+    assert_eq!(
+        totals.charge_total(),
+        fatoora_core::Decimal::parse("0.0").unwrap()
+    );
+    assert_eq!(
+        totals.taxable_amount(),
+        fatoora_core::Decimal::parse("90.0").unwrap()
+    );
+    assert_eq!(
+        totals.tax_inclusive_amount(),
+        fatoora_core::Decimal::parse("103.50").unwrap()
+    );
 
     let xml = invoice.to_xml().expect("serialize credit note");
     assert!(xml.contains("<cbc:AllowanceChargeReason>Discount</cbc:AllowanceChargeReason>"));
@@ -441,13 +524,24 @@ fn credit_note_allowance_discount_round_trip() {
 
     let parsed = parse_finalized_invoice_xml(&xml).expect("parse credit note");
     assert_eq!(parsed.data().allowance_reason(), Some("Discount"));
-    assert_eq!(parsed.totals().allowance_total(), 10.0);
+    assert_eq!(
+        parsed.totals().allowance_total(),
+        fatoora_core::Decimal::parse("10.0").unwrap()
+    );
 }
 
 #[test]
 fn debit_note_charge_serializes_allowance_charge() {
     let seller = build_seller();
-    let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
+    let line_item = LineItem::new(
+        "Item",
+        fatoora_core::Decimal::parse("1.0").unwrap(),
+        "PCE",
+        fatoora_core::Decimal::parse("100.0").unwrap(),
+        fatoora_core::Decimal::parse("15.0").unwrap(),
+        VatCategory::Standard,
+    )
+    .unwrap();
 
     let original = OriginalInvoiceRef::new("INV-ORIG");
     let mut builder = InvoiceBuilder::new(InvoiceType::DebitNote(
@@ -465,14 +559,20 @@ fn debit_note_charge_serializes_allowance_charge() {
         .set_seller(seller)
         .set_payment_means_code("10")
         .set_vat_category(VatCategory::Standard)
-        .invoice_level_charge(7.5)
+        .invoice_level_charge(fatoora_core::Decimal::parse("7.5").unwrap())
         .allowance_reason("Charge")
         .add_line_item(line_item);
     let invoice = builder.build().expect("build debit note");
 
     let totals = invoice.totals();
-    assert_eq!(totals.charge_total(), 7.5);
-    assert_eq!(totals.taxable_amount(), 107.5);
+    assert_eq!(
+        totals.charge_total(),
+        fatoora_core::Decimal::parse("7.5").unwrap()
+    );
+    assert_eq!(
+        totals.taxable_amount(),
+        fatoora_core::Decimal::parse("107.5").unwrap()
+    );
 
     let xml = invoice.to_xml().expect("serialize debit note");
     assert!(xml.contains("<cbc:ChargeIndicator>true</cbc:ChargeIndicator>"));
@@ -483,7 +583,15 @@ fn debit_note_charge_serializes_allowance_charge() {
 #[test]
 fn debit_note_allowance_round_trip() {
     let seller = build_seller();
-    let line_item = LineItem::new("Item", 2.0, "PCE", 50.0, 15.0, VatCategory::Standard);
+    let line_item = LineItem::new(
+        "Item",
+        fatoora_core::Decimal::parse("2.0").unwrap(),
+        "PCE",
+        fatoora_core::Decimal::parse("50.0").unwrap(),
+        fatoora_core::Decimal::parse("15.0").unwrap(),
+        VatCategory::Standard,
+    )
+    .unwrap();
 
     let original = OriginalInvoiceRef::new("INV-ORIG");
     let mut builder = InvoiceBuilder::new(InvoiceType::DebitNote(
@@ -501,15 +609,24 @@ fn debit_note_allowance_round_trip() {
         .set_seller(seller)
         .set_payment_means_code("10")
         .set_vat_category(VatCategory::Standard)
-        .invoice_level_discount(8.0)
+        .invoice_level_discount(fatoora_core::Decimal::parse("8.0").unwrap())
         .allowance_reason("Adjustment")
         .add_line_item(line_item);
     let invoice = builder.build().expect("build debit note");
 
     let totals = invoice.totals();
-    assert_eq!(totals.allowance_total(), 8.0);
-    assert_eq!(totals.taxable_amount(), 92.0);
-    assert_eq!(totals.tax_inclusive_amount(), 107.0);
+    assert_eq!(
+        totals.allowance_total(),
+        fatoora_core::Decimal::parse("8.0").unwrap()
+    );
+    assert_eq!(
+        totals.taxable_amount(),
+        fatoora_core::Decimal::parse("92.0").unwrap()
+    );
+    assert_eq!(
+        totals.tax_inclusive_amount(),
+        fatoora_core::Decimal::parse("105.80").unwrap()
+    );
 
     let xml = invoice.to_xml().expect("serialize debit note");
     assert!(xml.contains("<cbc:AllowanceChargeReason>Adjustment</cbc:AllowanceChargeReason>"));
@@ -517,13 +634,24 @@ fn debit_note_allowance_round_trip() {
 
     let parsed = parse_finalized_invoice_xml(&xml).expect("parse debit note");
     assert_eq!(parsed.data().allowance_reason(), Some("Adjustment"));
-    assert_eq!(parsed.totals().allowance_total(), 8.0);
+    assert_eq!(
+        parsed.totals().allowance_total(),
+        fatoora_core::Decimal::parse("8.0").unwrap()
+    );
 }
 
 #[test]
 fn credit_note_round_trip_preserves_original_ref_and_reason() {
     let seller = build_seller();
-    let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
+    let line_item = LineItem::new(
+        "Item",
+        fatoora_core::Decimal::parse("1.0").unwrap(),
+        "PCE",
+        fatoora_core::Decimal::parse("100.0").unwrap(),
+        fatoora_core::Decimal::parse("15.0").unwrap(),
+        VatCategory::Standard,
+    )
+    .unwrap();
 
     let original = OriginalInvoiceRef::new("INV-ORIG")
         .with_uuid("uuid-orig")

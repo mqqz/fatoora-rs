@@ -246,7 +246,15 @@ mod tests {
         )
         .expect("valid seller");
 
-        let line_item = LineItem::new("Item", 1.0, "PCE", 100.0, 15.0, VatCategory::Standard);
+        let line_item = LineItem::new(
+            "Item",
+            crate::Decimal::from(1),
+            "PCE",
+            crate::Decimal::from(100),
+            crate::Decimal::from(15),
+            VatCategory::Standard,
+        )
+        .unwrap();
 
         let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified));
         builder
@@ -275,6 +283,27 @@ mod tests {
             idx = end;
         }
         entries
+    }
+
+    #[test]
+    fn qr_uses_document_vat_instead_of_rounded_line_vat() {
+        let mut data = sample_invoice().data().clone();
+        data.line_items = vec![
+            LineItem::new(
+                "tiny",
+                crate::Decimal::from(1),
+                "PCE",
+                crate::Decimal::parse("0.03").unwrap(),
+                crate::Decimal::from(15),
+                VatCategory::Standard
+            )
+            .unwrap();
+            3
+        ];
+        let totals = crate::invoice::InvoiceTotalsData::from_data(&data).unwrap();
+        let payload = QrPayload::from_invoice(&data, &totals).unwrap();
+        assert_eq!(payload.total_vat, "0.01");
+        assert_eq!(payload.total_with_vat, "0.10");
     }
 
     #[test]

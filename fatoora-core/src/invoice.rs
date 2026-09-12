@@ -1,4 +1,5 @@
 //! Invoice domain types and builders.
+use crate::Decimal;
 mod builder;
 mod qr;
 pub mod sign;
@@ -23,6 +24,8 @@ type Result<T> = std::result::Result<T, InvoiceError>;
 #[derive(Debug, Error)]
 pub enum InvoiceError {
     #[error(transparent)]
+    Decimal(#[from] crate::DecimalError),
+    #[error(transparent)]
     Validation(#[from] ValidationError),
     #[error("Invalid country code: {0}")]
     InvalidCountryCode(String),
@@ -41,12 +44,27 @@ pub enum InvoiceError {
 }
 
 /// Structured validation error with field-level issues.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Error)]
-#[error("invoice validation failed")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ValidationError {
     issues: Vec<ValidationIssue>,
 }
 
+impl std::fmt::Display for ValidationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("invoice validation failed")?;
+        for issue in &self.issues {
+            write!(f, "; {:?}: {:?}", issue.field, issue.kind)?;
+            if let Some(index) = issue.line_item_index {
+                write!(f, " at line {}", index + 1)?;
+            }
+            if let (Some(supplied), Some(expected)) = (issue.supplied, issue.expected) {
+                write!(f, ", supplied {supplied}, expected {expected}")?;
+            }
+        }
+        Ok(())
+    }
+}
+impl std::error::Error for ValidationError {}
 impl ValidationError {
     pub fn new(issues: Vec<ValidationIssue>) -> Self {
         Self { issues }
@@ -63,14 +81,34 @@ pub struct ValidationIssue {
     field: InvoiceField,
     kind: ValidationKind,
     line_item_index: Option<usize>,
+    supplied: Option<Decimal>,
+    expected: Option<Decimal>,
 }
 
 impl ValidationIssue {
+    fn mismatch(field: InvoiceField, supplied: Decimal, expected: Decimal) -> Self {
+        Self {
+            field,
+            kind: ValidationKind::Mismatch,
+            line_item_index: None,
+            supplied: Some(supplied),
+            expected: Some(expected),
+        }
+    }
+    pub fn supplied(&self) -> Option<Decimal> {
+        self.supplied
+    }
+    pub fn expected(&self) -> Option<Decimal> {
+        self.expected
+    }
+
     pub fn new(field: InvoiceField, kind: ValidationKind, line_item_index: Option<usize>) -> Self {
         Self {
             field,
             kind,
             line_item_index,
+            supplied: None,
+            expected: None,
         }
     }
 
@@ -108,6 +146,8 @@ pub enum InvoiceField {
     LineItemTotalAmount,
     LineItemVatRate,
     LineItemVatAmount,
+    InvoiceLevelDiscount,
+    InvoiceLevelCharge,
 }
 
 #[non_exhaustive]
@@ -744,103 +784,94 @@ pub enum VatCategory {
 /// ```rust
 /// use fatoora_core::invoice::{LineItem, VatCategory};
 ///
-/// let item = LineItem::new("Item", 2.0, "PCE", 50.0, 15.0, VatCategory::Standard);
-/// assert_eq!(item.total_amount(), 100.0);
+/// let item = LineItem::new("Item", fatoora_core::Decimal::parse("2.0").unwrap(), "PCE", fatoora_core::Decimal::parse("50.0").unwrap(), fatoora_core::Decimal::parse("15.0").unwrap(), VatCategory::Standard).unwrap();
+/// assert_eq!(item.total_amount(), fatoora_core::Decimal::parse("100.0").unwrap());
 /// ```
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LineItem {
     description: String,
-    quantity: f64,
+    quantity: Decimal,
     unit_code: String,
-    unit_price: f64,
-    total_amount: f64,
-    vat_rate: f64,
-    vat_amount: f64,
+    unit_price: Decimal,
+    total_amount: Decimal,
+    vat_rate: Decimal,
+    vat_amount: Decimal,
     vat_category: VatCategory,
 }
 
 impl LineItem {
     pub fn new(
         description: impl Into<String>,
-        quantity: f64,
+        quantity: Decimal,
         unit_code: impl Into<String>,
-        unit_price: f64,
-        vat_rate: f64,
+        unit_price: Decimal,
+        vat_rate: Decimal,
         vat_category: VatCategory,
-    ) -> Self {
-        let total_amount = Self::calculate_total_amount(quantity, unit_price);
-        let vat_amount = Self::calculate_vat_amount(total_amount, vat_rate);
-        Self {
-            description: description.into(),
+    ) -> Result<Self> {
+        let total_amount = quantity.product_rounded(unit_price, false)?;
+        let vat_amount = quantity.line_vat(unit_price, vat_rate)?;
+        Self::try_from_parts(
+            description,
             quantity,
-            unit_code: unit_code.into(),
+            unit_code,
             unit_price,
             total_amount,
             vat_rate,
             vat_amount,
             vat_category,
-        }
+        )
     }
-
+    /// Supply a line total; validate it against the quantity and price.
     pub fn from_totals(
         description: impl Into<String>,
-        quantity: f64,
+        quantity: Decimal,
         unit_code: impl Into<String>,
-        unit_price: f64,
-        total_amount: f64,
-        vat_rate: f64,
+        unit_price: Decimal,
+        total_amount: Decimal,
+        vat_rate: Decimal,
         vat_category: VatCategory,
-    ) -> Self {
-        let vat_amount = Self::calculate_vat_amount(total_amount, vat_rate);
-        Self {
-            description: description.into(),
+    ) -> Result<Self> {
+        let vat_amount = quantity.line_vat(unit_price, vat_rate)?;
+        Self::try_from_parts(
+            description,
             quantity,
-            unit_code: unit_code.into(),
+            unit_code,
             unit_price,
             total_amount,
             vat_rate,
             vat_amount,
             vat_category,
-        }
+        )
     }
-
-    /// Create a line item from fully specified amounts.
-    ///
-    /// # Errors
-    /// Returns [`ValidationError`] if totals do not match computed values.
+    /// Preserve supplied amounts only when they match the rounded calculations exactly.
     pub fn try_from_parts(
         description: impl Into<String>,
-        quantity: f64,
+        quantity: Decimal,
         unit_code: impl Into<String>,
-        unit_price: f64,
-        total_amount: f64,
-        vat_rate: f64,
-        vat_amount: f64,
+        unit_price: Decimal,
+        total_amount: Decimal,
+        vat_rate: Decimal,
+        vat_amount: Decimal,
         vat_category: VatCategory,
-    ) -> std::result::Result<Self, ValidationError> {
-        const EPSILON: f64 = 0.01;
-        let expected_total = Self::calculate_total_amount(quantity, unit_price);
-        let expected_vat = Self::calculate_vat_amount(total_amount, vat_rate);
-
+    ) -> Result<Self> {
+        let expected_total = quantity.product_rounded(unit_price, false)?;
+        let expected_vat = quantity.line_vat(unit_price, vat_rate)?;
         let mut issues = Vec::new();
-        if (expected_total - total_amount).abs() > EPSILON {
-            issues.push(ValidationIssue::new(
+        for (field, supplied, expected) in [
+            (
                 InvoiceField::LineItemTotalAmount,
-                ValidationKind::Mismatch,
-                None,
-            ));
-        }
-        if (expected_vat - vat_amount).abs() > EPSILON {
-            issues.push(ValidationIssue::new(
-                InvoiceField::LineItemVatAmount,
-                ValidationKind::Mismatch,
-                None,
-            ));
+                total_amount,
+                expected_total,
+            ),
+            (InvoiceField::LineItemVatAmount, vat_amount, expected_vat),
+        ] {
+            if supplied.scale() > 2 || supplied != expected {
+                issues.push(ValidationIssue::mismatch(field, supplied, expected));
+            }
         }
         if !issues.is_empty() {
-            return Err(ValidationError::new(issues));
+            return Err(ValidationError::new(issues).into());
         }
-
         Ok(Self {
             description: description.into(),
             quantity,
@@ -852,45 +883,29 @@ impl LineItem {
             vat_category,
         })
     }
-
     pub fn description(&self) -> &str {
         &self.description
     }
-
-    pub fn quantity(&self) -> f64 {
+    pub fn quantity(&self) -> Decimal {
         self.quantity
     }
-
     pub fn unit_code(&self) -> &str {
         &self.unit_code
     }
-
-    pub fn unit_price(&self) -> f64 {
+    pub fn unit_price(&self) -> Decimal {
         self.unit_price
     }
-
-    pub fn total_amount(&self) -> f64 {
+    pub fn total_amount(&self) -> Decimal {
         self.total_amount
     }
-
-    pub fn vat_rate(&self) -> f64 {
+    pub fn vat_rate(&self) -> Decimal {
         self.vat_rate
     }
-
-    pub fn vat_amount(&self) -> f64 {
+    pub fn vat_amount(&self) -> Decimal {
         self.vat_amount
     }
-
     pub fn vat_category(&self) -> VatCategory {
         self.vat_category
-    }
-
-    fn calculate_total_amount(quantity: f64, unit_price: f64) -> f64 {
-        quantity * unit_price
-    }
-
-    fn calculate_vat_amount(total_amount: f64, vat_rate: f64) -> f64 {
-        total_amount * (vat_rate / 100.0)
     }
 }
 
@@ -902,12 +917,12 @@ impl LineItem {
 ///
 /// let items: LineItems = vec![LineItem::new(
 ///     "Item",
-///     1.0,
+///     fatoora_core::Decimal::parse("1.0").unwrap(),
 ///     "PCE",
-///     100.0,
-///     15.0,
+///     fatoora_core::Decimal::parse("100.0").unwrap(),
+///     fatoora_core::Decimal::parse("15.0").unwrap(),
 ///     VatCategory::Standard,
-/// )];
+/// ).unwrap()];
 /// assert_eq!(items.len(), 1);
 /// ```
 pub type LineItems = Vec<LineItem>;
@@ -961,8 +976,10 @@ pub struct InvoiceData {
 
     flags: InvoiceFlags,
 
-    invoice_level_charge: f64,
-    invoice_level_discount: f64,
+    invoice_level_charge: Decimal,
+    invoice_level_discount: Decimal,
+    #[serde(default)]
+    adjustment_vat_rate: Option<Decimal>,
     allowance_reason: Option<String>,
 }
 
@@ -1043,11 +1060,11 @@ impl InvoiceData {
         self.flags.contains(InvoiceFlags::SELF_BILLED)
     }
 
-    pub fn invoice_level_charge(&self) -> f64 {
+    pub fn invoice_level_charge(&self) -> Decimal {
         self.invoice_level_charge
     }
 
-    pub fn invoice_level_discount(&self) -> f64 {
+    pub fn invoice_level_discount(&self) -> Decimal {
         self.invoice_level_discount
     }
 
@@ -1085,8 +1102,8 @@ impl InvoiceData {
         self.issue_datetime.time_str().to_string()
     }
 
-    pub(crate) fn format_amount(amount: f64) -> String {
-        format!("{:.2}", amount)
+    pub(crate) fn format_amount(amount: Decimal) -> String {
+        amount.fixed(2)
     }
 }
 /// Computed invoice totals.
@@ -1098,48 +1115,143 @@ impl InvoiceData {
 /// let totals: InvoiceTotalsData = unimplemented!();
 /// let _ = totals.tax_inclusive_amount();
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InvoiceTotalsData {
-    line_extension: f64,
-    tax_amount: f64,
-    allowance_total: f64,
-    charge_total: f64,
+    line_extension: Decimal,
+    tax_amount: Decimal,
+    allowance_total: Decimal,
+    charge_total: Decimal,
+    taxable_amount: Decimal,
+    tax_inclusive_amount: Decimal,
+    pub(crate) prepaid_amount: Decimal,
+    pub(crate) payable_rounding_amount: Decimal,
+    pub(crate) payable_amount: Decimal,
+    groups: Vec<VatBreakdown>,
 }
-
+/// Finalized document-level VAT calculation for one category and rate.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct VatBreakdown {
+    pub(crate) category: VatCategory,
+    pub(crate) rate: Decimal,
+    pub(crate) taxable_amount: Decimal,
+    pub(crate) tax_amount: Decimal,
+}
+impl VatBreakdown {
+    pub fn category(&self) -> VatCategory {
+        self.category
+    }
+    pub fn rate(&self) -> Decimal {
+        self.rate
+    }
+    pub fn taxable_amount(&self) -> Decimal {
+        self.taxable_amount
+    }
+    pub fn tax_amount(&self) -> Decimal {
+        self.tax_amount
+    }
+}
 impl InvoiceTotalsData {
-    pub(crate) fn from_data(data: &InvoiceData) -> Self {
-        let line_extension: f64 = data.line_items.iter().map(|li| li.total_amount).sum();
-        let tax_amount: f64 = data.line_items.iter().map(|li| li.vat_amount).sum();
-
-        Self {
+    pub(crate) fn from_data(data: &InvoiceData) -> Result<Self> {
+        let mut line_extension = Decimal::ZERO;
+        let mut groups: Vec<VatBreakdown> = Vec::new();
+        for line in data.line_items.iter() {
+            line_extension = line_extension.add(line.total_amount)?;
+            if let Some(group) = groups
+                .iter_mut()
+                .find(|g| g.category == line.vat_category && g.rate == line.vat_rate)
+            {
+                group.taxable_amount = group.taxable_amount.add(line.total_amount)?;
+            } else {
+                groups.push(VatBreakdown {
+                    category: line.vat_category,
+                    rate: line.vat_rate,
+                    taxable_amount: line.total_amount,
+                    tax_amount: Decimal::ZERO,
+                });
+            }
+        }
+        if data.invoice_level_discount != Decimal::ZERO
+            || data.invoice_level_charge != Decimal::ZERO
+        {
+            let matches: Vec<_> = groups
+                .iter_mut()
+                .filter(|g| {
+                    g.category == data.vat_category
+                        && data.adjustment_vat_rate.is_none_or(|rate| g.rate == rate)
+                })
+                .collect();
+            if matches.len() != 1 {
+                return Err(ValidationError::new(vec![ValidationIssue::new(
+                    InvoiceField::VatCategory,
+                    ValidationKind::Mismatch,
+                    None,
+                )])
+                .into());
+            }
+            let group = matches.into_iter().next().unwrap();
+            group.taxable_amount = group
+                .taxable_amount
+                .sub(data.invoice_level_discount)?
+                .add(data.invoice_level_charge)?;
+            if group.taxable_amount < Decimal::ZERO {
+                return Err(ValidationError::new(vec![ValidationIssue::new(
+                    InvoiceField::InvoiceLevelDiscount,
+                    ValidationKind::OutOfRange,
+                    None,
+                )])
+                .into());
+            }
+        }
+        let mut tax_amount = Decimal::ZERO;
+        for group in &mut groups {
+            group.tax_amount = group.taxable_amount.product_rounded(group.rate, true)?;
+            tax_amount = tax_amount.add(group.tax_amount)?;
+        }
+        let taxable_amount = line_extension
+            .sub(data.invoice_level_discount)?
+            .add(data.invoice_level_charge)?;
+        let tax_inclusive_amount = taxable_amount.add(tax_amount)?;
+        Ok(Self {
             line_extension,
             tax_amount,
             allowance_total: data.invoice_level_discount,
             charge_total: data.invoice_level_charge,
-        }
+            taxable_amount,
+            tax_inclusive_amount,
+            prepaid_amount: Decimal::ZERO,
+            payable_rounding_amount: Decimal::ZERO,
+            payable_amount: tax_inclusive_amount,
+            groups,
+        })
     }
-
-    pub fn line_extension(&self) -> f64 {
+    pub fn line_extension(&self) -> Decimal {
         self.line_extension
     }
-
-    pub fn tax_amount(&self) -> f64 {
+    pub fn tax_amount(&self) -> Decimal {
         self.tax_amount
     }
-
-    pub fn allowance_total(&self) -> f64 {
+    pub fn allowance_total(&self) -> Decimal {
         self.allowance_total
     }
-
-    pub fn charge_total(&self) -> f64 {
+    pub fn charge_total(&self) -> Decimal {
         self.charge_total
     }
-
-    pub fn taxable_amount(&self) -> f64 {
-        self.line_extension - self.allowance_total + self.charge_total
+    pub fn taxable_amount(&self) -> Decimal {
+        self.taxable_amount
     }
-
-    pub fn tax_inclusive_amount(&self) -> f64 {
-        self.taxable_amount() + self.tax_amount
+    pub fn tax_inclusive_amount(&self) -> Decimal {
+        self.tax_inclusive_amount
+    }
+    pub fn prepaid_amount(&self) -> Decimal {
+        self.prepaid_amount
+    }
+    pub fn payable_rounding_amount(&self) -> Decimal {
+        self.payable_rounding_amount
+    }
+    pub fn payable_amount(&self) -> Decimal {
+        self.payable_amount
+    }
+    pub fn vat_breakdown(&self) -> &[VatBreakdown] {
+        &self.groups
     }
 }
