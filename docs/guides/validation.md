@@ -1,6 +1,25 @@
 # Invoice Validation
 
-Validation workflows for UBL invoices and schema checks.
+Validation is explicit: each operation establishes only the guarantees below.
+
+| Operation | Guarantee |
+| --- | --- |
+| Validated wrapper constructor or deserialization | Existing validation and normalization for that wrapper |
+| `build()` | Selected field, range, and amount checks; computed totals |
+| XML parsing | Supported fields, wrapper and builder checks, and modeled supplied amounts |
+| XSD validation | Conformance to the bundled UBL schema |
+| Signing | Generates signature material |
+| Parsing a signed invoice | Extracts signature material without verifying authenticity |
+
+`FinalizedInvoice` does not imply full business-rule compliance. `SignedInvoice`
+may come from parsing and does not prove that its signature was verified.
+Full business rules remain separate work; none of these operations establishes
+complete ZATCA compliance.
+
+`CountryCode`, `CurrencyCode`, `InvoiceTimestamp`, `InvoiceDate`, and `VatId`
+deserialize through their constructors. Normalization is the same as construction;
+invalid values are rejected. `VatId` currently checks only that the trimmed value
+is nonempty.
 
 ## Example
 

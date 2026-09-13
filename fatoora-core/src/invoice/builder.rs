@@ -9,7 +9,11 @@ use crate::invoice::sign::{
     InvoiceSigner, SignedProperties, SigningError, invoice_hash_base64_from_xml,
 };
 
-/// A finalized invoice with computed totals.
+/// An invoice with computed totals and the implemented builder field checks.
+///
+/// XML imports also check the supported supplied amounts against computed values.
+/// This type does not establish XSD conformance, full business-rule compliance,
+/// or signature authenticity.
 #[derive(Debug, Clone, PartialEq)]
 pub struct FinalizedInvoice {
     data: InvoiceData,
@@ -17,7 +21,10 @@ pub struct FinalizedInvoice {
 }
 
 // TODO maybe traits?
-/// A signed invoice with QR payload and signed XML.
+/// An invoice carrying signature material, QR payload, and signed XML.
+///
+/// It may be produced by signing or imported by parsing. The type does not prove
+/// that an imported signature was verified, nor establish business-rule compliance.
 #[derive(Debug, Clone, PartialEq)]
 pub struct SignedInvoice {
     finalized: FinalizedInvoice,
@@ -26,7 +33,7 @@ pub struct SignedInvoice {
     signed_xml: String,
 }
 
-/// Builder for creating a validated invoice.
+/// Builder that checks selected fields and computes invoice totals.
 ///
 /// # Examples
 /// ```rust,no_run
@@ -187,7 +194,11 @@ impl InvoiceBuilder {
         self
     }
 
-    /// Validate the invoice and compute totals.
+    /// Run the implemented field checks and compute totals.
+    ///
+    /// Checks include required fields, supported formats, numeric ranges, and
+    /// selected amount consistency checks. This does not run XSD validation,
+    /// full business rules, or signature verification.
     ///
     /// # Errors
     /// Returns [`InvoiceError::Validation`] when required fields are missing or invalid.
@@ -434,6 +445,8 @@ impl FinalizedInvoice {
     }
 
     /// Sign the invoice with the provided signer.
+    ///
+    /// Produces signature material without running XSD or business-rule validation.
     ///
     /// # Errors
     /// Returns [`SigningError`] if signing or XML generation fails.

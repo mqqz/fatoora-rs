@@ -242,6 +242,9 @@ impl InvoiceSigner {
 
     /// Sign a pre-built invoice XML string.
     ///
+    /// Generates signature material without running XSD or full business-rule
+    /// validation. Signing success does not establish invoice compliance.
+    ///
     /// # Errors
     /// Returns [`SigningError`] if XML parsing or signature application fails.
     // TODO maybe return SignedInvoice instead?

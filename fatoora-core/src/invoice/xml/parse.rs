@@ -54,7 +54,10 @@ impl ParseError {
     }
 }
 
-/// Parse a finalized invoice from XML string.
+/// Parse supported invoice fields and check the modeled supplied amounts.
+///
+/// Runs wrapper constructors and builder field checks. It does not validate the
+/// XSD, run full business rules, or verify signatures.
 ///
 /// # Examples
 /// ```rust,no_run
@@ -75,7 +78,7 @@ pub fn parse_finalized_invoice_xml(xml: &str) -> Result<FinalizedInvoice, ParseE
     parse_finalized_invoice_doc(&doc)
 }
 
-/// Parse a finalized invoice from an XML file path.
+/// File variant of [`parse_finalized_invoice_xml`], with the same guarantees.
 ///
 /// # Errors
 /// Returns [`ParseError`] if the file cannot be read or the XML is invalid.
@@ -90,7 +93,11 @@ pub fn parse_finalized_invoice_xml_file(
     parse_finalized_invoice_xml(&xml)
 }
 
-/// Parse a signed invoice from XML string.
+/// Parse supported invoice fields and extract signature material.
+///
+/// Applies the same field and amount checks as [`parse_finalized_invoice_xml`].
+/// Does not verify the signature, certificate trust, XSD, or full business rules.
+/// A successful parse must not be treated as proof of authenticity.
 ///
 /// # Errors
 /// Returns [`ParseError`] if the XML is invalid or required fields are missing.
@@ -106,7 +113,7 @@ pub fn parse_signed_invoice_xml(xml: &str) -> Result<SignedInvoice, ParseError> 
     Ok(signed)
 }
 
-/// Parse a signed invoice from an XML file path.
+/// File variant of [`parse_signed_invoice_xml`]; does not verify authenticity.
 ///
 /// # Errors
 /// Returns [`ParseError`] if the file cannot be read or the XML is invalid.
