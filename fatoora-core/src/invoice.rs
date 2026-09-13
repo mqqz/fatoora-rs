@@ -20,6 +20,55 @@ use thiserror::Error;
 
 type Result<T> = std::result::Result<T, InvoiceError>;
 
+// Keep the same named newtype representation as derived Serialize, while routing
+// the inner string through each wrapper's validating constructor.
+macro_rules! deserialize_validated_string {
+    ($($wrapper:ident),+ $(,)?) => {
+        $(
+            impl<'de> Deserialize<'de> for $wrapper {
+                fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+                where
+                    D: serde::Deserializer<'de>,
+                {
+                    struct WrapperVisitor;
+
+                    impl<'de> serde::de::Visitor<'de> for WrapperVisitor {
+                        type Value = $wrapper;
+
+                        fn expecting(
+                            &self,
+                            formatter: &mut std::fmt::Formatter<'_>,
+                        ) -> std::fmt::Result {
+                            formatter.write_str(concat!("a valid ", stringify!($wrapper), " newtype"))
+                        }
+
+                        fn visit_newtype_struct<D>(
+                            self,
+                            deserializer: D,
+                        ) -> std::result::Result<Self::Value, D::Error>
+                        where
+                            D: serde::Deserializer<'de>,
+                        {
+                            let value = String::deserialize(deserializer)?;
+                            $wrapper::parse(value).map_err(serde::de::Error::custom)
+                        }
+                    }
+
+                    deserializer.deserialize_newtype_struct(stringify!($wrapper), WrapperVisitor)
+                }
+            }
+        )+
+    };
+}
+
+deserialize_validated_string!(
+    CountryCode,
+    CurrencyCode,
+    InvoiceTimestamp,
+    InvoiceDate,
+    VatId
+);
+
 /// Invoice-related errors.
 #[derive(Debug, Error)]
 #[non_exhaustive]
@@ -180,7 +229,7 @@ pub enum ValidationKind {
 }
 
 /// Country code wrapper with ISO validation.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
 pub struct CountryCode(String);
 
 impl CountryCode {
@@ -240,7 +289,7 @@ impl TryFrom<&str> for CountryCode {
 }
 
 /// Currency code wrapper with ISO validation.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
 pub struct CurrencyCode(String);
 
 impl CurrencyCode {
@@ -284,7 +333,7 @@ impl TryFrom<&str> for CurrencyCode {
 }
 
 /// Invoice timestamp in ZATCA ISO format (UTC `YYYY-MM-DDTHH:MM:SSZ`).
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
 pub struct InvoiceTimestamp(String);
 
 impl InvoiceTimestamp {
@@ -336,7 +385,7 @@ impl TryFrom<&str> for InvoiceTimestamp {
 }
 
 /// Invoice date in `YYYY-MM-DD` format.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
 pub struct InvoiceDate(String);
 
 impl InvoiceDate {
@@ -444,7 +493,7 @@ impl Address {
 ///
 /// # Errors
 /// Returns [`InvoiceError::InvalidVatFormat`] if the input is empty.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
 pub struct VatId(String);
 impl VatId {
     pub fn parse<S: Into<String>>(s: S) -> Result<Self> {
