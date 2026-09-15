@@ -5,6 +5,9 @@ use crate::{
     invoice::SignedInvoice,
 };
 use reqwest::Client;
+mod response;
+pub use response::{HttpResponseError, InvoiceOutcome};
+use response::{InvoiceOperation, read_validation_response};
 use serde::{Deserialize, Serialize};
 use std::marker::PhantomData;
 use thiserror::Error;
@@ -13,6 +16,27 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 #[non_exhaustive]
 pub enum ZatcaError {
+    /// A non-success HTTP response. A duplicate submission can refer to an earlier acceptance.
+    #[error("ZATCA returned HTTP {0}")]
+    Response(Box<HttpResponseError>),
+    /// A successful HTTP response whose body could not be decoded.
+    #[error("Invalid ZATCA response (HTTP {response}): {message}")]
+    ResponseDecode {
+        response: Box<HttpResponseError>,
+        message: String,
+    },
+    /// The response headers arrived but the body could not be read.
+    #[error("Failed to read ZATCA response (HTTP {http_status}): {message}")]
+    ResponseRead { http_status: u16, message: String },
+    /// The endpoint response does not establish acceptance of this operation.
+    #[error("ZATCA response does not confirm acceptance")]
+    NotAccepted(Box<ValidationResponse>),
+    /// The returned cleared invoice could not be decoded as nonempty UTF-8 XML text.
+    #[error("Invalid cleared invoice: {message}")]
+    ClearedInvoice {
+        http_status: Option<u16>,
+        message: String,
+    },
     #[error("Network error: {0}")]
     NetworkError(String),
     #[error("Invalid response from ZATCA: {0}")]
@@ -28,9 +52,28 @@ pub enum ZatcaError {
 }
 
 impl ZatcaError {
+    /// Actual HTTP status when available; never inferred from a JSON body.
+    pub fn http_status(&self) -> Option<u16> {
+        match self {
+            Self::Response(response) | Self::ResponseDecode { response, .. } => {
+                Some(response.http_status())
+            }
+            Self::ResponseRead { http_status, .. } => Some(*http_status),
+            Self::NotAccepted(response) => response.http_status(),
+            Self::ClearedInvoice { http_status, .. } => *http_status,
+            _ => None,
+        }
+    }
+
     /// Shared classification used by bindings.
     pub fn kind(&self) -> crate::ErrorKind {
         match self {
+            Self::Response(response) if response.http_status() == 401 => {
+                crate::ErrorKind::Unauthorized
+            }
+            Self::Response(_) | Self::NotAccepted(_) => crate::ErrorKind::Api,
+            Self::ResponseDecode { .. } | Self::ClearedInvoice { .. } => crate::ErrorKind::Parse,
+            Self::ResponseRead { .. } => crate::ErrorKind::Network,
             Self::NetworkError(_) => crate::ErrorKind::Network,
             Self::InvalidResponse(_) => crate::ErrorKind::Parse,
             Self::Unauthorized(_) => crate::ErrorKind::Unauthorized,
@@ -74,6 +117,13 @@ pub struct ZatcaClient {
 /// API validation response.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ValidationResponse {
+    // HTTP metadata is supplied by the client, never trusted from gateway JSON.
+    #[serde(skip)]
+    http_status: Option<u16>,
+    #[serde(skip)]
+    operation: Option<InvoiceOperation>,
+    #[serde(rename = "clearedInvoice")]
+    cleared_invoice: Option<String>,
     #[serde(rename = "validationResults")]
     validation_results: ValidationResults,
     #[serde(rename = "reportingStatus")]
@@ -340,6 +390,7 @@ impl ZatcaClient {
     /// Returns [`ZatcaError::Http`] if the HTTP client cannot be built.
     pub fn new(config: Config) -> Result<Self, ZatcaError> {
         let client = Client::builder()
+            .redirect(reqwest::redirect::Policy::none())
             .build()
             .map_err(|e| ZatcaError::Http(e.to_string()))?;
         let base_url = std::env::var("FATOORA_ZATCA_BASE_URL")
@@ -365,6 +416,8 @@ impl ZatcaClient {
     ///
     /// # Errors
     /// Returns [`ZatcaError`] for network failures, invalid responses, or client state issues.
+    /// `Ok` means a 2xx response was decoded, not that the invoice was accepted.
+    /// Use [`ValidationResponse::outcome`] or [`ValidationResponse::ensure_accepted`].
     pub async fn report_simplified_invoice(
         &self,
         invoice: &SignedInvoice,
@@ -407,52 +460,7 @@ impl ZatcaClient {
             .send()
             .await
             .map_err(|e| ZatcaError::Http(e.to_string()))?;
-        let status = response.status();
-        let body = response.text().await.unwrap_or_default();
-
-        if status.is_success() || status.as_u16() == 400 || status.as_u16() == 409 {
-            match serde_json::from_str::<ValidationResponse>(&body) {
-                Ok(parsed) => return Ok(parsed),
-                Err(_) => {
-                    return Err(ZatcaError::InvalidResponse(format!(
-                        "status {status}: {body}"
-                    )));
-                }
-            }
-        }
-
-        if status.as_u16() == 406 {
-            return Err(ZatcaError::InvalidResponse(format!(
-                "status {status}: {body}"
-            )));
-        }
-
-        if status.as_u16() == 401 {
-            let parsed = serde_json::from_str::<UnauthorizedResponse>(&body).unwrap_or_else(|_| {
-                UnauthorizedResponse {
-                    timestamp: None,
-                    status: Some(401),
-                    error: Some("Unauthorized".into()),
-                    message: Some(body.clone()),
-                }
-            });
-            return Err(ZatcaError::Unauthorized(parsed));
-        }
-
-        if status.is_server_error() {
-            let parsed = serde_json::from_str::<ServerErrorResponse>(&body).unwrap_or_else(|_| {
-                ServerErrorResponse {
-                    category: None,
-                    code: Some("ServerError".into()),
-                    message: Some(body.clone()),
-                }
-            });
-            return Err(ZatcaError::ServerError(parsed));
-        }
-
-        Err(ZatcaError::InvalidResponse(format!(
-            "status {status}: {body}"
-        )))
+        read_validation_response(response, InvoiceOperation::Reporting).await
     }
 
     /// Clear a standard invoice through ZATCA's gateway.
@@ -460,6 +468,8 @@ impl ZatcaClient {
     ///
     /// # Errors
     /// Returns [`ZatcaError`] for network failures, invalid responses, or client state issues.
+    /// `Ok` means a 2xx response was decoded, not that the invoice was accepted.
+    /// Use [`ValidationResponse::outcome`] or [`ValidationResponse::ensure_accepted`].
     pub async fn clear_standard_invoice(
         &self,
         invoice: &SignedInvoice,
@@ -502,46 +512,7 @@ impl ZatcaClient {
             .send()
             .await
             .map_err(|e| ZatcaError::Http(e.to_string()))?;
-        let status = response.status();
-        let body = response.text().await.unwrap_or_default();
-
-        if status.is_success() || status.as_u16() == 400 {
-            match serde_json::from_str::<ValidationResponse>(&body) {
-                Ok(parsed) => return Ok(parsed),
-                Err(_) => {
-                    return Err(ZatcaError::InvalidResponse(format!(
-                        "status {status}: {body}"
-                    )));
-                }
-            }
-        }
-
-        if status.as_u16() == 401 {
-            let parsed = serde_json::from_str::<UnauthorizedResponse>(&body).unwrap_or_else(|_| {
-                UnauthorizedResponse {
-                    timestamp: None,
-                    status: Some(401),
-                    error: Some("Unauthorized".into()),
-                    message: Some(body.clone()),
-                }
-            });
-            return Err(ZatcaError::Unauthorized(parsed));
-        }
-
-        if status.is_server_error() {
-            let parsed = serde_json::from_str::<ServerErrorResponse>(&body).unwrap_or_else(|_| {
-                ServerErrorResponse {
-                    category: None,
-                    code: Some("ServerError".into()),
-                    message: Some(body.clone()),
-                }
-            });
-            return Err(ZatcaError::ServerError(parsed));
-        }
-
-        Err(ZatcaError::InvalidResponse(format!(
-            "status {status}: {body}"
-        )))
+        read_validation_response(response, InvoiceOperation::Clearance).await
     }
 
     /// Check invoice compliance through ZATCA's gateway.
@@ -549,6 +520,8 @@ impl ZatcaClient {
     ///
     /// # Errors
     /// Returns [`ZatcaError`] for network failures, invalid responses, or client state issues.
+    /// `Ok` means a 2xx response was decoded, not that the invoice was accepted.
+    /// Use [`ValidationResponse::outcome`] or [`ValidationResponse::ensure_accepted`].
     pub async fn check_invoice_compliance(
         &self,
         invoice: &SignedInvoice,
@@ -579,41 +552,7 @@ impl ZatcaClient {
             .await
             .map_err(|e| ZatcaError::Http(e.to_string()))?;
 
-        let status = response.status();
-        let body = response.text().await.unwrap_or_default();
-
-        if status.is_success() || status.as_u16() == 400 {
-            let parsed = serde_json::from_str::<ValidationResponse>(&body)
-                .map_err(|e| ZatcaError::InvalidResponse(format!("Invalid response: {e:?}")))?;
-            return Ok(parsed);
-        }
-
-        if status.as_u16() == 401 {
-            let parsed = serde_json::from_str::<UnauthorizedResponse>(&body).unwrap_or_else(|_| {
-                UnauthorizedResponse {
-                    timestamp: None,
-                    status: Some(401),
-                    error: Some("Unauthorized".into()),
-                    message: Some(body.clone()),
-                }
-            });
-            return Err(ZatcaError::Unauthorized(parsed));
-        }
-
-        if status.is_server_error() {
-            let parsed = serde_json::from_str::<ServerErrorResponse>(&body).unwrap_or_else(|_| {
-                ServerErrorResponse {
-                    category: None,
-                    code: Some("ServerError".into()),
-                    message: Some(body.clone()),
-                }
-            });
-            return Err(ZatcaError::ServerError(parsed));
-        }
-
-        Err(ZatcaError::InvalidResponse(format!(
-            "status {status}: {body}"
-        )))
+        read_validation_response(response, InvoiceOperation::Compliance).await
     }
     /// Request a compliance CSID from ZATCA by submitting a CSR.
     /// See [ZATCA
@@ -1319,14 +1258,14 @@ mod tests {
             let result = client
                 .report_simplified_invoice(&invoice, &creds, false, None)
                 .await;
-            assert!(matches!(result, Err(ZatcaError::Unauthorized(_))));
+            assert!(matches!(result, Err(ZatcaError::Response(ref e)) if e.http_status() == 401));
 
             unauthorized_mock.delete();
 
             let result = client
                 .report_simplified_invoice(&invoice, &creds, false, None)
                 .await;
-            assert!(matches!(result, Err(ZatcaError::InvalidResponse(_))));
+            assert!(matches!(result, Err(ZatcaError::Response(ref e)) if e.http_status() == 406));
 
             not_acceptable_mock.assert();
         });
@@ -1365,12 +1304,12 @@ mod tests {
             let result = client
                 .report_simplified_invoice(&simplified, &pcsid, false, None)
                 .await;
-            assert!(matches!(result, Err(ZatcaError::ServerError(_))));
+            assert!(matches!(result, Err(ZatcaError::Response(ref e)) if e.http_status() == 500));
 
             let result = client
                 .clear_standard_invoice(&standard, &pcsid, true, None)
                 .await;
-            assert!(matches!(result, Err(ZatcaError::Unauthorized(_))));
+            assert!(matches!(result, Err(ZatcaError::Response(ref e)) if e.http_status() == 401));
 
             report_mock.assert();
             clear_mock.assert();
@@ -1410,10 +1349,10 @@ mod tests {
             let result = client
                 .clear_standard_invoice(&standard, &pcsid, true, None)
                 .await;
-            assert!(matches!(result, Err(ZatcaError::InvalidResponse(_))));
+            assert!(matches!(result, Err(ZatcaError::ResponseDecode { .. })));
 
             let result = client.check_invoice_compliance(&simplified, &ccsid).await;
-            assert!(matches!(result, Err(ZatcaError::ServerError(_))));
+            assert!(matches!(result, Err(ZatcaError::Response(ref e)) if e.http_status() == 500));
 
             clear_mock.assert();
             compliance_mock.assert();
@@ -1457,7 +1396,7 @@ mod tests {
             let result = client
                 .report_simplified_invoice(&invoice, &pcsid, false, None)
                 .await;
-            assert!(result.is_ok());
+            assert_eq!(result.unwrap_err().http_status(), Some(409));
 
             report_mock.assert();
         });
@@ -1488,7 +1427,7 @@ mod tests {
             let result = client
                 .clear_standard_invoice(&invoice, &pcsid, true, None)
                 .await;
-            assert!(matches!(result, Err(ZatcaError::ServerError(_))));
+            assert!(matches!(result, Err(ZatcaError::Response(ref e)) if e.http_status() == 500));
 
             clear_mock.assert();
         });
@@ -1517,7 +1456,7 @@ mod tests {
                 CsidCredentials::new(EnvironmentType::NonProduction, None, "token", "secret");
 
             let result = client.check_invoice_compliance(&invoice, &ccsid).await;
-            assert!(matches!(result, Err(ZatcaError::Unauthorized(_))));
+            assert!(matches!(result, Err(ZatcaError::Response(ref e)) if e.http_status() == 401));
 
             compliance_mock.assert();
         });
@@ -1613,7 +1552,7 @@ mod tests {
             let csr = build_csr();
 
             let result = client.check_invoice_compliance(&invoice, &ccsid).await;
-            assert!(matches!(result, Err(ZatcaError::InvalidResponse(_))));
+            assert!(matches!(result, Err(ZatcaError::ResponseDecode { .. })));
 
             let result = client.renew_csid(&pcsid, &csr, "123456", None).await;
             assert!(matches!(result, Err(ZatcaError::InvalidResponse(_))));
@@ -1674,7 +1613,7 @@ mod tests {
             .expect("csr build")
     }
 
-    fn build_signed_invoice(invoice_type: InvoiceType) -> SignedInvoice {
+    pub(super) fn build_signed_invoice(invoice_type: InvoiceType) -> SignedInvoice {
         let seller = Party::<SellerRole>::new(
             "Acme Inc".into(),
             Address {
@@ -1726,3 +1665,7 @@ mod tests {
             .expect("sign invoice")
     }
 }
+
+#[cfg(test)]
+#[path = "api/response_tests.rs"]
+mod response_tests;

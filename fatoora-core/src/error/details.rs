@@ -166,6 +166,27 @@ impl QrCodeError {
 impl ZatcaError {
     fn details(&self) -> Value {
         match self {
+            Self::Response(response) => {
+                json!({"type": "api_response", "http_status": response.http_status(), "body": response.body(), "response": serde_json::from_str::<Value>(response.body()).ok()})
+            }
+            Self::ResponseDecode { response, message } => {
+                json!({"type": "api_response_decode", "http_status": response.http_status(), "body": response.body(), "message": message})
+            }
+            Self::ResponseRead {
+                http_status,
+                message,
+            } => {
+                json!({"type": "api_response_read", "http_status": http_status, "message": message})
+            }
+            Self::NotAccepted(response) => {
+                json!({"type": "api_not_accepted", "http_status": response.http_status(), "outcome": match response.outcome() { crate::api::InvoiceOutcome::Accepted => "accepted", crate::api::InvoiceOutcome::Rejected => "rejected", crate::api::InvoiceOutcome::Unknown => "unknown" }, "response": response})
+            }
+            Self::ClearedInvoice {
+                http_status,
+                message,
+            } => {
+                json!({"type": "api_cleared_invoice", "http_status": http_status, "message": message})
+            }
             Self::Unauthorized(response) => json!({"type": "api_unauthorized", "response": {
                 "timestamp": response.timestamp(), "status": response.status(), "error": response.error(), "message": response.message()
             }}),

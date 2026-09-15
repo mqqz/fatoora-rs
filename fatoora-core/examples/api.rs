@@ -33,6 +33,7 @@ pub async fn main() {
         .await
         .unwrap();
 
+    response.ensure_accepted().expect("reporting accepted");
     assert_eq!(response.reporting_status(), Some("REPORTED"));
 }
 // --8<-- [end:example]
