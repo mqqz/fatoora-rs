@@ -119,20 +119,20 @@ pub struct SignedInvoice { ... }
 pub struct InvoiceBuilder { ... }
 impl InvoiceBuilder {
     pub fn new(invoice_type: InvoiceType) -> Self;
-    pub fn set_id(&mut self, id: impl Into<String>) -> &mut Self;
-    pub fn set_uuid(&mut self, uuid: impl Into<String>) -> &mut Self;
-    pub fn set_issue_datetime(&mut self, issue_datetime: impl Into<String>) -> &mut Self;
-    pub fn set_currency(&mut self, currency: impl Into<String>) -> &mut Self;
-    pub fn set_previous_invoice_hash(&mut self, hash: impl Into<String>) -> &mut Self;
-    pub fn set_invoice_counter(&mut self, counter: u64) -> &mut Self;
-    pub fn set_seller(&mut self, seller: Seller) -> &mut Self;
-    pub fn set_payment_means_code(&mut self, code: impl Into<String>) -> &mut Self;
-    pub fn set_vat_category(&mut self, vat_category: VatCategory) -> &mut Self;
-    pub fn set_buyer(&mut self, buyer: Buyer) -> &mut Self;
-    pub fn set_note(&mut self, note: InvoiceNote) -> &mut Self;
-    pub fn set_allowance(&mut self, reason: String, amount: Decimal) -> &mut Self;
-    pub fn add_line_item(&mut self, item: LineItem) -> &mut Self;
-    pub fn flags(&mut self, flags: InvoiceFlags) -> &mut Self;
+    pub fn id(self, id: impl Into<String>) -> Self;
+    pub fn uuid(self, uuid: impl Into<String>) -> Self;
+    pub fn issue_datetime(self, issue_datetime: impl Into<String>) -> Self;
+    pub fn currency(self, currency: impl Into<String>) -> Self;
+    pub fn previous_invoice_hash(self, hash: impl Into<String>) -> Self;
+    pub fn invoice_counter(self, counter: u64) -> Self;
+    pub fn seller(self, seller: Seller) -> Self;
+    pub fn payment_means_code(self, code: impl Into<String>) -> Self;
+    pub fn vat_category(self, vat_category: VatCategory) -> Self;
+    pub fn buyer(self, buyer: Buyer) -> Self;
+    pub fn note(self, note: InvoiceNote) -> Self;
+    pub fn allowance(self, reason: String, amount: Decimal) -> Self;
+    pub fn line_item(self, item: LineItem) -> Self;
+    pub fn flags(self, flags: InvoiceFlags) -> Self;
     pub fn build(self) -> Result<FinalizedInvoice, Error>;
 }
 ```

@@ -4,6 +4,23 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
 
 ## InvoiceBuilder
 
+Rust configuration methods consume and return the builder. Chain calls or assign
+back to the builder for conditional configuration. `line_item` appends; other
+configuration methods replace their corresponding values. `build(self)` moves
+owned fields into the invoice and consumes the builder on success or error.
+
+C and Python keep mutable builder handles and their existing setter names.
+Setters validate their arguments before moving the builder; rejected arguments
+leave it available for correction. Building consumes the handle on success or
+validation failure.
+
+```rust
+let invoice = InvoiceBuilder::new(invoice_type)
+    .id("INV-1")
+    // Configure the remaining required fields.
+    .build()?;
+```
+
 ### `new`
 
 ???+ note "Create builder"
@@ -24,13 +41,13 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
         FfiResult_FfiInvoiceBuilder fatoora_invoice_builder_new(FfiInvoiceTypeKind type_kind, FfiInvoiceSubType subtype, const char* original_id, const char* original_uuid, const char* original_issue_date, const char* original_reason);
         ```
 
-### `set_id`
+### `id`
 
 ???+ note "Set invoice ID"
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::set_id(id: impl Into<String>) -> &mut Self
+        InvoiceBuilder::id(id: impl Into<String>) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -43,13 +60,13 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
         FfiResult_bool fatoora_invoice_builder_set_id(FfiInvoiceBuilder* builder, const char* id);
         ```
 
-### `set_uuid`
+### `uuid`
 
 ???+ note "Set invoice UUID"
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::set_uuid(uuid: impl Into<String>) -> &mut Self
+        InvoiceBuilder::uuid(uuid: impl Into<String>) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -62,13 +79,13 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
         FfiResult_bool fatoora_invoice_builder_set_uuid(FfiInvoiceBuilder* builder, const char* uuid);
         ```
 
-### `set_issue_datetime`
+### `issue_datetime`
 
 ???+ note "Set issue datetime"
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::set_issue_datetime(value: impl Into<String>) -> &mut Self
+        InvoiceBuilder::issue_datetime(value: impl Into<String>) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -81,13 +98,13 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
         FfiResult_bool fatoora_invoice_builder_set_issue_datetime(FfiInvoiceBuilder* builder, const char* value);
         ```
 
-### `set_currency`
+### `currency`
 
 ???+ note "Set currency"
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::set_currency(code: impl Into<String>) -> &mut Self
+        InvoiceBuilder::currency(code: impl Into<String>) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -100,13 +117,13 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
         FfiResult_bool fatoora_invoice_builder_set_currency(FfiInvoiceBuilder* builder, const char* code);
         ```
 
-### `set_previous_invoice_hash`
+### `previous_invoice_hash`
 
 ???+ note "Set previous invoice hash"
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::set_previous_invoice_hash(hash: impl Into<String>) -> &mut Self
+        InvoiceBuilder::previous_invoice_hash(hash: impl Into<String>) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -119,13 +136,13 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
         FfiResult_bool fatoora_invoice_builder_set_previous_hash(FfiInvoiceBuilder* builder, const char* hash);
         ```
 
-### `set_invoice_counter`
+### `invoice_counter`
 
 ???+ note "Set invoice counter"
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::set_invoice_counter(counter: u64) -> &mut Self
+        InvoiceBuilder::invoice_counter(counter: u64) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -138,13 +155,13 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
         FfiResult_bool fatoora_invoice_builder_set_invoice_counter(FfiInvoiceBuilder* builder, uint64_t counter);
         ```
 
-### `set_payment_means_code`
+### `payment_means_code`
 
 ???+ note "Set payment means code"
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::set_payment_means_code(code: impl Into<String>) -> &mut Self
+        InvoiceBuilder::payment_means_code(code: impl Into<String>) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -157,13 +174,13 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
         FfiResult_bool fatoora_invoice_builder_set_payment_means_code(FfiInvoiceBuilder* builder, const char* code);
         ```
 
-### `set_vat_category`
+### `vat_category`
 
 ???+ note "Set invoice VAT category"
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::set_vat_category(category: VatCategory) -> &mut Self
+        InvoiceBuilder::vat_category(category: VatCategory) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -176,13 +193,13 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
         FfiResult_bool fatoora_invoice_builder_set_vat_category(FfiInvoiceBuilder* builder, FfiVatCategory cat);
         ```
 
-### `set_seller`
+### `seller`
 
 ???+ note "Set seller party"
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::set_seller(seller: Seller) -> &mut Self
+        InvoiceBuilder::seller(seller: Seller) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -195,13 +212,13 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
         FfiResult_bool fatoora_invoice_builder_set_seller(FfiInvoiceBuilder* builder, const char* name, const char* country, const char* city, const char* street, const char* additional_street, const char* building_number, const char* additional_number, const char* postal_code, const char* subdivision, const char* district, const char* vat_id, const char* other_id, const char* other_id_scheme);
         ```
 
-### `set_buyer`
+### `buyer`
 
 ???+ note "Set buyer party"
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::set_buyer(buyer: Buyer) -> &mut Self
+        InvoiceBuilder::buyer(buyer: Buyer) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -214,13 +231,13 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
         FfiResult_bool fatoora_invoice_builder_set_buyer(FfiInvoiceBuilder* builder, const char* name, const char* country, const char* city, const char* street, const char* additional_street, const char* building_number, const char* additional_number, const char* postal_code, const char* subdivision, const char* district, const char* vat_id, const char* other_id, const char* other_id_scheme);
         ```
 
-### `set_note`
+### `note`
 
 ???+ note "Set invoice note"
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::set_note(note: InvoiceNote) -> &mut Self
+        InvoiceBuilder::note(note: InvoiceNote) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -233,13 +250,13 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
         FfiResult_bool fatoora_invoice_builder_set_note(FfiInvoiceBuilder* builder, const char* lang, const char* text);
         ```
 
-### `set_allowance`
+### `allowance`
 
 ???+ note "Set allowance reason and amount"
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::set_allowance(reason: impl Into<String>, amount: Decimal) -> &mut Self
+        InvoiceBuilder::allowance(reason: impl Into<String>, amount: Decimal) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -258,7 +275,7 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::invoice_level_charge(charge: Decimal) -> &mut Self
+        InvoiceBuilder::invoice_level_charge(charge: Decimal) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -277,7 +294,7 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::invoice_level_discount(discount: Decimal) -> &mut Self
+        InvoiceBuilder::invoice_level_discount(discount: Decimal) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -296,7 +313,7 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::allowance_reason(reason: impl Into<String>) -> &mut Self
+        InvoiceBuilder::allowance_reason(reason: impl Into<String>) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -315,7 +332,7 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::flags(flags: InvoiceFlags) -> &mut Self
+        InvoiceBuilder::flags(flags: InvoiceFlags) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -328,13 +345,13 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
         FfiResult_bool fatoora_invoice_builder_flags(FfiInvoiceBuilder* builder, uint8_t flags);
         ```
 
-### `add_line_item`
+### `line_item`
 
 ???+ note "Add line item"
 
     === "{{ lang.rust }}"
         ```rust
-        InvoiceBuilder::add_line_item(item: LineItem) -> &mut Self
+        InvoiceBuilder::line_item(item: LineItem) -> Self
         ```
 
     === "{{ lang.python }}"
@@ -370,47 +387,47 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
 
 ### `id`
 
-- Setter: `InvoiceBuilder::set_id` / `InvoiceBuilder.set_id` / `fatoora_invoice_builder_set_id`
+- Setter: `InvoiceBuilder::id` / `InvoiceBuilder.set_id` / `fatoora_invoice_builder_set_id`
 - Getters: `FinalizedInvoice.id`, `SignedInvoice.id`, `fatoora_invoice_id`, `fatoora_signed_invoice_id`
 
 ### `uuid`
 
-- Setter: `InvoiceBuilder::set_uuid` / `InvoiceBuilder.set_uuid` / `fatoora_invoice_builder_set_uuid`
+- Setter: `InvoiceBuilder::uuid` / `InvoiceBuilder.set_uuid` / `fatoora_invoice_builder_set_uuid`
 - Getters: `FinalizedInvoice.uuid`, `SignedInvoice.uuid`, `fatoora_invoice_uuid`, `fatoora_signed_invoice_uuid`
 
 ### `issue_datetime`
 
-- Setter: `InvoiceBuilder::set_issue_datetime` / `InvoiceBuilder.set_issue_datetime` / `fatoora_invoice_builder_set_issue_datetime`
+- Setter: `InvoiceBuilder::issue_datetime` / `InvoiceBuilder.set_issue_datetime` / `fatoora_invoice_builder_set_issue_datetime`
 - Getters: `FinalizedInvoice.issue_datetime`, `SignedInvoice.issue_datetime`, `fatoora_invoice_issue_datetime`, `fatoora_signed_invoice_issue_datetime`
 
 ### `currency`
 
-- Setter: `InvoiceBuilder::set_currency` / `InvoiceBuilder.set_currency` / `fatoora_invoice_builder_set_currency`
+- Setter: `InvoiceBuilder::currency` / `InvoiceBuilder.set_currency` / `fatoora_invoice_builder_set_currency`
 - Getters: `FinalizedInvoice.currency`, `SignedInvoice.currency`, `fatoora_invoice_currency`, `fatoora_signed_invoice_currency`
 
 ### `previous_invoice_hash`
 
-- Setter: `InvoiceBuilder::set_previous_invoice_hash` / `InvoiceBuilder.set_previous_invoice_hash` / `fatoora_invoice_builder_set_previous_hash`
+- Setter: `InvoiceBuilder::previous_invoice_hash` / `InvoiceBuilder.set_previous_invoice_hash` / `fatoora_invoice_builder_set_previous_hash`
 - Getters: `FinalizedInvoice.previous_invoice_hash`, `SignedInvoice.previous_invoice_hash`, `fatoora_invoice_previous_hash`, `fatoora_signed_invoice_previous_hash`
 
 ### `invoice_counter`
 
-- Setter: `InvoiceBuilder::set_invoice_counter` / `InvoiceBuilder.set_invoice_counter` / `fatoora_invoice_builder_set_invoice_counter`
+- Setter: `InvoiceBuilder::invoice_counter` / `InvoiceBuilder.set_invoice_counter` / `fatoora_invoice_builder_set_invoice_counter`
 - Getters: `FinalizedInvoice.invoice_counter`, `SignedInvoice.invoice_counter`, `fatoora_invoice_counter`, `fatoora_signed_invoice_counter`
 
 ### `payment_means_code`
 
-- Setter: `InvoiceBuilder::set_payment_means_code` / `InvoiceBuilder.set_payment_means_code` / `fatoora_invoice_builder_set_payment_means_code`
+- Setter: `InvoiceBuilder::payment_means_code` / `InvoiceBuilder.set_payment_means_code` / `fatoora_invoice_builder_set_payment_means_code`
 - Getters: `FinalizedInvoice.payment_means_code`, `SignedInvoice.payment_means_code`, `fatoora_invoice_payment_means_code`, `fatoora_signed_invoice_payment_means_code`
 
 ### `vat_category`
 
-- Setter: `InvoiceBuilder::set_vat_category` / `InvoiceBuilder.set_vat_category` / `fatoora_invoice_builder_set_vat_category`
+- Setter: `InvoiceBuilder::vat_category` / `InvoiceBuilder.set_vat_category` / `fatoora_invoice_builder_set_vat_category`
 - Getters: `FinalizedInvoice.vat_category`, `SignedInvoice.vat_category`, `fatoora_invoice_vat_category`, `fatoora_signed_invoice_vat_category`
 
 ### Parties (`seller`, `buyer`)
 
-- Setters: `InvoiceBuilder::set_seller`, `InvoiceBuilder::set_buyer` and matching Python/C builder methods.
+- Setters: `InvoiceBuilder::seller`, `InvoiceBuilder::buyer` and matching Python/C builder methods.
 - Getters: `FinalizedInvoice.seller`, `FinalizedInvoice.buyer`, `SignedInvoice.seller`, `SignedInvoice.buyer`, `fatoora_invoice_seller`, `fatoora_invoice_buyer`, `fatoora_signed_invoice_seller`, `fatoora_signed_invoice_buyer`
 
 ### Notes and Allowance (`note`, `allowance_reason`, charge/discount)
@@ -425,7 +442,7 @@ Core data types for building and inspecting invoices. See [Decimal numbers and r
 
 ### Line Items and Totals
 
-- Setter: `InvoiceBuilder::add_line_item` / `InvoiceBuilder.add_line_item` / `fatoora_invoice_builder_add_line_item`
+- Setter: `InvoiceBuilder::line_item` / `InvoiceBuilder.add_line_item` / `fatoora_invoice_builder_add_line_item`
 - Getters: `line_items`, `totals` on finalized/signed invoices and matching C line-item/totals getters (`fatoora_invoice_line_item_*`, `fatoora_invoice_totals_*`, `fatoora_signed_invoice_line_item_*`, `fatoora_signed_invoice_totals_*`).
 
 ## FinalizedInvoice

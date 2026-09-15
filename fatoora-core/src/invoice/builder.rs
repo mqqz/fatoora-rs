@@ -35,6 +35,10 @@ pub struct SignedInvoice {
 
 /// Builder that checks selected fields and computes invoice totals.
 ///
+/// Configuration methods consume and return the builder. Chain them or reassign
+/// the result when configuring conditionally. `build(self)` moves owned fields
+/// into the invoice and consumes the builder even when validation fails.
+///
 /// # Examples
 /// ```rust,no_run
 /// use fatoora_core::invoice::{
@@ -42,24 +46,31 @@ pub struct SignedInvoice {
 /// };
 ///
 /// let seller: Seller = unimplemented!();
-/// let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified));
-/// builder
-///     .set_id("INV-1")
-///     .set_uuid("uuid-1")
-///     .set_issue_datetime("2024-01-01T12:30:00Z")
-///     .set_currency("SAR")
-///     .set_previous_invoice_hash("hash")
-///     .set_invoice_counter(1)
-///     .set_seller(seller)
-///     .set_payment_means_code("10")
-///     .set_vat_category(VatCategory::Standard)
-///     .add_line_item(LineItem::new("Item", fatoora_core::Decimal::parse("1.0").unwrap(), "PCE", fatoora_core::Decimal::parse("100.0").unwrap(), fatoora_core::Decimal::parse("15.0").unwrap(), VatCategory::Standard).unwrap());
-///
-/// let invoice = builder.build()?;
+/// let invoice = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified))
+///     .id("INV-1")
+///     .uuid("uuid-1")
+///     .issue_datetime("2024-01-01T12:30:00Z")
+///     .currency("SAR")
+///     .previous_invoice_hash("hash")
+///     .invoice_counter(1)
+///     .seller(seller)
+///     .payment_means_code("10")
+///     .vat_category(VatCategory::Standard)
+///     .line_item(LineItem::new("Item", fatoora_core::Decimal::parse("1.0").unwrap(), "PCE", fatoora_core::Decimal::parse("100.0").unwrap(), fatoora_core::Decimal::parse("15.0").unwrap(), VatCategory::Standard).unwrap())
+///     .build()?;
 /// # let _ = invoice;
 /// use fatoora_core::invoice::InvoiceError;
 /// # Ok::<(), InvoiceError>(())
 /// ```
+///
+/// A configuration call moves the builder:
+/// ```compile_fail
+/// use fatoora_core::invoice::{InvoiceBuilder, InvoiceType, InvoiceSubType};
+/// let builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified));
+/// let configured = builder.id("INV-1");
+/// let invoice = builder.build(); // builder was moved into id()
+/// ```
+#[must_use = "builder methods return the updated builder"]
 #[derive(Debug, Clone)]
 pub struct InvoiceBuilder {
     invoice_type: InvoiceType,
@@ -107,89 +118,89 @@ impl InvoiceBuilder {
         }
     }
 
-    pub fn set_id(&mut self, id: impl Into<String>) -> &mut Self {
+    pub fn id(mut self, id: impl Into<String>) -> Self {
         self.id = Some(id.into());
         self
     }
 
-    pub fn set_uuid(&mut self, uuid: impl Into<String>) -> &mut Self {
+    pub fn uuid(mut self, uuid: impl Into<String>) -> Self {
         self.uuid = Some(uuid.into());
         self
     }
 
-    pub fn set_issue_datetime(&mut self, issue_datetime: impl Into<String>) -> &mut Self {
+    pub fn issue_datetime(mut self, issue_datetime: impl Into<String>) -> Self {
         self.issue_datetime = Some(issue_datetime.into());
         self
     }
 
-    pub fn set_currency(&mut self, currency: impl Into<String>) -> &mut Self {
+    pub fn currency(mut self, currency: impl Into<String>) -> Self {
         self.currency = Some(currency.into());
         self
     }
 
-    pub fn set_previous_invoice_hash(&mut self, hash: impl Into<String>) -> &mut Self {
+    pub fn previous_invoice_hash(mut self, hash: impl Into<String>) -> Self {
         self.previous_invoice_hash = Some(hash.into());
         self
     }
 
-    pub fn set_invoice_counter(&mut self, counter: u64) -> &mut Self {
+    pub fn invoice_counter(mut self, counter: u64) -> Self {
         self.invoice_counter = Some(counter);
         self
     }
 
-    pub fn set_seller(&mut self, seller: Seller) -> &mut Self {
+    pub fn seller(mut self, seller: Seller) -> Self {
         self.seller = Some(seller);
         self
     }
 
-    pub fn invoice_level_charge(&mut self, charge: Decimal) -> &mut Self {
+    pub fn invoice_level_charge(mut self, charge: Decimal) -> Self {
         self.invoice_level_charge = charge;
         self
     }
 
-    pub fn invoice_level_discount(&mut self, discount: Decimal) -> &mut Self {
+    pub fn invoice_level_discount(mut self, discount: Decimal) -> Self {
         self.invoice_level_discount = discount;
         self
     }
 
-    pub fn allowance_reason(&mut self, reason: impl Into<String>) -> &mut Self {
+    pub fn allowance_reason(mut self, reason: impl Into<String>) -> Self {
         self.allowance_reason = Some(reason.into());
         self
     }
 
-    pub fn set_note(&mut self, note: InvoiceNote) -> &mut Self {
+    pub fn note(mut self, note: InvoiceNote) -> Self {
         self.note = Some(note);
         self
     }
 
-    pub fn set_buyer(&mut self, buyer: Buyer) -> &mut Self {
+    pub fn buyer(mut self, buyer: Buyer) -> Self {
         self.buyer = Some(buyer);
         self
     }
 
-    pub fn set_allowance(&mut self, reason: impl Into<String>, amount: Decimal) -> &mut Self {
+    pub fn allowance(mut self, reason: impl Into<String>, amount: Decimal) -> Self {
         self.invoice_level_discount = amount;
         self.allowance_reason = Some(reason.into());
         self
     }
 
-    pub fn set_payment_means_code(&mut self, code: impl Into<String>) -> &mut Self {
+    pub fn payment_means_code(mut self, code: impl Into<String>) -> Self {
         self.payment_means_code = Some(code.into());
         self
     }
 
-    pub fn set_vat_category(&mut self, vat_category: VatCategory) -> &mut Self {
+    pub fn vat_category(mut self, vat_category: VatCategory) -> Self {
         self.vat_category = Some(vat_category);
         self
     }
 
-    pub fn add_line_item(&mut self, line_item: super::LineItem) -> &mut Self {
+    /// Append a line item, preserving insertion order.
+    pub fn line_item(mut self, line_item: super::LineItem) -> Self {
         self.line_items.push(line_item);
         self
     }
 
-    // TODO these should be in a bitflag
-    pub fn flags(&mut self, flags: InvoiceFlags) -> &mut Self {
+    pub fn flags(mut self, flags: InvoiceFlags) -> Self {
         self.flags = flags;
         self
     }

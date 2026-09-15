@@ -1704,17 +1704,17 @@ mod tests {
         .unwrap();
 
         let mut builder = InvoiceBuilder::new(invoice_type);
-        builder
-            .set_id("INV-TEST-1")
-            .set_uuid("uuid-test-1")
-            .set_issue_datetime("2024-01-01T12:30:00Z")
-            .set_currency("SAR")
-            .set_previous_invoice_hash("hash")
-            .set_invoice_counter(0)
-            .set_seller(seller)
-            .set_payment_means_code("10")
-            .set_vat_category(VatCategory::Standard)
-            .add_line_item(line_item);
+        builder = builder
+            .id("INV-TEST-1")
+            .uuid("uuid-test-1")
+            .issue_datetime("2024-01-01T12:30:00Z")
+            .currency("SAR")
+            .previous_invoice_hash("hash")
+            .invoice_counter(0)
+            .seller(seller)
+            .payment_means_code("10")
+            .vat_category(VatCategory::Standard)
+            .line_item(line_item);
         let invoice = builder.build().expect("build invoice");
 
         let signed_xml = invoice.to_xml().expect("serialize invoice");

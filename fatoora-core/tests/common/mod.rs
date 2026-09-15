@@ -16,20 +16,20 @@ pub fn dummy_finalized_invoice() -> FinalizedInvoice {
     .expect("valid seller");
 
     let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified));
-    builder
-        .set_id("INV-1")
-        .set_uuid("8e6000cf-1a98-4174-b3e7-b5d5954bc10d")
-        .set_issue_datetime("2024-01-01T12:30:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash(
+    builder = builder
+        .id("INV-1")
+        .uuid("8e6000cf-1a98-4174-b3e7-b5d5954bc10d")
+        .issue_datetime("2024-01-01T12:30:00Z")
+        .currency("SAR")
+        .previous_invoice_hash(
             "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
         )
-        .set_invoice_counter(0)
-        .set_seller(seller)
-        .set_payment_means_code("10")
-        .set_vat_category(VatCategory::Standard);
+        .invoice_counter(0)
+        .seller(seller)
+        .payment_means_code("10")
+        .vat_category(VatCategory::Standard);
     for item in dummy_line_items() {
-        builder.add_line_item(item);
+        builder = builder.line_item(item);
     }
     builder.build().expect("build dummy invoice")
 }
@@ -53,27 +53,27 @@ pub fn complex_standard_invoice() -> FinalizedInvoice {
     .expect("valid buyer");
 
     let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Standard));
-    builder
-        .set_id("INV-STD-1001")
-        .set_uuid("b2a43c49-3aab-4e3b-9d67-0da45a5e33cc")
-        .set_issue_datetime("2024-02-10T09:15:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash(
+    builder = builder
+        .id("INV-STD-1001")
+        .uuid("b2a43c49-3aab-4e3b-9d67-0da45a5e33cc")
+        .issue_datetime("2024-02-10T09:15:00Z")
+        .currency("SAR")
+        .previous_invoice_hash(
             "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
         )
-        .set_invoice_counter(7)
-        .set_seller(seller)
-        .set_buyer(buyer)
-        .set_payment_means_code("30")
-        .set_vat_category(VatCategory::Standard)
-        .set_note(InvoiceNote::new("en", "Complex standard invoice"))
+        .invoice_counter(7)
+        .seller(seller)
+        .buyer(buyer)
+        .payment_means_code("30")
+        .vat_category(VatCategory::Standard)
+        .note(InvoiceNote::new("en", "Complex standard invoice"))
         .invoice_level_charge(fatoora_core::Decimal::parse("12.5").unwrap())
         .invoice_level_discount(fatoora_core::Decimal::parse("20.0").unwrap())
         .allowance_reason("Seasonal discount")
         .flags(InvoiceFlags::EXPORT | InvoiceFlags::SELF_BILLED);
 
-    builder
-        .add_line_item(
+    builder = builder
+        .line_item(
             LineItem::new(
                 "Consulting Services",
                 fatoora_core::Decimal::parse("2.0").unwrap(),
@@ -84,7 +84,7 @@ pub fn complex_standard_invoice() -> FinalizedInvoice {
             )
             .unwrap(),
         )
-        .add_line_item(
+        .line_item(
             LineItem::new(
                 "Software License",
                 fatoora_core::Decimal::parse("1.0").unwrap(),
@@ -95,7 +95,7 @@ pub fn complex_standard_invoice() -> FinalizedInvoice {
             )
             .unwrap(),
         )
-        .add_line_item(
+        .line_item(
             LineItem::new(
                 "Export Item",
                 fatoora_core::Decimal::parse("3.0").unwrap(),
@@ -139,24 +139,24 @@ pub fn credit_note_standard_invoice() -> FinalizedInvoice {
         "Return of goods".into(),
     ));
 
-    builder
-        .set_id("CRN-1001")
-        .set_uuid("9d3f5cf1-6808-4e22-9bf6-1c9c2b9b0dc9")
-        .set_issue_datetime("2024-02-12T10:00:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash(
+    builder = builder
+        .id("CRN-1001")
+        .uuid("9d3f5cf1-6808-4e22-9bf6-1c9c2b9b0dc9")
+        .issue_datetime("2024-02-12T10:00:00Z")
+        .currency("SAR")
+        .previous_invoice_hash(
             "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
         )
-        .set_invoice_counter(8)
-        .set_seller(seller)
-        .set_buyer(buyer)
-        .set_payment_means_code("10")
-        .set_vat_category(VatCategory::Standard)
-        .set_note(InvoiceNote::new("en", "Credit note for returned items"))
+        .invoice_counter(8)
+        .seller(seller)
+        .buyer(buyer)
+        .payment_means_code("10")
+        .vat_category(VatCategory::Standard)
+        .note(InvoiceNote::new("en", "Credit note for returned items"))
         .invoice_level_discount(fatoora_core::Decimal::parse("15.0").unwrap())
         .allowance_reason("Return allowance");
 
-    builder.add_line_item(
+    builder = builder.line_item(
         LineItem::new(
             "Returned Item A",
             fatoora_core::Decimal::parse("1.0").unwrap(),
@@ -200,24 +200,24 @@ pub fn debit_note_standard_invoice() -> FinalizedInvoice {
         "Additional service charge".into(),
     ));
 
-    builder
-        .set_id("DBN-1001")
-        .set_uuid("2c6d3503-9f1a-4d4f-8a7d-6d0bb5c6f6d5")
-        .set_issue_datetime("2024-02-15T14:20:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash(
+    builder = builder
+        .id("DBN-1001")
+        .uuid("2c6d3503-9f1a-4d4f-8a7d-6d0bb5c6f6d5")
+        .issue_datetime("2024-02-15T14:20:00Z")
+        .currency("SAR")
+        .previous_invoice_hash(
             "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
         )
-        .set_invoice_counter(9)
-        .set_seller(seller)
-        .set_buyer(buyer)
-        .set_payment_means_code("30")
-        .set_vat_category(VatCategory::Standard)
-        .set_note(InvoiceNote::new("en", "Debit note for extra charges"))
+        .invoice_counter(9)
+        .seller(seller)
+        .buyer(buyer)
+        .payment_means_code("30")
+        .vat_category(VatCategory::Standard)
+        .note(InvoiceNote::new("en", "Debit note for extra charges"))
         .invoice_level_charge(fatoora_core::Decimal::parse("30.0").unwrap())
         .allowance_reason("Additional service charge");
 
-    builder.add_line_item(
+    builder = builder.line_item(
         LineItem::new(
             "Additional Service",
             fatoora_core::Decimal::parse("1.0").unwrap(),
@@ -251,25 +251,25 @@ pub fn prepayment_standard_invoice() -> FinalizedInvoice {
     .expect("valid buyer");
 
     let mut builder = InvoiceBuilder::new(InvoiceType::Prepayment(InvoiceSubType::Standard));
-    builder
-        .set_id("PP-1001")
-        .set_uuid("7d25c3a8-1c7a-4a1e-9b25-2d4e1a8b4c10")
-        .set_issue_datetime("2024-02-18T08:05:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash(
+    builder = builder
+        .id("PP-1001")
+        .uuid("7d25c3a8-1c7a-4a1e-9b25-2d4e1a8b4c10")
+        .issue_datetime("2024-02-18T08:05:00Z")
+        .currency("SAR")
+        .previous_invoice_hash(
             "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
         )
-        .set_invoice_counter(10)
-        .set_seller(seller)
-        .set_buyer(buyer)
-        .set_payment_means_code("30")
-        .set_vat_category(VatCategory::Standard)
-        .set_note(InvoiceNote::new("en", "Prepayment invoice"))
+        .invoice_counter(10)
+        .seller(seller)
+        .buyer(buyer)
+        .payment_means_code("30")
+        .vat_category(VatCategory::Standard)
+        .note(InvoiceNote::new("en", "Prepayment invoice"))
         .invoice_level_charge(fatoora_core::Decimal::parse("5.0").unwrap())
         .flags(InvoiceFlags::THIRD_PARTY | InvoiceFlags::SUMMARY);
 
-    builder
-        .add_line_item(
+    builder = builder
+        .line_item(
             LineItem::new(
                 "Prepayment Service A",
                 fatoora_core::Decimal::parse("1.0").unwrap(),
@@ -280,7 +280,7 @@ pub fn prepayment_standard_invoice() -> FinalizedInvoice {
             )
             .unwrap(),
         )
-        .add_line_item(
+        .line_item(
             LineItem::new(
                 "Prepayment Service B",
                 fatoora_core::Decimal::parse("2.0").unwrap(),
@@ -306,25 +306,25 @@ pub fn mixed_vat_simplified_invoice() -> FinalizedInvoice {
     .expect("valid seller");
 
     let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified));
-    builder
-        .set_id("INV-SIMP-2001")
-        .set_uuid("5c8e7f12-1f2a-4d4a-9a5b-5f6e7d8c9b10")
-        .set_issue_datetime("2024-02-20T11:45:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash(
+    builder = builder
+        .id("INV-SIMP-2001")
+        .uuid("5c8e7f12-1f2a-4d4a-9a5b-5f6e7d8c9b10")
+        .issue_datetime("2024-02-20T11:45:00Z")
+        .currency("SAR")
+        .previous_invoice_hash(
             "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
         )
-        .set_invoice_counter(11)
-        .set_seller(seller)
-        .set_payment_means_code("10")
-        .set_vat_category(VatCategory::Standard)
-        .set_note(InvoiceNote::new("en", "Mixed VAT simplified invoice"))
+        .invoice_counter(11)
+        .seller(seller)
+        .payment_means_code("10")
+        .vat_category(VatCategory::Standard)
+        .note(InvoiceNote::new("en", "Mixed VAT simplified invoice"))
         .invoice_level_discount(fatoora_core::Decimal::parse("5.0").unwrap())
         .allowance_reason("Promo")
         .flags(InvoiceFlags::NOMINAL | InvoiceFlags::SUMMARY);
 
-    builder
-        .add_line_item(
+    builder = builder
+        .line_item(
             LineItem::new(
                 "Standard Rated Item",
                 fatoora_core::Decimal::parse("2.0").unwrap(),
@@ -335,7 +335,7 @@ pub fn mixed_vat_simplified_invoice() -> FinalizedInvoice {
             )
             .unwrap(),
         )
-        .add_line_item(
+        .line_item(
             LineItem::new(
                 "Zero Rated Item",
                 fatoora_core::Decimal::parse("1.0").unwrap(),
@@ -346,7 +346,7 @@ pub fn mixed_vat_simplified_invoice() -> FinalizedInvoice {
             )
             .unwrap(),
         )
-        .add_line_item(
+        .line_item(
             LineItem::new(
                 "Exempt Item",
                 fatoora_core::Decimal::parse("1.0").unwrap(),
@@ -380,23 +380,23 @@ pub fn export_self_billed_standard_invoice() -> FinalizedInvoice {
     .expect("valid buyer");
 
     let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Standard));
-    builder
-        .set_id("INV-EXP-3001")
-        .set_uuid("8f1e4f20-9e40-4a2c-8c7f-65d7b9c3c9a1")
-        .set_issue_datetime("2024-02-22T13:10:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash(
+    builder = builder
+        .id("INV-EXP-3001")
+        .uuid("8f1e4f20-9e40-4a2c-8c7f-65d7b9c3c9a1")
+        .issue_datetime("2024-02-22T13:10:00Z")
+        .currency("SAR")
+        .previous_invoice_hash(
             "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
         )
-        .set_invoice_counter(12)
-        .set_seller(seller)
-        .set_buyer(buyer)
-        .set_payment_means_code("30")
-        .set_vat_category(VatCategory::Zero)
-        .set_note(InvoiceNote::new("en", "Export self-billed invoice"))
+        .invoice_counter(12)
+        .seller(seller)
+        .buyer(buyer)
+        .payment_means_code("30")
+        .vat_category(VatCategory::Zero)
+        .note(InvoiceNote::new("en", "Export self-billed invoice"))
         .flags(InvoiceFlags::EXPORT | InvoiceFlags::SELF_BILLED);
 
-    builder.add_line_item(
+    builder = builder.line_item(
         LineItem::new(
             "Exported Goods",
             fatoora_core::Decimal::parse("5.0").unwrap(),
@@ -430,23 +430,23 @@ pub fn out_of_scope_standard_invoice() -> FinalizedInvoice {
     .expect("valid buyer");
 
     let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Standard));
-    builder
-        .set_id("INV-OOS-4001")
-        .set_uuid("1c7d7c2b-9a0c-4fdd-9f4b-7c6d41b9f0a2")
-        .set_issue_datetime("2024-02-24T16:30:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash(
+    builder = builder
+        .id("INV-OOS-4001")
+        .uuid("1c7d7c2b-9a0c-4fdd-9f4b-7c6d41b9f0a2")
+        .issue_datetime("2024-02-24T16:30:00Z")
+        .currency("SAR")
+        .previous_invoice_hash(
             "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
         )
-        .set_invoice_counter(13)
-        .set_seller(seller)
-        .set_buyer(buyer)
-        .set_payment_means_code("30")
-        .set_vat_category(VatCategory::OutOfScope)
-        .set_note(InvoiceNote::new("en", "Out of scope invoice"))
+        .invoice_counter(13)
+        .seller(seller)
+        .buyer(buyer)
+        .payment_means_code("30")
+        .vat_category(VatCategory::OutOfScope)
+        .note(InvoiceNote::new("en", "Out of scope invoice"))
         .flags(InvoiceFlags::SUMMARY);
 
-    builder.add_line_item(
+    builder = builder.line_item(
         LineItem::new(
             "Out of Scope Service",
             fatoora_core::Decimal::parse("1.0").unwrap(),
@@ -482,23 +482,23 @@ pub fn simplified_credit_note_invoice() -> FinalizedInvoice {
         "Price adjustment".into(),
     ));
 
-    builder
-        .set_id("CRN-SIMP-5001")
-        .set_uuid("9b1f5f7c-5d30-4f2b-9e6d-7b2a0f5b7f11")
-        .set_issue_datetime("2024-02-26T09:45:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash(
+    builder = builder
+        .id("CRN-SIMP-5001")
+        .uuid("9b1f5f7c-5d30-4f2b-9e6d-7b2a0f5b7f11")
+        .issue_datetime("2024-02-26T09:45:00Z")
+        .currency("SAR")
+        .previous_invoice_hash(
             "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
         )
-        .set_invoice_counter(14)
-        .set_seller(seller)
-        .set_payment_means_code("10")
-        .set_vat_category(VatCategory::Standard)
-        .set_note(InvoiceNote::new("en", "Simplified credit note"))
+        .invoice_counter(14)
+        .seller(seller)
+        .payment_means_code("10")
+        .vat_category(VatCategory::Standard)
+        .note(InvoiceNote::new("en", "Simplified credit note"))
         .invoice_level_discount(fatoora_core::Decimal::parse("10.0").unwrap())
         .allowance_reason("Price adjustment");
 
-    builder.add_line_item(
+    builder = builder.line_item(
         LineItem::new(
             "Adjusted Item",
             fatoora_core::Decimal::parse("1.0").unwrap(),
@@ -534,23 +534,23 @@ pub fn simplified_debit_note_invoice() -> FinalizedInvoice {
         "Additional charge".into(),
     ));
 
-    builder
-        .set_id("DBN-SIMP-5002")
-        .set_uuid("0b1f2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d")
-        .set_issue_datetime("2024-02-27T15:20:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash(
+    builder = builder
+        .id("DBN-SIMP-5002")
+        .uuid("0b1f2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d")
+        .issue_datetime("2024-02-27T15:20:00Z")
+        .currency("SAR")
+        .previous_invoice_hash(
             "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
         )
-        .set_invoice_counter(15)
-        .set_seller(seller)
-        .set_payment_means_code("10")
-        .set_vat_category(VatCategory::Standard)
-        .set_note(InvoiceNote::new("en", "Simplified debit note"))
+        .invoice_counter(15)
+        .seller(seller)
+        .payment_means_code("10")
+        .vat_category(VatCategory::Standard)
+        .note(InvoiceNote::new("en", "Simplified debit note"))
         .invoice_level_charge(fatoora_core::Decimal::parse("8.0").unwrap())
         .allowance_reason("Additional charge");
 
-    builder.add_line_item(
+    builder = builder.line_item(
         LineItem::new(
             "Extra Service",
             fatoora_core::Decimal::parse("1.0").unwrap(),
@@ -584,22 +584,22 @@ pub fn foreign_currency_standard_invoice() -> FinalizedInvoice {
     .expect("valid buyer");
 
     let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Standard));
-    builder
-        .set_id("INV-FX-6001")
-        .set_uuid("2f3b4c5d-6e7f-8a9b-0c1d-2e3f4a5b6c7d")
-        .set_issue_datetime("2024-02-28T12:00:00Z")
-        .set_currency("USD")
-        .set_previous_invoice_hash(
+    builder = builder
+        .id("INV-FX-6001")
+        .uuid("2f3b4c5d-6e7f-8a9b-0c1d-2e3f4a5b6c7d")
+        .issue_datetime("2024-02-28T12:00:00Z")
+        .currency("USD")
+        .previous_invoice_hash(
             "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
         )
-        .set_invoice_counter(16)
-        .set_seller(seller)
-        .set_buyer(buyer)
-        .set_payment_means_code("30")
-        .set_vat_category(VatCategory::Standard)
-        .set_note(InvoiceNote::new("en", "Foreign currency invoice"));
+        .invoice_counter(16)
+        .seller(seller)
+        .buyer(buyer)
+        .payment_means_code("30")
+        .vat_category(VatCategory::Standard)
+        .note(InvoiceNote::new("en", "Foreign currency invoice"));
 
-    builder.add_line_item(
+    builder = builder.line_item(
         LineItem::new(
             "International Service",
             fatoora_core::Decimal::parse("1.0").unwrap(),

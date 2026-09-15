@@ -198,23 +198,23 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
             })?;
 
     let mut builder = InvoiceBuilder::new(invoice_type);
-    builder
-        .set_id(id)
-        .set_uuid(uuid)
-        .set_issue_datetime(issue_datetime)
-        .set_currency(currency_code)
-        .set_previous_invoice_hash(previous_invoice_hash)
-        .set_invoice_counter(invoice_counter)
-        .set_seller(seller)
-        .set_payment_means_code(payment_means_code)
-        .set_vat_category(vat_category);
+    builder = builder
+        .id(id)
+        .uuid(uuid)
+        .issue_datetime(issue_datetime)
+        .currency(currency_code)
+        .previous_invoice_hash(previous_invoice_hash)
+        .invoice_counter(invoice_counter)
+        .seller(seller)
+        .payment_means_code(payment_means_code)
+        .vat_category(vat_category);
     for item in line_items {
-        builder.add_line_item(item);
+        builder = builder.line_item(item);
     }
     if let Some(note) = xpath_text_optional(&ctx, "/ubl:Invoice/cbc:Note")? {
         let language = xpath_text_optional(&ctx, "/ubl:Invoice/cbc:Note/@languageID")?
             .unwrap_or_else(|| "en".to_string());
-        builder.set_note(crate::invoice::InvoiceNote {
+        builder = builder.note(crate::invoice::InvoiceNote {
             language,
             text: note,
         });
@@ -258,7 +258,7 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
             });
         }
         adjustment_tax = Some((category, rate));
-        builder.set_vat_category(category);
+        builder = builder.vat_category(category);
         builder.adjustment_vat_rate = Some(rate);
         let is_charge = xpath_text_required(
             &ctx,
@@ -284,10 +284,10 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
         if let Some(reason) =
             xpath_text_optional(&ctx, &format!("{base}/cbc:AllowanceChargeReason"))?
         {
-            builder.allowance_reason(reason);
+            builder = builder.allowance_reason(reason);
         }
     }
-    builder
+    builder = builder
         .invoice_level_discount(discount)
         .invoice_level_charge(charge);
     let mut invoice = builder.build().map_err(ParseError::from)?;

@@ -275,17 +275,17 @@ fn credit_note_serializes_billing_reference_and_reason() {
         original,
         "pricing correction".into(),
     ));
-    builder
-        .set_id("CR-1")
-        .set_uuid("uuid-cr-1")
-        .set_issue_datetime("2024-01-01T12:30:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash("hash")
-        .set_invoice_counter(0)
-        .set_seller(seller)
-        .set_payment_means_code("10")
-        .set_vat_category(VatCategory::Standard)
-        .add_line_item(line_item);
+    builder = builder
+        .id("CR-1")
+        .uuid("uuid-cr-1")
+        .issue_datetime("2024-01-01T12:30:00Z")
+        .currency("SAR")
+        .previous_invoice_hash("hash")
+        .invoice_counter(0)
+        .seller(seller)
+        .payment_means_code("10")
+        .vat_category(VatCategory::Standard)
+        .line_item(line_item);
     let invoice = builder.build().expect("build credit note");
 
     let xml = invoice.to_xml().expect("serialize credit note");
@@ -319,17 +319,17 @@ fn debit_note_serializes_billing_reference_and_reason() {
         original,
         "pricing adjustment".into(),
     ));
-    builder
-        .set_id("DB-1")
-        .set_uuid("uuid-db-1")
-        .set_issue_datetime("2024-01-01T12:30:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash("hash")
-        .set_invoice_counter(0)
-        .set_seller(seller)
-        .set_payment_means_code("10")
-        .set_vat_category(VatCategory::Standard)
-        .add_line_item(line_item);
+    builder = builder
+        .id("DB-1")
+        .uuid("uuid-db-1")
+        .issue_datetime("2024-01-01T12:30:00Z")
+        .currency("SAR")
+        .previous_invoice_hash("hash")
+        .invoice_counter(0)
+        .seller(seller)
+        .payment_means_code("10")
+        .vat_category(VatCategory::Standard)
+        .line_item(line_item);
     let invoice = builder.build().expect("build debit note");
 
     let xml = invoice.to_xml().expect("serialize debit note");
@@ -466,17 +466,17 @@ fn credit_note_serialization_omits_instruction_note_when_reason_blank() {
         original,
         "   ".into(),
     ));
-    builder
-        .set_id("CR-NO-REASON")
-        .set_uuid("uuid-cr-no-reason")
-        .set_issue_datetime("2024-01-01T12:30:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash("hash")
-        .set_invoice_counter(0)
-        .set_seller(seller)
-        .set_payment_means_code("10")
-        .set_vat_category(VatCategory::Standard)
-        .add_line_item(line_item);
+    builder = builder
+        .id("CR-NO-REASON")
+        .uuid("uuid-cr-no-reason")
+        .issue_datetime("2024-01-01T12:30:00Z")
+        .currency("SAR")
+        .previous_invoice_hash("hash")
+        .invoice_counter(0)
+        .seller(seller)
+        .payment_means_code("10")
+        .vat_category(VatCategory::Standard)
+        .line_item(line_item);
     let invoice = builder.build().expect("build credit note");
 
     let xml = invoice.to_xml().expect("serialize credit note");
@@ -502,19 +502,19 @@ fn credit_note_allowance_discount_round_trip() {
         original,
         "pricing correction".into(),
     ));
-    builder
-        .set_id("CR-DISC-1")
-        .set_uuid("uuid-cr-disc-1")
-        .set_issue_datetime("2024-01-01T12:30:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash("hash")
-        .set_invoice_counter(0)
-        .set_seller(seller)
-        .set_payment_means_code("10")
-        .set_vat_category(VatCategory::Standard)
+    builder = builder
+        .id("CR-DISC-1")
+        .uuid("uuid-cr-disc-1")
+        .issue_datetime("2024-01-01T12:30:00Z")
+        .currency("SAR")
+        .previous_invoice_hash("hash")
+        .invoice_counter(0)
+        .seller(seller)
+        .payment_means_code("10")
+        .vat_category(VatCategory::Standard)
         .invoice_level_discount(fatoora_core::Decimal::parse("10.0").unwrap())
         .allowance_reason("Discount")
-        .add_line_item(line_item);
+        .line_item(line_item);
     let invoice = builder.build().expect("build credit note");
 
     let totals = invoice.totals();
@@ -566,19 +566,19 @@ fn debit_note_charge_serializes_allowance_charge() {
         original,
         "pricing adjustment".into(),
     ));
-    builder
-        .set_id("DB-CHG-1")
-        .set_uuid("uuid-db-chg-1")
-        .set_issue_datetime("2024-01-01T12:30:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash("hash")
-        .set_invoice_counter(0)
-        .set_seller(seller)
-        .set_payment_means_code("10")
-        .set_vat_category(VatCategory::Standard)
+    builder = builder
+        .id("DB-CHG-1")
+        .uuid("uuid-db-chg-1")
+        .issue_datetime("2024-01-01T12:30:00Z")
+        .currency("SAR")
+        .previous_invoice_hash("hash")
+        .invoice_counter(0)
+        .seller(seller)
+        .payment_means_code("10")
+        .vat_category(VatCategory::Standard)
         .invoice_level_charge(fatoora_core::Decimal::parse("7.5").unwrap())
         .allowance_reason("Charge")
-        .add_line_item(line_item);
+        .line_item(line_item);
     let invoice = builder.build().expect("build debit note");
 
     let totals = invoice.totals();
@@ -616,19 +616,19 @@ fn debit_note_allowance_round_trip() {
         original,
         "pricing adjustment".into(),
     ));
-    builder
-        .set_id("DB-DISC-1")
-        .set_uuid("uuid-db-disc-1")
-        .set_issue_datetime("2024-01-01T12:30:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash("hash")
-        .set_invoice_counter(0)
-        .set_seller(seller)
-        .set_payment_means_code("10")
-        .set_vat_category(VatCategory::Standard)
+    builder = builder
+        .id("DB-DISC-1")
+        .uuid("uuid-db-disc-1")
+        .issue_datetime("2024-01-01T12:30:00Z")
+        .currency("SAR")
+        .previous_invoice_hash("hash")
+        .invoice_counter(0)
+        .seller(seller)
+        .payment_means_code("10")
+        .vat_category(VatCategory::Standard)
         .invoice_level_discount(fatoora_core::Decimal::parse("8.0").unwrap())
         .allowance_reason("Adjustment")
-        .add_line_item(line_item);
+        .line_item(line_item);
     let invoice = builder.build().expect("build debit note");
 
     let totals = invoice.totals();
@@ -680,17 +680,17 @@ fn credit_note_round_trip_preserves_original_ref_and_reason() {
         original,
         "pricing correction".into(),
     ));
-    builder
-        .set_id("CR-RT-1")
-        .set_uuid("uuid-cr-rt-1")
-        .set_issue_datetime("2024-01-01T12:30:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash("hash")
-        .set_invoice_counter(0)
-        .set_seller(seller)
-        .set_payment_means_code("10")
-        .set_vat_category(VatCategory::Standard)
-        .add_line_item(line_item);
+    builder = builder
+        .id("CR-RT-1")
+        .uuid("uuid-cr-rt-1")
+        .issue_datetime("2024-01-01T12:30:00Z")
+        .currency("SAR")
+        .previous_invoice_hash("hash")
+        .invoice_counter(0)
+        .seller(seller)
+        .payment_means_code("10")
+        .vat_category(VatCategory::Standard)
+        .line_item(line_item);
     let invoice = builder.build().expect("build credit note");
 
     let xml = invoice.to_xml().expect("serialize credit note");

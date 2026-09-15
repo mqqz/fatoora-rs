@@ -8,19 +8,20 @@ fn invoice(
     charge: fatoora_core::Decimal,
 ) -> fatoora_core::invoice::FinalizedInvoice {
     let mut b = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified));
-    b.set_id("rounding")
-        .set_uuid("rounding-uuid")
-        .set_issue_datetime("2024-01-01T12:30:00Z")
-        .set_currency("SAR")
-        .set_previous_invoice_hash("hash")
-        .set_invoice_counter(1)
-        .set_seller(common::dummy_finalized_invoice().data().seller().clone())
-        .set_payment_means_code("10")
-        .set_vat_category(VatCategory::Standard)
+    b = b
+        .id("rounding")
+        .uuid("rounding-uuid")
+        .issue_datetime("2024-01-01T12:30:00Z")
+        .currency("SAR")
+        .previous_invoice_hash("hash")
+        .invoice_counter(1)
+        .seller(common::dummy_finalized_invoice().data().seller().clone())
+        .payment_means_code("10")
+        .vat_category(VatCategory::Standard)
         .invoice_level_discount(discount)
         .invoice_level_charge(charge);
     for line in lines {
-        b.add_line_item(line);
+        b = b.line_item(line);
     }
     b.build().unwrap()
 }

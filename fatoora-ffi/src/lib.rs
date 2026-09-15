@@ -310,6 +310,23 @@ fn invoice_type_from_parts(
     }
 }
 
+// C callers retain a stable mutable handle while Rust configuration consumes
+// and returns the builder. None leaves the handle safe to free after a panic.
+struct InvoiceBuilderHandle(Option<InvoiceBuilder>);
+
+impl InvoiceBuilderHandle {
+    fn update(
+        &mut self,
+        configure: impl FnOnce(InvoiceBuilder) -> InvoiceBuilder,
+    ) -> FfiResult<bool> {
+        let Some(builder) = self.0.take() else {
+            return FfiResult::err(ffi_error_invalid_input("builder has been consumed"));
+        };
+        self.0 = Some(configure(builder));
+        FfiResult::ok(true)
+    }
+}
+
 fn take_handle<T>(
     handle: &mut *mut std::os::raw::c_void,
     label: &str,
@@ -1456,7 +1473,8 @@ pub unsafe extern "C" fn fatoora_invoice_builder_new(
         };
         let builder = InvoiceBuilder::new(invoice_type);
         FfiResult::ok(FfiInvoiceBuilder {
-            ptr: Box::into_raw(Box::new(builder)) as *mut std::os::raw::c_void,
+            ptr: Box::into_raw(Box::new(InvoiceBuilderHandle(Some(builder))))
+                as *mut std::os::raw::c_void,
         })
     })
 }
@@ -1469,10 +1487,9 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_id(
     id: *const c_char,
 ) -> FfiResult<bool> {
     crate::error::boundary(|| {
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
         let id = ffi_required_string!(id, "invoice id");
-        builder.set_id(id);
-        FfiResult::ok(true)
+        builder.update(|builder| builder.id(id))
     })
 }
 
@@ -1484,10 +1501,9 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_uuid(
     uuid: *const c_char,
 ) -> FfiResult<bool> {
     crate::error::boundary(|| {
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
         let uuid = ffi_required_string!(uuid, "invoice uuid");
-        builder.set_uuid(uuid);
-        FfiResult::ok(true)
+        builder.update(|builder| builder.uuid(uuid))
     })
 }
 
@@ -1499,7 +1515,7 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_issue_datetime(
     issue_timestamp: *const c_char,
 ) -> FfiResult<bool> {
     crate::error::boundary(|| {
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
         let issue_timestamp = ffi_required_string!(issue_timestamp, "issue timestamp");
         let parsed = match InvoiceTimestamp::parse(&issue_timestamp) {
             Ok(value) => value,
@@ -1507,8 +1523,7 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_issue_datetime(
                 return FfiResult::err(ffi_error_invalid_input("Invalid issue timestamp"));
             }
         };
-        builder.set_issue_datetime(parsed.as_str());
-        FfiResult::ok(true)
+        builder.update(|builder| builder.issue_datetime(parsed.as_str()))
     })
 }
 
@@ -1520,15 +1535,14 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_currency(
     currency_code: *const c_char,
 ) -> FfiResult<bool> {
     crate::error::boundary(|| {
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
         let currency_code = ffi_required_string!(currency_code, "currency code");
         if fatoora_core::invoice::CurrencyCode::parse(&currency_code).is_err() {
             return FfiResult::err(ffi_error_invalid_input(format!(
                 "Invalid currency code: {currency_code}"
             )));
         }
-        builder.set_currency(currency_code);
-        FfiResult::ok(true)
+        builder.update(|builder| builder.currency(currency_code))
     })
 }
 
@@ -1540,10 +1554,9 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_previous_hash(
     hash: *const c_char,
 ) -> FfiResult<bool> {
     crate::error::boundary(|| {
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
         let hash = ffi_required_string!(hash, "previous invoice hash");
-        builder.set_previous_invoice_hash(hash);
-        FfiResult::ok(true)
+        builder.update(|builder| builder.previous_invoice_hash(hash))
     })
 }
 
@@ -1555,9 +1568,8 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_invoice_counter(
     counter: u64,
 ) -> FfiResult<bool> {
     crate::error::boundary(|| {
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-        builder.set_invoice_counter(counter);
-        FfiResult::ok(true)
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
+        builder.update(|builder| builder.invoice_counter(counter))
     })
 }
 
@@ -1569,10 +1581,9 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_payment_means_code(
     payment_means_code: *const c_char,
 ) -> FfiResult<bool> {
     crate::error::boundary(|| {
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
         let payment_means_code = ffi_required_string!(payment_means_code, "payment means code");
-        builder.set_payment_means_code(payment_means_code);
-        FfiResult::ok(true)
+        builder.update(|builder| builder.payment_means_code(payment_means_code))
     })
 }
 
@@ -1584,9 +1595,8 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_vat_category(
     vat_category: FfiVatCategory,
 ) -> FfiResult<bool> {
     crate::error::boundary(|| {
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-        builder.set_vat_category(vat_category.into());
-        FfiResult::ok(true)
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
+        builder.update(|builder| builder.vat_category(vat_category.into()))
     })
 }
 
@@ -1610,7 +1620,7 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_seller(
     other_id_scheme: *const c_char,
 ) -> FfiResult<bool> {
     crate::error::boundary(|| {
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
         let address = match build_address(
             country_code,
             city,
@@ -1642,8 +1652,7 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_seller(
             Ok(value) => value,
             Err(err) => return FfiResult::err(ffi_error_from_invoice(err)),
         };
-        builder.set_seller(seller);
-        FfiResult::ok(true)
+        builder.update(|builder| builder.seller(seller))
     })
 }
 
@@ -1655,9 +1664,8 @@ pub unsafe extern "C" fn fatoora_invoice_builder_flags(
     flags: u8,
 ) -> FfiResult<bool> {
     crate::error::boundary(|| {
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-        builder.flags(flags_from_bits(flags));
-        FfiResult::ok(true)
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
+        builder.update(|builder| builder.flags(flags_from_bits(flags)))
     })
 }
 
@@ -1670,9 +1678,8 @@ pub unsafe extern "C" fn fatoora_invoice_builder_invoice_level_charge(
 ) -> FfiResult<bool> {
     crate::error::boundary(|| {
         let charge = ffi_decimal!(charge, "charge");
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-        builder.invoice_level_charge(charge);
-        FfiResult::ok(true)
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
+        builder.update(|builder| builder.invoice_level_charge(charge))
     })
 }
 
@@ -1685,9 +1692,8 @@ pub unsafe extern "C" fn fatoora_invoice_builder_invoice_level_discount(
 ) -> FfiResult<bool> {
     crate::error::boundary(|| {
         let discount = ffi_decimal!(discount, "discount");
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
-        builder.invoice_level_discount(discount);
-        FfiResult::ok(true)
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
+        builder.update(|builder| builder.invoice_level_discount(discount))
     })
 }
 
@@ -1699,10 +1705,9 @@ pub unsafe extern "C" fn fatoora_invoice_builder_allowance_reason(
     reason: *const c_char,
 ) -> FfiResult<bool> {
     crate::error::boundary(|| {
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
         let reason = ffi_required_string!(reason, "allowance reason");
-        builder.allowance_reason(reason);
-        FfiResult::ok(true)
+        builder.update(|builder| builder.allowance_reason(reason))
     })
 }
 
@@ -1722,7 +1727,7 @@ pub unsafe extern "C" fn fatoora_invoice_builder_add_line_item(
         let vat_rate = ffi_decimal!(vat_rate, "vat_rate");
         let unit_price = ffi_decimal!(unit_price, "unit_price");
         let quantity = ffi_decimal!(quantity, "quantity");
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
 
         let description = ffi_required_string!(description, "line item description");
         let unit_code = ffi_required_string!(unit_code, "line item unit code");
@@ -1738,8 +1743,7 @@ pub unsafe extern "C" fn fatoora_invoice_builder_add_line_item(
             Ok(item) => item,
             Err(err) => return FfiResult::err(ffi_error_from_invoice(err)),
         };
-        builder.add_line_item(item);
-        FfiResult::ok(true)
+        builder.update(|builder| builder.line_item(item))
     })
 }
 
@@ -1763,7 +1767,7 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_buyer(
     other_id_scheme: *const c_char,
 ) -> FfiResult<bool> {
     crate::error::boundary(|| {
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
         let address = match build_address(
             country_code,
             city,
@@ -1803,8 +1807,7 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_buyer(
             Ok(value) => value,
             Err(err) => return FfiResult::err(ffi_error_from_invoice(err)),
         };
-        builder.set_buyer(buyer);
-        FfiResult::ok(true)
+        builder.update(|builder| builder.buyer(buyer))
     })
 }
 
@@ -1817,12 +1820,11 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_note(
     text: *const c_char,
 ) -> FfiResult<bool> {
     crate::error::boundary(|| {
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
         let language = ffi_required_string!(language, "note language");
         let text = ffi_required_string!(text, "note text");
         let note = InvoiceNote::new(&language, &text);
-        builder.set_note(note);
-        FfiResult::ok(true)
+        builder.update(|builder| builder.note(note))
     })
 }
 
@@ -1836,10 +1838,9 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_allowance(
 ) -> FfiResult<bool> {
     crate::error::boundary(|| {
         let amount = ffi_decimal!(amount, "amount");
-        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilder);
+        let builder = ffi_borrow_mut!(builder, "builder", InvoiceBuilderHandle);
         let reason = ffi_required_string!(reason, "allowance reason");
-        builder.set_allowance(&reason, amount);
-        FfiResult::ok(true)
+        builder.update(|builder| builder.allowance(&reason, amount))
     })
 }
 
@@ -1847,7 +1848,7 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_allowance(
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_invoice_builder_free(builder: *mut FfiInvoiceBuilder) {
-    ffi_handle_free!(builder, InvoiceBuilder);
+    ffi_handle_free!(builder, InvoiceBuilderHandle);
 }
 
 #[unsafe(no_mangle)]
@@ -1857,8 +1858,11 @@ pub unsafe extern "C" fn fatoora_invoice_builder_build(
     builder: *mut FfiInvoiceBuilder,
 ) -> FfiResult<FfiFinalizedInvoice> {
     crate::error::boundary(|| {
-        let builder = ffi_take_handle!(builder, "builder", InvoiceBuilder);
+        let builder = ffi_take_handle!(builder, "builder", InvoiceBuilderHandle);
 
+        let Some(builder) = builder.0 else {
+            return FfiResult::err(ffi_error_invalid_input("builder has been consumed"));
+        };
         match builder.build() {
             Ok(invoice) => FfiResult::ok(FfiFinalizedInvoice {
                 ptr: Box::into_raw(Box::new(invoice)) as *mut std::os::raw::c_void,
@@ -3891,17 +3895,17 @@ mod ffi_zatca_tests {
         .unwrap();
 
         let mut builder = InvoiceBuilder::new(invoice_type);
-        builder
-            .set_id("INV-TEST-1")
-            .set_uuid("uuid-test-1")
-            .set_issue_datetime("2024-01-01T12:30:00Z")
-            .set_currency("SAR")
-            .set_previous_invoice_hash("hash")
-            .set_invoice_counter(0)
-            .set_seller(seller)
-            .set_payment_means_code("10")
-            .set_vat_category(VatCategory::Standard)
-            .add_line_item(line_item);
+        builder = builder
+            .id("INV-TEST-1")
+            .uuid("uuid-test-1")
+            .issue_datetime("2024-01-01T12:30:00Z")
+            .currency("SAR")
+            .previous_invoice_hash("hash")
+            .invoice_counter(0)
+            .seller(seller)
+            .payment_means_code("10")
+            .vat_category(VatCategory::Standard)
+            .line_item(line_item);
         let invoice = builder.build().expect("build invoice");
         invoice.sign(signer).expect("sign invoice")
     }
@@ -6143,6 +6147,54 @@ mod ffi_coverage_tests {
 
             fatoora_csid_compliance_free(&mut ccsid);
             fatoora_csid_production_free(&mut pcsid);
+        }
+    }
+}
+
+#[cfg(test)]
+mod builder_ownership_tests {
+    use super::*;
+
+    #[test]
+    fn builder_wrapper_is_safe_after_unwind() {
+        let id = String::from("owned-id");
+        let mut handle = InvoiceBuilderHandle(Some(InvoiceBuilder::new(InvoiceType::Tax(
+            InvoiceSubType::Simplified,
+        ))));
+        assert!(handle.update(|builder| builder.id(id)).ok);
+        // The ordinary C setter path uses this same move-only wrapper.
+        let result = crate::error::boundary(|| handle.update(|_| panic!("configuration panic")));
+        assert!(!result.ok);
+        unsafe { fatoora_error_free(result.error) };
+        assert!(handle.0.is_none());
+        let result = handle.update(|builder| builder.uuid("after panic"));
+        assert!(!result.ok);
+        unsafe { fatoora_error_free(result.error) };
+    }
+
+    #[test]
+    fn rejected_setter_retains_builder_and_build_consumes_on_failure() {
+        unsafe {
+            let mut handle = FfiInvoiceBuilder {
+                ptr: Box::into_raw(Box::new(InvoiceBuilderHandle(Some(InvoiceBuilder::new(
+                    InvoiceType::Tax(InvoiceSubType::Simplified),
+                ))))) as *mut _,
+            };
+            let ptr = handle.ptr;
+            let bad = fatoora_invoice_builder_set_id(&mut handle, std::ptr::null());
+            assert!(!bad.ok);
+            fatoora_error_free(bad.error);
+            assert_eq!(handle.ptr, ptr);
+            let good = fatoora_invoice_builder_set_id(&mut handle, c"INV-1".as_ptr());
+            assert!(good.ok);
+            let result = fatoora_invoice_builder_build(&mut handle);
+            assert!(!result.ok); // missing required fields
+            fatoora_error_free(result.error);
+            assert!(handle.ptr.is_null());
+            let result = fatoora_invoice_builder_set_id(&mut handle, c"INV-2".as_ptr());
+            assert!(!result.ok);
+            fatoora_error_free(result.error);
+            fatoora_invoice_builder_free(&mut handle);
         }
     }
 }

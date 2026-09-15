@@ -285,20 +285,20 @@ async fn clear_invoice_with_live_pcsid() {
         ];
 
         let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Standard));
-        builder
-            .set_id("INV-0-1")
-            .set_uuid("8e6000cf-1a98-4174-b3e7-b5d5954bc10d")
-            .set_issue_datetime("2024-01-01T12:30:00Z")
-            .set_currency("SAR")
-            .set_previous_invoice_hash(
+        builder = builder
+            .id("INV-0-1")
+            .uuid("8e6000cf-1a98-4174-b3e7-b5d5954bc10d")
+            .issue_datetime("2024-01-01T12:30:00Z")
+            .currency("SAR")
+            .previous_invoice_hash(
                 "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
             )
-            .set_invoice_counter(0)
-            .set_seller(seller)
-            .set_payment_means_code("10")
-            .set_vat_category(VatCategory::Standard);
+            .invoice_counter(0)
+            .seller(seller)
+            .payment_means_code("10")
+            .vat_category(VatCategory::Standard);
         for item in line_items {
-            builder.add_line_item(item);
+            builder = builder.line_item(item);
         }
         builder.build().expect("build invoice")
     };

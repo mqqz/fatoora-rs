@@ -109,19 +109,19 @@ This table highlights aligned symbol names across layers.
 | Core public API item | FFI symbol(s) | Python symbol | Status | Notes |
 | --- | --- | --- | --- | --- |
 | `InvoiceBuilder::new` | `fatoora_invoice_builder_new` | `InvoiceBuilder.new` | Done |  |
-| `InvoiceBuilder::set_id` | `fatoora_invoice_builder_set_id` | `InvoiceBuilder.set_id` | Done |  |
-| `InvoiceBuilder::set_uuid` | `fatoora_invoice_builder_set_uuid` | `InvoiceBuilder.set_uuid` | Done |  |
-| `InvoiceBuilder::set_issue_datetime` | `fatoora_invoice_builder_set_issue_datetime` | `InvoiceBuilder.set_issue_datetime` | Done |  |
-| `InvoiceBuilder::set_currency` | `fatoora_invoice_builder_set_currency` | `InvoiceBuilder.set_currency` | Done |  |
-| `InvoiceBuilder::set_previous_invoice_hash` | `fatoora_invoice_builder_set_previous_hash` | `InvoiceBuilder.set_previous_invoice_hash` | Done |  |
-| `InvoiceBuilder::set_invoice_counter` | `fatoora_invoice_builder_set_invoice_counter` | `InvoiceBuilder.set_invoice_counter` | Done |  |
-| `InvoiceBuilder::set_seller` | `fatoora_invoice_builder_set_seller` | `InvoiceBuilder.set_seller` | Done |  |
-| `InvoiceBuilder::set_payment_means_code` | `fatoora_invoice_builder_set_payment_means_code` | `InvoiceBuilder.set_payment_means_code` | Done |  |
-| `InvoiceBuilder::set_vat_category` | `fatoora_invoice_builder_set_vat_category` | `InvoiceBuilder.set_vat_category` | Done |  |
-| `InvoiceBuilder::set_buyer` | `fatoora_invoice_builder_set_buyer` | `InvoiceBuilder.set_buyer` | Done |  |
-| `InvoiceBuilder::set_note` | `fatoora_invoice_builder_set_note` | `InvoiceBuilder.set_note` | Done |  |
-| `InvoiceBuilder::set_allowance` | `fatoora_invoice_builder_set_allowance` | `InvoiceBuilder.set_allowance` | Done |  |
-| `InvoiceBuilder::add_line_item` | `fatoora_invoice_builder_add_line_item` | `InvoiceBuilder.add_line_item` | Done |  |
+| `InvoiceBuilder::id` | `fatoora_invoice_builder_set_id` | `InvoiceBuilder.set_id` | Done |  |
+| `InvoiceBuilder::uuid` | `fatoora_invoice_builder_set_uuid` | `InvoiceBuilder.set_uuid` | Done |  |
+| `InvoiceBuilder::issue_datetime` | `fatoora_invoice_builder_set_issue_datetime` | `InvoiceBuilder.set_issue_datetime` | Done |  |
+| `InvoiceBuilder::currency` | `fatoora_invoice_builder_set_currency` | `InvoiceBuilder.set_currency` | Done |  |
+| `InvoiceBuilder::previous_invoice_hash` | `fatoora_invoice_builder_set_previous_hash` | `InvoiceBuilder.set_previous_invoice_hash` | Done |  |
+| `InvoiceBuilder::invoice_counter` | `fatoora_invoice_builder_set_invoice_counter` | `InvoiceBuilder.set_invoice_counter` | Done |  |
+| `InvoiceBuilder::seller` | `fatoora_invoice_builder_set_seller` | `InvoiceBuilder.set_seller` | Done |  |
+| `InvoiceBuilder::payment_means_code` | `fatoora_invoice_builder_set_payment_means_code` | `InvoiceBuilder.set_payment_means_code` | Done |  |
+| `InvoiceBuilder::vat_category` | `fatoora_invoice_builder_set_vat_category` | `InvoiceBuilder.set_vat_category` | Done |  |
+| `InvoiceBuilder::buyer` | `fatoora_invoice_builder_set_buyer` | `InvoiceBuilder.set_buyer` | Done |  |
+| `InvoiceBuilder::note` | `fatoora_invoice_builder_set_note` | `InvoiceBuilder.set_note` | Done |  |
+| `InvoiceBuilder::allowance` | `fatoora_invoice_builder_set_allowance` | `InvoiceBuilder.set_allowance` | Done |  |
+| `InvoiceBuilder::line_item` | `fatoora_invoice_builder_add_line_item` | `InvoiceBuilder.add_line_item` | Done |  |
 | `InvoiceBuilder::flags` | `fatoora_invoice_builder_flags` | `InvoiceBuilder.flags` | Done | Rust uses `flags(...)` setter. |
 | `InvoiceBuilder::invoice_level_charge` | `fatoora_invoice_builder_invoice_level_charge` | `InvoiceBuilder.invoice_level_charge` | Done |  |
 | `InvoiceBuilder::invoice_level_discount` | `fatoora_invoice_builder_invoice_level_discount` | `InvoiceBuilder.invoice_level_discount` | Done |  |

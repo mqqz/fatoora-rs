@@ -29,16 +29,16 @@ fn dummy_seller() -> Party<SellerRole> {
 fn build_reports_missing_required_fields() {
     let issue_datetime = "2024-01-01T12:30:00Z";
     let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified));
-    builder
-        .set_id("  ")
-        .set_uuid("")
-        .set_issue_datetime(issue_datetime)
-        .set_currency("SAR")
-        .set_previous_invoice_hash("")
-        .set_invoice_counter(0)
-        .set_seller(dummy_seller())
-        .set_payment_means_code("   ")
-        .set_vat_category(VatCategory::Standard);
+    builder = builder
+        .id("  ")
+        .uuid("")
+        .issue_datetime(issue_datetime)
+        .currency("SAR")
+        .previous_invoice_hash("")
+        .invoice_counter(0)
+        .seller(dummy_seller())
+        .payment_means_code("   ")
+        .vat_category(VatCategory::Standard);
 
     let err = builder.build().expect_err("expected validation error");
     let InvoiceError::Validation(validation) = err else {
@@ -62,17 +62,17 @@ fn build_reports_invalid_line_items() {
     }))
     .unwrap();
     let mut builder = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified));
-    builder
-        .set_id("INV-1")
-        .set_uuid("uuid-1")
-        .set_issue_datetime(issue_datetime)
-        .set_currency("SAR")
-        .set_previous_invoice_hash("hash")
-        .set_invoice_counter(0)
-        .set_seller(dummy_seller())
-        .set_payment_means_code("10")
-        .set_vat_category(VatCategory::Standard)
-        .add_line_item(line_item);
+    builder = builder
+        .id("INV-1")
+        .uuid("uuid-1")
+        .issue_datetime(issue_datetime)
+        .currency("SAR")
+        .previous_invoice_hash("hash")
+        .invoice_counter(0)
+        .seller(dummy_seller())
+        .payment_means_code("10")
+        .vat_category(VatCategory::Standard)
+        .line_item(line_item);
 
     let err = builder.build().expect_err("expected validation error");
     let InvoiceError::Validation(validation) = err else {
@@ -150,14 +150,14 @@ fn credit_note_missing_required_fields_reports_issues() {
         fatoora_core::invoice::OriginalInvoiceRef::new("INV-ORIG"),
         "reason".into(),
     ));
-    builder
-        .set_id(" ")
-        .set_uuid("")
-        .set_issue_datetime("")
-        .set_currency("")
-        .set_previous_invoice_hash("")
-        .set_payment_means_code(" ")
-        .set_vat_category(VatCategory::Standard);
+    builder = builder
+        .id(" ")
+        .uuid("")
+        .issue_datetime("")
+        .currency("")
+        .previous_invoice_hash("")
+        .payment_means_code(" ")
+        .vat_category(VatCategory::Standard);
 
     let err = builder.build().expect_err("expected validation error");
     let InvoiceError::Validation(validation) = err else {
@@ -190,17 +190,17 @@ fn credit_note_invalid_line_item_reports_issues() {
         fatoora_core::invoice::OriginalInvoiceRef::new("INV-ORIG"),
         "reason".into(),
     ));
-    builder
-        .set_id("CR-1")
-        .set_uuid("uuid-cr-1")
-        .set_issue_datetime(issue_datetime)
-        .set_currency("SAR")
-        .set_previous_invoice_hash("hash")
-        .set_invoice_counter(0)
-        .set_seller(dummy_seller())
-        .set_payment_means_code("10")
-        .set_vat_category(VatCategory::Standard)
-        .add_line_item(line_item);
+    builder = builder
+        .id("CR-1")
+        .uuid("uuid-cr-1")
+        .issue_datetime(issue_datetime)
+        .currency("SAR")
+        .previous_invoice_hash("hash")
+        .invoice_counter(0)
+        .seller(dummy_seller())
+        .payment_means_code("10")
+        .vat_category(VatCategory::Standard)
+        .line_item(line_item);
 
     let err = builder.build().expect_err("expected validation error");
     let InvoiceError::Validation(validation) = err else {
