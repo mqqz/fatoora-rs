@@ -246,6 +246,62 @@ for more details.
         FfiResult_FfiString fatoora_csid_production_secret(FfiCsidProduction* creds);
         ```
 
+## Invoice response contract
+
+This contract applies to reporting, clearance, and invoice compliance methods.
+`Ok` (or a Python return value) means HTTP 2xx with a decoded validation body.
+Non-2xx responses, including 400 and 409, return errors. Successful HTTP status
+alone does not establish invoice acceptance.
+
+| Accessor | Rust | Python | C result value |
+| --- | --- | --- | --- |
+| `http_status()` | `Option<u16>` | `Optional[int]` | `uint16_t`, zero if unavailable |
+| `outcome()` | `InvoiceOutcome` | `InvoiceOutcome` | `uint8_t`: 0 unknown, 1 accepted, 2 rejected |
+| `ensure_accepted()` | `Result<(), ZatcaError>` | returns `None` or raises `ApiError` | true or an error |
+| `cleared_invoice_base64()` | `Option<&str>` | `Optional[str]` | copied string; null if absent |
+| `cleared_invoice_xml()` | `Result<Option<String>, ZatcaError>` | `Optional[str]` or `ParseError` | copied decoded string or error; null if absent |
+
+C accessor names start with `fatoora_validation_response_`. Free copied strings
+with `fatoora_string_free`; they remain valid after the response handle is freed.
+A present but empty base64 field stays an empty string and fails decoding.
+
+Outcome uses the endpoint actually invoked: `REPORTED`/`NOT_REPORTED` for
+reporting, `CLEARED`/`NOT_CLEARED` for clearance, and `PASS` or `WARNING`/`ERROR`
+for compliance. A positive status alongside validation errors is `Unknown`.
+Unknown or missing endpoint status also yields `Unknown`. Standalone JSON
+serialization omits HTTP/operation metadata; deserializing a body yields no HTTP
+status and an unknown outcome, even if the JSON includes metadata-like fields.
+`ensure_accepted()` fails for both rejected and unknown outcomes and retains the
+response in `ZatcaError::NotAccepted`.
+
+A compliance pass establishes only the result of that check. Cleared XML decoding
+preserves the returned text and performs neither XML parsing nor signature
+verification. Missing cleared XML is independent of the acceptance outcome.
+
+### Duplicate submissions and redirects
+
+Reporting HTTP 409 can mean that the same invoice hash was already reported;
+this submission returns an error without asserting that the earlier invoice was
+rejected. Duplicate clearance HTTP 208 follows the successful-response path and
+can carry the cleared invoice. See the [Fatoora Development Team announcement](https://zatca1.discourse.group/t/deployment-notification-duplication-check-response-codes-208-and-409/7954).
+
+The client does not follow HTTP redirects. A clearance-disabled 303 is exposed
+as a structured response error; callers decide what to do next. This change does
+not add automatic reporting of standard invoices. See the [ZATCA developer manual](https://www.zatca.gov.sa/en/E-Invoicing/SystemsDevelopers/ComplianceEnablementToolbox/Documents/Developer%20Portal%20User%20Manual.pdf).
+
+Credential endpoints keep their existing response rules, including the wrapped
+HTTP 428 renewal response.
+
+### Migration
+
+Code that previously handled 400/409 through `Ok(ValidationResponse)` must now
+handle `ZatcaError::Response`, or `ApiError` in Python. Invoice HTTP 401 still
+classifies as Unauthorized but now uses the status-preserving `Response` variant.
+Other non-2xx invoice responses classify as Api. Successful HTTP responses with
+malformed bodies classify as Parse; failed body reads classify as Network and
+retain the received status. Rust callers can inspect `ZatcaError::http_status()`
+and `HttpResponseError::body()` / `validation_response()`.
+
 ## Response Types
 
 !!! note "Response shapes"

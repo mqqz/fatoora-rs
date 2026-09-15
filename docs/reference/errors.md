@@ -127,6 +127,11 @@ amounts are null.
 | `invoice_validation` | `issues`: field, kind, item index, supplied and expected amounts |
 | `schema_parse`, `schema_validation` | `diagnostics`: message, optional file, line, column, severity |
 | `xml_serialize`, `signing_xml`, `signing_input` | `diagnostics` |
+| `api_response` | `http_status`: actual HTTP status; `body`: response text; `response`: complete parsed JSON or null |
+| `api_response_decode` | `http_status`, `body`, `message` for a malformed 2xx response |
+| `api_response_read` | `http_status`, `message` for a failed response-body read |
+| `api_not_accepted` | `http_status` or null, `outcome`: rejected or unknown, `response`: typed validation body |
+| `api_cleared_invoice` | `http_status` or null, `message` for invalid cleared-invoice content |
 | `api_unauthorized` | `response`: timestamp, status, error, message |
 | `api_server` | `response`: category, code, message |
 | `missing_property` | `path`, `key` |
