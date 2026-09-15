@@ -40,28 +40,45 @@ const char *EXAMPLE_SECRET = "CkYsEXfV8c1gFHAtFWoZv73pGMvh/Qyo4LzKM2h/8Hg=";
 
 static char *read_file(const char *path);
 
+static void require_ok(bool ok, struct FfiError *error) {
+  if (ok) return;
+  struct FfiString details = fatoora_error_details_json(error);
+  fprintf(stderr, "%s\n", details.ptr ? details.ptr : "API operation failed");
+  fatoora_string_free(details);
+  fatoora_error_free(error);
+  exit(EXIT_FAILURE);
+}
+
 int main(void) {
   // parse the signed XML invoice into a struct
   const char *signed_xml_path = FATOORA_DOC_SIGNED_XML;
   char *xml_cstr = read_file(signed_xml_path);
   struct FfiResult_FfiSignedInvoice signed_invoice =
       fatoora_parse_signed_invoice_xml(xml_cstr);
+  require_ok(signed_invoice.ok, signed_invoice.error);
 
   struct FfiConfig *config = fatoora_config_new(FfiEnvironment_NonProduction);
   struct FfiResult_FfiZatcaClient client = fatoora_zatca_client_new(config);
+  require_ok(client.ok, client.error);
 
   struct FfiResult_FfiCsidProduction pcsid = fatoora_csid_production_new(
       FfiEnvironment_NonProduction, NULL, EXAMPLE_BST, EXAMPLE_SECRET);
+  require_ok(pcsid.ok, pcsid.error);
 
   // response handle provides getters for results
   FfiResult_FfiValidationResponse resp =
       fatoora_zatca_report_simplified_invoice(
           &client.value, &signed_invoice.value, &pcsid.value, true, "en");
+  require_ok(resp.ok, resp.error);
+  FfiResult_bool accepted = fatoora_validation_response_ensure_accepted(&resp.value);
+  require_ok(accepted.ok, accepted.error);
 
   FfiResult_FfiString reporting_status =
       fatoora_validation_response_reporting_status(&resp.value);
+  require_ok(reporting_status.ok, reporting_status.error);
 
   assert(!strcmp(reporting_status.value.ptr, "REPORTED"));
+  fatoora_string_free(reporting_status.value);
 
   // don't forget to free all the resources you allocated!
   free(xml_cstr);

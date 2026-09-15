@@ -78,6 +78,7 @@ typedef struct { _Bool ok; int value; FfiError* error; } FfiResult_FfiVatCategor
 typedef struct { _Bool ok; _Bool value; FfiError* error; } FfiResult_bool;
 typedef struct { _Bool ok; unsigned long long value; FfiError* error; } FfiResult_u64;
 typedef struct { _Bool ok; unsigned char value; FfiError* error; } FfiResult_u8;
+typedef struct { _Bool ok; uint16_t value; FfiError* error; } FfiResult_u16;
 
 void fatoora_error_free(FfiError* error);
 int32_t fatoora_error_code(FfiError* error);
@@ -176,6 +177,11 @@ FfiResult_FfiValidationResponse fatoora_zatca_clear_standard_invoice(
 );
 
 void fatoora_validation_response_free(FfiValidationResponse* response);
+FfiResult_u16 fatoora_validation_response_http_status(FfiValidationResponse* response);
+FfiResult_u8 fatoora_validation_response_outcome(FfiValidationResponse* response);
+FfiResult_bool fatoora_validation_response_ensure_accepted(FfiValidationResponse* response);
+FfiResult_FfiString fatoora_validation_response_cleared_invoice_base64(FfiValidationResponse* response);
+FfiResult_FfiString fatoora_validation_response_cleared_invoice_xml(FfiValidationResponse* response);
 FfiResult_FfiString fatoora_validation_response_reporting_status(FfiValidationResponse* response);
 FfiResult_FfiString fatoora_validation_response_clearance_status(FfiValidationResponse* response);
 FfiResult_FfiString fatoora_validation_response_qr_seller_status(FfiValidationResponse* response);

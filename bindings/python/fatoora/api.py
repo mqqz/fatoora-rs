@@ -16,6 +16,13 @@ class Environment(IntEnum):
     PRODUCTION = 2
 
 
+class InvoiceOutcome(IntEnum):
+    """Outcome of the invoked operation; compliance acceptance only means the check passed."""
+    UNKNOWN = 0
+    ACCEPTED = 1
+    REJECTED = 2
+
+
 class InvoiceTypeKind(IntEnum):
     TAX = 0
     PREPAYMENT = 1
@@ -797,6 +804,43 @@ class ValidationResults:
 @dataclass
 class ValidationResponse:
     _handle: Any
+
+    def http_status(self) -> Optional[int]:
+        """Actual HTTP status, or None for a detached response body."""
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_validation_response_http_status(self._handle)
+        return int(_result_or_raise(bindings.ffi, bindings.lib, result)) or None
+
+    def outcome(self) -> InvoiceOutcome:
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_validation_response_outcome(self._handle)
+        code = int(_result_or_raise(bindings.ffi, bindings.lib, result))
+        return InvoiceOutcome(code) if code in InvoiceOutcome._value2member_map_ else InvoiceOutcome.UNKNOWN
+
+    def ensure_accepted(self) -> None:
+        """Raise ApiError for rejected or unknown outcomes, with response details."""
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_validation_response_ensure_accepted(self._handle)
+        _result_or_raise(bindings.ffi, bindings.lib, result)
+
+    def cleared_invoice_base64(self) -> Optional[str]:
+        """Exact gateway field, including an empty string when present but empty."""
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_validation_response_cleared_invoice_base64(self._handle)
+        value = _result_or_raise(bindings.ffi, bindings.lib, result)
+        if not value.ptr:
+            bindings.lib.fatoora_string_free(value)
+            return None
+        return _decode_string(bindings.ffi, bindings.lib, value)
+
+    def cleared_invoice_xml(self) -> Optional[str]:
+        """Decode nonempty UTF-8 XML text without parsing or verifying its signature."""
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_validation_response_cleared_invoice_xml(self._handle)
+        return _decode_optional_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
 
     def reporting_status(self) -> Optional[str]:
         bindings = _FfiBindings.instance()

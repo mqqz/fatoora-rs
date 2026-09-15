@@ -25,5 +25,6 @@ pcsid = CsidProduction.new(
 
 response = client.report_simplified_invoice(signed, pcsid, False, "en")
 
+response.ensure_accepted()
 assert response.reporting_status() == "REPORTED"
 # --8<-- [end:example]

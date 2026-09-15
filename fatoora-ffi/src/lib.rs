@@ -1148,6 +1148,81 @@ pub unsafe extern "C" fn fatoora_validation_response_free(response: *mut FfiVali
 }
 
 #[unsafe(no_mangle)]
+/// Actual HTTP status, or zero for a standalone deserialized body.
+/// # Safety
+/// Caller must provide a valid response handle. Free returned strings with `fatoora_string_free`.
+pub unsafe extern "C" fn fatoora_validation_response_http_status(
+    handle: *mut FfiValidationResponse,
+) -> FfiResult<u16> {
+    crate::error::boundary(|| {
+        let response = ffi_borrow!(handle, "response", ValidationResponse);
+        FfiResult::ok(response.http_status().unwrap_or(0))
+    })
+}
+
+#[unsafe(no_mangle)]
+/// Operation outcome: 0 unknown, 1 accepted, 2 rejected. Tolerate future codes.
+/// # Safety
+/// Caller must provide a valid response handle. Free returned strings with `fatoora_string_free`.
+pub unsafe extern "C" fn fatoora_validation_response_outcome(
+    handle: *mut FfiValidationResponse,
+) -> FfiResult<u8> {
+    crate::error::boundary(|| {
+        let response = ffi_borrow!(handle, "response", ValidationResponse);
+        FfiResult::ok(match response.outcome() {
+            fatoora_core::api::InvoiceOutcome::Accepted => 1,
+            fatoora_core::api::InvoiceOutcome::Rejected => 2,
+            _ => 0,
+        })
+    })
+}
+
+#[unsafe(no_mangle)]
+/// Return true only for accepted outcomes; otherwise return a structured API error.
+/// # Safety
+/// Caller must provide a valid response handle. Free returned strings with `fatoora_string_free`.
+pub unsafe extern "C" fn fatoora_validation_response_ensure_accepted(
+    handle: *mut FfiValidationResponse,
+) -> FfiResult<bool> {
+    crate::error::boundary(|| {
+        let response = ffi_borrow!(handle, "response", ValidationResponse);
+        match response.ensure_accepted() {
+            Ok(()) => FfiResult::ok(true),
+            Err(error) => FfiResult::err(ffi_error_from_api(error)),
+        }
+    })
+}
+
+#[unsafe(no_mangle)]
+/// Copy the gateway field. Null means absent; allocated empty string means present but empty.
+/// # Safety
+/// Caller must provide a valid response handle. Free returned strings with `fatoora_string_free`.
+pub unsafe extern "C" fn fatoora_validation_response_cleared_invoice_base64(
+    handle: *mut FfiValidationResponse,
+) -> FfiResult<FfiString> {
+    crate::error::boundary(|| {
+        let response = ffi_borrow!(handle, "response", ValidationResponse);
+        ffi_string_result(response.cleared_invoice_base64())
+    })
+}
+
+#[unsafe(no_mangle)]
+/// Copy decoded UTF-8 XML without parsing or signature verification. Null means absent.
+/// # Safety
+/// Caller must provide a valid response handle. Free returned strings with `fatoora_string_free`.
+pub unsafe extern "C" fn fatoora_validation_response_cleared_invoice_xml(
+    handle: *mut FfiValidationResponse,
+) -> FfiResult<FfiString> {
+    crate::error::boundary(|| {
+        let response = ffi_borrow!(handle, "response", ValidationResponse);
+        match response.cleared_invoice_xml() {
+            Ok(xml) => ffi_string_result(xml.as_deref()),
+            Err(error) => FfiResult::err(ffi_error_from_api(error)),
+        }
+    })
+}
+
+#[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_validation_response_reporting_status(
@@ -3974,12 +4049,13 @@ mod ffi_zatca_tests {
             "status": "PASS"
           },
           "reportingStatus": "REPORTED",
-          "clearanceStatus": null,
+          "clearanceStatus": "CLEARED",
+          "clearedInvoice": "PEludm9pY2UvPg==",
           "qrSellertStatus": null,
           "qrBuyertStatus": null
         }"#;
 
-        let report_mock = server.mock(|when, then| {
+        let mut report_mock = server.mock(|when, then| {
             when.method(POST)
                 .path("/invoices/reporting/single")
                 .header("accept-language", "ar");
@@ -4034,6 +4110,15 @@ mod ffi_zatca_tests {
                 cstr("ar").as_ptr(),
             );
             assert!(report_result.ok);
+            assert_eq!(
+                fatoora_validation_response_http_status(&mut report_result.value).value,
+                200
+            );
+            assert_eq!(
+                fatoora_validation_response_outcome(&mut report_result.value).value,
+                1
+            );
+            assert!(fatoora_validation_response_ensure_accepted(&mut report_result.value).ok);
             fatoora_validation_response_free(&mut report_result.value);
 
             let standard =
@@ -4050,7 +4135,15 @@ mod ffi_zatca_tests {
                 std::ptr::null(),
             );
             assert!(clear_result.ok);
+            let copied = fatoora_validation_response_cleared_invoice_xml(&mut clear_result.value);
+            assert!(copied.ok);
+            assert!(fatoora_validation_response_ensure_accepted(&mut clear_result.value).ok);
             fatoora_validation_response_free(&mut clear_result.value);
+            assert_eq!(
+                std::ffi::CStr::from_ptr(copied.value.ptr).to_str().unwrap(),
+                "<Invoice/>"
+            );
+            fatoora_string_free(copied.value);
 
             let ccsid_result = fatoora_csid_compliance_new(
                 FfiEnvironment::NonProduction,
@@ -4069,6 +4162,31 @@ mod ffi_zatca_tests {
             assert!(compliance_result.ok);
             fatoora_validation_response_free(&mut compliance_result.value);
 
+            report_mock.assert();
+            report_mock.delete();
+            let rejected = server.mock(|when, then| {
+                when.method(POST).path("/invoices/reporting/single");
+                then.status(409)
+                    .body(r#"{"code":"DUPLICATE","message":"already reported"}"#);
+            });
+            let failure = fatoora_zatca_report_simplified_invoice(
+                &mut ffi_client,
+                &mut ffi_simplified,
+                &mut pcsid,
+                false,
+                std::ptr::null(),
+            );
+            assert!(!failure.ok);
+            assert_eq!(fatoora_error_code(failure.error), 10);
+            let details = fatoora_error_details_json(failure.error);
+            fatoora_error_free(failure.error);
+            let json: serde_json::Value =
+                serde_json::from_str(std::ffi::CStr::from_ptr(details.ptr).to_str().unwrap())
+                    .unwrap();
+            assert_eq!(json["http_status"], 409);
+            assert_eq!(json["response"]["code"], "DUPLICATE");
+            fatoora_string_free(details);
+            rejected.assert();
             fatoora_signed_invoice_free(&mut ffi_simplified);
             fatoora_signed_invoice_free(&mut ffi_standard);
             fatoora_csid_production_free(&mut pcsid);
@@ -4076,7 +4194,6 @@ mod ffi_zatca_tests {
             fatoora_zatca_client_free(&mut ffi_client);
         }
 
-        report_mock.assert();
         clear_mock.assert();
         compliance_mock.assert();
     }

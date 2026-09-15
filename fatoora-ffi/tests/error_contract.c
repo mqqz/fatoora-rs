@@ -32,5 +32,17 @@ int main(void) {
     assert(fatoora_error_message(NULL).ptr == NULL);
     assert(fatoora_error_details_json(NULL).ptr == NULL);
     fatoora_error_free(NULL);
+    /* Compile and exercise the exact response accessor ABI in C and C++. */
+    struct FfiResult_u16 status = fatoora_validation_response_http_status(NULL);
+    struct FfiResult_u8 outcome = fatoora_validation_response_outcome(NULL);
+    struct FfiResult_bool accepted = fatoora_validation_response_ensure_accepted(NULL);
+    struct FfiResult_FfiString encoded = fatoora_validation_response_cleared_invoice_base64(NULL);
+    struct FfiResult_FfiString xml = fatoora_validation_response_cleared_invoice_xml(NULL);
+    assert(!status.ok && !outcome.ok && !accepted.ok && !encoded.ok && !xml.ok);
+    fatoora_error_free(status.error);
+    fatoora_error_free(outcome.error);
+    fatoora_error_free(accepted.error);
+    fatoora_error_free(encoded.error);
+    fatoora_error_free(xml.error);
     return 0;
 }

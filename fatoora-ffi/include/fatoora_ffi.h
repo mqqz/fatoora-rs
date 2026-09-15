@@ -226,6 +226,24 @@ typedef struct FfiSignedInvoice {
   void *ptr;
 } FfiSignedInvoice;
 
+typedef struct FfiResult_u16 {
+  bool ok;
+  uint16_t value;
+  struct FfiError *error;
+} FfiResult_u16;
+
+typedef struct FfiResult_u8 {
+  bool ok;
+  uint8_t value;
+  struct FfiError *error;
+} FfiResult_u8;
+
+typedef struct FfiResult_bool {
+  bool ok;
+  bool value;
+  struct FfiError *error;
+} FfiResult_bool;
+
 typedef struct FfiValidationResults {
   void *ptr;
 } FfiValidationResults;
@@ -252,12 +270,6 @@ typedef struct FfiResult_FfiValidationMessage {
   struct FfiError *error;
 } FfiResult_FfiValidationMessage;
 
-typedef struct FfiResult_bool {
-  bool ok;
-  bool value;
-  struct FfiError *error;
-} FfiResult_bool;
-
 typedef struct FfiInvoiceBuilder {
   void *ptr;
 } FfiInvoiceBuilder;
@@ -283,12 +295,6 @@ typedef struct FfiResult_FfiSignedInvoice {
   struct FfiSignedInvoice value;
   struct FfiError *error;
 } FfiResult_FfiSignedInvoice;
-
-typedef struct FfiResult_u8 {
-  bool ok;
-  uint8_t value;
-  struct FfiError *error;
-} FfiResult_u8;
 
 typedef struct FfiSigner {
   void *ptr;
@@ -700,6 +706,41 @@ struct FfiResult_FfiValidationResponse fatoora_zatca_clear_standard_invoice(stru
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
 void fatoora_validation_response_free(struct FfiValidationResponse *response);
+
+/**
+ * Actual HTTP status, or zero for a standalone deserialized body.
+ * # Safety
+ * Caller must provide a valid response handle. Free returned strings with `fatoora_string_free`.
+ */
+struct FfiResult_u16 fatoora_validation_response_http_status(struct FfiValidationResponse *handle);
+
+/**
+ * Operation outcome: 0 unknown, 1 accepted, 2 rejected. Tolerate future codes.
+ * # Safety
+ * Caller must provide a valid response handle. Free returned strings with `fatoora_string_free`.
+ */
+struct FfiResult_u8 fatoora_validation_response_outcome(struct FfiValidationResponse *handle);
+
+/**
+ * Return true only for accepted outcomes; otherwise return a structured API error.
+ * # Safety
+ * Caller must provide a valid response handle. Free returned strings with `fatoora_string_free`.
+ */
+struct FfiResult_bool fatoora_validation_response_ensure_accepted(struct FfiValidationResponse *handle);
+
+/**
+ * Copy the gateway field. Null means absent; allocated empty string means present but empty.
+ * # Safety
+ * Caller must provide a valid response handle. Free returned strings with `fatoora_string_free`.
+ */
+struct FfiResult_FfiString fatoora_validation_response_cleared_invoice_base64(struct FfiValidationResponse *handle);
+
+/**
+ * Copy decoded UTF-8 XML without parsing or signature verification. Null means absent.
+ * # Safety
+ * Caller must provide a valid response handle. Free returned strings with `fatoora_string_free`.
+ */
+struct FfiResult_FfiString fatoora_validation_response_cleared_invoice_xml(struct FfiValidationResponse *handle);
 
 /**
  * # Safety
