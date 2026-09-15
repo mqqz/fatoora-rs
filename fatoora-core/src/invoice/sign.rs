@@ -240,14 +240,16 @@ impl InvoiceSigner {
         Ok(signed_invoice.with_xml(signed_xml))
     }
 
-    /// Sign a pre-built invoice XML string.
+    /// Sign a pre-built invoice XML string and return the signed XML.
+    ///
+    /// The input is parsed and serialized; its original byte representation is
+    /// not preserved. Preserve the returned XML without reformatting it.
     ///
     /// Generates signature material without running XSD or full business-rule
     /// validation. Signing success does not establish invoice compliance.
     ///
     /// # Errors
     /// Returns [`SigningError`] if XML parsing or signature application fails.
-    // TODO maybe return SignedInvoice instead?
     pub fn sign_xml(&self, xml: &str) -> Result<String, SigningError> {
         let mut doc = Parser::default().parse_string(xml).map_err(|e| {
             SigningError::Xml(crate::Diagnostic::new(format!("XML parse error: {e:?}")))

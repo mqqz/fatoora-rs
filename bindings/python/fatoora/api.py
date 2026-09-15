@@ -1291,7 +1291,15 @@ class SignedInvoice:
 
     def xml(self) -> str:
         bindings = _FfiBindings.instance()
-        result = bindings.lib.fatoora_signed_invoice_xml(self._handle)
+        result = bindings.lib.fatoora_signed_invoice_to_xml(self._handle)
+        return _decode_string(
+            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
+        )
+
+    def into_xml(self) -> str:
+        """Consume this invoice and return its exact stored XML."""
+        bindings = _FfiBindings.instance()
+        result = bindings.lib.fatoora_signed_invoice_into_xml(self._handle)
         return _decode_string(
             bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
         )

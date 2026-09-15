@@ -375,7 +375,8 @@ FfiResult_FfiBytes fatoora_signer_certificate_der(FfiSigner* signer);
 FfiResult_FfiString fatoora_signer_certificate_pem(FfiSigner* signer);
 FfiResult_FfiSignedInvoice fatoora_invoice_sign(FfiFinalizedInvoice* invoice, FfiSigner* signer);
 
-FfiResult_FfiString fatoora_signed_invoice_xml(FfiSignedInvoice* signed_invoice);
+FfiResult_FfiString fatoora_signed_invoice_to_xml(FfiSignedInvoice* signed_invoice);
+FfiResult_FfiString fatoora_signed_invoice_into_xml(FfiSignedInvoice* signed_invoice);
 FfiResult_FfiString fatoora_signed_invoice_to_xml_base64(FfiSignedInvoice* signed_invoice);
 FfiResult_FfiString fatoora_signed_invoice_qr_code(FfiSignedInvoice* signed_invoice);
 FfiResult_FfiString fatoora_signed_invoice_uuid(FfiSignedInvoice* signed_invoice);

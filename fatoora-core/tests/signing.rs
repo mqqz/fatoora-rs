@@ -41,7 +41,7 @@ fn sign_invoice_emits_signature_and_qr() {
     let signed = common::dummy_finalized_invoice()
         .sign(&signer)
         .expect("sign invoice");
-    let xml = signed.to_xml().expect("signed xml");
+    let xml = signed.xml().to_owned();
     println!("{}", xml);
     assert!(xml.contains("ds:SignatureValue"));
 
@@ -132,7 +132,7 @@ fn sign_xml_emits_signature_and_signing_time() {
     let (signer, _key) = build_test_signer();
     let invoice = common::dummy_finalized_invoice();
     let unsigned_xml = invoice.to_xml().expect("unsigned xml");
-    let signed_xml = signer.sign_xml(&unsigned_xml).expect("sign xml");
+    let signed_xml: String = signer.sign_xml(&unsigned_xml).expect("sign xml");
     assert!(signed_xml.contains("ds:SignatureValue"));
 
     let doc = Parser::default()
@@ -239,4 +239,15 @@ fn non_byte_aligned_certificate_signature_returns_an_input_error() {
     let signer = InvoiceSigner::from_der(&cert_der, &key_der).unwrap();
     let error = common::dummy_finalized_invoice().sign(&signer).unwrap_err();
     assert_eq!(error.kind(), fatoora_core::ErrorKind::InvalidInput);
+}
+
+#[test]
+fn into_xml_preserves_newly_signed_output() {
+    let (signer, _) = build_test_signer();
+    let signed = common::dummy_finalized_invoice().sign(&signer).unwrap();
+    let expected = signed.xml().to_owned();
+    let ptr = signed.xml().as_ptr();
+    let owned = signed.into_xml();
+    assert_eq!(owned, expected);
+    assert_eq!(owned.as_ptr(), ptr);
 }

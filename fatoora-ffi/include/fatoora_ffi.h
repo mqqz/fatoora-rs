@@ -1361,10 +1361,22 @@ struct FfiResult_FfiSignedInvoice fatoora_invoice_sign(struct FfiFinalizedInvoic
                                                        struct FfiSigner *signer);
 
 /**
+ * Copy the exact stored signed XML without consuming the invoice.
+ * Release the returned string with `fatoora_string_free`.
+ *
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
-struct FfiResult_FfiString fatoora_signed_invoice_xml(struct FfiSignedInvoice *signed_);
+struct FfiResult_FfiString fatoora_signed_invoice_to_xml(struct FfiSignedInvoice *signed_);
+
+/**
+ * Consume the signed invoice and return its exact stored XML as an owned C string.
+ * The handle is cleared; release the returned string with `fatoora_string_free`.
+ *
+ * # Safety
+ * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+ */
+struct FfiResult_FfiString fatoora_signed_invoice_into_xml(struct FfiSignedInvoice *signed_);
 
 /**
  * # Safety

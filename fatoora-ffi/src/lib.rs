@@ -74,7 +74,7 @@ fn optional_string_nonempty(
         .and_then(|value| if value.is_empty() { None } else { Some(value) }))
 }
 
-fn ffi_string(value: &str) -> Result<FfiString, FfiErrorDetails> {
+fn ffi_string(value: impl Into<Vec<u8>>) -> Result<FfiString, FfiErrorDetails> {
     match std::ffi::CString::new(value) {
         Ok(value) => Ok(FfiString {
             ptr: value.into_raw(),
@@ -100,7 +100,7 @@ fn ffi_string_result(value: Option<&str>) -> FfiResult<FfiString> {
 }
 
 fn ffi_string_from_owned(value: String) -> FfiResult<FfiString> {
-    match ffi_string(&value) {
+    match ffi_string(value) {
         Ok(value) => FfiResult::ok(value),
         Err(message) => FfiResult::err(message),
     }
@@ -2703,14 +2703,32 @@ pub unsafe extern "C" fn fatoora_invoice_sign(
 }
 
 #[unsafe(no_mangle)]
+/// Copy the exact stored signed XML without consuming the invoice.
+/// Release the returned string with `fatoora_string_free`.
+///
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_signed_invoice_xml(
+pub unsafe extern "C" fn fatoora_signed_invoice_to_xml(
     signed: *mut FfiSignedInvoice,
 ) -> FfiResult<FfiString> {
     crate::error::boundary(|| {
         let signed = ffi_borrow!(signed, "signed", SignedInvoice);
-        ffi_string_from_owned(signed.xml().to_string())
+        ffi_string_result(Some(signed.xml()))
+    })
+}
+
+#[unsafe(no_mangle)]
+/// Consume the signed invoice and return its exact stored XML as an owned C string.
+/// The handle is cleared; release the returned string with `fatoora_string_free`.
+///
+/// # Safety
+/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
+pub unsafe extern "C" fn fatoora_signed_invoice_into_xml(
+    signed: *mut FfiSignedInvoice,
+) -> FfiResult<FfiString> {
+    crate::error::boundary(|| {
+        let signed = ffi_take_handle!(signed, "signed", SignedInvoice);
+        ffi_string_from_owned(signed.into_xml())
     })
 }
 
@@ -5495,7 +5513,7 @@ mod ffi_coverage_tests {
             }
             fatoora_invoice_builder_free(&mut builder);
 
-            let null_signed = fatoora_signed_invoice_xml(std::ptr::null_mut());
+            let null_signed = fatoora_signed_invoice_to_xml(std::ptr::null_mut());
             assert!(!null_signed.ok);
             if !null_signed.error.is_null() {
                 fatoora_error_free(null_signed.error);
@@ -5841,7 +5859,7 @@ mod ffi_coverage_tests {
             assert!(signed.ok);
             let mut signed = signed.value;
 
-            let signed_xml = fatoora_signed_invoice_xml(&mut signed);
+            let signed_xml = fatoora_signed_invoice_to_xml(&mut signed);
             assert!(signed_xml.ok);
             let signed_xml_str = std::ffi::CStr::from_ptr(signed_xml.value.ptr)
                 .to_string_lossy()
@@ -6051,7 +6069,7 @@ mod ffi_coverage_tests {
             assert!(signed.ok);
             let mut signed = signed.value;
 
-            let signed_xml = fatoora_signed_invoice_xml(&mut signed);
+            let signed_xml = fatoora_signed_invoice_to_xml(&mut signed);
             assert!(signed_xml.ok);
             let signed_xml_str = std::ffi::CStr::from_ptr(signed_xml.value.ptr)
                 .to_string_lossy()
@@ -6195,6 +6213,42 @@ mod builder_ownership_tests {
             assert!(!result.ok);
             fatoora_error_free(result.error);
             fatoora_invoice_builder_free(&mut handle);
+        }
+    }
+}
+
+#[cfg(test)]
+mod signed_xml_ownership_tests {
+    use super::*;
+    use std::ffi::CString;
+
+    #[test]
+    fn copied_and_consumed_xml_survive_invoice_free() {
+        unsafe {
+            let xml = include_str!(
+                "../../fatoora-core/tests/fixtures/invoices/sample-simplified-invoice.xml"
+            );
+            let input = CString::new(xml).unwrap();
+            let result = fatoora_parse_signed_invoice_xml(input.as_ptr());
+            assert!(result.ok);
+            let mut signed = result.value;
+            let copied = fatoora_signed_invoice_to_xml(&mut signed);
+            assert!(copied.ok);
+            assert!(!signed.ptr.is_null());
+            let owned = fatoora_signed_invoice_into_xml(&mut signed);
+            assert!(owned.ok);
+            assert!(signed.ptr.is_null());
+            fatoora_signed_invoice_free(&mut signed);
+            assert_eq!(CStr::from_ptr(copied.value.ptr).to_str().unwrap(), xml);
+            assert_eq!(CStr::from_ptr(owned.value.ptr).to_str().unwrap(), xml);
+            fatoora_string_free(copied.value);
+            fatoora_string_free(owned.value);
+            let again = fatoora_signed_invoice_into_xml(&mut signed);
+            assert!(!again.ok);
+            fatoora_error_free(again.error);
+            let null = fatoora_signed_invoice_into_xml(std::ptr::null_mut());
+            assert!(!null.ok);
+            fatoora_error_free(null.error);
         }
     }
 }

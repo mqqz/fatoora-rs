@@ -82,6 +82,20 @@ Signing helpers and signature metadata.
         FfiResult_FfiBytes fatoora_signer_certificate_der(FfiSigner* signer);
         ```
 
+### `sign_xml`
+
+```rust
+InvoiceSigner::sign_xml(&self, xml: &str) -> Result<String, SigningError>
+```
+
+Signs pre-built XML and returns the signed XML string. This does not construct a
+`SignedInvoice` or run its invoice-model parsing checks. The input is parsed and
+serialized, so its original byte representation is not preserved. Keep the
+returned signed XML unchanged. Signing does not establish invoice compliance.
+
+See [signed XML ownership](xml.md#signedinvoice) for borrowed, copied, and
+consuming access to `SignedInvoice` XML.
+
 ## FinalizedInvoice
 
 ### `sign`
@@ -122,7 +136,7 @@ Signing helpers and signature metadata.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_xml(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_to_xml(FfiSignedInvoice* signed);
         ```
 
 ### `to_xml_base64`

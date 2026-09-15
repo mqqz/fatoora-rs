@@ -20,11 +20,18 @@ pub struct FinalizedInvoice {
     pub(crate) totals: InvoiceTotalsData,
 }
 
-// TODO maybe traits?
 /// An invoice carrying signature material, QR payload, and signed XML.
 ///
 /// It may be produced by signing or imported by parsing. The type does not prove
 /// that an imported signature was verified, nor establish business-rule compliance.
+///
+/// Formatting signed XML is intentionally unavailable:
+/// ```compile_fail
+/// use fatoora_core::invoice::{SignedInvoice, xml::ToXml};
+/// fn reformat(invoice: &SignedInvoice) {
+///     invoice.to_xml_pretty();
+/// }
+/// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct SignedInvoice {
     finalized: FinalizedInvoice,
@@ -505,8 +512,14 @@ impl SignedInvoice {
         &self.qr_code
     }
 
+    /// Borrow the exact stored signed XML without reformatting it.
     pub fn xml(&self) -> &str {
         &self.signed_xml
+    }
+
+    /// Consume the invoice and return its stored XML without copying it.
+    pub fn into_xml(self) -> String {
+        self.signed_xml
     }
 
     pub fn uuid(&self) -> &str {

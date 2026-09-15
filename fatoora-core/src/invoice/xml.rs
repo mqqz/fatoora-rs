@@ -1,7 +1,7 @@
 //! XML serialization for invoices.
 use super::{
     Address, Buyer, FinalizedInvoice, InvoiceData, InvoiceNote, InvoiceType, InvoiceView, LineItem,
-    OtherId, Party, PartyRole, Seller, SignedInvoice, VatCategory, VatId,
+    OtherId, Party, PartyRole, Seller, VatCategory, VatId,
 };
 use crate::Decimal;
 
@@ -1009,7 +1009,10 @@ impl<'a> Serialize for InvoiceLineXml<'a> {
     }
 }
 
-/// Serialize invoices to XML.
+/// Serialize finalized invoices to XML.
+///
+/// Signed invoices expose their preserved XML through `SignedInvoice::xml()`
+/// and `SignedInvoice::into_xml()` instead of supporting reformatting.
 ///
 /// # Examples
 /// ```rust,no_run
@@ -1042,15 +1045,6 @@ pub trait ToXml {
 impl ToXml for FinalizedInvoice {
     fn to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError> {
         to_xml_with_format(self, format)
-    }
-}
-
-impl ToXml for SignedInvoice {
-    fn to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError> {
-        // FIXME: sort this out properly
-        // to_xml_with_format(self, format)
-        let _ = format;
-        Ok(self.xml().to_string())
     }
 }
 

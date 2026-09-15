@@ -535,6 +535,8 @@ let invoice = InvoiceBuilder::new(invoice_type)
 
 ## SignedInvoice
 
+For exact XML preservation and consuming `into_xml()` access, see [XML ownership](xml.md#signedinvoice).
+
 ### `xml`
 
 ???+ note "Get signed invoice XML"
@@ -551,7 +553,7 @@ let invoice = InvoiceBuilder::new(invoice_type)
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_xml(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_to_xml(FfiSignedInvoice* signed);
         ```
 
 ### `to_xml_base64`

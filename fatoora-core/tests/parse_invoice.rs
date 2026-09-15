@@ -155,7 +155,7 @@ fn parse_signed_invoice_from_fixture() {
         "ZmMwY2ZhNDljNzNjZDA5NmY4NDM4MmY1ZmY1YTA0NjY3MzY4NzMxOGJhYmZmNWU1OGYzZWJlODI3ZDgyZGVkZA=="
     );
 
-    let serialized = signed.to_xml().expect("serialize signed invoice");
+    let serialized = signed.xml().to_owned();
     assert_eq!(serialized.trim(), xml.trim());
 }
 

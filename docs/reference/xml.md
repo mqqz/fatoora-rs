@@ -4,10 +4,13 @@ Serialization and parsing helpers for invoice XML.
 
 ## ToXml (trait)
 
+Implemented for `FinalizedInvoice`. Signed invoices expose stored XML through
+`xml()` and `into_xml()`; they do not implement formatting methods.
+
 ### `to_xml`
 
-???+ note "Serialize to compact XML"
-    Convert an invoice type to XML.
+???+ note "Serialize to XML"
+    Serialize a finalized invoice with the default two-space indentation.
 
     === "{{ lang.rust }}"
         ```rust
@@ -16,13 +19,12 @@ Serialization and parsing helpers for invoice XML.
 
     === "{{ lang.python }}"
         ```python
-        # use FinalizedInvoice.xml() or SignedInvoice.xml()
+        # use FinalizedInvoice.xml()
         ```
 
     === "{{ lang.c }}"
         ```c
         FfiResult_FfiString fatoora_invoice_to_xml(FfiFinalizedInvoice* invoice);
-        FfiResult_FfiString fatoora_signed_invoice_xml(FfiSignedInvoice* signed);
         ```
 
 ### `to_xml_with_format`
@@ -68,6 +70,18 @@ Serialization and parsing helpers for invoice XML.
 
 ## SignedInvoice
 
+Migration: replace Rust `signed.to_xml()?` with `signed.xml()` for a borrow or
+`signed.into_xml()` to take ownership. The C copying accessor was renamed from
+`fatoora_signed_invoice_xml` to `fatoora_signed_invoice_to_xml`; rebuild C callers
+and bindings against the matching header and library.
+
+Imported signed invoices retain the exact supplied XML string. Newly signed
+invoices retain the exact output of signing. Accessors never reformat it.
+Parsing signed XML does not verify its signature.
+
+Rust `xml()` borrows the stored string. C `to_xml` and Python `xml()` return
+independent copies. Release C strings with `fatoora_string_free`.
+
 ### `xml`
 
 ???+ note "Get signed invoice XML"
@@ -84,8 +98,28 @@ Serialization and parsing helpers for invoice XML.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_xml(FfiSignedInvoice* signed);
+        FfiResult_FfiString fatoora_signed_invoice_to_xml(FfiSignedInvoice* signed);
         ```
+
+### `into_xml`
+
+Consume the signed invoice and return its exact stored XML. Rust transfers the
+stored `String` without copying it. C transfers the result into an owned C string;
+Python decodes that result into a Python string. C and Python clear the invoice
+handle, so subsequent access returns an error and closing it remains safe.
+
+```rust
+SignedInvoice::into_xml(self) -> String
+```
+
+```c
+FfiResult_FfiString fatoora_signed_invoice_into_xml(FfiSignedInvoice* signed);
+/* Release the returned string with fatoora_string_free. */
+```
+
+```python
+SignedInvoice.into_xml() -> str
+```
 
 ## `parse_finalized_invoice_xml` / `parse_finalized_invoice_xml_file`
 

@@ -143,8 +143,7 @@ pub struct InvoiceSigner { ... }
 impl InvoiceSigner {
     pub fn from_pem(cert_pem: &str, key_pem: &str) -> Result<Self, Error>;
     pub fn from_der(cert_der: &[u8], key_der: &[u8]) -> Result<Self, Error>;
-    pub fn sign(&self, invoice: FinalizedInvoice) -> Result<SignedInvoice, Error>;
-    pub fn sign_xml(&self, xml: &str) -> Result<SignedInvoice, Error>;
+    pub fn sign_xml(&self, xml: &str) -> Result<String, SigningError>;
 }
 
 pub fn invoice_hash_base64_from_xml(xml: &str) -> Result<String, Error>;
@@ -389,7 +388,7 @@ FfiResult_FfiString fatoora_signed_invoice_totals_charge_total(FfiSignedInvoice*
 FfiResult_FfiString fatoora_signed_invoice_totals_taxable_amount(FfiSignedInvoice*);
 
 /* Signed-only accessors */
-FfiResult_FfiString fatoora_signed_invoice_xml(FfiSignedInvoice*);
+FfiResult_FfiString fatoora_signed_invoice_to_xml(FfiSignedInvoice*);
 FfiResult_FfiString fatoora_signed_invoice_to_xml_base64(FfiSignedInvoice*);
 FfiResult_FfiString fatoora_signed_invoice_qr_code(FfiSignedInvoice*);
 FfiResult_FfiString fatoora_signed_invoice_uuid(FfiSignedInvoice*);

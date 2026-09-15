@@ -135,7 +135,8 @@ This table highlights aligned symbol names across layers.
 | `SignedInvoice::totals` | `fatoora_signed_invoice_totals_*` | `SignedInvoice.totals` | Done |  |
 | `SignedInvoice::signed_properties` | — | — | Omitted (intentional) | Access via signed-only getters. |
 | `SignedInvoice::qr_code` | `fatoora_signed_invoice_qr_code` | `SignedInvoice.qr_code` | Done |  |
-| `SignedInvoice::xml` | `fatoora_signed_invoice_xml` | `SignedInvoice.xml` | Done |  |
+| `SignedInvoice::xml` | `fatoora_signed_invoice_to_xml` | `SignedInvoice.xml` | Done |  |
+| `SignedInvoice::into_xml` | `fatoora_signed_invoice_into_xml` | `SignedInvoice.into_xml` | Done | Consumes invoice; returned C string must be freed. |
 | `SignedInvoice::uuid` | `fatoora_signed_invoice_uuid` | `SignedInvoice.uuid` | Done |  |
 | `SignedInvoice::invoice_hash` | `fatoora_signed_invoice_hash` | `SignedInvoice.invoice_hash` | Done |  |
 | `SignedInvoice::hash_base64` | `fatoora_signed_invoice_hash_base64` | `SignedInvoice.hash_base64` | Done |  |
