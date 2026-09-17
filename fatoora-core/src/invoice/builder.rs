@@ -27,9 +27,9 @@ pub struct FinalizedInvoice {
 ///
 /// Formatting signed XML is intentionally unavailable:
 /// ```compile_fail
-/// use fatoora_core::invoice::{SignedInvoice, xml::ToXml};
+/// use fatoora_core::invoice::{SignedInvoice, xml::XmlFormat};
 /// fn reformat(invoice: &SignedInvoice) {
-///     invoice.to_xml_pretty();
+///     invoice.to_xml_with_format(XmlFormat::Compact);
 /// }
 /// ```
 #[derive(Debug, Clone, PartialEq)]
@@ -455,7 +455,6 @@ impl FinalizedInvoice {
     /// # Errors
     /// Returns [`SigningError`] if XML serialization, parsing, or hashing fails.
     pub fn hash_base64(&self) -> Result<String, SigningError> {
-        use crate::invoice::xml::ToXml;
         let xml = self
             .to_xml()
             .map_err(|e| SigningError::SigningError(e.to_string()))?;
@@ -561,7 +560,7 @@ impl SignedInvoice {
     }
 }
 
-pub trait InvoiceView {
+pub(super) trait InvoiceView {
     /// Invoice data.
     fn data(&self) -> &InvoiceData;
     /// Computed totals.

@@ -1,0 +1,11 @@
+error[E0603]: struct `InvoiceXml` is private
+ --> tests/ui/public_api/invoice_xml.rs:1:33
+  |
+1 | use fatoora_core::invoice::xml::InvoiceXml;
+  |                                 ^^^^^^^^^^ private struct
+  |
+note: the struct `InvoiceXml` is defined here
+ --> src/invoice/xml.rs
+  |
+  | struct InvoiceXml<'a, T: InvoiceView + ?Sized>(&'a T);
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -234,7 +234,6 @@ fn xpath_text(ctx: &xpath::Context, expr: &str, label: &str) -> QrResult<String>
 mod tests {
     use super::*;
     use crate::invoice::sign::SignedProperties;
-    use crate::invoice::xml::ToXml;
     use crate::invoice::{
         Address, CountryCode, FinalizedInvoice, InvoiceBuilder, InvoiceSubType, InvoiceType,
         LineItem, Party, SellerRole, VatCategory,

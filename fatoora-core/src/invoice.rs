@@ -7,7 +7,8 @@ mod qr;
 pub mod sign;
 pub mod validation;
 pub mod xml;
-pub use builder::{FinalizedInvoice, InvoiceBuilder, InvoiceView, SignedInvoice};
+use builder::InvoiceView;
+pub use builder::{FinalizedInvoice, InvoiceBuilder, SignedInvoice};
 pub use qr::{QrCodeError, QrPayload, QrResult};
 
 use chrono::{NaiveDate, NaiveDateTime};
@@ -610,8 +611,14 @@ impl InvoiceNote {
 }
 
 // Marker roles
-/// Marker trait for party role types.
-pub trait PartyRole {}
+/// Sealed marker trait for party role types.
+pub trait PartyRole: party_role::Sealed {}
+
+mod party_role {
+    pub trait Sealed {}
+    impl Sealed for super::SellerRole {}
+    impl Sealed for super::BuyerRole {}
+}
 
 /// Seller role marker.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]

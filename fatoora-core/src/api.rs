@@ -84,16 +84,12 @@ impl ZatcaError {
     }
 }
 
-/// Marker trait for API token scope, either Compliance (CCSID) or Production (PCSID).
-pub trait TokenScope {}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 /// Compliance (CCSID) token scope.
 pub struct Compliance;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 /// Production (PCSID) token scope.
 pub struct Production;
-impl TokenScope for Compliance {}
-impl TokenScope for Production {}
 
 /// ZATCA API client.
 ///
@@ -764,7 +760,7 @@ mod tests {
         csr::CsrProperties,
         invoice::{
             Address, CountryCode, InvoiceBuilder, InvoiceSubType, InvoiceType, LineItem, Party,
-            SellerRole, VatCategory, sign::SignedProperties, xml::ToXml,
+            SellerRole, VatCategory, sign::SignedProperties,
         },
     };
     use base64ct::{Base64, Encoding};

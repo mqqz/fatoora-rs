@@ -2,10 +2,13 @@
 
 Serialization and parsing helpers for invoice XML.
 
-## ToXml (trait)
+## FinalizedInvoice serialization
 
-Implemented for `FinalizedInvoice`. Signed invoices expose stored XML through
-`xml()` and `into_xml()`; they do not implement formatting methods.
+Serialization methods are inherent on `FinalizedInvoice`; no trait import is
+needed. Signed invoices expose stored XML through `xml()` and `into_xml()` and
+have no formatting methods.
+
+Migration: remove `ToXml` imports and replace `to_xml_pretty()` with `to_xml()`.
 
 ### `to_xml`
 
@@ -14,7 +17,7 @@ Implemented for `FinalizedInvoice`. Signed invoices expose stored XML through
 
     === "{{ lang.rust }}"
         ```rust
-        ToXml::to_xml(&self) -> Result<String, InvoiceXmlError>
+        FinalizedInvoice::to_xml(&self) -> Result<String, InvoiceXmlError>
         ```
 
     === "{{ lang.python }}"
@@ -34,7 +37,7 @@ Implemented for `FinalizedInvoice`. Signed invoices expose stored XML through
 
     === "{{ lang.rust }}"
         ```rust
-        ToXml::to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError>
+        FinalizedInvoice::to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError>
         ```
 
     === "{{ lang.python }}"
@@ -172,7 +175,7 @@ SignedInvoice.into_xml() -> str
 ## Types
 
 !!! note "Types"
-    - `InvoiceXml<T>` wraps an `InvoiceView` for serialization.
+    - `XmlFormat` selects compact output or explicit indentation for finalized invoices.
     - `InvoiceXmlError` reports serialization failures.
     - `ParseError` reports XML parsing failures and missing/invalid fields.
 

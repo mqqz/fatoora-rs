@@ -2,7 +2,6 @@ mod common;
 
 use fatoora_core::config::Config;
 use fatoora_core::invoice::validation::validate_xml_invoice_from_str;
-use fatoora_core::invoice::xml::ToXml;
 
 #[test]
 fn test_validate_xml_invoice() {

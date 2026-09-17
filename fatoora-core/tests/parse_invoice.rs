@@ -1,4 +1,3 @@
-use fatoora_core::invoice::xml::ToXml;
 use fatoora_core::invoice::xml::parse::{
     ParseError, parse_finalized_invoice_xml, parse_finalized_invoice_xml_file,
     parse_signed_invoice_xml, parse_signed_invoice_xml_file,

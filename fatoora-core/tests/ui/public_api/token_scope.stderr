@@ -1,0 +1,7 @@
+error[E0432]: unresolved import `fatoora_core::api::TokenScope`
+ --> tests/ui/public_api/token_scope.rs:1:5
+  |
+1 | use fatoora_core::api::TokenScope;
+  |     ^^^^^^^^^^^^^^^^^^^----------
+  |                        |
+  |                        no `TokenScope` in `api`

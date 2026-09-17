@@ -120,7 +120,6 @@ fn d(s: &str) -> fatoora_core::Decimal {
 }
 #[test]
 fn xml_preserves_price_precision_and_finalized_totals() {
-    use fatoora_core::invoice::xml::ToXml;
     use fatoora_core::invoice::xml::parse::parse_finalized_invoice_xml;
     let inv = invoice(vec![line(d("0.3333333"), d("3"), d("15"))], d("0"), d("0"));
     let xml = inv.to_xml().unwrap();
@@ -134,7 +133,6 @@ fn xml_preserves_price_precision_and_finalized_totals() {
 }
 #[test]
 fn xml_contains_each_vat_group() {
-    use fatoora_core::invoice::xml::ToXml;
     let inv = invoice(
         vec![
             line(d("0.03"), d("1"), d("15")),
@@ -182,7 +180,7 @@ fn arithmetic_overflow_is_an_error() {
 }
 #[test]
 fn parse_rejects_document_total_mismatch() {
-    use fatoora_core::invoice::xml::{ToXml, parse::parse_finalized_invoice_xml};
+    use fatoora_core::invoice::xml::parse::parse_finalized_invoice_xml;
     let inv = invoice(vec![line(d("1"), d("1"), d("15"))], d("0"), d("0"));
     let xml = inv.to_xml().unwrap().replace(
         ">1.15</cbc:TaxInclusiveAmount>",
@@ -198,7 +196,7 @@ fn line_vat_is_rounded_after_its_complete_calculation() {
 }
 #[test]
 fn official_payable_rounding_sample_preserves_supplied_line_vat() {
-    use fatoora_core::invoice::xml::{ToXml, parse::parse_finalized_invoice_xml};
+    use fatoora_core::invoice::xml::parse::parse_finalized_invoice_xml;
     let xml = include_str!(
         "fixtures/invoices/Standard/Invoice/Standard Invoice with Payable Rounding Adjustment.xml"
     );
@@ -218,7 +216,6 @@ fn official_payable_rounding_sample_preserves_supplied_line_vat() {
 /// Set ZATCA_SDK_ROOT to the extracted SDK directory to enable this independent check.
 #[test]
 fn official_sdk_numeric_rules() {
-    use fatoora_core::invoice::xml::ToXml;
     use std::process::Command;
     let Some(root) = std::env::var_os("ZATCA_SDK_ROOT") else {
         eprintln!("ZATCA_SDK_ROOT unset; SDK numeric check skipped");
@@ -318,7 +315,7 @@ fn official_sdk_numeric_rules() {
 }
 #[test]
 fn imported_category_tax_mismatch_is_rejected() {
-    use fatoora_core::invoice::xml::{ToXml, parse::parse_finalized_invoice_xml};
+    use fatoora_core::invoice::xml::parse::parse_finalized_invoice_xml;
     let inv = invoice(vec![line(d("1"), d("1"), d("15"))], d("0"), d("0"));
     let xml = inv.to_xml().unwrap();
     let start = xml.find("<cac:TaxSubtotal>").unwrap();

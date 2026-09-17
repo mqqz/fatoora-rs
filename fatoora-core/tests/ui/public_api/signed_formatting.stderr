@@ -1,0 +1,5 @@
+error[E0599]: no method named `to_xml_with_format` found for reference `&SignedInvoice` in the current scope
+ --> tests/ui/public_api/signed_formatting.rs:3:13
+  |
+3 |     invoice.to_xml_with_format(XmlFormat::Compact);
+  |             ^^^^^^^^^^^^^^^^^^ method not found in `&SignedInvoice`

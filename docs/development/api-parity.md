@@ -73,7 +73,7 @@ This table highlights aligned symbol names across layers.
 | `VatId::parse/as_str` | `fatoora_vat_id_*` | `VatId.value` | Done |  |
 | `OtherId::{new,with_scheme,as_str,scheme_id}` | `fatoora_other_id_*` | `OtherId.value/scheme` | Done | Constructors via builder only. |
 | `InvoiceNote::{new,language,text}` | `fatoora_invoice_note_*` | `InvoiceNote.language/text` | Done | Constructors via builder only. |
-| `PartyRole` | — | — | Omitted (intentional) | Marker trait only. |
+| `PartyRole` | — | — | Omitted (intentional) | Sealed marker trait for seller/buyer roles. |
 | `SellerRole` / `BuyerRole` | — | — | Omitted (intentional) | Marker types only. |
 | `Party::{new,name,address,vat_id,other_id}` | `fatoora_party_*` | `Party.*` | Done | Constructors via builder only. |
 | `InvoiceSubType` | `FfiInvoiceSubType` | `InvoiceSubType` | Done |  |
@@ -171,7 +171,7 @@ This table highlights aligned symbol names across layers.
 | `InvoiceXml` | — | — | Omitted (intentional) | Internal XML model. |
 | `InvoiceXmlError` | — | — | Omitted (intentional) | Errors normalized via `FfiErrorKind`. |
 | `XmlFormat` | — | — | Omitted (intentional) | Internal XML formatting. |
-| `ToXml` | — | — | Omitted (intentional) | Exposed via `fatoora_invoice_to_xml`. |
+| `FinalizedInvoice::to_xml` | `fatoora_invoice_to_xml` | `FinalizedInvoice.xml` | Matched | Inherent Rust method. |
 
 ## invoice::xml::parse
 | Core public API item | FFI symbol(s) | Python symbol | Status | Notes |
@@ -200,7 +200,7 @@ This table highlights aligned symbol names across layers.
 | Core public API item | FFI symbol(s) | Python symbol | Status | Notes |
 | --- | --- | --- | --- | --- |
 | `ZatcaError` | — | — | Omitted (intentional) | Errors normalized via `FfiErrorKind`. |
-| `TokenScope` | — | — | Omitted (intentional) | Internal marker trait. |
+| `TokenScope` (removed) | — | — | Omitted (intentional) | Credentials use concrete scope types. |
 | `Compliance` | — | — | Omitted (intentional) | Marker type only. |
 | `Production` | — | — | Omitted (intentional) | Marker type only. |
 | `ValidationResponse::{validation_results,reporting_status,clearance_status,qr_seller_status,qr_buyer_status}` | `fatoora_validation_response_*` | `ValidationResponse.*` | Done |  |

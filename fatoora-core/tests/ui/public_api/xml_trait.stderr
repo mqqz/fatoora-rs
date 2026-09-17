@@ -1,0 +1,7 @@
+error[E0432]: unresolved import `fatoora_core::invoice::xml::ToXml`
+ --> tests/ui/public_api/xml_trait.rs:1:5
+  |
+1 | use fatoora_core::invoice::xml::ToXml;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^-----
+  |                                 |
+  |                                 no `ToXml` in `invoice::xml`

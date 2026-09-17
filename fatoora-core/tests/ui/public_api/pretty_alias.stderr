@@ -1,0 +1,5 @@
+error[E0599]: no method named `to_xml_pretty` found for reference `&FinalizedInvoice` in the current scope
+ --> tests/ui/public_api/pretty_alias.rs:3:13
+  |
+3 |     invoice.to_xml_pretty();
+  |             ^^^^^^^^^^^^^ method not found in `&FinalizedInvoice`

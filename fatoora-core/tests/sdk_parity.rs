@@ -8,7 +8,6 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use base64ct::{Base64, Encoding};
 use fatoora_core::config::Config;
 use fatoora_core::invoice::validation::validate_xml_invoice_from_str;
-use fatoora_core::invoice::xml::ToXml;
 use fatoora_core::invoice::xml::parse::parse_signed_invoice_xml;
 
 const SDK_CLI: &str = "fatoora";

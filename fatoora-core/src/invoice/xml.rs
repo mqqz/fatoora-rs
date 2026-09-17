@@ -15,7 +15,7 @@ use thiserror::Error;
 
 /// Wrapper for serializing invoices to XML.
 #[derive(Debug, Clone, Copy)]
-pub struct InvoiceXml<'a, T: InvoiceView + ?Sized>(pub &'a T);
+struct InvoiceXml<'a, T: InvoiceView + ?Sized>(&'a T);
 
 /// XML serialization error.
 #[derive(Debug, Error)]
@@ -1009,41 +1009,34 @@ impl<'a> Serialize for InvoiceLineXml<'a> {
     }
 }
 
-/// Serialize finalized invoices to XML.
-///
-/// Signed invoices expose their preserved XML through `SignedInvoice::xml()`
-/// and `SignedInvoice::into_xml()` instead of supporting reformatting.
-///
-/// # Examples
-/// ```rust,no_run
-/// use fatoora_core::invoice::xml::ToXml;
-/// use fatoora_core::invoice::FinalizedInvoice;
-///
-/// let invoice: FinalizedInvoice = unimplemented!();
-/// let xml = invoice.to_xml()?;
-/// # let _ = xml;
-/// # Ok::<(), fatoora_core::invoice::xml::InvoiceXmlError>(())
-/// ```
-pub trait ToXml {
-    fn to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError>;
-
-    fn to_xml(&self) -> Result<String, InvoiceXmlError> {
+impl FinalizedInvoice {
+    /// Serialize to XML using two-space indentation.
+    ///
+    /// No serialization trait import is needed. Signed invoices instead expose
+    /// their exact stored XML through `SignedInvoice::xml()` and `into_xml()`.
+    ///
+    /// # Errors
+    /// Returns [`InvoiceXmlError`] if XML serialization fails.
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// use fatoora_core::invoice::FinalizedInvoice;
+    /// fn export(invoice: &FinalizedInvoice) -> Result<String, fatoora_core::invoice::xml::InvoiceXmlError> {
+    ///     invoice.to_xml()
+    /// }
+    /// ```
+    pub fn to_xml(&self) -> Result<String, InvoiceXmlError> {
         self.to_xml_with_format(XmlFormat::Pretty {
             indent_char: ' ',
             indent_size: 2,
         })
     }
 
-    fn to_xml_pretty(&self) -> Result<String, InvoiceXmlError> {
-        self.to_xml_with_format(XmlFormat::Pretty {
-            indent_char: ' ',
-            indent_size: 2,
-        })
-    }
-}
-
-impl ToXml for FinalizedInvoice {
-    fn to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError> {
+    /// Serialize unsigned invoice XML with the requested formatting.
+    ///
+    /// # Errors
+    /// Returns [`InvoiceXmlError`] if XML serialization fails.
+    pub fn to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError> {
         to_xml_with_format(self, format)
     }
 }
@@ -1290,7 +1283,12 @@ mod tests {
         let xml_result = invoice.to_xml().unwrap();
         println!("{xml_result:?}");
 
-        let pretty = invoice.to_xml_pretty().unwrap();
-        println!("{pretty}");
+        let pretty = invoice
+            .to_xml_with_format(XmlFormat::Pretty {
+                indent_char: ' ',
+                indent_size: 2,
+            })
+            .unwrap();
+        assert_eq!(xml_result, pretty);
     }
 }

@@ -1,0 +1,27 @@
+error[E0277]: the trait bound `CustomRole: invoice::party_role::Sealed` is not satisfied
+ --> tests/ui/public_api/party_role.rs:2:43
+  |
+2 | impl fatoora_core::invoice::PartyRole for CustomRole {}
+  |                                           ^^^^^^^^^^ unsatisfied trait bound
+  |
+help: the trait `invoice::party_role::Sealed` is not implemented for `CustomRole`
+ --> tests/ui/public_api/party_role.rs:1:1
+  |
+1 | struct CustomRole;
+  | ^^^^^^^^^^^^^^^^^
+help: the following other types implement trait `invoice::party_role::Sealed`
+ --> src/invoice.rs
+  |
+  |     impl Sealed for super::SellerRole {}
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `SellerRole`
+  |     impl Sealed for super::BuyerRole {}
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `BuyerRole`
+note: required by a bound in `PartyRole`
+ --> src/invoice.rs
+  |
+  | pub trait PartyRole: party_role::Sealed {}
+  |                      ^^^^^^^^^^^^^^^^^^ required by this bound in `PartyRole`
+  = note: `PartyRole` is a "sealed trait", because to implement it you also need to implement `fatoora_core::invoice::party_role::Sealed`, which is not accessible; this is usually done to force you to use one of the provided types that already implement it
+  = help: the following types implement the trait:
+            fatoora_core::invoice::SellerRole
+            fatoora_core::invoice::BuyerRole

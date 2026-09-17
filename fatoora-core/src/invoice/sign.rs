@@ -1,6 +1,5 @@
 //! XML signing and signature helpers.
 use crate::invoice::QrPayload;
-use crate::invoice::xml::ToXml;
 use crate::invoice::{FinalizedInvoice, SignedInvoice};
 use base64ct::{Base64, Encoding};
 use k256::ecdsa::{Signature, SigningKey};

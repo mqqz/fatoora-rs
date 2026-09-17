@@ -26,7 +26,6 @@ use fatoora_core::config::Config;
 use fatoora_core::csr::{Csr, CsrProperties, SigningKey};
 use fatoora_core::invoice::sign::InvoiceSigner;
 use fatoora_core::invoice::validation::validate_xml_invoice_from_str;
-use fatoora_core::invoice::xml::ToXml;
 use fatoora_core::invoice::{
     Address, CountryCode, FinalizedInvoice, InvoiceBuilder, InvoiceData, InvoiceFlags, InvoiceNote,
     InvoiceSubType, InvoiceTimestamp, InvoiceType, LineItem, OriginalInvoiceRef, OtherId, Party,

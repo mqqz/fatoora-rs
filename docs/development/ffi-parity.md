@@ -61,5 +61,5 @@ Each binding should run the same scenario and assert on key outputs (XML well-fo
 ## Intentionally Omitted from FFI
 - Error enums and structured error responses (handled via `FfiErrorKind` + message).
 - Internal builder/view types (`InvoiceView`).
-- XML formatting types (`ToXml`, internal parse helpers).
+- XML formatting options (`XmlFormat`) and internal serialization helpers.
 - QR structured types (`QrPayload`, `QrResult`) when a QR string is sufficient.

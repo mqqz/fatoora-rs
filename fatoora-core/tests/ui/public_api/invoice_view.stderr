@@ -1,0 +1,11 @@
+error[E0603]: trait `InvoiceView` is private
+ --> tests/ui/public_api/invoice_view.rs:1:28
+  |
+1 | use fatoora_core::invoice::InvoiceView;
+  |                            ^^^^^^^^^^^ private trait
+  |
+note: the trait `InvoiceView` is defined here
+ --> src/invoice.rs
+  |
+  | use builder::InvoiceView;
+  |     ^^^^^^^^^^^^^^^^^^^^

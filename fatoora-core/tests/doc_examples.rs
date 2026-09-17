@@ -19,6 +19,7 @@ mod validation {
 }
 
 #[test]
+#[ignore = "requires live ZATCA credentials and network access; run explicitly"]
 fn doc_example_api() {
     api::main();
 }
