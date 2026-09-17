@@ -67,7 +67,6 @@ typedef FfiZatcaClient ZatcaClient;
 #define address_new fatoora_address_new
 #define address_postal_code fatoora_address_postal_code
 #define address_street fatoora_address_street
-#define address_subdivision fatoora_address_subdivision
 #define bytes_free fatoora_bytes_free
 #define bytes_list_free fatoora_bytes_list_free
 #define config_env fatoora_config_env

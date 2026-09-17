@@ -717,7 +717,6 @@ fn build_seller() -> Party<SellerRole> {
             building_number: "1234".into(),
             additional_number: Some("5678".into()),
             postal_code: "12222".into(),
-            subdivision: None,
             district: None,
         },
         "301121971500003",

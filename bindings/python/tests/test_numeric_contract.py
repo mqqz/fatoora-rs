@@ -61,3 +61,28 @@ def test_import_preserves_signed_payable_adjustment():
     assert totals.payable_amount == Decimal("1000")
     assert invoice.line_item(0).vat_amount == Decimal("130.43")
     assert totals.tax_amount == Decimal("130.44")
+
+
+def test_district_is_the_only_city_subdivision_field():
+    from fatoora import Address, parse_finalized_invoice_xml
+
+    with Address.new("SA", "Riyadh", "King Fahd", "1234", "12222", district="Olaya") as address:
+        assert address.district() == "Olaya"
+        assert not hasattr(address, "subdivision")
+    with pytest.raises(TypeError):
+        Address.new("SA", "Riyadh", "King Fahd", "1234", "12222", subdivision="old")
+
+    b = builder()
+    b.set_seller(name="Acme", country_code="SA", city="Riyadh", street="King Fahd",
+                 building_number="1234", postal_code="12222", vat_id="399999999900003",
+                 district="Olaya", additional_number="0123", additional_street="Second street")
+    b.add_line_item("item", "1", "PCE", "100", "15", VatCategory.STANDARD)
+    with b.build() as invoice:
+        xml = invoice.xml()
+        assert "<cbc:CitySubdivisionName>Olaya</cbc:CitySubdivisionName>" in xml
+        with parse_finalized_invoice_xml(xml) as imported:
+            with imported.seller() as seller:
+                with seller.address() as address:
+                    assert address.district() == "Olaya"
+                    assert address.additional_number() == "0123"
+                    assert address.additional_street() == "Second street"

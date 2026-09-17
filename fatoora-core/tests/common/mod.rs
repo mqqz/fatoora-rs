@@ -637,7 +637,6 @@ fn dummy_seller_address() -> Address {
         building_number: "1234".into(),
         additional_number: Some("5678".into()),
         postal_code: "12222".into(),
-        subdivision: None,
         district: Some("Olaya".into()),
     }
 }
@@ -652,7 +651,6 @@ fn dummy_buyer_address() -> Address {
         building_number: "4321".into(),
         additional_number: None,
         postal_code: "21577".into(),
-        subdivision: Some("Al Zahra".into()),
         district: Some("North".into()),
     }
 }

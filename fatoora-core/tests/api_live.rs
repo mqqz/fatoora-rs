@@ -264,7 +264,6 @@ async fn clear_invoice_with_live_pcsid() {
                 building_number: "1234".into(),
                 additional_number: Some("5678".into()),
                 postal_code: "12222".into(),
-                subdivision: None,
                 district: Some("Olaya".into()),
             },
             "399999999900003",

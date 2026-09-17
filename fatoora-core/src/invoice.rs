@@ -439,7 +439,7 @@ pub struct Address {
     pub building_number: String,
     pub additional_number: Option<String>,
     pub postal_code: String, //fix 5 digits if country is KSA
-    pub subdivision: Option<String>,
+    /// City district, serialized as UBL `cbc:CitySubdivisionName`.
     pub district: Option<String>,
 }
 
@@ -470,10 +470,6 @@ impl Address {
 
     pub fn postal_code(&self) -> &str {
         &self.postal_code
-    }
-
-    pub fn subdivision(&self) -> Option<&str> {
-        self.subdivision.as_deref()
     }
 
     pub fn district(&self) -> Option<&str> {
@@ -646,7 +642,6 @@ impl PartyRole for BuyerRole {}
 ///         building_number: "1234".into(),
 ///         additional_number: Some("5678".into()),
 ///         postal_code: "12222".into(),
-///         subdivision: None,
 ///         district: None,
 ///     },
 ///     "399999999900003",

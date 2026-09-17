@@ -214,7 +214,6 @@ fn build_address(
     building_number: *const c_char,
     additional_number: *const c_char,
     postal_code: *const c_char,
-    subdivision: *const c_char,
     district: *const c_char,
     label_prefix: &str,
 ) -> Result<Address, FfiErrorDetails> {
@@ -240,7 +239,6 @@ fn build_address(
             &format!("{label_prefix} additional number"),
         )?,
         postal_code,
-        subdivision: optional_string_nonempty(subdivision, &format!("{label_prefix} subdivision"))?,
         district: optional_string_nonempty(district, &format!("{label_prefix} district"))?,
     })
 }
@@ -463,7 +461,6 @@ pub unsafe extern "C" fn fatoora_address_new(
     building_number: *const c_char,
     additional_number: *const c_char,
     postal_code: *const c_char,
-    subdivision: *const c_char,
     district: *const c_char,
 ) -> FfiResult<FfiAddress> {
     crate::error::boundary(|| {
@@ -475,7 +472,6 @@ pub unsafe extern "C" fn fatoora_address_new(
             building_number,
             additional_number,
             postal_code,
-            subdivision,
             district,
             "address",
         ) {
@@ -1687,7 +1683,6 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_seller(
     building_number: *const c_char,
     additional_number: *const c_char,
     postal_code: *const c_char,
-    subdivision: *const c_char,
     district: *const c_char,
     vat_id: *const c_char,
     other_id_value: *const c_char,
@@ -1703,7 +1698,6 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_seller(
             building_number,
             additional_number,
             postal_code,
-            subdivision,
             district,
             "seller",
         ) {
@@ -1834,7 +1828,6 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_buyer(
     building_number: *const c_char,
     additional_number: *const c_char,
     postal_code: *const c_char,
-    subdivision: *const c_char,
     district: *const c_char,
     vat_id: *const c_char,
     other_id_value: *const c_char,
@@ -1850,7 +1843,6 @@ pub unsafe extern "C" fn fatoora_invoice_builder_set_buyer(
             building_number,
             additional_number,
             postal_code,
-            subdivision,
             district,
             "buyer",
         ) {
@@ -3613,19 +3605,6 @@ pub unsafe extern "C" fn fatoora_address_postal_code(
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
-pub unsafe extern "C" fn fatoora_address_subdivision(
-    handle: *mut FfiAddress,
-) -> FfiResult<FfiString> {
-    crate::error::boundary(|| {
-        let value = ffi_borrow!(handle, "address", Address);
-        let address: &Address = value;
-        ffi_string_result(address.subdivision())
-    })
-}
-
-#[unsafe(no_mangle)]
-/// # Safety
-/// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
 pub unsafe extern "C" fn fatoora_address_district(handle: *mut FfiAddress) -> FfiResult<FfiString> {
     crate::error::boundary(|| {
         let value = ffi_borrow!(handle, "address", Address);
@@ -3968,7 +3947,6 @@ mod ffi_zatca_tests {
                 building_number: "1234".into(),
                 additional_number: Some("5678".into()),
                 postal_code: "12222".into(),
-                subdivision: None,
                 district: None,
             },
             "301121971500003",
@@ -4415,7 +4393,6 @@ mod ffi_coverage_tests {
                     std::ptr::null(),
                     cstr("12222").as_ptr(),
                     std::ptr::null(),
-                    std::ptr::null(),
                     cstr("399999999900003").as_ptr(),
                     std::ptr::null(),
                     std::ptr::null(),
@@ -4498,13 +4475,11 @@ mod ffi_coverage_tests {
             cstr("").as_ptr(),
             cstr("12222").as_ptr(),
             cstr("").as_ptr(),
-            cstr("").as_ptr(),
             "test",
         )
         .expect("address");
         assert!(address.additional_street.is_none());
         assert!(address.additional_number.is_none());
-        assert!(address.subdivision.is_none());
         assert!(address.district.is_none());
     }
 
@@ -4718,7 +4693,6 @@ mod ffi_coverage_tests {
                 cstr("1234").as_ptr(),
                 std::ptr::null(),
                 cstr("12222").as_ptr(),
-                std::ptr::null(),
                 std::ptr::null(),
                 cstr("399999999900003").as_ptr(),
                 std::ptr::null(),
@@ -4951,7 +4925,6 @@ mod ffi_coverage_tests {
                     std::ptr::null(),
                     cstr("12222").as_ptr(),
                     std::ptr::null(),
-                    std::ptr::null(),
                     cstr("399999999900003").as_ptr(),
                     std::ptr::null(),
                     std::ptr::null(),
@@ -5030,7 +5003,6 @@ mod ffi_coverage_tests {
                     cstr("1234").as_ptr(),
                     std::ptr::null(),
                     cstr("12222").as_ptr(),
-                    std::ptr::null(),
                     std::ptr::null(),
                     cstr("399999999900003").as_ptr(),
                     std::ptr::null(),
@@ -5151,7 +5123,6 @@ mod ffi_coverage_tests {
                     cstr("123").as_ptr(),
                     cstr("5678").as_ptr(),
                     cstr("12222").as_ptr(),
-                    cstr("Subdiv").as_ptr(),
                     cstr("District").as_ptr(),
                     cstr("399999999900003").as_ptr(),
                     cstr("12345").as_ptr(),
@@ -5254,9 +5225,6 @@ mod ffi_coverage_tests {
             let buyer_additional_number = fatoora_address_additional_number(&mut buyer_address);
             assert!(buyer_additional_number.ok);
             fatoora_string_free(buyer_additional_number.value);
-            let buyer_subdivision = fatoora_address_subdivision(&mut buyer_address);
-            assert!(buyer_subdivision.ok);
-            fatoora_string_free(buyer_subdivision.value);
             let buyer_district = fatoora_address_district(&mut buyer_address);
             assert!(buyer_district.ok);
             fatoora_string_free(buyer_district.value);
@@ -5415,7 +5383,6 @@ mod ffi_coverage_tests {
                     cstr("1234").as_ptr(),
                     cstr("5678").as_ptr(),
                     cstr("12222").as_ptr(),
-                    cstr("").as_ptr(),
                     cstr("District 1").as_ptr(),
                     cstr("399999999900003").as_ptr(),
                     cstr("12345").as_ptr(),
@@ -5434,7 +5401,6 @@ mod ffi_coverage_tests {
                 cstr("555").as_ptr(),
                 cstr("1234").as_ptr(),
                 cstr("12222").as_ptr(),
-                cstr("").as_ptr(),
                 cstr("District 2").as_ptr(),
                 cstr("399999999900003").as_ptr(),
                 cstr("67890").as_ptr(),
@@ -5685,7 +5651,6 @@ mod ffi_coverage_tests {
                 std::ptr::null(),
                 cstr("12222").as_ptr(),
                 std::ptr::null(),
-                std::ptr::null(),
                 cstr("399999999900003").as_ptr(),
                 std::ptr::null(),
                 std::ptr::null(),
@@ -5861,7 +5826,6 @@ mod ffi_coverage_tests {
                 cstr("555").as_ptr(),
                 std::ptr::null(),
                 cstr("12222").as_ptr(),
-                std::ptr::null(),
                 std::ptr::null(),
                 cstr("399999999900003").as_ptr(),
                 std::ptr::null(),

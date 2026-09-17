@@ -425,7 +425,6 @@ struct FfiResult_FfiAddress fatoora_address_new(const char *country_code,
                                                 const char *building_number,
                                                 const char *additional_number,
                                                 const char *postal_code,
-                                                const char *subdivision,
                                                 const char *district);
 
 /**
@@ -946,7 +945,6 @@ struct FfiResult_bool fatoora_invoice_builder_set_seller(struct FfiInvoiceBuilde
                                                          const char *building_number,
                                                          const char *additional_number,
                                                          const char *postal_code,
-                                                         const char *subdivision,
                                                          const char *district,
                                                          const char *vat_id,
                                                          const char *other_id_value,
@@ -1005,7 +1003,6 @@ struct FfiResult_bool fatoora_invoice_builder_set_buyer(struct FfiInvoiceBuilder
                                                         const char *building_number,
                                                         const char *additional_number,
                                                         const char *postal_code,
-                                                        const char *subdivision,
                                                         const char *district,
                                                         const char *vat_id,
                                                         const char *other_id_value,
@@ -1778,12 +1775,6 @@ struct FfiResult_FfiString fatoora_address_additional_number(struct FfiAddress *
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
 struct FfiResult_FfiString fatoora_address_postal_code(struct FfiAddress *handle);
-
-/**
- * # Safety
- * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
- */
-struct FfiResult_FfiString fatoora_address_subdivision(struct FfiAddress *handle);
 
 /**
  * # Safety

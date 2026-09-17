@@ -936,8 +936,11 @@ impl<'a> Serialize for AddressXml<'a> {
             st.serialize_field("cbc:AdditionalStreetName", additional)?;
         }
         st.serialize_field("cbc:BuildingNumber", &a.building_number)?;
-        if let Some(subdivision) = &a.subdivision {
-            st.serialize_field("cbc:CitySubdivisionName", subdivision)?;
+        if let Some(additional_number) = &a.additional_number {
+            st.serialize_field("cbc:PlotIdentification", additional_number)?;
+        }
+        if let Some(district) = &a.district {
+            st.serialize_field("cbc:CitySubdivisionName", district)?;
         }
         st.serialize_field("cbc:CityName", &a.city)?;
         st.serialize_field("cbc:PostalZone", &a.postal_code)?;
@@ -1249,7 +1252,6 @@ mod tests {
                 building_number: "1234".into(),
                 additional_number: Some("5678".into()),
                 postal_code: "12222".into(),
-                subdivision: None,
                 district: None,
             },
             "301121971500003",

@@ -233,7 +233,6 @@ FfiResult_bool fatoora_invoice_builder_set_seller(
     const char* building_number,
     const char* additional_number,
     const char* postal_code,
-    const char* subdivision,
     const char* district,
     const char* vat_id,
     const char* other_id_value,
@@ -260,7 +259,6 @@ FfiResult_bool fatoora_invoice_builder_set_buyer(
     const char* building_number,
     const char* additional_number,
     const char* postal_code,
-    const char* subdivision,
     const char* district,
     const char* vat_id,
     const char* other_id_value,
@@ -429,7 +427,6 @@ FfiResult_FfiString fatoora_address_additional_street(FfiAddress* address);
 FfiResult_FfiString fatoora_address_building_number(FfiAddress* address);
 FfiResult_FfiString fatoora_address_additional_number(FfiAddress* address);
 FfiResult_FfiString fatoora_address_postal_code(FfiAddress* address);
-FfiResult_FfiString fatoora_address_subdivision(FfiAddress* address);
 FfiResult_FfiString fatoora_address_district(FfiAddress* address);
 
 void fatoora_vat_id_free(FfiVatId* vat);

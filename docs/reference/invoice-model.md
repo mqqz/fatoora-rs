@@ -209,7 +209,7 @@ let invoice = InvoiceBuilder::new(invoice_type)
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_bool fatoora_invoice_builder_set_seller(FfiInvoiceBuilder* builder, const char* name, const char* country, const char* city, const char* street, const char* additional_street, const char* building_number, const char* additional_number, const char* postal_code, const char* subdivision, const char* district, const char* vat_id, const char* other_id, const char* other_id_scheme);
+        FfiResult_bool fatoora_invoice_builder_set_seller(FfiInvoiceBuilder* builder, const char* name, const char* country, const char* city, const char* street, const char* additional_street, const char* building_number, const char* additional_number, const char* postal_code, const char* district, const char* vat_id, const char* other_id, const char* other_id_scheme);
         ```
 
 ### `buyer`
@@ -228,7 +228,7 @@ let invoice = InvoiceBuilder::new(invoice_type)
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_bool fatoora_invoice_builder_set_buyer(FfiInvoiceBuilder* builder, const char* name, const char* country, const char* city, const char* street, const char* additional_street, const char* building_number, const char* additional_number, const char* postal_code, const char* subdivision, const char* district, const char* vat_id, const char* other_id, const char* other_id_scheme);
+        FfiResult_bool fatoora_invoice_builder_set_buyer(FfiInvoiceBuilder* builder, const char* name, const char* country, const char* city, const char* street, const char* additional_street, const char* building_number, const char* additional_number, const char* postal_code, const char* district, const char* vat_id, const char* other_id, const char* other_id_scheme);
         ```
 
 ### `note`
@@ -636,6 +636,11 @@ For exact XML preservation and consuming `into_xml()` access, see [XML ownership
 
 ### `Address.new`
 
+`district` is the single city-district field and maps to XML
+`cbc:CitySubdivisionName`. Replace the removed `subdivision` field, accessor,
+and constructor argument with `district`, including in serialized address JSON.
+C callers must rebuild against the matching header and library.
+
 ???+ note "Create address value"
 
     === "{{ lang.python }}"
@@ -648,7 +653,6 @@ For exact XML preservation and consuming `into_xml()` access, see [XML ownership
             postal_code: str,
             additional_street: Optional[str] = None,
             additional_number: Optional[str] = None,
-            subdivision: Optional[str] = None,
             district: Optional[str] = None,
         ) -> Address
         ```
@@ -663,7 +667,6 @@ For exact XML preservation and consuming `into_xml()` access, see [XML ownership
             const char* building_number,
             const char* additional_number,
             const char* postal_code,
-            const char* subdivision,
             const char* district
         );
         ```

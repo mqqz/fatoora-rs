@@ -605,7 +605,7 @@ fn parse_address(ctx: &xpath::Context) -> Result<Address, ParseError> {
         "/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:BuildingNumber",
         "SellerBuildingNumber",
     )?;
-    let city_subdivision = xpath_text_optional(
+    let district = xpath_text_optional(
         ctx,
         "/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:CitySubdivisionName",
     )?;
@@ -633,12 +633,17 @@ fn parse_address(ctx: &xpath::Context) -> Result<Address, ParseError> {
         country_code,
         city,
         street,
-        additional_street: None,
+        additional_street: xpath_text_optional(
+            ctx,
+            "/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:AdditionalStreetName",
+        )?,
         building_number,
-        additional_number: None,
+        additional_number: xpath_text_optional(
+            ctx,
+            "/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:PlotIdentification",
+        )?,
         postal_code,
-        subdivision: city_subdivision,
-        district: None,
+        district,
     })
 }
 

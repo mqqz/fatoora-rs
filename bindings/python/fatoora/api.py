@@ -968,7 +968,6 @@ class Address:
         postal_code: str,
         additional_street: Optional[str] = None,
         additional_number: Optional[str] = None,
-        subdivision: Optional[str] = None,
         district: Optional[str] = None,
     ) -> "Address":
         bindings = _FfiBindings.instance()
@@ -980,7 +979,6 @@ class Address:
             _as_bytes(building_number),
             _opt_cstr(bindings.ffi, additional_number),
             _as_bytes(postal_code),
-            _opt_cstr(bindings.ffi, subdivision),
             _opt_cstr(bindings.ffi, district),
         )
         handle = _wrap_handle(
@@ -1036,13 +1034,6 @@ class Address:
         bindings = _FfiBindings.instance()
         result = bindings.lib.fatoora_address_postal_code(self._handle)
         return _decode_string(
-            bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
-        )
-
-    def subdivision(self) -> Optional[str]:
-        bindings = _FfiBindings.instance()
-        result = bindings.lib.fatoora_address_subdivision(self._handle)
-        return _decode_optional_string(
             bindings.ffi, bindings.lib, _result_or_raise(bindings.ffi, bindings.lib, result)
         )
 
@@ -2175,7 +2166,6 @@ class InvoiceBuilder:
         vat_id: str,
         additional_street: Optional[str] = None,
         additional_number: Optional[str] = None,
-        subdivision: Optional[str] = None,
         district: Optional[str] = None,
         other_id: Optional[str] = None,
         other_id_scheme: Optional[str] = None,
@@ -2191,7 +2181,6 @@ class InvoiceBuilder:
             _as_bytes(building_number),
             _opt_cstr(bindings.ffi, additional_number),
             _as_bytes(postal_code),
-            _opt_cstr(bindings.ffi, subdivision),
             _opt_cstr(bindings.ffi, district),
             _as_bytes(vat_id),
             _opt_cstr(bindings.ffi, other_id),
@@ -2233,7 +2222,6 @@ class InvoiceBuilder:
         other_id_scheme: Optional[str] = None,
         additional_street: Optional[str] = None,
         additional_number: Optional[str] = None,
-        subdivision: Optional[str] = None,
         district: Optional[str] = None,
     ) -> None:
         bindings = _FfiBindings.instance()
@@ -2247,7 +2235,6 @@ class InvoiceBuilder:
             _as_bytes(building_number),
             _opt_cstr(bindings.ffi, additional_number),
             _as_bytes(postal_code),
-            _opt_cstr(bindings.ffi, subdivision),
             _opt_cstr(bindings.ffi, district),
             _opt_cstr(bindings.ffi, vat_id),
             _opt_cstr(bindings.ffi, other_id),
