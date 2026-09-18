@@ -694,14 +694,65 @@ fn apply_signed_properties_values(
     doc: &mut Document,
     signing: &SignedProperties,
 ) -> Result<(), SigningError> {
-    // TODO this is a bit redundant
     apply_signed_properties_values_raw(
         doc,
         &signing.signing_time,
         &signing.cert_hash,
         &signing.issuer,
         &signing.serial,
-    )
+    )?;
+    let ctx = xpath::Context::new(doc).map_err(|e| {
+        SigningError::Xml(crate::Diagnostic::new(format!(
+            "XPath context error: {e:?}"
+        )))
+    })?;
+    register_namespaces(&ctx)?;
+    let mut properties =
+        first_matching_node(&ctx, "//xades:SignedProperties")?.ok_or_else(|| {
+            SigningError::InvalidInput(crate::Diagnostic::new("missing SignedProperties"))
+        })?;
+    // The SDK hashes the standalone XML serialization, including whitespace.
+    // Re-signing must use the same layout as signed_properties_xml. Preserve
+    // namespace placement: introducing redundant leaf declarations changes
+    // DOM4J's empty-element serialization in the official validator.
+    normalize_properties_whitespace(doc, &mut properties, 16)?;
+    Ok(())
+}
+
+fn normalize_properties_whitespace(
+    doc: &Document,
+    node: &mut Node,
+    indent: usize,
+) -> Result<(), SigningError> {
+    if node.get_child_elements().is_empty() {
+        return Ok(());
+    }
+    for mut child in node.get_child_nodes() {
+        if child.is_text_node() && child.get_content().trim().is_empty() {
+            child.unlink();
+        }
+    }
+    for mut child in node.get_child_elements() {
+        normalize_properties_whitespace(doc, &mut child, indent + 2)?;
+        let mut whitespace = Node::new_text(&format!("\n{}", " ".repeat(indent + 2)), doc)
+            .map_err(|_| {
+                SigningError::Xml(crate::Diagnostic::new(
+                    "failed to allocate signature whitespace",
+                ))
+            })?;
+        child
+            .add_prev_sibling(&mut whitespace)
+            .map_err(|e| SigningError::Xml(crate::Diagnostic::new(e.to_string())))?;
+    }
+    let mut whitespace =
+        Node::new_text(&format!("\n{}", " ".repeat(indent)), doc).map_err(|_| {
+            SigningError::Xml(crate::Diagnostic::new(
+                "failed to allocate signature whitespace",
+            ))
+        })?;
+    node.add_child(&mut whitespace)
+        .map_err(|e| SigningError::Xml(crate::Diagnostic::new(e.to_string())))?;
+    Ok(())
 }
 
 fn apply_signed_properties_values_raw(

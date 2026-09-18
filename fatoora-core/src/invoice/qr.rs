@@ -124,7 +124,7 @@ impl QrPayload {
         Ok(Self {
             seller_name,
             seller_vat,
-            timestamp: format!("{issue_date}T{issue_time}Z"),
+            timestamp: format!("{issue_date}T{issue_time}"),
             total_with_vat,
             total_vat,
             invoice_hash: None,
