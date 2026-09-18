@@ -41,6 +41,7 @@ nav:
       - Errors: reference/errors.md
   - Development:
       - Overview: development/index.md
+      - SDK Compatibility: development/sdk-parity.md
       - API Audit: development/api-audit.md
       - FFI Workflow: development/ffi-workflow.md
       - FFI Parity Workflow: development/ffi-parity.md

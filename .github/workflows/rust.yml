@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CARGO_TERM_COLOR: always
+      SKIP_ZATCA_LIVE_API: "1"
     steps:
       - uses: actions/checkout@v5
       - name: Install Rust
@@ -31,8 +32,23 @@ jobs:
             .
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
-      - name: Generate code coverage
-        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+      - name: Test SDK capture harness
+        run: python3 -m unittest discover -s scripts/tests -v
+      - name: Generate code coverage without the SDK
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/no-sdk"
+          cat > "$RUNNER_TEMP/no-sdk/java" <<'EOF'
+          #!/bin/sh
+          touch "$SDK_JAVA_PROBE"
+          exit 99
+          EOF
+          chmod +x "$RUNNER_TEMP/no-sdk/java"
+          export SDK_JAVA_PROBE="$RUNNER_TEMP/no-sdk/invoked"
+          env -u FATOORA_HOME -u SDK_CONFIG -u ZATCA_SDK_ROOT \
+            PATH="$RUNNER_TEMP/no-sdk:$PATH" \
+            cargo llvm-cov --locked --all-features --workspace --lcov --output-path lcov.info -- --skip doc_example_api
+          test ! -e "$SDK_JAVA_PROBE"
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         if: github.repository == 'mqqz/fatoora-rs'

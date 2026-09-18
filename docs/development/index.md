@@ -78,3 +78,7 @@ uv run --python .venv/bin/python pytest bindings/python/tests
 ## See also 
 
 - [Contributing](../contributing.md)
+
+## SDK compatibility
+
+See [SDK compatibility](sdk-parity.md) for the required offline corpus, explicit SDK verification, and fixture refresh instructions.
