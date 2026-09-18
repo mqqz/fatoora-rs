@@ -1300,3 +1300,33 @@ mod tests {
         value
     }
 }
+
+#[cfg(test)]
+mod sdk_canonical_corpus {
+    use super::*;
+    #[test]
+    fn canonical_bytes_match_pinned_sdk() {
+        let root =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/sdk-parity");
+        let manifest: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(root.join("manifest.json")).unwrap()).unwrap();
+        let mut count = 0;
+        for case in manifest["cases"].as_array().unwrap() {
+            if case["kind"].as_str().unwrap().starts_with("csr") || case["kind"] == "malformed" {
+                continue;
+            }
+            let id = case["id"].as_str().unwrap();
+            let directory = root.join("cases").join(id);
+            let xml = std::fs::read_to_string(directory.join("input.xml")).unwrap();
+            let doc = Parser::default().parse_string(xml).unwrap();
+            let expected = std::fs::read_to_string(directory.join("canonical.xml")).unwrap();
+            assert_eq!(
+                canonicalize_invoice(&doc).unwrap(),
+                expected,
+                "SDK canonical bytes: {id}"
+            );
+            count += 1;
+        }
+        assert!(count >= 30, "required canonical cases missing");
+    }
+}

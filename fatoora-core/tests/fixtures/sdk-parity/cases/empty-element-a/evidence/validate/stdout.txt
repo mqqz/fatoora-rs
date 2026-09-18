@@ -1,0 +1,29 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-17 21:47:57,687 [INFO] ValidationProcessorImpl - [XSD] validation result : PASSED
+2026-09-17 21:47:58,252 [INFO] ValidationProcessorImpl - [EN] validation result : PASSED
+2026-09-17 21:47:58,252 [ERROR] ValidationProcessorImpl - en validation warnings : 
+2026-09-17 21:47:58,252 [WARN] ValidationProcessorImpl - CODE : BR-02, MESSAGE : [BR-02]-An Invoice shall have an Invoice number (BT-1).
+2026-09-17 21:47:58,458 [INFO] ValidationProcessorImpl - [KSA] validation result : PASSED
+2026-09-17 21:47:58,458 [ERROR] ValidationProcessorImpl - ksa validation warnings : 
+2026-09-17 21:47:58,458 [WARN] ValidationProcessorImpl - CODE : BR-KSA-60, MESSAGE : [BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02).
+2026-09-17 21:47:58,458 [WARN] ValidationProcessorImpl - CODE : BR-KSA-98, MESSAGE : [BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice.
+2026-09-17 21:47:58,458 [WARN] ValidationProcessorImpl - CODE : BR-KSA-27, MESSAGE : [BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary.
+2026-09-17 21:47:58,493 [ERROR] QrGenerationService - failed to generate qr [unable to get signature from invoice]
+2026-09-17 21:47:58,493 [INFO] ValidationProcessorImpl - [QR] validation result : FAILED
+2026-09-17 21:47:58,493 [ERROR] ValidationProcessorImpl - qr validation errors : 
+2026-09-17 21:47:58,493 [ERROR] ValidationProcessorImpl - CODE : QRCODE_INVALID, MESSAGE : Invalid QR code format, Please follow the ZATCA QR code specifications
+2026-09-17 21:47:58,506 [ERROR] SignatureValidator - java.security.cert.CertificateException: Could not parse certificate: java.io.IOException: Empty input
+2026-09-17 21:47:58,708 [ERROR] SignatureValidator - Error : null
+2026-09-17 21:47:58,708 [INFO] ValidationProcessorImpl - [SIGNATURE] validation result : FAILED
+2026-09-17 21:47:58,708 [ERROR] ValidationProcessorImpl - signature validation errors : 
+2026-09-17 21:47:58,708 [ERROR] ValidationProcessorImpl - CODE : NullPointerException, MESSAGE : null
+2026-09-17 21:47:58,708 [ERROR] ValidationProcessorImpl - CODE : certificate, MESSAGE : wrong invoiceCertificate  
+2026-09-17 21:47:58,711 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-17 21:47:58,711 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = FAILED 

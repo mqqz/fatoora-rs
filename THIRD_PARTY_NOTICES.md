@@ -97,6 +97,16 @@ The SDK contains an LGPL v3 license text, but its scope for these sample files
 has not been established. Confirm redistribution terms or replace the samples
 with independently generated fixtures before treating this question as resolved.
 
+The SDK parity corpus under `fatoora-core/tests/fixtures/sdk-parity/` additionally
+records CLI outputs, signed XML, generated test CSRs/keys, canonical bytes, and
+SignedProperties preimages produced by SDK `238-R3.4.8`. Each case's manifest
+entry identifies its input source. The payable-rounding, exempt, zero-rated,
+and document-charge inputs reuse the existing SDK XML samples; CSR inputs reuse
+its English/Arabic properties. The certificate/key are the existing dummy test
+credentials in decoded DER form. These additions preserve the same unresolved
+sample redistribution question above. No SDK JAR or executable is bundled.
+The Java adapters in `scripts/sdk-parity/` are repository-authored test tooling.
+
 ## Other origins to confirm
 
 - `fatoora-core/assets/templates/*.xml` (3 files), and related XML fragments in

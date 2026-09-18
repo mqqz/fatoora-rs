@@ -1,0 +1,23 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-17 21:47:49,095 [ERROR] XsdValidator - Schema validation failed due to SAXParseException
+2026-09-17 21:47:49,104 [INFO] ValidationProcessorImpl - [XSD] validation result : FAILED
+2026-09-17 21:47:49,104 [ERROR] ValidationProcessorImpl - xsd validation errors : 
+2026-09-17 21:47:49,105 [ERROR] ValidationProcessorImpl - CODE : SAXParseException, MESSAGE : Schema validation failed; XML does not comply with UBL 2.1 standards in line with ZATCA specifications. ERROR: org.xml.sax.SAXParseException; lineNumber: 102; columnNumber: 21; XML document structures must start and end within the same entity.
+2026-09-17 21:47:49,644 [ERROR] SchematronValidator - Schema validation failed due to SAXParseException
+2026-09-17 21:47:49,644 [INFO] ValidationProcessorImpl - [EN] validation result : FAILED
+2026-09-17 21:47:49,644 [ERROR] ValidationProcessorImpl - en validation errors : 
+2026-09-17 21:47:49,644 [ERROR] ValidationProcessorImpl - CODE : SAXParseException, MESSAGE : XML document structures must start and end within the same entity.
+2026-09-17 21:47:49,939 [ERROR] SchematronValidator - Schema validation failed due to SAXParseException
+2026-09-17 21:47:49,939 [INFO] ValidationProcessorImpl - [KSA] validation result : FAILED
+2026-09-17 21:47:49,939 [ERROR] ValidationProcessorImpl - ksa validation errors : 
+2026-09-17 21:47:49,939 [ERROR] ValidationProcessorImpl - CODE : SAXParseException, MESSAGE : XML document structures must start and end within the same entity.
+2026-09-17 21:47:49,942 [ERROR] Utils - Error : XML document structures must start and end within the same entity.
+2026-09-17 21:47:49,947 [ERROR] Utils - Error : XML document structures must start and end within the same entity.
+2026-09-17 21:47:49,948 [ERROR] InvoiceValidationService - failed to validate invoice - null

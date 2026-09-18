@@ -669,3 +669,20 @@ fn dummy_line_items() -> Vec<LineItem> {
         .unwrap(),
     ]
 }
+
+#[allow(dead_code)]
+pub fn parity_invoices() -> Vec<(&'static str, FinalizedInvoice)> {
+    vec![
+        ("simplified-invoice", dummy_finalized_invoice()),
+        ("standard-invoice", complex_standard_invoice()),
+        ("standard-credit", credit_note_standard_invoice()),
+        ("standard-debit", debit_note_standard_invoice()),
+        ("simplified-credit", simplified_credit_note_invoice()),
+        ("simplified-debit", simplified_debit_note_invoice()),
+        ("prepayment", prepayment_standard_invoice()),
+        ("mixed-vat", mixed_vat_simplified_invoice()),
+        ("export-self-billed", export_self_billed_standard_invoice()),
+        ("out-of-scope", out_of_scope_standard_invoice()),
+        ("foreign-currency", foreign_currency_standard_invoice()),
+    ]
+}

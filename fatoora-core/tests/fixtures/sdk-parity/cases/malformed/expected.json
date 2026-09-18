@@ -1,0 +1,7 @@
+{
+  "validation": {
+    "xsd": "not_run",
+    "parse": "failed",
+    "global": "not_run"
+  }
+}

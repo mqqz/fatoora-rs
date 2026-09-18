@@ -1,0 +1,30 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-17 21:47:51,874 [INFO] ValidationProcessorImpl - [XSD] validation result : PASSED
+2026-09-17 21:47:52,387 [INFO] ValidationProcessorImpl - [EN] validation result : PASSED
+2026-09-17 21:47:52,601 [INFO] ValidationProcessorImpl - [KSA] validation result : FAILED
+2026-09-17 21:47:52,602 [ERROR] ValidationProcessorImpl - ksa validation errors : 
+2026-09-17 21:47:52,602 [ERROR] ValidationProcessorImpl - CODE : BR-KSA-30, MESSAGE : [BR-KSA-30]-The document cryptographic stamp (KSA-15) must contain the exact "urn:oasis:names:specification:ubl:dsig:enveloped:xades" value for signature method.
+2026-09-17 21:47:52,602 [ERROR] ValidationProcessorImpl - CODE : BR-KSA-28, MESSAGE : [BR-KSA-28]-If the cryptographic stamp (KSA-15) exists in the invoice, this cryptographic stamp (KSA-15) must contain the exact "urn:oasis:names:specification:ubl:signature:1" value for signature information ID.
+2026-09-17 21:47:52,602 [ERROR] ValidationProcessorImpl - ksa validation warnings : 
+2026-09-17 21:47:52,602 [WARN] ValidationProcessorImpl - CODE : BR-KSA-29, MESSAGE : [BR-KSA-29]-If the cryptographic stamp (KSA-15) exists in the invoice, this cryptographic stamp (KSA-15) must contain the exact "urn:oasis:names:specification:ubl:signature:Invoice" value for referenced signature ID and signature ID.
+2026-09-17 21:47:52,602 [WARN] ValidationProcessorImpl - CODE : BR-KSA-60, MESSAGE : [BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02).
+2026-09-17 21:47:52,602 [WARN] ValidationProcessorImpl - CODE : BR-KSA-98, MESSAGE : [BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice.
+2026-09-17 21:47:52,636 [ERROR] QrGenerationService - failed to generate qr [unable to get signature from invoice]
+2026-09-17 21:47:52,636 [INFO] ValidationProcessorImpl - [QR] validation result : FAILED
+2026-09-17 21:47:52,636 [ERROR] ValidationProcessorImpl - qr validation errors : 
+2026-09-17 21:47:52,636 [ERROR] ValidationProcessorImpl - CODE : QRCODE_INVALID, MESSAGE : Invalid QR code format, Please follow the ZATCA QR code specifications
+2026-09-17 21:47:52,647 [ERROR] SignatureValidator - java.security.cert.CertificateException: Could not parse certificate: java.io.IOException: Empty input
+2026-09-17 21:47:52,830 [ERROR] SignatureValidator - Error : null
+2026-09-17 21:47:52,830 [INFO] ValidationProcessorImpl - [SIGNATURE] validation result : FAILED
+2026-09-17 21:47:52,830 [ERROR] ValidationProcessorImpl - signature validation errors : 
+2026-09-17 21:47:52,830 [ERROR] ValidationProcessorImpl - CODE : NullPointerException, MESSAGE : null
+2026-09-17 21:47:52,830 [ERROR] ValidationProcessorImpl - CODE : certificate, MESSAGE : wrong invoiceCertificate  
+2026-09-17 21:47:52,834 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-17 21:47:52,834 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = FAILED 

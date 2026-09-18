@@ -1,0 +1,5 @@
+Picked up JAVA_TOOL_OPTIONS: -Dlog4j2.hostName=localhost -Dfile.encoding=UTF-8
+[Fatal Error] :102:21: XML document structures must start and end within the same entity.
+[Fatal Error] :102:21: XML document structures must start and end within the same entity.
+[Fatal Error] :102:21: XML document structures must start and end within the same entity.
+[Fatal Error] :102:21: XML document structures must start and end within the same entity.

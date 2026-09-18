@@ -1,0 +1,13 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-17 21:48:00,471 [INFO] ValidationProcessorImpl - [XSD] validation result : PASSED
+2026-09-17 21:48:00,984 [INFO] ValidationProcessorImpl - [EN] validation result : PASSED
+2026-09-17 21:48:01,210 [INFO] ValidationProcessorImpl - [KSA] validation result : PASSED
+2026-09-17 21:48:01,244 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-17 21:48:01,244 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = PASSED 

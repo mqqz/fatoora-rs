@@ -1,0 +1,12 @@
+{
+  "validation": {
+    "xsd": "passed",
+    "en": "passed",
+    "ksa": "passed",
+    "qr": "failed",
+    "signature": "failed",
+    "pih": "passed",
+    "global": "failed"
+  },
+  "hash": "Yt87shQkHL7UVxeIvgKF6l/8LkYFe7h5UESTeeFSC10="
+}

@@ -1,0 +1,26 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-17 21:47:50,493 [INFO] ValidationProcessorImpl - [XSD] validation result : PASSED
+2026-09-17 21:47:50,937 [INFO] ValidationProcessorImpl - [EN] validation result : PASSED
+2026-09-17 21:47:51,138 [INFO] ValidationProcessorImpl - [KSA] validation result : PASSED
+2026-09-17 21:47:51,138 [ERROR] ValidationProcessorImpl - ksa validation warnings : 
+2026-09-17 21:47:51,138 [WARN] ValidationProcessorImpl - CODE : BR-KSA-98, MESSAGE : [BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice.
+2026-09-17 21:47:51,138 [WARN] ValidationProcessorImpl - CODE : BR-KSA-27, MESSAGE : [BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary.
+2026-09-17 21:47:51,166 [ERROR] QrGenerationService - failed to generate qr [unable to get signature from invoice]
+2026-09-17 21:47:51,167 [INFO] ValidationProcessorImpl - [QR] validation result : FAILED
+2026-09-17 21:47:51,167 [ERROR] ValidationProcessorImpl - qr validation errors : 
+2026-09-17 21:47:51,167 [ERROR] ValidationProcessorImpl - CODE : QRCODE_INVALID, MESSAGE : Invalid QR code format, Please follow the ZATCA QR code specifications
+2026-09-17 21:47:51,178 [ERROR] SignatureValidator - java.security.cert.CertificateException: Could not parse certificate: java.io.IOException: Empty input
+2026-09-17 21:47:51,330 [ERROR] SignatureValidator - Error : null
+2026-09-17 21:47:51,330 [INFO] ValidationProcessorImpl - [SIGNATURE] validation result : FAILED
+2026-09-17 21:47:51,330 [ERROR] ValidationProcessorImpl - signature validation errors : 
+2026-09-17 21:47:51,330 [ERROR] ValidationProcessorImpl - CODE : NullPointerException, MESSAGE : null
+2026-09-17 21:47:51,330 [ERROR] ValidationProcessorImpl - CODE : certificate, MESSAGE : wrong invoiceCertificate  
+2026-09-17 21:47:51,332 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-17 21:47:51,332 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = FAILED 

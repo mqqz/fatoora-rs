@@ -1,0 +1,29 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-17 21:47:46,188 [ERROR] XsdValidator - Schema validation failed due to SAXParseException
+2026-09-17 21:47:46,205 [INFO] ValidationProcessorImpl - [XSD] validation result : FAILED
+2026-09-17 21:47:46,206 [ERROR] ValidationProcessorImpl - xsd validation errors : 
+2026-09-17 21:47:46,207 [ERROR] ValidationProcessorImpl - CODE : SAXParseException, MESSAGE : Schema validation failed; XML does not comply with UBL 2.1 standards in line with ZATCA specifications. ERROR: org.xml.sax.SAXParseException; lineNumber: 6; columnNumber: 44; cvc-datatype-valid.1.2.1: 'not-a-date' is not a valid value for 'date'.
+2026-09-17 21:47:46,896 [INFO] ValidationProcessorImpl - [EN] validation result : PASSED
+2026-09-17 21:47:47,175 [ERROR] SchematronValidator - Error Happen : Invalid dateTime value "not-a-dateT12:30:00" (Non-numeric year component)
+2026-09-17 21:47:47,175 [INFO] ValidationProcessorImpl - [KSA] validation result : FAILED
+2026-09-17 21:47:47,175 [ERROR] ValidationProcessorImpl - ksa validation errors : 
+2026-09-17 21:47:47,175 [ERROR] ValidationProcessorImpl - CODE : SaxonApiException, MESSAGE : Invalid dateTime value "not-a-dateT12:30:00" (Non-numeric year component)
+2026-09-17 21:47:47,213 [ERROR] QrGenerationService - failed to generate qr [unable to convert issue date time]
+2026-09-17 21:47:47,214 [INFO] ValidationProcessorImpl - [QR] validation result : FAILED
+2026-09-17 21:47:47,214 [ERROR] ValidationProcessorImpl - qr validation errors : 
+2026-09-17 21:47:47,214 [ERROR] ValidationProcessorImpl - CODE : QRCODE_INVALID, MESSAGE : Invalid QR code format, Please follow the ZATCA QR code specifications
+2026-09-17 21:47:47,233 [ERROR] SignatureValidator - java.security.cert.CertificateException: Could not parse certificate: java.io.IOException: Empty input
+2026-09-17 21:47:47,459 [ERROR] SignatureValidator - Error : null
+2026-09-17 21:47:47,459 [INFO] ValidationProcessorImpl - [SIGNATURE] validation result : FAILED
+2026-09-17 21:47:47,459 [ERROR] ValidationProcessorImpl - signature validation errors : 
+2026-09-17 21:47:47,459 [ERROR] ValidationProcessorImpl - CODE : NullPointerException, MESSAGE : null
+2026-09-17 21:47:47,459 [ERROR] ValidationProcessorImpl - CODE : certificate, MESSAGE : wrong invoiceCertificate  
+2026-09-17 21:47:47,461 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-17 21:47:47,461 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = FAILED 

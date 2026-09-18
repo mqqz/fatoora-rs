@@ -1,0 +1,3 @@
+Picked up JAVA_TOOL_OPTIONS: -Dlog4j2.hostName=localhost -Dfile.encoding=UTF-8
+Note: /tmp/fatoora sdk parity cfus7nqg/sdk/SignedPropertiesBytes.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.

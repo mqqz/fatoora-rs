@@ -1,0 +1,102 @@
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:basic="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2">
+  <basic:ProfileID>reporting:1.0</basic:ProfileID>
+  <basic:ID>INV-1</basic:ID>
+  <basic:UUID>8e6000cf-1a98-4174-b3e7-b5d5954bc10d</basic:UUID>
+  <basic:IssueDate>2024-01-01</basic:IssueDate>
+  <basic:IssueTime>12:30:00</basic:IssueTime>
+  <basic:InvoiceTypeCode name="0200000">388</basic:InvoiceTypeCode>
+  <basic:DocumentCurrencyCode>SAR</basic:DocumentCurrencyCode>
+  <basic:TaxCurrencyCode>SAR</basic:TaxCurrencyCode>
+  <cac:AdditionalDocumentReference>
+    <basic:ID>ICV</basic:ID>
+    <basic:UUID>0</basic:UUID>
+  </cac:AdditionalDocumentReference>
+  <cac:AdditionalDocumentReference>
+    <basic:ID>PIH</basic:ID>
+    <cac:Attachment>
+      <basic:EmbeddedDocumentBinaryObject mimeCode="text/plain">NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==</basic:EmbeddedDocumentBinaryObject>
+    </cac:Attachment>
+  </cac:AdditionalDocumentReference>
+  <cac:AccountingSupplierParty>
+    <cac:Party>
+      <cac:PartyIdentification>
+        <basic:ID schemeID="CRN">7003339333</basic:ID>
+      </cac:PartyIdentification>
+      <cac:PostalAddress>
+        <basic:StreetName>King Fahd</basic:StreetName>
+        <basic:BuildingNumber>1234</basic:BuildingNumber>
+        <basic:PlotIdentification>5678</basic:PlotIdentification>
+        <basic:CitySubdivisionName>Olaya</basic:CitySubdivisionName>
+        <basic:CityName>Riyadh</basic:CityName>
+        <basic:PostalZone>12222</basic:PostalZone>
+        <cac:Country>
+          <basic:IdentificationCode>SA</basic:IdentificationCode>
+        </cac:Country>
+      </cac:PostalAddress>
+      <cac:PartyTaxScheme>
+        <basic:CompanyID>399999999900003</basic:CompanyID>
+        <cac:TaxScheme>
+          <basic:ID schemeAgencyID="6" schemeID="UN/ECE 5153">VAT</basic:ID>
+        </cac:TaxScheme>
+      </cac:PartyTaxScheme>
+      <cac:PartyLegalEntity>
+        <basic:RegistrationName>Acme Inc</basic:RegistrationName>
+      </cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+  <cac:AccountingCustomerParty>
+    <cac:Party></cac:Party>
+  </cac:AccountingCustomerParty>
+  <cac:PaymentMeans>
+    <basic:PaymentMeansCode>10</basic:PaymentMeansCode>
+  </cac:PaymentMeans>
+  <cac:TaxTotal>
+    <basic:TaxAmount currencyID="SAR">15.00</basic:TaxAmount>
+  </cac:TaxTotal>
+  <cac:TaxTotal>
+    <basic:TaxAmount currencyID="SAR">15.00</basic:TaxAmount>
+    <cac:TaxSubtotal>
+      <basic:TaxableAmount currencyID="SAR">100.00</basic:TaxableAmount>
+      <basic:TaxAmount currencyID="SAR">15.00</basic:TaxAmount>
+      <cac:TaxCategory>
+        <basic:ID schemeAgencyID="6" schemeID="UN/ECE 5305">S</basic:ID>
+        <basic:Percent>15</basic:Percent>
+        <cac:TaxScheme>
+          <basic:ID schemeAgencyID="6" schemeID="UN/ECE 5153">VAT</basic:ID>
+        </cac:TaxScheme>
+      </cac:TaxCategory>
+    </cac:TaxSubtotal>
+  </cac:TaxTotal>
+  <cac:LegalMonetaryTotal>
+    <basic:LineExtensionAmount currencyID="SAR">100.00</basic:LineExtensionAmount>
+    <basic:TaxExclusiveAmount currencyID="SAR">100.00</basic:TaxExclusiveAmount>
+    <basic:TaxInclusiveAmount currencyID="SAR">115.00</basic:TaxInclusiveAmount>
+    <basic:AllowanceTotalAmount currencyID="SAR">0.00</basic:AllowanceTotalAmount>
+    <basic:ChargeTotalAmount currencyID="SAR">0.00</basic:ChargeTotalAmount>
+    <basic:PrepaidAmount currencyID="SAR">0.00</basic:PrepaidAmount>
+    <basic:PayableRoundingAmount currencyID="SAR">0.00</basic:PayableRoundingAmount>
+    <basic:PayableAmount currencyID="SAR">115.00</basic:PayableAmount>
+  </cac:LegalMonetaryTotal>
+  <cac:InvoiceLine>
+    <basic:ID>1</basic:ID>
+    <basic:InvoicedQuantity unitCode="PCE">1</basic:InvoicedQuantity>
+    <basic:LineExtensionAmount currencyID="SAR">100.00</basic:LineExtensionAmount>
+    <cac:TaxTotal>
+      <basic:TaxAmount currencyID="SAR">15.00</basic:TaxAmount>
+      <basic:RoundingAmount currencyID="SAR">115.00</basic:RoundingAmount>
+    </cac:TaxTotal>
+    <cac:Item>
+      <basic:Name>Item</basic:Name>
+      <cac:ClassifiedTaxCategory>
+        <basic:ID schemeAgencyID="6" schemeID="UN/ECE 5305">S</basic:ID>
+        <basic:Percent>15</basic:Percent>
+        <cac:TaxScheme>
+          <basic:ID schemeAgencyID="6" schemeID="UN/ECE 5153">VAT</basic:ID>
+        </cac:TaxScheme>
+      </cac:ClassifiedTaxCategory>
+    </cac:Item>
+    <cac:Price>
+      <basic:PriceAmount currencyID="SAR">100</basic:PriceAmount>
+    </cac:Price>
+  </cac:InvoiceLine>
+</Invoice>

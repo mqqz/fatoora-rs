@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "java",
+    "-Djdk.sunec.disableNative=false",
+    "-jar",
+    "/tmp/fatoora sdk parity cfus7nqg/sdk/Apps/zatca-einvoicing-sdk-238-R3.4.8.jar",
+    "--globalVersion",
+    "238-R3.4.8",
+    "-csr",
+    "-csrConfig",
+    "/tmp/fatoora-corpus-final/cases/csr-missing-property/csr.properties",
+    "-privateKey",
+    "/tmp/fatoora-corpus-final/cases/csr-missing-property/key",
+    "-generatedCsr",
+    "/tmp/fatoora-corpus-final/cases/csr-missing-property/csr"
+  ],
+  "cwd": "/tmp/fatoora sdk parity cfus7nqg/sdk/Apps",
+  "exit_code": 0
+}

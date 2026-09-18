@@ -1,0 +1,10 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-17 21:48:06,979 [INFO] QrGenerationService - Qr has been generated successfully
+2026-09-17 21:48:06,979 [INFO] QrGenerationService -  *** QR code = AW/YtNix2YPYqSDYqtmI2LHZitivINin2YTYqtmD2YbZiNmE2YjYrNmK2Kcg2KjYo9mC2LXZiSDYs9ix2LnYqSDYp9mE2YXYrdiv2YjYr9ipIHwgTWF4aW11bSBTcGVlZCBUZWNoIFN1cHBseSBMVEQCDzM5OTk5OTk5OTkwMDAwMwMTMjAyMi0wOS0wN1QxMjoyMToyOAQFNzUuMDAFBDMuMjYGLG1FQXQzempaa1dGTXlicUFkMTMvZnpEOXRyalRIN0lOLzdmd0NhWTZ4MXc9B2BNRVlDSVFDOTlsSGJYZUlRVE5HdmlvUEZoOTVqZ0JMaXZDWU9CWWoxQVdpMGcxTFFVd0loQUwrNUJrVnpDMzB1d2pNTitaNUttVXEzeXRNQXNzUEpXemFKa29hQ1ZlaWoIWDBWMBAGByqGSM49AgEGBSuBBAAKA0IABKFgimtEmvRSBK0zr9LgJAtVSCl8VPZz6cdr5X+MoTHo8vHNNlyW5Q6u7T8naPJqtGoTjJjaPIMJ4u17dSk/VHgJRzBFAiEAsT+JyGadZcJQpRtxrfJyLyirBou8V0dWNCu94j26oBsCID2ELgzyOAwEAM9LOZ3a6I8kDqApHcsTTdTvl6psL+tc

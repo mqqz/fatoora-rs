@@ -1,0 +1,10 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-17 21:47:45,107 [INFO] HashGenerationService - invoice hash has been generated successfully
+2026-09-17 21:47:45,107 [INFO] HashGenerationService -  *** INVOICE HASH = 6bq8KWuc95YNyR2riOg1mYDdpIWujUvXgj3wzk/eP7A=
