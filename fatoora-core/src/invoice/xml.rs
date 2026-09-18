@@ -232,18 +232,6 @@ impl<'a> InvoiceTotals<'a> {
         self.currency
     }
 
-    fn taxable_amount(&self) -> Decimal {
-        self.totals.taxable_amount()
-    }
-
-    fn tax_inclusive_amount(&self) -> Decimal {
-        self.totals.tax_inclusive_amount()
-    }
-
-    fn line_extension(&self) -> Decimal {
-        self.totals.line_extension()
-    }
-
     fn tax_amount(&self) -> Decimal {
         self.totals.tax_amount()
     }

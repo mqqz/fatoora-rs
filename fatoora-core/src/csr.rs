@@ -296,10 +296,10 @@ impl CsrProperties {
     fn generate_subject(&self) -> Result<name::Name, CsrError> {
         name::Name::from_str(&format!(
             "CN={},O={},OU={},C={}",
-            &self.common_name,
-            &self.organization_name,
-            &self.organization_unit_name,
-            &self.country_name
+            self.common_name,
+            self.organization_name,
+            self.organization_unit_name,
+            self.country_name
         ))
         .map_err(|e| CsrError::InvalidSubject {
             message: e.to_string(),
@@ -316,11 +316,11 @@ impl CsrProperties {
     fn generate_san_extension(&self) -> Result<SubjectAltName, CsrError> {
         let name = name::Name::from_str(&format!(
             "businessCategory={},registeredAddress={},title={},uid={},sn={}",
-            &self.industry_business_category,
-            &self.location_address,
-            &self.invoice_type,
-            &self.organization_identifier,
-            &self.serial_number
+            self.industry_business_category,
+            self.location_address,
+            self.invoice_type,
+            self.organization_identifier,
+            self.serial_number
         ))
         .map_err(|e| CsrError::InvalidSan {
             message: e.to_string(),

@@ -85,8 +85,11 @@ cargo build
 cargo fmt
 
 # Lint
-cargo clippy --all-targets --all-features
+cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 ```
+
+All crates inherit the Clippy lint policy from the root `Cargo.toml`. CI checks
+formatting and runs Clippy with warnings treated as errors.
 
 ## Tests
 Run the full test suite with:
@@ -129,7 +132,8 @@ Benchmark data lives in `bench/`. The CLI benchmark results are tracked in `benc
 
 ## Releases
 
-If you need a release, open an issue with the scope and crate(s) to publish.
+See the [release procedure](development/releases.md) for version updates,
+validation, publication, and recovery from a partial release.
 
 ## See also 
 

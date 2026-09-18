@@ -17,7 +17,7 @@ class build_py(_build_py):
         target_dir = repo_root / "target" / "release"
 
         subprocess.check_call(
-            ["cargo", "build", "-p", "fatoora-ffi", "--release"], cwd=repo_root
+            ["cargo", "build", "-p", "fatoora-ffi", "--release", "--locked"], cwd=repo_root
         )
 
         lib_name = self._shared_lib_name()
@@ -28,6 +28,33 @@ class build_py(_build_py):
         package_dir = Path(self.build_lib) / "fatoora"
         package_dir.mkdir(parents=True, exist_ok=True)
         shutil.copy2(lib_path, package_dir / lib_name)
+        shutil.copy2(
+            repo_root / "fatoora-ffi" / "include" / "fatoora_ffi.h",
+            package_dir / "fatoora_ffi.h",
+        )
+
+        # Retain the notices supplied with libraries that wheel repair bundles.
+        if os.name == "nt":
+            vcpkg_root = Path(os.environ.get("VCPKG_INSTALLATION_ROOT", "C:/vcpkg"))
+            license_files = (vcpkg_root / "installed/x64-windows/share").glob(
+                "*/copyright"
+            )
+        elif sys.platform.startswith("linux"):
+            license_files = [
+                source
+                for dependency in ("libxml2", "xz-libs")
+                for source in (Path("/usr/share/licenses") / dependency).glob("*")
+                if source.is_file()
+            ]
+            # AlmaLinux 8's xz-libs RPM keeps its license in the xz doc directory.
+            license_files.extend(Path("/usr/share/doc/xz").glob("COPYING"))
+        else:
+            license_files = ()
+        for source in license_files:
+            dependency = "xz-libs" if source.parent.name == "xz" else source.parent.name
+            destination = package_dir / "licenses" / dependency
+            destination.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination / source.name)
 
         super().run()
 

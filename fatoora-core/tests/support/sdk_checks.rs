@@ -180,15 +180,14 @@ pub fn verify_signed(
             return Err(format!("QR tag {tag} differs"));
         }
     }
-    if let Some(value) = tags.get(&9) {
-        if value.as_slice()
+    if let Some(value) = tags.get(&9)
+        && value.as_slice()
             != cert
                 .signature()
                 .as_bytes()
                 .ok_or("unaligned cert signature")?
-        {
-            return Err("QR certificate signature differs".into());
-        }
+    {
+        return Err("QR certificate signature differs".into());
     }
     if text(&ctx, "/*/cbc:InvoiceTypeCode/@name")?.starts_with("02") && !tags.contains_key(&9) {
         return Err("missing simplified QR certificate signature".into());

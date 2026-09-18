@@ -68,8 +68,11 @@ cargo build
 cargo fmt
 
 # Lint
-cargo clippy --all-targets --all-features
+cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 ```
+
+All crates inherit the Clippy lint policy from the root `Cargo.toml`. CI checks
+formatting and runs Clippy with warnings treated as errors.
 
 ## Tests
 Run the full test suite with:

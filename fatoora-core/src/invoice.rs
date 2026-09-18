@@ -913,6 +913,10 @@ impl LineItem {
         )
     }
     /// Preserve supplied amounts only when they match the rounded calculations exactly.
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "The public import constructor accepts all supplied line-item amounts for validation"
+    )]
     pub fn try_from_parts(
         description: impl Into<String>,
         quantity: Decimal,

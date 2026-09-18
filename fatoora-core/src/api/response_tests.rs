@@ -225,7 +225,7 @@ async fn response_contract_duplicate_clearance_and_contradictions() {
 
 #[tokio::test]
 async fn response_contract_body_read_failure_keeps_status() {
-    use std::io::{Read, Write};
+    use std::io::{BufRead, BufReader, Write};
     let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
     let address = listener.local_addr().unwrap();
     let server = std::thread::spawn(move || {
@@ -233,8 +233,15 @@ async fn response_contract_body_read_failure_keeps_status() {
         stream
             .set_read_timeout(Some(std::time::Duration::from_secs(5)))
             .unwrap();
-        let mut buffer = [0; 4096];
-        stream.read(&mut buffer).unwrap();
+        let mut request = BufReader::new(&mut stream);
+        let mut line = String::new();
+        loop {
+            line.clear();
+            assert!(request.read_line(&mut line).unwrap() > 0);
+            if line == "\r\n" {
+                break;
+            }
+        }
         stream
             .write_all(
                 b"HTTP/1.1 200 OK\r\nContent-Length: 10000\r\nConnection: close\r\n\r\n{partial",

@@ -13,8 +13,6 @@ on:
         description: "Publish crates to crates.io"
         required: false
         default: "false"
-    tags:
-      - "v*"
 jobs:
   coverage:
     runs-on: ubuntu-latest
@@ -23,16 +21,35 @@ jobs:
       SKIP_ZATCA_LIVE_API: "1"
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check release metadata
+        run: python3 scripts/check_release.py
+      - name: Check publication tag
+        if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.publish == 'true')
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_REF_TYPE: ${{ github.ref_type }}
+        run: |
+          test "$RELEASE_REF_TYPE" = tag
+          python3 scripts/check_release.py --tag "$RELEASE_TAG"
       - name: Install Rust
-        run: rustup update stable
+        run: |
+          rustup update stable
+          rustup component add clippy rustfmt
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: |
             .
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
-      - name: Test SDK capture harness
+      - name: Test release checks and SDK capture harness
         run: python3 -m unittest discover -s scripts/tests -v
       - name: Generate code coverage without the SDK
         shell: bash
@@ -49,6 +66,8 @@ jobs:
             PATH="$RUNNER_TEMP/no-sdk:$PATH" \
             cargo llvm-cov --locked --all-features --workspace --lcov --output-path lcov.info -- --skip doc_example_api
           test ! -e "$SDK_JAVA_PROBE"
+      - name: Verify packages without publishing
+        run: cargo publish --workspace --locked --dry-run
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         if: github.repository == 'mqqz/fatoora-rs'

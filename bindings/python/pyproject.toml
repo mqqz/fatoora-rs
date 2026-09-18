@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fatoora-rs"
-version = "0.1.3"
+version = "0.2.0"
 description = "Python bindings for the fatoora-rs library, providing ZATCA-compliant e-invoicing functionality."
 readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT OR Apache-2.0"
 license-files = ["LICENSE-MIT", "LICENSE-APACHE", "THIRD_PARTY_NOTICES.md"]
 authors = [{ name = "mqqz" }]
-dependencies = ["cffi>=1.16"]
+dependencies = ["cffi>=1.17"]
 keywords = ["zatca", "invoice", "e-invoicing", "sdk", "ffi"]
 classifiers = [
   "Programming Language :: Python :: 3",
@@ -33,25 +33,27 @@ dev = ["pytest>=8.0"]
 packages = ["fatoora"]
 
 [tool.setuptools.package-data]
-fatoora = ["*.so", "*.dylib", "*.dll"]
+fatoora = ["*.so", "*.dylib", "*.dll", "*.h", "licenses/*/*"]
 
 [tool.cibuildwheel]
 build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
 skip = "*-musllinux_*"
-test-command = "python -c \"import fatoora; print(fatoora.__all__)\""
+test-command = "python {project}/tests/wheel_smoke.py"
 
 [tool.cibuildwheel.linux]
 before-all = "yum -y install libxml2-devel pkgconfig clang clang-libs llvm-devel glibc-headers glibc-devel gcc gcc-c++ kernel-headers libstdc++-devel && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
 environment = "CARGO_HOME=/root/.cargo PATH=/root/.cargo/bin:$PATH PKG_CONFIG_PATH=/usr/lib64/pkgconfig:/usr/local/lib/pkgconfig LIBCLANG_PATH=/usr/lib64 BINDGEN_EXTRA_CLANG_ARGS=--sysroot=/usr"
-before-build = "cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/Cargo.toml"
+before-build = "cargo build -p fatoora-ffi --release --locked --manifest-path _cargo_ws/Cargo.toml"
 
 [tool.cibuildwheel.macos]
-before-build = "cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/Cargo.toml"
+before-build = "cargo build -p fatoora-ffi --release --locked --manifest-path _cargo_ws/Cargo.toml"
 
 [tool.cibuildwheel.windows]
+archs = ["AMD64"]
+repair-wheel-command = "delvewheel repair --analyze-existing --add-path C:/vcpkg/installed/x64-windows/bin -w {dest_dir} {wheel}"
 before-all = "powershell -Command \"if (!(Test-Path $env:VCPKG_INSTALLATION_ROOT)) { Write-Error 'VCPKG_INSTALLATION_ROOT is not set on this runner.'; exit 1 }; $env:VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT; $env:VCPKG_BUILD_TYPE='release'; & $env:VCPKG_INSTALLATION_ROOT\\\\vcpkg.exe install libxml2:x64-windows --triplet x64-windows; if (!(Test-Path 'C:\\\\Program Files\\\\LLVM\\\\bin\\\\libclang.dll')) { Write-Error 'libclang.dll not found at C:\\\\Program Files\\\\LLVM\\\\bin. Install LLVM on the runner or set LIBCLANG_PATH.'; exit 1 }\""
 environment = "VCPKG_ROOT=C:\\\\vcpkg VCPKG_INSTALLATION_ROOT=C:\\\\vcpkg VCPKG_DEFAULT_TRIPLET=x64-windows VCPKGRS_TRIPLET=x64-windows VCPKGRS_DYNAMIC=1 LIBCLANG_PATH=C:\\\\PROGRA~1\\\\LLVM\\\\bin VCPKG_BUILD_TYPE=release VCPKG_LIBXML2_INCLUDE=C:\\\\vcpkg\\\\installed\\\\x64-windows\\\\include VCPKG_LIBXML2_LIB=C:\\\\vcpkg\\\\installed\\\\x64-windows\\\\lib"
-before-build = "cargo build -p fatoora-ffi --release --manifest-path _cargo_ws/Cargo.toml"
+before-build = "cargo build -p fatoora-ffi --release --locked --manifest-path _cargo_ws/Cargo.toml"
 
 [tool.ruff.lint.per-file-ignores]
 # Ignore E402 (module level import not at top of file) in examples
