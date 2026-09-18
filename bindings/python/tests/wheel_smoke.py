@@ -9,6 +9,16 @@ from fatoora import Address, Config, Environment
 package = Path(fatoora.__file__).parent
 assert (package / "fatoora_ffi.h").is_file(), "wheel must include its matching ABI header"
 
+bundled_libraries = package.parent / "fatoora_rs.libs"
+for library, notice in (
+    ("*xml2*", "libxml2"),
+    ("*lzma*.so*", "xz-libs"),
+):
+    if any(bundled_libraries.glob(library)):
+        assert any((package / "licenses" / notice).glob("*")), (
+            f"wheel must include the notice for {library}"
+        )
+
 with Config(Environment.NON_PRODUCTION) as config:
     assert config.env() == Environment.NON_PRODUCTION
 

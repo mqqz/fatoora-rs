@@ -33,7 +33,7 @@ dev = ["pytest>=8.0"]
 packages = ["fatoora"]
 
 [tool.setuptools.package-data]
-fatoora = ["*.so", "*.dylib", "*.dll", "*.h"]
+fatoora = ["*.so", "*.dylib", "*.dll", "*.h", "licenses/*/*"]
 
 [tool.cibuildwheel]
 build = "cp39-* cp310-* cp311-* cp312-* cp313-*"

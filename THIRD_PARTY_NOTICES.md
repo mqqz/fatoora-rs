@@ -4,10 +4,8 @@ Original fatoora-rs code is available under `MIT OR Apache-2.0`. The materials
 below retain their applicable upstream terms. Paths are relative to the repository
 root; a package may contain only a subset. Existing file notices must be retained.
 
-Source comparisons used ZATCA Java SDK `238-R3.4.8` on 2026-09-11. Items marked
-unresolved require clarification or replacement; this notice does not grant
-permission for them. Bundled binary dependencies still require a separate notice
-review before a complete distribution-compliance claim can be made.
+Source comparisons used ZATCA Java SDK `238-R3.4.8` on 2026-09-11. The source
+references below identify upstream materials and distinguish project changes.
 
 ## UBL schemas
 
@@ -127,9 +125,12 @@ Source: ZATCA Java SDK `238-R3.4.8`, linked above.
 | `certs/zatca_cert_b64.txt` | `Data/Certificates/cert.pem` | Local double-base64 and SDK single-base64 decode to identical certificate DER |
 | `pkeys/test_zatca_pkey.der` | `Data/Certificates/ec-secp256k1-priv-key.pem` | Local DER and SDK base64-encoded PEM have the same public-key identity |
 
-The SDK contains an LGPL v3 license text, but its scope for these sample files
-has not been established. Confirm redistribution terms or replace the samples
-with independently generated fixtures before treating this question as resolved.
+The SDK ships `LICENSE.txt` containing the
+[GNU Lesser General Public License, version 3](https://www.gnu.org/licenses/lgpl-3.0.html),
+which incorporates the [GNU GPL, version 3](https://www.gnu.org/licenses/gpl-3.0.html).
+The sample files carry no separate file-specific license notice. These links
+record the license supplied with the source SDK; the samples are not relicensed
+under the project's MIT/Apache-2.0 terms.
 
 The SDK parity corpus under `fatoora-core/tests/fixtures/sdk-parity/` additionally
 records CLI outputs, signed XML, generated test CSRs/keys, canonical bytes, and
@@ -137,35 +138,51 @@ SignedProperties preimages produced by SDK `238-R3.4.8`. Each case's manifest
 entry identifies its input source. The payable-rounding, exempt, zero-rated,
 and document-charge inputs reuse the existing SDK XML samples; CSR inputs reuse
 its English/Arabic properties. The certificate/key are the existing dummy test
-credentials in decoded DER form. These additions preserve the same unresolved
-sample redistribution question above. No SDK JAR or executable is bundled.
+credentials in decoded DER form. The upstream attribution and SDK license
+reference above also apply to these source materials. No SDK JAR or executable
+is bundled.
 The Java adapters in `scripts/sdk-parity/` are repository-authored test tooling.
 
-## Other origins to confirm
+## Templates
 
-- `fatoora-core/assets/templates/*.xml` (3 files), and related XML fragments in
-  `fatoora-core/src/invoice/sign.rs`: confirm independent authorship or record
-  their source and applicable terms. UBL/XMLDSig/XAdES syntax alone does not
-  establish copying or a license.
-- `fatoora-core/tests/fixtures/csrs/test_zatca_en1.csr`: base64-encoded DER CSR;
-  its public key differs from the local sample key. Generation provenance is
-  unresolved.
-- `docs/assets/images/crab-logo.{svg,png,webp}`: appears to adapt Ferris with
-  additional artwork. [Original Ferris](https://www.rustacean.net/) is by Karen
-  Rustad Tölva, who has waived copyright and related rights to that work to the
-  extent possible under law. The exact base image and rights to the additions
-  remain to be confirmed.
+`fatoora-core/assets/templates/*.xml` (3 files) were made by Mohamad Alsadhan,
+adapted from ZATCA examples, as confirmed by the author on 2026-09-18. Related
+XML fragments are used in `fatoora-core/src/invoice/sign.rs`. The author's
+project contributions use the project's `MIT OR Apache-2.0` terms; the ZATCA
+source attribution and upstream terms above are retained for adapted material.
+
+## Other repository materials
+
+- `fatoora-core/tests/fixtures/csrs/test_zatca_en1.csr`: base64-encoded DER test
+  CSR, checked into the project by Mohamad Alsadhan. Its public key differs
+  from the SDK sample key; the original generation command was not recorded.
+- `docs/assets/images/crab-logo.{svg,png,webp}`: project artwork adapting
+  [Ferris](https://www.rustacean.net/) by Karen Rustad Tölva. The upstream author
+  has waived all copyright and related or neighboring rights to Ferris to the
+  extent possible under law. The project artwork was added by Mohamad Alsadhan
+  in commit `f442a3e`; the exact base-image variant was not recorded.
 - `CODE_OF_CONDUCT.md`: adapted from
   [Contributor Covenant version 2.0](https://www.contributor-covenant.org/version/2/0/code_of_conduct/),
-  originally authored by Coraline Ada Ehmke. Existing attribution, including the
-  Mozilla enforcement-ladder reference, is retained. The applicable version-2.0
-  license grant still needs verification and an explicit reference here.
+  originally authored by Coraline Ada Ehmke, under
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+  The [upstream license before version 3](https://github.com/EthicalSource/contributor_covenant/blob/91532d80ea5f39b6685aff4892bc6854bf2f6d6f/LICENSE.md)
+  records that grant. The enforcement contact was set for this project.
+  Existing attribution, including the Mozilla enforcement-ladder reference,
+  is retained.
+
+## Native dependencies
+
+Python wheels can bundle libxml2 and its dependencies. Their build-system
+license files are included under `fatoora/licenses/`: Linux wheels retain the
+`libxml2` and `xz-libs` notices; Windows wheels retain the installed vcpkg
+copyright files. Windows CLI/FFI archives include the installed vcpkg `share`
+directory under `licenses/`. Standalone Linux and macOS native assets use the
+host's libxml2.
 
 ## Historical files
 
 The current tree contains no Schematron XSL files or PDF-A3 invoice samples.
-Git history retains the following materials; their historical distribution
-requirements remain open:
+The following source notes concern files retained only in Git history:
 
 - `fatoora-core/assets/schematrons/CEN-EN16931-UBL.xsl`: matches SDK `238-R3.4.8`;
   its header claims LGPL v3 through EUPL 1.2 compatibility. The exact upstream
@@ -174,8 +191,8 @@ requirements remain open:
   header declares Copyright 2021 ZATCA, LGPL v3; differs from SDK `238-R3.4.8`.
   Both XSL files were removed in commit `8ffeccf153428f262c56c256046416b67fda0d42`.
 - `fatoora-core/tests/fixtures/invoices/PDF-A3/*.pdf` (16 files): exact SDK sample
-  copies removed in commit `bb473ec`. Sample-license scope remains unresolved.
+  copies removed in commit `bb473ec`; see the SDK license reference above.
 
 For old distributions containing the stylesheets, review the applicable LGPL/GPL
 texts and source requirements. This notice does not retroactively update those
-archives or resolve their outstanding permissions.
+archives.

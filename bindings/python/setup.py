@@ -33,6 +33,26 @@ class build_py(_build_py):
             package_dir / "fatoora_ffi.h",
         )
 
+        # Retain the notices supplied with libraries that wheel repair bundles.
+        if os.name == "nt":
+            vcpkg_root = Path(os.environ.get("VCPKG_INSTALLATION_ROOT", "C:/vcpkg"))
+            license_files = (vcpkg_root / "installed/x64-windows/share").glob(
+                "*/copyright"
+            )
+        elif sys.platform.startswith("linux"):
+            license_files = (
+                source
+                for dependency in ("libxml2", "xz-libs")
+                for source in (Path("/usr/share/licenses") / dependency).glob("*")
+                if source.is_file()
+            )
+        else:
+            license_files = ()
+        for source in license_files:
+            destination = package_dir / "licenses" / source.parent.name
+            destination.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination / source.name)
+
         super().run()
 
     @staticmethod
