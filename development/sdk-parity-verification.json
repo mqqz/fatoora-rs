@@ -1,0 +1,298 @@
+{
+  "sdk_version": "238-R3.4.8",
+  "jar_sha256": "48abeb828d453ef6fafba792fddbbb2701da5c7018c24bde918853e80ff5d530",
+  "corpus_manifest_sha256": "872d251be12e3f3388d1afd57a566be6721d19bafc61b39442dad65902c74411",
+  "results": {
+    "document-charge": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "exempt": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "export-self-billed": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "export-self-billed-typed": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "foreign-currency": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "failed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "failed"
+    },
+    "foreign-currency-typed": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "failed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "failed"
+    },
+    "mixed-vat": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "passed",
+      "signature": "passed",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "mixed-vat-typed": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "passed",
+      "signature": "passed",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "out-of-scope": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "out-of-scope-typed": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "payable-rounding": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "prepayment": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "prepayment-typed": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "simplified-credit": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "passed",
+      "signature": "passed",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "simplified-credit-typed": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "passed",
+      "signature": "passed",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "simplified-debit": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "passed",
+      "signature": "passed",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "simplified-debit-typed": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "passed",
+      "signature": "passed",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "simplified-invoice": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "passed",
+      "signature": "passed",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "simplified-invoice-typed": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "passed",
+      "signature": "passed",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "standard-credit": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "standard-credit-typed": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "standard-debit": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "standard-debit-typed": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "standard-invoice": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "standard-invoice-typed": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "not_run",
+      "signature": "not_run",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "zero-rated": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "passed",
+      "signature": "passed",
+      "pih": "passed",
+      "global": "passed"
+    },
+    "tampered": {
+      "xsd": "passed",
+      "en": "passed",
+      "ksa": "passed",
+      "qr": "failed",
+      "signature": "failed",
+      "pih": "passed",
+      "global": "failed"
+    }
+  },
+  "verification_date": "2026-09-17",
+  "command": "python3 scripts/sdk_parity.py verify --output /tmp/fatoora-sdk-verification-final",
+  "source_sha256": {
+    "scripts/sdk_parity.py": "ded57c9fbf47fa5fec04e556eb5213ee1d93c658c927b9c82e7a96c882cae7b1",
+    "fatoora-core/src/csr.rs": "766afb12b4955886487e65edcc1014995bcd368eb9dc92ac545f597521cb6941",
+    "fatoora-core/src/invoice/qr.rs": "22427d956db0e1ee8a9b8a870df4e870b759c6af86f9e60759b1d25d6c79cc2b",
+    "fatoora-core/src/invoice/sign.rs": "6dd4c60251a29ba2db72facee2ec5f2273f8fad421a965590e3a730bd82e89b5",
+    "fatoora-derive/src/rules.rs": "4e5c9e7511b85967f1b825932f0b82b47c787ffef64b41dc22d67486c3640d0f",
+    "fatoora-core/examples/sdk_parity_export.rs": "4947520b883481dc6790759881b1eee3e605d708da18588f3a6cab78159243d3",
+    "fatoora-core/tests/common/mod.rs": "66fa606209137ec8bdb6cd9bdad79537c6f0bb804d136d3f9df24a99998fb3ce",
+    "Cargo.lock": "348b9eb7d7a45e3eade6cc03ee1005619c5389acb4a810f6c18f468521f912db"
+  },
+  "rust_artifact_sha256": {
+    "document-charge.xml": "a4928c6c11560e3eb3b0339502f8fe5b97486453f0aae6522c2f5c288b4f31d3",
+    "exempt.xml": "c86873153f3f55f036da98dd9afcfa3cecac7b81cda9aa393610e8fd6a094d03",
+    "export-self-billed-typed.xml": "06faf71e6d103ff2729de0e74f44ef9630b4aae8d95505d6f2c8e6093684b795",
+    "export-self-billed.xml": "06faf71e6d103ff2729de0e74f44ef9630b4aae8d95505d6f2c8e6093684b795",
+    "foreign-currency-typed.xml": "526a33241f41b9f021c515a76525ffb880ab37ddc6d69193145df1e6483e02f0",
+    "foreign-currency.xml": "526a33241f41b9f021c515a76525ffb880ab37ddc6d69193145df1e6483e02f0",
+    "mixed-vat-typed.xml": "d12823eb1ceaca871a9829042fb6fe4b2b1123a746e787ed07dbfe4f75767b9b",
+    "mixed-vat.xml": "d12823eb1ceaca871a9829042fb6fe4b2b1123a746e787ed07dbfe4f75767b9b",
+    "out-of-scope-typed.xml": "b92b9d83e55498a7e02b31dace3733e465364030f52d2e8bd14e0a6ae5fac96a",
+    "out-of-scope.xml": "b92b9d83e55498a7e02b31dace3733e465364030f52d2e8bd14e0a6ae5fac96a",
+    "payable-rounding.xml": "f9b60845087dd02e465482c58dbf6a5c808caa47ad0c08d206e25dcba1ed9b47",
+    "prepayment-typed.xml": "cbd0efd89a552c6d1653671416d29378669b800245e6d03912bf4c01d835ee21",
+    "prepayment.xml": "cbd0efd89a552c6d1653671416d29378669b800245e6d03912bf4c01d835ee21",
+    "simplified-credit-typed.xml": "f4d4f3788e6d8c066d96822f6bda0e017d236e8e2455fbe15c5c3e53d66c8095",
+    "simplified-credit.xml": "f4d4f3788e6d8c066d96822f6bda0e017d236e8e2455fbe15c5c3e53d66c8095",
+    "simplified-debit-typed.xml": "3cbe2dc05df6e40652321eef280cd95f6db1059313f0a70b808c8b1f84cdfe3b",
+    "simplified-debit.xml": "3cbe2dc05df6e40652321eef280cd95f6db1059313f0a70b808c8b1f84cdfe3b",
+    "simplified-invoice-typed.xml": "114dc1d06a0efcfe930b10f30402be08c63325c9e816c4b515cc9daa66c86138",
+    "simplified-invoice.xml": "114dc1d06a0efcfe930b10f30402be08c63325c9e816c4b515cc9daa66c86138",
+    "standard-credit-typed.xml": "55ee651d1aaf3148101a26b4dd813609da96eb7bdfaabd397ca7e4d28b860ea8",
+    "standard-credit.xml": "55ee651d1aaf3148101a26b4dd813609da96eb7bdfaabd397ca7e4d28b860ea8",
+    "standard-debit-typed.xml": "c0ea131d9ae3d6a7c793930aa776cc3951149566f481055cc65533f7f57f0a8c",
+    "standard-debit.xml": "c0ea131d9ae3d6a7c793930aa776cc3951149566f481055cc65533f7f57f0a8c",
+    "standard-invoice-typed.xml": "65c15343b1f2de0709cb9fd86304b806e3d90af1f3c88969dd1fd11ac4858c8f",
+    "standard-invoice.xml": "65c15343b1f2de0709cb9fd86304b806e3d90af1f3c88969dd1fd11ac4858c8f",
+    "tampered.xml": "95a444d836e9ce68f7f92276f767fc68eae82c241b1b451eb9b8cadeedb5a371",
+    "zero-rated.xml": "fa64ecd4c9b48cc071e33271f604164ffc472b794b821f0377cab95006cab663"
+  },
+  "notes": [
+    "26 fresh Rust artifacts, including both signing paths; layer results match pinned SDK baseline.",
+    "The deliberately corrupted signature is separately required to fail.",
+    "not_run is an omitted SDK layer, not a passing result.",
+    "Foreign-currency KSA rejection is preserved as baseline evidence; this is not a global compliance claim.",
+    "Installed SDK file checksums were unchanged."
+  ]
+}
