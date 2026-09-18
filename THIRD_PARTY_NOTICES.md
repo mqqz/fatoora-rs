@@ -23,9 +23,12 @@ files below have separate upstream origins:
   Unmodified SDK copy; the full permission notice is embedded in the file.
 - `common/UBL-XAdESv132-2.1.xsd` and `common/UBL-XAdESv141-2.1.xsd`: OASIS adaptations
   of [ETSI XAdES v1.3.2](https://uri.etsi.org/01903/v1.3.2/XAdES.xsd) and
-  [v1.4.1](https://uri.etsi.org/01903/v1.4.1/XAdESv141.xsd). Their headers describe
-  OASIS's modifications; our copies match the SDK. The applicable license grants
-  for these exact versions and adaptations remain unresolved.
+  [v1.4.1](https://uri.etsi.org/01903/v1.4.1/XAdESv141.xsd). Our copies match the
+  official OASIS UBL 2.1 files byte-for-byte:
+  [v1.3.2](https://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/common/UBL-XAdESv132-2.1.xsd)
+  and [v1.4.1](https://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/common/UBL-XAdESv141-2.1.xsd).
+  The OASIS headers are retained. ETSI publishes BSD-3-Clause terms with its
+  XAdES repository; that notice is reproduced below with its source version.
 - `common/UBL-xmldsig-core-schema-2.1.xsd`: derived from the W3C XML Signature
   schema. Copyright 2001 The Internet Society and W3C (Massachusetts Institute
   of Technology, Institut National de Recherche en Informatique et en
@@ -34,6 +37,37 @@ files below have separate upstream origins:
   type on 2025-12-18 (commit `1fc08cdcfc5d34bda07b56aba4c9dd1aa7a63d6d`), adding
   `X509SerialNumberString` with pattern `[0-9]+` and using it instead of `integer`
   for `X509SerialNumber`. The applicable W3C notice follows.
+
+### ETSI XAdES repository notice (BSD-3-Clause)
+
+Source: [ETSI XAdES repository, tag v1.3.1](https://forge.etsi.org/rep/esi/x19_13201_xades/-/raw/v1.3.1/LICENSE).
+This notice comes from the 2024 repository release; the bundled schemas remain
+the unchanged OASIS UBL 2.1 copies from 2013.
+
+Copyright 2024 ETSI
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software without
+   specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ### W3C SOFTWARE NOTICE AND LICENSE
 

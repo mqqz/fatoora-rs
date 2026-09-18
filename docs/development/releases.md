@@ -70,10 +70,9 @@ Confirm these repository settings without exposing secret values:
 - The tag and all package versions agree, and the version is unused on each
   destination registry.
 
-The [third-party notice](https://github.com/mqqz/fatoora-rs/blob/main/THIRD_PARTY_NOTICES.md)
-records unresolved redistribution/provenance questions. Resolve the entries for
-materials included in the release, or replace/remove those materials, before
-publication. Copying notices into an archive does not resolve those entries.
+Include the [third-party notice](https://github.com/mqqz/fatoora-rs/blob/main/THIRD_PARTY_NOTICES.md)
+in the packages and retain the applicable upstream license text and attribution.
+Keep remaining source questions recorded there for follow-up.
 
 ## Tag and publish
 
