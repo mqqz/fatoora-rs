@@ -40,16 +40,19 @@ class build_py(_build_py):
                 "*/copyright"
             )
         elif sys.platform.startswith("linux"):
-            license_files = (
+            license_files = [
                 source
                 for dependency in ("libxml2", "xz-libs")
                 for source in (Path("/usr/share/licenses") / dependency).glob("*")
                 if source.is_file()
-            )
+            ]
+            # AlmaLinux 8's xz-libs RPM keeps its license in the xz doc directory.
+            license_files.extend(Path("/usr/share/doc/xz").glob("COPYING"))
         else:
             license_files = ()
         for source in license_files:
-            destination = package_dir / "licenses" / source.parent.name
+            dependency = "xz-libs" if source.parent.name == "xz" else source.parent.name
+            destination = package_dir / "licenses" / dependency
             destination.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, destination / source.name)
 
