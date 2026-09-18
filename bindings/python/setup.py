@@ -17,7 +17,7 @@ class build_py(_build_py):
         target_dir = repo_root / "target" / "release"
 
         subprocess.check_call(
-            ["cargo", "build", "-p", "fatoora-ffi", "--release"], cwd=repo_root
+            ["cargo", "build", "-p", "fatoora-ffi", "--release", "--locked"], cwd=repo_root
         )
 
         lib_name = self._shared_lib_name()
@@ -28,6 +28,10 @@ class build_py(_build_py):
         package_dir = Path(self.build_lib) / "fatoora"
         package_dir.mkdir(parents=True, exist_ok=True)
         shutil.copy2(lib_path, package_dir / lib_name)
+        shutil.copy2(
+            repo_root / "fatoora-ffi" / "include" / "fatoora_ffi.h",
+            package_dir / "fatoora_ffi.h",
+        )
 
         super().run()
 

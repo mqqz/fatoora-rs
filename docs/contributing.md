@@ -129,7 +129,8 @@ Benchmark data lives in `bench/`. The CLI benchmark results are tracked in `benc
 
 ## Releases
 
-If you need a release, open an issue with the scope and crate(s) to publish.
+See the [release procedure](development/releases.md) for version updates,
+validation, publication, and recovery from a partial release.
 
 ## See also 
 

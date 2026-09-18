@@ -19,7 +19,7 @@ use fatoora_core::{
 use serde_json::json;
 
 #[derive(Parser)]
-#[command(name = "fatoora")]
+#[command(name = "fatoora", version)]
 #[command(about = "Rust-based ZATCA E-Invoice CLI")]
 struct Cli {
     #[command(subcommand)]
