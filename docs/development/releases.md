@@ -28,7 +28,7 @@ supported Rust version for library consumers; CI currently tests stable Rust.
 python3 scripts/check_release.py --tag v0.2.0
 python3 -m unittest discover -s scripts/tests -v
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets --all-features --locked
+cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 SKIP_ZATCA_LIVE_API=1 CARGO_INCREMENTAL=0 \
   cargo test --workspace --all-features --locked
 cargo doc --workspace --no-deps --locked

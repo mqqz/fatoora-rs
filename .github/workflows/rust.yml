@@ -35,12 +35,18 @@ jobs:
           test "$RELEASE_REF_TYPE" = tag
           python3 scripts/check_release.py --tag "$RELEASE_TAG"
       - name: Install Rust
-        run: rustup update stable
+        run: |
+          rustup update stable
+          rustup component add clippy rustfmt
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: |
             .
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Test release checks and SDK capture harness

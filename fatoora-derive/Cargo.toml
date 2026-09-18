@@ -12,6 +12,9 @@ readme = "../README.md"
 keywords = ["zatca", "validation", "proc-macro"]
 categories = ["development-tools::procedural-macro-helpers"]
 
+[lints]
+workspace = true
+
 [lib]
 proc-macro = true
 

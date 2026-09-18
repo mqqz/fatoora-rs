@@ -11,6 +11,9 @@ readme = "../README.md"
 keywords = ["zatca", "ffi", "c-abi"]
 categories = ["api-bindings", "external-ffi-bindings"]
 
+[lints]
+workspace = true
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 

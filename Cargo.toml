@@ -7,3 +7,10 @@ members = [
     "fatoora-rs-cli",
     "fatoora-ffi",
 ]
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+
+[profile.release]
+codegen-units = 1
+lto = true

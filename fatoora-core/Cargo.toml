@@ -12,6 +12,8 @@ documentation = "https://docs.rs/fatoora-core"
 keywords = ["zatca", "e-invoice", "invoice", "ubl", "saudi"]
 categories = ["api-bindings", "cryptography", "parser-implementations"]
 
+[lints]
+workspace = true
 
 [dependencies]
 java-properties = "2.0.0"

@@ -69,8 +69,7 @@ fn optional_string_nonempty(
     ptr: *const c_char,
     label: &str,
 ) -> Result<Option<String>, FfiErrorDetails> {
-    Ok(optional_string(ptr, label)?
-        .and_then(|value| if value.is_empty() { None } else { Some(value) }))
+    Ok(optional_string(ptr, label)?.filter(|value| !value.is_empty()))
 }
 
 fn ffi_string(value: impl Into<Vec<u8>>) -> Result<FfiString, FfiErrorDetails> {
@@ -206,6 +205,10 @@ fn parse_country(code: &str) -> Result<CountryCode, FfiErrorDetails> {
         .map_err(|_| ffi_error_invalid_input(format!("Invalid country code: {code}")))
 }
 
+#[expect(
+    clippy::too_many_arguments,
+    reason = "Mirrors the C ABI address fields and adds context for validation errors"
+)]
 fn build_address(
     country_code: *const c_char,
     city: *const c_char,
