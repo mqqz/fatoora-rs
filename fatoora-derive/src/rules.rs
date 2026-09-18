@@ -45,11 +45,21 @@ pub fn is_country_code(field: &Ident) -> TokenStream {
     }
 }
 
+/// Four binary capability flags, as accepted by the ZATCA CSR SDK.
+pub fn four_binary_digits(field: &Ident) -> TokenStream {
+    quote! {
+        if #field.len() != 4 || !#field.bytes().all(|byte| matches!(byte, b'0' | b'1')) {
+            return Err(E::from(format!("{} must contain exactly four binary digits", stringify!(#field))));
+        }
+    }
+}
+
 /// --- Dispatch Table --------------------------------------------------------
 /// Very simple and clean rule lookup.
 /// Add new rules by adding new match arms.
 pub fn dispatch(name: &str, field: &Ident) -> Option<TokenStream> {
     match name {
+        "four_binary_digits" => Some(four_binary_digits(field)),
         "non_empty" => Some(non_empty(field)),
         "no_special_chars" => Some(no_special_chars(field)),
         "is_country_code" => Some(is_country_code(field)),

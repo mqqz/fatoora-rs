@@ -3,7 +3,7 @@ use crate::config::EnvironmentType;
 use base64ct::{Base64, Encoding};
 use ecdsa;
 use fatoora_derive::Validate;
-use java_properties::read;
+use java_properties::PropertiesIter;
 use k256::pkcs8::{DecodePrivateKey, EncodePrivateKey, LineEnding as KeyLineEnding};
 use k256::{Secp256k1, ecdsa::SigningKey as K256SigningKey};
 use std::{
@@ -16,7 +16,7 @@ use thiserror::Error;
 use x509_cert::{
     builder::{Builder, RequestBuilder},
     der::{
-        Decode, Encode, EncodePem, Length, Result as DerResult, Writer, asn1,
+        Decode, Encode, EncodePem, Length, Result as DerResult, Writer,
         pem::LineEnding as CsrLineEnding,
     },
     ext::{
@@ -103,7 +103,7 @@ impl CsrError {
     }
 }
 
-struct TemplateNameExtension(pub asn1::OctetString);
+struct TemplateNameExtension(pub String);
 
 impl const_oid::AssociatedOid for TemplateNameExtension {
     const OID: const_oid::ObjectIdentifier =
@@ -136,10 +136,11 @@ impl EnvironmentType {
 
     fn to_extension(self) -> Result<TemplateNameExtension, CsrError> {
         let bytes = self.as_template_bytes();
-        let os = asn1::OctetString::new(bytes).map_err(|e| CsrError::RequestBuild {
-            message: format!("invalid template name bytes for extension: {e}"),
-        })?;
-        Ok(TemplateNameExtension(os))
+        // The SDK encodes the template's inner value as ASN.1 UTF8String.
+        // Extension itself supplies the surrounding OCTET STRING.
+        Ok(TemplateNameExtension(
+            String::from_utf8(bytes.to_vec()).expect("ASCII template name"),
+        ))
     }
 }
 
@@ -285,6 +286,7 @@ pub struct CsrProperties {
     organization_name: String,
     #[validate(is_country_code)]
     country_name: String,
+    #[validate(non_empty, no_special_chars, four_binary_digits)]
     invoice_type: String,
     location_address: String,
     industry_business_category: String,
@@ -293,11 +295,11 @@ pub struct CsrProperties {
 impl CsrProperties {
     fn generate_subject(&self) -> Result<name::Name, CsrError> {
         name::Name::from_str(&format!(
-            "C={},OU={},O={},CN={}",
-            &self.country_name,
-            &self.organization_unit_name,
+            "CN={},O={},OU={},C={}",
+            &self.common_name,
             &self.organization_name,
-            &self.common_name
+            &self.organization_unit_name,
+            &self.country_name
         ))
         .map_err(|e| CsrError::InvalidSubject {
             message: e.to_string(),
@@ -313,12 +315,12 @@ impl CsrProperties {
 
     fn generate_san_extension(&self) -> Result<SubjectAltName, CsrError> {
         let name = name::Name::from_str(&format!(
-            "sn={},uid={},title={},registeredAddress={},businessCategory={}",
-            &self.serial_number,
-            &self.organization_identifier,
-            &self.invoice_type,
+            "businessCategory={},registeredAddress={},title={},uid={},sn={}",
+            &self.industry_business_category,
             &self.location_address,
-            &self.industry_business_category
+            &self.invoice_type,
+            &self.organization_identifier,
+            &self.serial_number
         ))
         .map_err(|e| CsrError::InvalidSan {
             message: e.to_string(),
@@ -366,10 +368,15 @@ impl CsrProperties {
     pub fn from_properties_str(properties: &str) -> Result<CsrProperties, CsrError> {
         let pathbuf = path::PathBuf::from("<properties>");
         let cursor = Cursor::new(properties.as_bytes());
-        let dst_map = read(cursor).map_err(|e| CsrError::PropertiesRead {
-            path: pathbuf.clone(),
-            source: crate::Diagnostic::from_properties(e),
-        })?;
+        let mut dst_map = std::collections::HashMap::new();
+        PropertiesIter::new_with_encoding(cursor, encoding_rs::UTF_8)
+            .read_into(|key, value| {
+                dst_map.insert(key, value);
+            })
+            .map_err(|e| CsrError::PropertiesRead {
+                path: pathbuf.clone(),
+                source: crate::Diagnostic::from_properties(e),
+            })?;
 
         let req = |key: &str| -> Result<String, CsrError> {
             dst_map

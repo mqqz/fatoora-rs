@@ -906,6 +906,7 @@ dependencies = [
  "chrono",
  "const-oid",
  "ecdsa",
+ "encoding_rs",
  "fatoora-derive",
  "httpmock",
  "iso_currency",

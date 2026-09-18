@@ -218,6 +218,68 @@ fn hashes_canonical_bytes_and_xsd_match_official_sdk() {
 }
 
 #[test]
+fn csr_characteristics_and_proof_of_possession_match_sdk() {
+    use fatoora_core::{
+        config::EnvironmentType,
+        csr::{CsrProperties, SigningKey},
+    };
+    use k256::ecdsa::{Signature, VerifyingKey, signature::Verifier};
+    use x509_cert::{
+        der::{Decode, Encode},
+        request::CertReq,
+    };
+    for case in manifest()["cases"].as_array().unwrap() {
+        if case["kind"] != "csr" {
+            continue;
+        }
+        let id = case["id"].as_str().unwrap();
+        let dir = root().join("cases").join(id);
+        let reference = CertReq::from_der(&fs::read(dir.join("sdk.csr.der")).unwrap()).unwrap();
+        let key = SigningKey::from_der(&fs::read(dir.join("sdk-key.der")).unwrap()).unwrap();
+        let environment = match case["environment"].as_str().unwrap() {
+            "production" => EnvironmentType::Production,
+            "simulation" => EnvironmentType::Simulation,
+            "nonproduction" => EnvironmentType::NonProduction,
+            _ => panic!("unknown environment"),
+        };
+        let properties = CsrProperties::from_properties_str(
+            &fs::read_to_string(dir.join("csr.properties")).unwrap(),
+        )
+        .unwrap();
+        let actual = CertReq::from_der(
+            &properties
+                .build(&key, environment)
+                .unwrap()
+                .to_der()
+                .unwrap(),
+        )
+        .unwrap();
+        for csr in [&reference, &actual] {
+            let key = VerifyingKey::from_sec1_bytes(
+                csr.info.public_key.subject_public_key.as_bytes().unwrap(),
+            )
+            .unwrap();
+            let signature = Signature::from_der(csr.signature.as_bytes().unwrap()).unwrap();
+            key.verify(&csr.info.to_der().unwrap(), &signature.normalize_s())
+                .expect(id);
+        }
+        assert_eq!(
+            actual.info.public_key, reference.info.public_key,
+            "SPKI {id}"
+        );
+        assert_eq!(
+            actual.algorithm, reference.algorithm,
+            "signature algorithm {id}"
+        );
+        assert_eq!(actual.info.subject, reference.info.subject, "subject {id}");
+        assert_eq!(
+            actual.info.attributes, reference.info.attributes,
+            "extensions {id}"
+        );
+    }
+}
+
+#[test]
 fn canonical_mutation_relations_are_explicit() {
     let hash = |id: &str| -> Value {
         serde_json::from_slice::<Value>(
@@ -246,6 +308,23 @@ fn canonical_mutation_relations_are_explicit() {
     }
     assert_eq!(hash("attribute-order-a"), hash("attribute-order-b"));
     assert_eq!(hash("empty-element-a"), hash("empty-element-b"));
+}
+
+#[test]
+fn csr_rejections_match_explicit_sdk_failures() {
+    for id in ["csr-missing-property", "csr-unsupported-value"] {
+        let dir = root().join("cases").join(id);
+        let properties = fs::read_to_string(dir.join("csr.properties")).unwrap();
+        assert!(
+            fatoora_core::csr::CsrProperties::from_properties_str(&properties).is_err(),
+            "{id}"
+        );
+        let expected: Value =
+            serde_json::from_slice(&fs::read(dir.join("expected.json")).unwrap()).unwrap();
+        assert_eq!(expected["result"], "failed");
+        let raw = fs::read_to_string(dir.join("evidence/csr/stdout.txt")).unwrap();
+        assert_eq!(raw.matches(expected["marker"].as_str().unwrap()).count(), 1);
+    }
 }
 
 #[test]

@@ -86,33 +86,3 @@ fn test_generate_csr() {
         "Subject must contain CN with 'TST-' prefix (got {subject_str})"
     );
 }
-
-#[test]
-fn test_csr_matches_zatca_sdk() {
-    let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");
-    let csr_props = std::fs::read_to_string(&config_path).unwrap();
-    let csr_config = CsrProperties::from_properties_str(&csr_props).unwrap();
-    let env = EnvironmentType::from_str("production")
-        .map_err(|e| CsrError::Validation {
-            message: e.to_string(),
-        })
-        .unwrap();
-    let key_path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/pkeys/test_zatca_pkey.der");
-    let zatca_pkey = SigningKey::from_der(&std::fs::read(key_path).unwrap()).unwrap();
-
-    let _csr = csr_config.build(&zatca_pkey, env).unwrap();
-    // let generated_b64 = csr.to_base64_string().unwrap();
-    // let reference_b64 = std::fs::read_to_string(
-    //     Path::new(env!("CARGO_MANIFEST_DIR"))
-    //         .join("tests/fixtures/csrs/test_zatca_en1.csr"),
-    // )
-    // .expect("Failed to read reference CSR file")
-    // .trim()
-    // .to_string();
-    // assert_eq!(
-    //     generated_b64, reference_b64,
-    //     "Generated CSR does not match reference CSR from ZATCA SDK"
-    // );
-}
