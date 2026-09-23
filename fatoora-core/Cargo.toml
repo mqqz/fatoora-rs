@@ -50,6 +50,8 @@ iso_currency = { version = "0.5.3", features = ["with-serde"] }
 reqwest = { version = "0.13.0", features = ["json"] }
 bitflags = { version = "2.10.0", features = ["serde"] }
 rust_decimal = { version = "1.40", default-features = false, features = ["std"] }
+num-bigint = "0.4.6"
+num-traits = "0.2.19"
 
 [dev-dependencies]
 ron = "0.8.1"

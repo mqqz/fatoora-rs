@@ -106,8 +106,12 @@ class InventoryContracts(unittest.TestCase):
         self.assertEqual(len(sites), len(set(sites)))
         coverage = rules.load_coverage(catalog)
         self.assertEqual(set(sites), set(coverage["sites"]))
+        # Generating an inventory must never infer implementation coverage.
         self.assertTrue(
-            all(s["status"] == "pending" for s in coverage["sites"].values())
+            all(
+                s["status"] == "pending"
+                for s in rules.pending_coverage(catalog)["sites"].values()
+            )
         )
 
     def test_missing_or_invented_coverage_site_is_rejected(self):

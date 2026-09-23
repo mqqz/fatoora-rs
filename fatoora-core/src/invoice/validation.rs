@@ -3,6 +3,9 @@
 //! XSD checks do not run builder field checks, business rules, or signature
 //! verification. Parsing a signed invoice does not verify its signature.
 mod report;
+// The native subset remains internal until the full profile can be exposed.
+#[allow(dead_code)]
+mod business_rules;
 use crate::config::Config;
 use libxml::{
     parser::{Parser, ParserOptions},
