@@ -19,8 +19,8 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
-import business_rule_cases as families
 import sdk_parity as sdk
+import business_rule_cases as families
 
 ROOT = sdk.REPO / "fatoora-core/tests/fixtures/business-rules"
 XSL = "{http://www.w3.org/1999/XSL/Transform}"

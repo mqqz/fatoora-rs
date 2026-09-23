@@ -1,0 +1,200 @@
+"""Independent rule-family mutations for the pinned SDK's public validator."""
+
+import xml.etree.ElementTree as ET
+
+NS = {
+    "cac": "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2",
+    "cbc": "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2",
+}
+
+
+def identity_cases(base):
+    cases = []
+
+    def case(name, role, section, field, value, code, count=1, scheme=None):
+        root = ET.fromstring(base)
+        party = root.find(f"cac:Accounting{role}Party/cac:Party", NS)
+        parent = party.find(f"cac:{section}", NS)
+        if parent is None:
+            parent = ET.Element(f"{{{NS['cac']}}}{section}")
+            if section == "PartyIdentification":
+                party.insert(0, parent)
+            else:
+                party.append(parent)
+        element = parent.find(f"cbc:{field}", NS)
+        if element is None:
+            element = ET.Element(f"{{{NS['cbc']}}}{field}")
+            if section == "PostalAddress" and field == "AdditionalStreetName":
+                street = parent.find("cbc:StreetName", NS)
+                parent.insert(list(parent).index(street) + 1, element)
+            else:
+                parent.append(element)
+        if value is None:
+            parent.remove(element)
+        else:
+            element.text = value
+            if scheme is not None:
+                element.set("schemeID", scheme)
+        cases.append(
+            {
+                "id": name,
+                "xml": ET.tostring(root, encoding="unicode"),
+                "expected_xsd": "passed",
+                "targets": [
+                    {
+                        "source": "ksa",
+                        "code": code,
+                        "severity": "error"
+                        if code in ["BR-KSA-14", "BR-KSA-40", "BR-KSA-44"]
+                        else "warning",
+                        "count": count,
+                    }
+                ],
+            }
+        )
+
+    for name, role, scheme, good, bad, code in [
+        ("crn", "Supplier", "CRN", "7123456123", "712345612", "BR-KSA-F-08"),
+        ("unified", "Supplier", "700", "7123456123", "6123456123", "BR-KSA-F-09"),
+        ("tin", "Customer", "TIN", "3123456123", "4123456123", "BR-KSA-F-07"),
+        ("national", "Customer", "NAT", "1123456123", "2123456123", "BR-KSA-F-10"),
+        ("residence", "Customer", "IQA", "2123456123", "3123456123", "BR-KSA-F-11"),
+    ]:
+        for suffix, value, count in [
+            ("valid", good, 0),
+            ("invalid", bad, 1),
+            ("space", f" {good}", 1),
+        ]:
+            case(
+                f"{name}-{suffix}",
+                role,
+                "PartyIdentification",
+                "ID",
+                value,
+                code,
+                count,
+                scheme,
+            )
+    for name, scheme, value, code, count in [
+        ("scheme-spaces", " CRN ", "7123456123", "BR-KSA-F-12", 1),
+        ("scheme-lowercase", "crn", "7123456123", "BR-KSA-F-12", 0),
+        ("predictable", "CRN", "9912345678", "BR-KSA-F-13", 1),
+        ("predictable-alpha", "CRN", "A12345678", "BR-KSA-F-13", 0),
+    ]:
+        case(name, "Supplier", "PartyIdentification", "ID", value, code, count, scheme)
+    for scheme, count in [("TIN", 0), ("BAD", 1), ("TIN NAT", 0)]:
+        case(
+            "buyer-scheme-" + scheme.replace(" ", "-"),
+            "Customer",
+            "PartyIdentification",
+            "ID",
+            "3123456123",
+            "BR-KSA-14",
+            count,
+            scheme,
+        )
+    for role, code in [("Supplier", "BR-KSA-40"), ("Customer", "BR-KSA-44")]:
+        for suffix, value, count in [
+            ("valid", "312345612300003", 0),
+            ("invalid", "312345612300004", 1),
+        ]:
+            case(
+                role.lower() + "-vat-" + suffix,
+                role,
+                "PartyTaxScheme",
+                "CompanyID",
+                value,
+                code,
+                count,
+            )
+    for name, role, field, value, code, count in [
+        ("seller-address-missing-city", "Supplier", "CityName", None, "BR-KSA-09", 1),
+        ("seller-street-empty", "Supplier", "StreetName", "", "BR-KSA-F-06-C4", 1),
+        (
+            "seller-street-boundary",
+            "Supplier",
+            "StreetName",
+            "ع" * 1000,
+            "BR-KSA-F-06-C4",
+            0,
+        ),
+        (
+            "seller-street-long",
+            "Supplier",
+            "StreetName",
+            "ع" * 1001,
+            "BR-KSA-F-06-C4",
+            1,
+        ),
+        ("seller-city-long", "Supplier", "CityName", "x" * 128, "BR-KSA-F-06-C7", 1),
+        (
+            "seller-city-boundary",
+            "Supplier",
+            "CityName",
+            "x" * 127,
+            "BR-KSA-F-06-C7",
+            0,
+        ),
+        (
+            "seller-street2-long",
+            "Supplier",
+            "AdditionalStreetName",
+            "x" * 128,
+            "BR-KSA-F-06-C6",
+            1,
+        ),
+        (
+            "seller-street2-boundary",
+            "Supplier",
+            "AdditionalStreetName",
+            "x" * 127,
+            "BR-KSA-F-06-C6",
+            0,
+        ),
+        (
+            "buyer-street2-long",
+            "Customer",
+            "AdditionalStreetName",
+            "x" * 128,
+            "BR-KSA-F-06-C11",
+            1,
+        ),
+        (
+            "buyer-street2-boundary",
+            "Customer",
+            "AdditionalStreetName",
+            "x" * 127,
+            "BR-KSA-F-06-C11",
+            0,
+        ),
+        ("seller-postcode-invalid", "Supplier", "PostalZone", "1234", "BR-KSA-66", 1),
+        ("seller-postcode-valid", "Supplier", "PostalZone", "12345", "BR-KSA-66", 0),
+        (
+            "seller-building-invalid",
+            "Supplier",
+            "BuildingNumber",
+            "123",
+            "BR-KSA-37",
+            1,
+        ),
+        ("seller-building-valid", "Supplier", "BuildingNumber", "1234", "BR-KSA-37", 0),
+    ]:
+        case(name, role, "PostalAddress", field, value, code, count)
+    for field, value, code, count, suffix in [
+        ("Telephone", "+1234", "BR-KSA-85", 0, "valid"),
+        ("Telephone", "1234", "BR-KSA-85", 1, "invalid"),
+        ("Name", "ع" * 1000, "BR-KSA-F-06-C37", 0, "boundary"),
+        ("Name", "ع" * 1001, "BR-KSA-F-06-C37", 1, "long"),
+        ("Note", "ع" * 1000, "BR-KSA-F-06-C38", 0, "boundary"),
+        ("Note", "ع" * 1001, "BR-KSA-F-06-C38", 1, "long"),
+    ]:
+        case(
+            "contact-" + field.lower() + "-" + suffix,
+            "Customer",
+            "Contact",
+            field,
+            value,
+            code,
+            count,
+        )
+    return cases

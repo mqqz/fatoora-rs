@@ -159,6 +159,27 @@ class MutationContracts(unittest.TestCase):
             if case["id"] != "baseline":
                 self.assertNotEqual(case["xml"], cases[0]["xml"])
 
+    def test_family_cases_are_unique_and_have_positive_and_negative_targets(self):
+        cases = rules.mutation_cases("identity")
+        self.assertEqual(len(cases), len({case["id"] for case in cases}))
+        targets = {}
+        for case in cases:
+            self.assertTrue(case["targets"])
+            for target in case["targets"]:
+                targets.setdefault(target["code"], set()).add(target["count"])
+        self.assertEqual(len(targets), 20)
+        for code, counts in targets.items():
+            self.assertIn(1, counts, code)
+            if code != "BR-KSA-09":  # Address presence also has baseline evidence.
+                self.assertIn(0, counts, code)
+        with self.assertRaisesRegex(sdk.CaptureError, "Unknown rule family"):
+            rules.mutation_cases("unknown")
+
+    def test_identity_corpus_replays_with_its_own_definition(self):
+        manifest = rules.load_mutations(rules.ROOT / "identity")
+        self.assertEqual(manifest["family"], "identity")
+        self.assertEqual(len(manifest["cases"]), len(rules.mutation_cases("identity")))
+
     def test_empty_or_missing_mutation_does_not_silently_pass(self):
         for old, new in [("missing", "new"), ("same", "same")]:
             with self.assertRaises(sdk.CaptureError):
