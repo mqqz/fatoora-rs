@@ -34,6 +34,8 @@ use super::ksa_adjustments::KsaAdjustmentCheck;
 
 use super::ksa_exemptions::KsaExemptionCheck;
 
+use super::ksa_currency::KsaCurrencyCheck;
+
 pub(super) const RULES: &[Rule] = &[
     Rule {
         source: Source::Cen,
@@ -1706,6 +1708,22 @@ pub(super) const RULES: &[Rule] = &[
     },
     Rule {
         source: Source::Ksa,
+        site: "ksa:111:BR-KSA-CL-01",
+        code: "BR-KSA-CL-01",
+        severity: Severity::Error,
+        message: "[BR-KSA-CL-01]-Currency code (BT-5) must be according to ISO 4217:2005",
+        check: Check::KsaCurrency(KsaCurrencyCheck::CurrencyCode),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:112:BR-KSA-CL-02",
+        code: "BR-KSA-CL-02",
+        severity: Severity::Error,
+        message: "[BR-KSA-CL-02]-All currencyID attributes (BT-5) must have the same value as the invoice currency code (BT-5), except for the invoice total VAT amount in accounting currency (BT-111).",
+        check: Check::KsaCurrency(KsaCurrencyCheck::AmountCurrency),
+    },
+    Rule {
+        source: Source::Ksa,
         site: "ksa:113:BR-KSA-CL-03",
         code: "BR-KSA-CL-03",
         severity: Severity::Error,
@@ -1834,6 +1852,22 @@ pub(super) const RULES: &[Rule] = &[
     },
     Rule {
         source: Source::Ksa,
+        site: "ksa:131:BR-KSA-F-02",
+        code: "BR-KSA-F-02",
+        severity: Severity::Error,
+        message: "[BR-KSA-F-02]-Allowance/Charge Indicator value MUST equal to 'false'/’True’ respectively.",
+        check: Check::KsaCurrency(KsaCurrencyCheck::Boolean),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:132:BR-KSA-F-04",
+        code: "BR-KSA-F-04",
+        severity: Severity::Error,
+        message: "[BR-KSA-F-04]-All the document amounts and quantities must be positive, unless specified otherwise.",
+        check: Check::KsaCurrency(KsaCurrencyCheck::Nonnegative),
+    },
+    Rule {
+        source: Source::Ksa,
         site: "ksa:133:BR-KSA-EN16931-01",
         code: "BR-KSA-EN16931-01",
         severity: Severity::Error,
@@ -1935,5 +1969,37 @@ pub(super) const RULES: &[Rule] = &[
         severity: Severity::Warning,
         message: "[BR-KSA-F-06-C38] - Field character limits for the contact note - Buyer's Contact Note field (KSA-35) have not been met. The maximum limit is 1000 characters.\n                     ",
         check: Check::Identity(IdentityCheck::ContactNote),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:149:BR-KSA-87",
+        code: "BR-KSA-87",
+        severity: Severity::Warning,
+        message: "[BR-KSA-87] If the tax exchange rate (KSA-36) exists, then Source Currency Code\n                        (KSA-37), Target Currency Code (KSA-38) and Calculation Rate (KSA-39) shall be provided\n                     ",
+        check: Check::KsaCurrency(KsaCurrencyCheck::ExchangeFields),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:150:BR-KSA-88",
+        code: "BR-KSA-88",
+        severity: Severity::Error,
+        message: "[BR-KSA-88] If exist, Source Currency Code (KSA-37) must be the same as Invoice currency code (BT-5)",
+        check: Check::KsaCurrency(KsaCurrencyCheck::ExchangeSource),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:151:BR-KSA-89",
+        code: "BR-KSA-89",
+        severity: Severity::Error,
+        message: "[BR-KSA-89] If exists, Target Currency Code (KSA-38) must be the same as the Tax currency code (BT-6)",
+        check: Check::KsaCurrency(KsaCurrencyCheck::ExchangeTarget),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:152:BR-KSA-90",
+        code: "BR-KSA-90",
+        severity: Severity::Error,
+        message: "[BR-KSA-90] If exists, the allowed maximum number of digits for the Tax Exchange Rate (KSA-39) is 14.",
+        check: Check::KsaCurrency(KsaCurrencyCheck::ExchangeRateLength),
     },
 ];

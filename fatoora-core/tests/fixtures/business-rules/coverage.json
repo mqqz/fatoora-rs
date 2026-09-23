@@ -1679,14 +1679,20 @@
       ]
     },
     "ksa:111:BR-KSA-CL-01": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_currency.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_currency_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:112:BR-KSA-CL-02": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_currency.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_currency_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:113:BR-KSA-CL-03": {
       "status": "implemented",
@@ -1827,14 +1833,20 @@
       "tests": []
     },
     "ksa:131:BR-KSA-F-02": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_currency.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_currency_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:132:BR-KSA-F-04": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_currency.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_currency_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:133:BR-KSA-EN16931-01": {
       "status": "implemented",
@@ -1958,24 +1970,36 @@
       ]
     },
     "ksa:149:BR-KSA-87": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_currency.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_currency_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:150:BR-KSA-88": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_currency.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_currency_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:151:BR-KSA-89": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_currency.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_currency_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:152:BR-KSA-90": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_currency.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_currency_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     }
   }
 }

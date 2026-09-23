@@ -248,7 +248,7 @@ fn rule_metadata_matches_the_pinned_source_assertion_sites() {
             .trim()
     );
     let catalog: Value = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(metadata::RULES.len(), 224);
+    assert_eq!(metadata::RULES.len(), 232);
     let coverage: Value = serde_json::from_str(
         &std::fs::read_to_string(fixture_root().join("coverage.json")).unwrap(),
     )
@@ -368,8 +368,20 @@ fn assert_frozen_corpus(family: &str, expected_cases: usize) {
             .filter(|f| f["code"] == "SaxonApiException")
             .map(|f| f["source"].as_str().unwrap())
             .collect();
-        let report =
-            super::evaluate_slice(&input, &context()).unwrap_or_else(|e| panic!("{id}: {e:?}"));
+        let report = match super::evaluate_slice(&input, &context()) {
+            Ok(report) => report,
+            Err(failure) => {
+                let source = failure
+                    .failed_source
+                    .expect("reference failure has a source");
+                assert!(
+                    unavailable_sources.contains(source.sdk_name()),
+                    "{id}: unexpected native failure: {:?}",
+                    failure.kind
+                );
+                failure.report
+            }
+        };
         // The SDK CLI coalesces repeated findings with identical metadata.
         // Compare its observable projection; independent occurrence regressions
         // below retain the source's loops, sites and node locations.
@@ -394,7 +406,9 @@ fn assert_frozen_corpus(family: &str, expected_cases: usize) {
             }
         }
         for f in expected["findings"].as_array().unwrap() {
-            if metadata::RULES
+            if report.stages.iter().any(|stage| {
+                stage.source.sdk_name() == f["source"] && stage.status != StageStatus::NotRun
+            }) && metadata::RULES
                 .iter()
                 .any(|r| r.source.sdk_name() == f["source"] && r.code == f["code"])
             {
@@ -683,4 +697,9 @@ fn context_selection_failures_preserve_stage_and_site_without_a_false_location()
         StageStatus::EvaluationFailed
     );
     assert!(failure.report.stages[1].evaluated_sites.is_empty());
+}
+
+#[test]
+fn frozen_sdk_currency_mutations_match_implemented_rules() {
+    assert_frozen_corpus("ksa-currency", 26);
 }

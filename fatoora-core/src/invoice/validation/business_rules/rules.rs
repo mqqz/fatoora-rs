@@ -20,6 +20,7 @@ pub(super) enum Check {
     Vat(super::vat::VatCheck),
     KsaAdjustment(super::ksa_adjustments::KsaAdjustmentCheck),
     KsaExemption(super::ksa_exemptions::KsaExemptionCheck),
+    KsaCurrency(super::ksa_currency::KsaCurrencyCheck),
     LineSum,
     TotalScale(&'static str),
     InclusiveTotal,
@@ -34,6 +35,7 @@ pub(super) enum Check {
 pub(super) struct Facts<'a> {
     xml: &'a XmlView,
     digits: usize,
+    patterns: super::patterns::MatchCache,
     line_sum: OnceCell<Result<ExactDecimal, FailureKind>>,
     raw_line_sum: OnceCell<Result<ExactDecimal, FailureKind>>,
     subtotal_sum: OnceCell<Result<ExactDecimal, FailureKind>>,
@@ -46,6 +48,7 @@ impl<'a> Facts<'a> {
         Self {
             xml,
             digits,
+            patterns: Default::default(),
             line_sum: OnceCell::new(),
             raw_line_sum: OnceCell::new(),
             subtotal_sum: OnceCell::new(),
@@ -67,6 +70,7 @@ impl<'a> Facts<'a> {
             Check::Vat(check) => check.contexts(xml),
             Check::KsaAdjustment(check) => check.contexts(xml),
             Check::KsaExemption(check) => check.contexts(xml)?,
+            Check::KsaCurrency(check) => check.contexts(xml)?,
             Check::LineSum | Check::TotalScale(_) => xml.all(CAC, "LegalMonetaryTotal"),
             Check::InclusiveTotal => vec![0],
             Check::ItemName => {
@@ -110,6 +114,16 @@ impl<'a> Facts<'a> {
             }
             Check::TaxCurrency | Check::BareTaxTotal => self.tax_currencies.clone(),
         })
+    }
+
+    pub fn location(&self, check: Check, node: NodeId) -> std::borrow::Cow<'_, str> {
+        if let Check::KsaCurrency(super::ksa_currency::KsaCurrencyCheck::CurrencyCode) = check {
+            std::borrow::Cow::Owned(
+                super::ksa_currency::KsaCurrencyCheck::CurrencyCode.location(self.xml, node),
+            )
+        } else {
+            std::borrow::Cow::Borrowed(&self.xml.node(node).location)
+        }
     }
 
     fn decimal(&self, nodes: &[NodeId]) -> Result<Option<ExactDecimal>, FailureKind> {
@@ -159,6 +173,7 @@ impl<'a> Facts<'a> {
             Check::Vat(check) => check.passes(xml, node, self.digits),
             Check::KsaAdjustment(check) => check.passes(xml, node, self.digits),
             Check::KsaExemption(check) => check.passes(xml, node, self.digits),
+            Check::KsaCurrency(check) => check.passes(xml, node, &self.patterns),
             Check::LineSum => {
                 let amount = self.amount(node, "LineExtensionAmount")?;
                 let sum = self

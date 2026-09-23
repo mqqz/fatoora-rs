@@ -8,9 +8,11 @@ mod identity;
 mod ksa_adjustments;
 mod ksa_buyer;
 mod ksa_common;
+mod ksa_currency;
 mod ksa_exemptions;
 mod ksa_fields;
 mod metadata;
+mod patterns;
 mod rules;
 mod structural;
 mod totals;
@@ -152,6 +154,8 @@ pub(super) enum FailureKind {
     Cardinality,
     #[error("invalid xs:boolean lexical value")]
     InvalidBoolean,
+    #[error("invalid XPath regular expression")]
+    InvalidRegex,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -222,7 +226,8 @@ fn evaluate_matching(
                 }
             };
             for node in nodes {
-                let bytes = view.node(node).location.len() + rule.message.len();
+                let location = facts.location(rule.check, node);
+                let bytes = location.len() + rule.message.len();
                 let result = facts.passes(rule.check, node).and_then(|passed| {
                     if !passed && finding_count >= context.limits.findings {
                         Err(FailureKind::Limit("findings"))
@@ -244,7 +249,7 @@ fn evaluate_matching(
                             code: rule.code,
                             severity: rule.severity,
                             message: rule.message,
-                            location: view.node(node).location.clone(),
+                            location: location.into_owned(),
                         });
                     }
                     Err(kind) => {
@@ -253,7 +258,7 @@ fn evaluate_matching(
                             report,
                             failed_source: Some(source),
                             site: Some(rule.site),
-                            location: Some(view.node(node).location.clone()),
+                            location: Some(location.into_owned()),
                             kind,
                         }));
                     }
@@ -302,3 +307,9 @@ mod ksa_adjustment_tests;
 
 #[cfg(test)]
 mod ksa_exemption_tests;
+
+#[cfg(test)]
+mod pattern_tests;
+
+#[cfg(test)]
+mod ksa_currency_tests;
