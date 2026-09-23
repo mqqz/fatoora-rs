@@ -248,7 +248,7 @@ fn rule_metadata_matches_the_pinned_source_assertion_sites() {
             .trim()
     );
     let catalog: Value = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(metadata::RULES.len(), 104);
+    assert_eq!(metadata::RULES.len(), 114);
     let coverage: Value = serde_json::from_str(
         &std::fs::read_to_string(fixture_root().join("coverage.json")).unwrap(),
     )
@@ -304,6 +304,11 @@ fn frozen_sdk_structural_mutations_match_implemented_rules() {
 #[test]
 fn frozen_sdk_monetary_mutations_match_implemented_rules() {
     assert_frozen_corpus("totals", 18);
+}
+
+#[test]
+fn frozen_sdk_ksa_field_mutations_match_implemented_rules() {
+    assert_frozen_corpus("ksa-fields", 22);
 }
 
 fn assert_frozen_corpus(family: &str, expected_cases: usize) {

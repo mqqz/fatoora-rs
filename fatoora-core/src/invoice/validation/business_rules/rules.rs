@@ -11,6 +11,7 @@ use std::cell::OnceCell;
 #[derive(Debug, Clone, Copy)]
 pub(super) enum Check {
     Identity(super::identity::IdentityCheck),
+    KsaField(super::ksa_fields::KsaFieldCheck),
     Structural(super::structural::Context, super::structural::Requirement),
     CodeList(super::code_lists::CodeListCheck),
     Totals(super::totals::TotalsCheck),
@@ -52,6 +53,7 @@ impl<'a> Facts<'a> {
         let xml = self.xml;
         match check {
             Check::Identity(check) => check.contexts(xml),
+            Check::KsaField(check) => check.contexts(xml),
             Check::Totals(check) => check.contexts(xml),
             Check::CodeList(check) => check.contexts(xml),
             Check::Structural(context, _) => context.nodes(xml),
@@ -136,6 +138,7 @@ impl<'a> Facts<'a> {
         let xml = self.xml;
         match check {
             Check::Identity(check) => check.passes(xml, node),
+            Check::KsaField(check) => check.passes(xml, node),
             Check::Totals(check) => check.passes(xml, node, self.digits, &self.raw_line_sum),
             Check::CodeList(check) => check.passes(xml, node),
             Check::Structural(context, requirement) => {

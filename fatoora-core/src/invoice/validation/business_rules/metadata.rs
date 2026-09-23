@@ -22,6 +22,8 @@ use super::code_lists::CodeListCheck;
 
 use super::totals::TotalsCheck;
 
+use super::ksa_fields::KsaFieldCheck;
+
 pub(super) const RULES: &[Rule] = &[
     Rule {
         source: Source::Cen,
@@ -790,6 +792,30 @@ pub(super) const RULES: &[Rule] = &[
     },
     Rule {
         source: Source::Ksa,
+        site: "ksa:034:BR-KSA-05",
+        code: "BR-KSA-05",
+        severity: Severity::Error,
+        message: "[BR-KSA-05]-The invoice type code (BT-3) must be equal to one of value from the subset of UN/CEFACT code list 1001, D.16B agreed for KSA electronic invoices. Please refer paragraph 11.2.1 of XML implementation Standards.",
+        check: Check::KsaField(KsaFieldCheck::InvoiceType),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:035:BR-KSA-06",
+        code: "BR-KSA-06",
+        severity: Severity::Error,
+        message: "[BR-KSA-06]-The invoice transaction code (KSA-2) must exist and respect the following structure:\n                        NNPNESBCG\n                        where\n                        NN (positions 1 and 2) = invoice subtype:\n                        - 01 for tax invoice\n                        - 02 for simplified tax invoice\n                        P (position 3) = 3rd Party invoice transaction, 0 for false, 1 for true;\n                        N (position 4) = Nominal invoice transaction, 0 for false, 1 for true;\n                        E (position 5) = Exports invoice transaction, 0 for false, 1 for true;\n                        S (position 6) = Summary invoice transaction, 0 for false, 1 for true;\n                        B (position 7) = Self billed invoice transaction, 0 for false, 1 for true;\n                        C (position 8) = Continuous Supply invoice transaction, 0 for false, 1 for true;\n                        G (position 9) = B2G invoice transaction, 0 for false, 1 for true\n                     ",
+        check: Check::KsaField(KsaFieldCheck::TransactionCode),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:036:BR-KSA-F-06-C40",
+        code: "BR-KSA-F-06-C40",
+        severity: Severity::Warning,
+        message: "[BR-KSA-F-06-C40]-Field character limits for Invoice transaction code (KSA-2) have not been met. The minimum limit is 7 characters and the maximum limit is 9 characters.",
+        check: Check::KsaField(KsaFieldCheck::TransactionLength),
+    },
+    Rule {
+        source: Source::Ksa,
         site: "ksa:037:BR-KSA-F-08",
         code: "BR-KSA-F-08",
         severity: Severity::Warning,
@@ -926,6 +952,22 @@ pub(super) const RULES: &[Rule] = &[
     },
     Rule {
         source: Source::Ksa,
+        site: "ksa:133:BR-KSA-EN16931-01",
+        code: "BR-KSA-EN16931-01",
+        severity: Severity::Error,
+        message: "[BR-KSA-EN16931-01]-Business process (BT-23) must be \"reporting:1.0\".",
+        check: Check::KsaField(KsaFieldCheck::Profile),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:134:BR-KSA-EN16931-08",
+        code: "BR-KSA-EN16931-08",
+        severity: Severity::Warning,
+        message: "[BR-KSA-EN16931-08]-Only one tax total (BG-22) with tax subtotals must be provided.Refer to Calculation of VAT.",
+        check: Check::KsaField(KsaFieldCheck::TaxSubtotalTotal),
+    },
+    Rule {
+        source: Source::Ksa,
         site: "ksa:136:BR-KSA-EN16931-02",
         code: "BR-KSA-EN16931-02",
         severity: Severity::Error,
@@ -939,6 +981,46 @@ pub(super) const RULES: &[Rule] = &[
         severity: Severity::Warning,
         message: "[BR-KSA-EN16931-09]-Only one tax total (BG-22) without tax subtotals (BG-23) must be provided when tax currency code is provided .",
         check: Check::BareTaxTotal,
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:139:BR-KSA-EN16931-05",
+        code: "BR-KSA-EN16931-05",
+        severity: Severity::Warning,
+        message: "[BR-KSA-EN16931-05]-Allowance/Charge percentage (BT-94, BT-101, BT-138, BT-143) must be provided when the allowance/Charge base amount (BT-93, BT-100, BT-137, BT-142) is provided.",
+        check: Check::KsaField(KsaFieldCheck::BasePercentage),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:140:BR-KSA-EN16931-04",
+        code: "BR-KSA-EN16931-04",
+        severity: Severity::Warning,
+        message: "[BR-KSA-EN16931-04]-Allowance/Charge base amount (BT-93, BT-100, BT-137, BT-142) must be provided when allowance/Charge percentage (BT-94, BT-101,BT-138, BT-143) is provided.",
+        check: Check::KsaField(KsaFieldCheck::PercentageBase),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:141:BR-KSA-EN16931-06",
+        code: "BR-KSA-EN16931-06",
+        severity: Severity::Error,
+        message: "[BR-KSA-EN16931-06]-Charge on price level (BG-29) is not allowed. The value of Indicator should be 'false'.",
+        check: Check::KsaField(KsaFieldCheck::NoPriceCharge),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:143:BR-KSA-F-06-C21",
+        code: "BR-KSA-F-06-C21",
+        severity: Severity::Warning,
+        message: "[BR-KSA-F-06-C21] - Field character limits for Item price base quantity unit code field (BT-150) have not been met. The maximum limit is 127 characters.\n                     ",
+        check: Check::KsaField(KsaFieldCheck::BaseUnitLength),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:144:BR-KSA-EN16931-12",
+        code: "BR-KSA-EN16931-12",
+        severity: Severity::Error,
+        message: "[BR-KSA-EN16931-12]-Base quantity (BT-149) must be a positive number above zero.",
+        check: Check::KsaField(KsaFieldCheck::PositiveBaseQuantity),
     },
     Rule {
         source: Source::Ksa,
