@@ -27,6 +27,14 @@ impl ExactDecimal {
         }
     }
 
+    /// Convert the complete decimal value in one correctly rounded operation.
+    /// Separately converting coefficient and scale can overflow before division.
+    pub fn to_double(&self) -> f64 {
+        format!("{}e-{}", self.coefficient, self.scale)
+            .parse()
+            .expect("integer coefficient and decimal scale form a valid double")
+    }
+
     /// Cast the actual binary value, never its shortest display representation.
     pub fn from_double(value: f64, digits: usize) -> Result<Self, FailureKind> {
         if !value.is_finite() {

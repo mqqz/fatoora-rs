@@ -278,3 +278,41 @@ fn double_to_decimal_cast_preserves_binary_value_before_rounding() {
     assert!(ExactDecimal::from_double(f64::from_bits(1), 4096).unwrap() > decimal("0"));
     assert!(ExactDecimal::from_double(f64::MAX, 4096).is_ok());
 }
+
+#[test]
+fn decimal_to_double_rounds_once_without_intermediate_overflow() {
+    for text in [
+        "1.005",
+        "2.68",
+        "-1.02",
+        "0",
+        "0.00000000000000000000000000001",
+    ] {
+        assert_eq!(
+            ExactDecimal::parse(text, 4096).unwrap().to_double(),
+            text.parse::<f64>().unwrap()
+        );
+    }
+    let large = format!("{}.5", "9".repeat(308));
+    let value = ExactDecimal::parse(&large, 4096).unwrap().to_double();
+    assert!(value.is_finite());
+    assert_eq!(value, large.parse::<f64>().unwrap());
+    for value in [f64::MAX, f64::MIN_POSITIVE, f64::from_bits(1), -f64::MAX] {
+        assert_eq!(
+            ExactDecimal::from_double(value, 4096).unwrap().to_double(),
+            value
+        );
+    }
+    assert_eq!(
+        ExactDecimal::parse(&"9".repeat(400), 4096)
+            .unwrap()
+            .to_double(),
+        f64::INFINITY
+    );
+    assert_eq!(
+        ExactDecimal::parse(&format!("0.{}1", "0".repeat(400)), 4096)
+            .unwrap()
+            .to_double(),
+        0.0
+    );
+}
