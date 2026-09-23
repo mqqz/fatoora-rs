@@ -136,6 +136,48 @@ impl ExactDecimal {
         Self::normalized(&self.coefficient * &other.coefficient, scale).bounded(digits)
     }
 
+    /// Decimal division used by the pinned SDK's line-net calculation.
+    /// Independent CLI probes establish a minimum scale of 18, adjusted by
+    /// normalized operand scales, with midpoint rounding toward zero. Integer
+    /// trailing zeroes matter: 3e20 has normalized scale -20; 3e20+1 has 0.
+    pub fn divide_sdk(&self, other: &Self, digits: usize) -> Result<Self, FailureKind> {
+        if other.coefficient.is_zero() {
+            return Err(FailureKind::DivisionByZero);
+        }
+        if self.coefficient.is_zero() {
+            return Self::zero().bounded(digits);
+        }
+        let normalized_scale = |value: &Self| {
+            let coefficient = value.coefficient.to_str_radix(10);
+            value.scale as i64
+                - (coefficient.len() - coefficient.trim_end_matches('0').len()) as i64
+        };
+        let scale = 18.max(18 + normalized_scale(self) - normalized_scale(other));
+        let scale = u32::try_from(scale).map_err(|_| FailureKind::Limit("decimal digits"))?;
+        let exponent = other.scale as i64 + scale as i64 - self.scale as i64;
+        let (numerator, denominator) = if exponent >= 0 {
+            (
+                &self.coefficient * BigInt::from(10u8).pow(exponent as u32),
+                other.coefficient.clone(),
+            )
+        } else {
+            (
+                self.coefficient.clone(),
+                &other.coefficient * BigInt::from(10u8).pow((-exponent) as u32),
+            )
+        };
+        let mut quotient = &numerator / &denominator;
+        let remainder = &numerator % &denominator;
+        if remainder.abs() * 2u8 > denominator.abs() {
+            quotient += if numerator.is_negative() == denominator.is_negative() {
+                1
+            } else {
+                -1
+            };
+        }
+        Self::normalized(quotient, scale).bounded(digits)
+    }
+
     pub fn abs(&self) -> Self {
         Self {
             coefficient: self.coefficient.abs(),

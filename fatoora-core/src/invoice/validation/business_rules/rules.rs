@@ -23,6 +23,7 @@ pub(super) enum Check {
     KsaCurrency(super::ksa_currency::KsaCurrencyCheck),
     KsaDate(super::ksa_dates::KsaDateCheck),
     KsaPrepayment(super::ksa_prepayment::KsaPrepaymentCheck),
+    KsaArithmetic(super::ksa_arithmetic::KsaArithmeticCheck),
     LineSum,
     TotalScale(&'static str),
     InclusiveTotal,
@@ -81,6 +82,7 @@ impl<'a> Facts<'a> {
             Check::KsaCurrency(check) => check.contexts(xml)?,
             Check::KsaDate(check) => check.contexts(xml),
             Check::KsaPrepayment(check) => check.contexts(xml)?,
+            Check::KsaArithmetic(check) => check.contexts(xml),
             Check::LineSum | Check::TotalScale(_) => xml.all(CAC, "LegalMonetaryTotal"),
             Check::InclusiveTotal => vec![0],
             Check::ItemName => {
@@ -186,6 +188,7 @@ impl<'a> Facts<'a> {
             Check::KsaCurrency(check) => check.passes(xml, node, &self.patterns),
             Check::KsaDate(check) => check.passes(xml, node, &self.instant, self.digits),
             Check::KsaPrepayment(check) => check.passes(xml, node, self.digits),
+            Check::KsaArithmetic(check) => check.passes(xml, node, self.digits),
             Check::LineSum => {
                 let amount = self.amount(node, "LineExtensionAmount")?;
                 let sum = self

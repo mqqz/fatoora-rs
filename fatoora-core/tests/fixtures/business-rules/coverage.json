@@ -1331,9 +1331,12 @@
       ]
     },
     "ksa:060:BR-KSA-51": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_arithmetic.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_arithmetic_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:061:BR-KSA-18": {
       "status": "implemented",
@@ -1928,9 +1931,12 @@
       ]
     },
     "ksa:135:BR-KSA-97": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_arithmetic.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_arithmetic_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:136:BR-KSA-EN16931-02": {
       "status": "implemented",
@@ -1951,9 +1957,12 @@
       ]
     },
     "ksa:138:BR-KSA-EN16931-03": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_arithmetic.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_arithmetic_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:139:BR-KSA-EN16931-05": {
       "status": "implemented",
@@ -1980,9 +1989,12 @@
       ]
     },
     "ksa:142:BR-KSA-EN16931-11": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_arithmetic.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_arithmetic_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:143:BR-KSA-F-06-C21": {
       "status": "implemented",

@@ -40,6 +40,8 @@ use super::ksa_dates::KsaDateCheck;
 
 use super::ksa_prepayment::KsaPrepaymentCheck;
 
+use super::ksa_arithmetic::KsaArithmeticCheck;
+
 pub(super) const RULES: &[Rule] = &[
     Rule {
         source: Source::Cen,
@@ -1464,6 +1466,14 @@ pub(super) const RULES: &[Rule] = &[
     },
     Rule {
         source: Source::Ksa,
+        site: "ksa:060:BR-KSA-51",
+        code: "BR-KSA-51",
+        severity: Severity::Warning,
+        message: "[BR-KSA-51]-The  line amount with VAT (KSA-12) must be Invoice line net amount (BT-131) + Line VAT amount (KSA-11).",
+        check: Check::KsaArithmetic(KsaArithmeticCheck::LineInclusive),
+    },
+    Rule {
+        source: Source::Ksa,
         site: "ksa:061:BR-KSA-18",
         code: "BR-KSA-18",
         severity: Severity::Error,
@@ -2056,6 +2066,14 @@ pub(super) const RULES: &[Rule] = &[
     },
     Rule {
         source: Source::Ksa,
+        site: "ksa:135:BR-KSA-97",
+        code: "BR-KSA-97",
+        severity: Severity::Warning,
+        message: "[BR-KSA-97]-If the Document Currency Code (BT-5) is different from \"SAR\", then the value in \"Invoice total VAT amount (BT-110)\" cannot be the same as the value in \"Invoice total VAT amount in accounting currency (BT-111)\".",
+        check: Check::KsaArithmetic(KsaArithmeticCheck::ForeignTax),
+    },
+    Rule {
+        source: Source::Ksa,
         site: "ksa:136:BR-KSA-EN16931-02",
         code: "BR-KSA-EN16931-02",
         severity: Severity::Error,
@@ -2069,6 +2087,14 @@ pub(super) const RULES: &[Rule] = &[
         severity: Severity::Warning,
         message: "[BR-KSA-EN16931-09]-Only one tax total (BG-22) without tax subtotals (BG-23) must be provided when tax currency code is provided .",
         check: Check::BareTaxTotal,
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:138:BR-KSA-EN16931-03",
+        code: "BR-KSA-EN16931-03",
+        severity: Severity::Warning,
+        message: "[BR-KSA-EN16931-03]-Allowance/Charge amount (BT-92, BT-99, BT-136, BT-141) must equal base amount (BT-93, BT-100, BT-137, BT-142)  * percentage (BT-94, BT-101, BT-138, BT-143) / 100 if base amount and percentage exists.",
+        check: Check::KsaArithmetic(KsaArithmeticCheck::Adjustment),
     },
     Rule {
         source: Source::Ksa,
@@ -2093,6 +2119,14 @@ pub(super) const RULES: &[Rule] = &[
         severity: Severity::Error,
         message: "[BR-KSA-EN16931-06]-Charge on price level (BG-29) is not allowed. The value of Indicator should be 'false'.",
         check: Check::KsaField(KsaFieldCheck::NoPriceCharge),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:142:BR-KSA-EN16931-11",
+        code: "BR-KSA-EN16931-11",
+        severity: Severity::Warning,
+        message: "[BR-KSA-EN16931-11]-Invoice line net amount (BT-131) must equal (Invoiced quantity (BT-129) * (Item net price (BT-146) / item price base quantity (BT-149))-) + Sum of invoice line charge amount (BT-141) - Sum of invoice line allowance amount (BT-136).",
+        check: Check::KsaArithmetic(KsaArithmeticCheck::LineNet),
     },
     Rule {
         source: Source::Ksa,

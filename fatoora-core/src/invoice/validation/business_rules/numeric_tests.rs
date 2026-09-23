@@ -345,3 +345,38 @@ fn formatted_numbers_keep_half_even_binary_conversion_and_negative_zero() {
         F::from_double(f64::NEG_INFINITY, 4096).unwrap()
     );
 }
+
+#[test]
+fn sdk_division_uses_normalized_scales_and_half_down_rounding() {
+    let d = |s| ExactDecimal::parse(s, 4096).unwrap();
+    for (a, b, expected) in [
+        ("1", "3", "0.333333333333333333"),
+        ("1", "3.00000000000000000000", "0.333333333333333333"),
+        ("1", "11", "0.090909090909090909"),
+        ("1", "524288", "0.000001907348632812"),
+        ("3", "524288", "0.000005722045898437"),
+        ("-3", "524288", "-0.000005722045898437"),
+        (
+            "1",
+            "300000000000000000000",
+            "0.00000000000000000000333333333333333333",
+        ),
+        ("1", "300000000000000000001", "0"),
+        (
+            "0.00000000000000000001",
+            "3",
+            "0.00000000000000000000333333333333333333",
+        ),
+    ] {
+        assert_eq!(d(a).divide_sdk(&d(b), 4096), Ok(d(expected)), "{a} / {b}");
+    }
+    assert_eq!(
+        d("0").divide_sdk(&d("0"), 4096),
+        Err(FailureKind::DivisionByZero)
+    );
+    assert_eq!(
+        d("1").divide_sdk(&d("3"), 10),
+        Err(FailureKind::Limit("decimal digits"))
+    );
+    assert_eq!(d("1").divide_sdk(&d("2"), 1), Ok(d(".5")));
+}

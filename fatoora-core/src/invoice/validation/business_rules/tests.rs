@@ -248,7 +248,7 @@ fn rule_metadata_matches_the_pinned_source_assertion_sites() {
             .trim()
     );
     let catalog: Value = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(metadata::RULES.len(), 253);
+    assert_eq!(metadata::RULES.len(), 257);
     let coverage: Value = serde_json::from_str(
         &std::fs::read_to_string(fixture_root().join("coverage.json")).unwrap(),
     )
@@ -359,8 +359,8 @@ fn assert_frozen_corpus(family: &str, expected_cases: usize) {
         )
         .unwrap();
         // SDK transform failures discard the source's findings. They are not
-        // evidence of a successful run with zero rule violations. Until this
-        // internal slice is complete, compare only observable source results.
+        // evidence of a successful run with zero rule violations. Every pinned
+        // site is implemented, so native execution must fail for those cases.
         let unavailable_sources: std::collections::BTreeSet<_> = expected["findings"]
             .as_array()
             .unwrap()
@@ -369,7 +369,13 @@ fn assert_frozen_corpus(family: &str, expected_cases: usize) {
             .map(|f| f["source"].as_str().unwrap())
             .collect();
         let report = match super::evaluate_slice(&input, &context()) {
-            Ok(report) => report,
+            Ok(report) => {
+                assert!(
+                    unavailable_sources.is_empty(),
+                    "{id}: SDK execution failed but native evaluation completed"
+                );
+                report
+            }
             Err(failure) => {
                 let source = failure
                     .failed_source
@@ -717,4 +723,14 @@ fn frozen_sdk_date_cast_mutations_match_implemented_rules() {
 #[test]
 fn frozen_sdk_prepayment_mutations_match_implemented_rules() {
     assert_frozen_corpus("ksa-prepayment", 28);
+}
+
+#[test]
+fn frozen_sdk_arithmetic_mutations_match_implemented_rules() {
+    assert_frozen_corpus("ksa-arithmetic", 28);
+}
+
+#[test]
+fn frozen_sdk_arithmetic_guard_mutations_match_implemented_rules() {
+    assert_frozen_corpus("ksa-arithmetic-guards", 6);
 }

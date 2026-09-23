@@ -6,6 +6,7 @@ mod code_lists;
 mod decimal;
 mod identity;
 mod ksa_adjustments;
+mod ksa_arithmetic;
 mod ksa_buyer;
 mod ksa_common;
 mod ksa_currency;
@@ -150,6 +151,8 @@ pub(super) enum FailureKind {
     Limit(&'static str),
     #[error("invalid xs:decimal lexical value")]
     InvalidDecimal,
+    #[error("decimal division by zero")]
+    DivisionByZero,
     #[error("invalid xs:double lexical value")]
     InvalidDouble,
     #[error("expected zero or one value, found multiple values")]
@@ -323,3 +326,6 @@ mod ksa_date_tests;
 
 #[cfg(test)]
 mod ksa_prepayment_tests;
+
+#[cfg(test)]
+mod ksa_arithmetic_tests;
