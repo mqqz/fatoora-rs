@@ -153,7 +153,7 @@ GPL v3 text accompany those materials. Imported rules and messages retain their
 upstream terms. Extraction and capture scripts are repository-authored. No SDK
 JAR or executable is included.
 
-`rules.rs`, `identity.rs`, `structural.rs` and `code_lists.rs` in
+`rules.rs`, `identity.rs`, `structural.rs`, `code_lists.rs` and `totals.rs` in
 `fatoora-core/src/invoice/validation/business_rules/` translate selected predicates from those pinned SDK stylesheets into Rust. Its `metadata.rs` retains
 the corresponding rule identifiers and messages. The source-site mapping and
 tests are recorded in the corpus coverage ledger. The imported predicates and

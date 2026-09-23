@@ -13,6 +13,7 @@ pub(super) enum Check {
     Identity(super::identity::IdentityCheck),
     Structural(super::structural::Context, super::structural::Requirement),
     CodeList(super::code_lists::CodeListCheck),
+    Totals(super::totals::TotalsCheck),
     LineSum,
     TotalScale(&'static str),
     InclusiveTotal,
@@ -28,6 +29,7 @@ pub(super) struct Facts<'a> {
     xml: &'a XmlView,
     digits: usize,
     line_sum: OnceCell<Result<ExactDecimal, FailureKind>>,
+    raw_line_sum: OnceCell<Result<ExactDecimal, FailureKind>>,
     subtotal_sum: OnceCell<Result<ExactDecimal, FailureKind>>,
     document_currencies: Vec<NodeId>,
     tax_currencies: Vec<NodeId>,
@@ -39,6 +41,7 @@ impl<'a> Facts<'a> {
             xml,
             digits,
             line_sum: OnceCell::new(),
+            raw_line_sum: OnceCell::new(),
             subtotal_sum: OnceCell::new(),
             document_currencies: xml.all(CBC, "DocumentCurrencyCode"),
             tax_currencies: xml.all(CBC, "TaxCurrencyCode"),
@@ -49,6 +52,7 @@ impl<'a> Facts<'a> {
         let xml = self.xml;
         match check {
             Check::Identity(check) => check.contexts(xml),
+            Check::Totals(check) => check.contexts(xml),
             Check::CodeList(check) => check.contexts(xml),
             Check::Structural(context, _) => context.nodes(xml),
             Check::LineSum | Check::TotalScale(_) => xml.all(CAC, "LegalMonetaryTotal"),
@@ -132,6 +136,7 @@ impl<'a> Facts<'a> {
         let xml = self.xml;
         match check {
             Check::Identity(check) => check.passes(xml, node),
+            Check::Totals(check) => check.passes(xml, node, self.digits, &self.raw_line_sum),
             Check::CodeList(check) => check.passes(xml, node),
             Check::Structural(context, requirement) => {
                 Ok(!context.applies(xml, node)? || requirement.passes(xml, node)?)

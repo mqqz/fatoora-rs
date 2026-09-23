@@ -246,3 +246,35 @@ fn decimal_result_budgets_reject_growth_but_allow_normalized_cancellation() {
     );
     assert_eq!(maximum.multiply(&decimal("1"), 4096).unwrap(), maximum);
 }
+
+#[test]
+fn double_to_decimal_cast_preserves_binary_value_before_rounding() {
+    assert_eq!(
+        ExactDecimal::from_double(0.1, 4096).unwrap(),
+        decimal("0.1000000000000000055511151231257827021181583404541015625")
+    );
+    for (value, expected) in [
+        (1.005, "1.00"),
+        (-1.005, "-1.00"),
+        (2.675, "2.67"),
+        (1000000000000000100.0, "1000000000000000128"),
+    ] {
+        assert_eq!(
+            ExactDecimal::from_double(value, 4096).unwrap().round(2),
+            decimal(expected)
+        );
+    }
+    assert_eq!(ExactDecimal::from_double(-0.0, 4096).unwrap(), decimal("0"));
+    for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+        assert_eq!(
+            ExactDecimal::from_double(value, 4096),
+            Err(FailureKind::InvalidDecimal)
+        );
+    }
+    assert_eq!(
+        ExactDecimal::from_double(0.1, 2),
+        Err(FailureKind::Limit("decimal digits"))
+    );
+    assert!(ExactDecimal::from_double(f64::from_bits(1), 4096).unwrap() > decimal("0"));
+    assert!(ExactDecimal::from_double(f64::MAX, 4096).is_ok());
+}

@@ -8,6 +8,7 @@ mod identity;
 mod metadata;
 mod rules;
 mod structural;
+mod totals;
 mod xml;
 
 use super::Severity;
@@ -261,3 +262,6 @@ mod structural_tests;
 
 #[cfg(test)]
 mod code_list_tests;
+
+#[cfg(test)]
+mod totals_tests;

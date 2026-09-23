@@ -20,6 +20,8 @@ use super::{
 
 use super::code_lists::CodeListCheck;
 
+use super::totals::TotalsCheck;
+
 pub(super) const RULES: &[Rule] = &[
     Rule {
         source: Source::Cen,
@@ -166,6 +168,54 @@ pub(super) const RULES: &[Rule] = &[
         severity: Severity::Warning,
         message: "[BR-CO-10]-Sum of Invoice line net amount (BT-106) = Σ Invoice line net amount (BT-131).",
         check: Check::LineSum,
+    },
+    Rule {
+        source: Source::Cen,
+        site: "cen:017:BR-CO-11",
+        code: "BR-CO-11",
+        severity: Severity::Error,
+        message: "[BR-CO-11]-Sum of allowances on document level (BT-107) = Σ Document level allowance amount (BT-92).",
+        check: Check::Totals(TotalsCheck::AllowanceSum),
+    },
+    Rule {
+        source: Source::Cen,
+        site: "cen:018:BR-CO-12",
+        code: "BR-CO-12",
+        severity: Severity::Error,
+        message: "[BR-CO-12]-Sum of charges on document level (BT-108) = Σ Document level charge amount (BT-99).",
+        check: Check::Totals(TotalsCheck::EmptyChargeSum),
+    },
+    Rule {
+        source: Source::Cen,
+        site: "cen:019:BR-CO-12",
+        code: "BR-CO-12",
+        severity: Severity::Error,
+        message: "[BR-CO-12]-Sum of charges on document level (BT-108) = Σ Document level charge amount (BT-99).",
+        check: Check::Totals(TotalsCheck::ChargeSum),
+    },
+    Rule {
+        source: Source::Cen,
+        site: "cen:020:BR-CO-13",
+        code: "BR-CO-13",
+        severity: Severity::Warning,
+        message: "[BR-CO-13]-Invoice total amount without VAT (BT-109) = Σ Invoice line net amount (BT-131) - Sum of allowances on document level (BT-107) + Sum of charges on document level (BT-108).",
+        check: Check::Totals(TotalsCheck::EmptyChargeExclusive),
+    },
+    Rule {
+        source: Source::Cen,
+        site: "cen:021:BR-CO-13",
+        code: "BR-CO-13",
+        severity: Severity::Warning,
+        message: "[BR-CO-13]-Invoice total amount without VAT (BT-109) = Σ Invoice line net amount (BT-131) - Sum of allowances on document level (BT-107) + Sum of charges on document level (BT-108).",
+        check: Check::Totals(TotalsCheck::Exclusive),
+    },
+    Rule {
+        source: Source::Cen,
+        site: "cen:022:BR-CO-16",
+        code: "BR-CO-16",
+        severity: Severity::Warning,
+        message: "[BR-CO-16]-Amount due for payment (BT-115) = Invoice total amount with VAT (BT-112) -Pre-Paid amount (BT-113) + Rounding amount (BT-114).",
+        check: Check::Totals(TotalsCheck::Payable),
     },
     Rule {
         source: Source::Cen,

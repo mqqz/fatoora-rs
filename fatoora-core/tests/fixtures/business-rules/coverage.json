@@ -132,34 +132,52 @@
       ]
     },
     "cen:017:BR-CO-11": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/totals.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/totals_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:018:BR-CO-12": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/totals.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/totals_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:019:BR-CO-12": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/totals.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/totals_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:020:BR-CO-13": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/totals.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/totals_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:021:BR-CO-13": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/totals.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/totals_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:022:BR-CO-16": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/totals.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/totals_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:023:BR-DEC-09": {
       "status": "implemented",

@@ -27,6 +27,36 @@ impl ExactDecimal {
         }
     }
 
+    /// Cast the actual binary value, never its shortest display representation.
+    pub fn from_double(value: f64, digits: usize) -> Result<Self, FailureKind> {
+        if !value.is_finite() {
+            return Err(FailureKind::InvalidDecimal);
+        }
+        if value == 0.0 {
+            return Self::zero().bounded(digits);
+        }
+        let bits = value.to_bits();
+        let fraction = bits & ((1u64 << 52) - 1);
+        let exponent = ((bits >> 52) & 0x7ff) as i32;
+        let (mantissa, exponent) = if exponent == 0 {
+            (fraction, -1074)
+        } else {
+            (fraction | (1u64 << 52), exponent - 1023 - 52)
+        };
+        let mut coefficient = BigInt::from(mantissa);
+        let scale = if exponent < 0 {
+            coefficient *= BigInt::from(5u8).pow((-exponent) as u32);
+            (-exponent) as u32
+        } else {
+            coefficient <<= exponent as usize;
+            0
+        };
+        if value.is_sign_negative() {
+            coefficient = -coefficient;
+        }
+        Self::normalized(coefficient, scale).bounded(digits)
+    }
+
     pub fn parse(input: &str, digits: usize) -> Result<Self, FailureKind> {
         let value = input.trim_matches(is_xml_space);
         let unsigned = value.strip_prefix(['+', '-']).unwrap_or(value);

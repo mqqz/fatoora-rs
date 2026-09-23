@@ -2,7 +2,7 @@
 
 [Issue #1](https://github.com/mqqz/fatoora-rs/issues/1) is being implemented against
 the two rule profiles in ZATCA SDK `238-R3.4.8`. An internal Rust evaluator covers
-98 of the 257 inventoried assertion sites, with source metadata and offline SDK
+104 of the 257 inventoried assertion sites, with source metadata and offline SDK
 comparisons. **The full profile remains incomplete.** Public invoice validation
 continues to check XSD only; the native subset has no public entry point.
 
@@ -24,7 +24,7 @@ The fixtures in `fatoora-core/tests/fixtures/business-rules/` contain:
   ordered executable template trees, global declarations, and assertion metadata.
   Extraction preserves zero-assertion templates because they can suppress a later
   rule. The trees preserve the source instructions for review.
-- `coverage.json`: one entry per assertion site, with 98 implemented and 159
+- `coverage.json`: one entry per assertion site, with 104 implemented and 153
   pending. An implemented entry needs implementation and test paths. An
   unreachable entry needs evidence. File paths alone do not establish semantic
   coverage; reviewers must check branch and boundary tests.
@@ -47,6 +47,10 @@ The fixtures in `fatoora-core/tests/fixtures/business-rules/` contain:
 - `structural/`: 57 official-SDK cases covering field presence, lexical limits,
   quantity zero, category presence and the pinned code lists. Capture them with
   `capture --family structural --output /tmp/business-rule-structural`.
+
+- `totals/`: 18 official-SDK cases for allowance, charge, exclusive and payable
+  totals, including empty charge totals and double-to-decimal boundaries.
+  Capture them with `capture --family totals --output /tmp/business-rule-totals`.
 
 ## Interpret SDK findings accurately
 
@@ -125,9 +129,9 @@ cargo test -p fatoora-core --locked --offline --lib business_rules
 ```
 
 The module in `fatoora-core/src/invoice/validation/business_rules/` evaluates
-`BR-CO-10`, `BR-CO-14`, `BR-CO-15`, `BR-25`, the selected total and allowance
+`BR-CO-10` through `BR-CO-16`, `BR-25`, the selected total and allowance
 decimal limits, `BR-KSA-EN16931-02`/`09`, 20 Saudi identity/address checks, and 60 CEN structure and code-list checks.
-Tests compare this subset against all 127 mutation captures and the signed
+Tests compare this subset against all 145 mutation captures and the signed
 fixtures for all six document variants.
 Additional tests cover locations, duplicate operands, template suppression,
 overlapping patterns, and evaluation failures. The Rust metadata test requires
@@ -143,7 +147,9 @@ digit budget. It accepts XML decimal syntax and implements XPath midpoint
 rounding toward positive infinity. The existing invoice `Decimal` retains its
 96-bit coefficient, scale limit and invoice rounding contract. Lexical precision
 checks use XML text directly. Explicit double conversion and rounding have
-separate primitive tests; the selected arithmetic predicates use decimals.
+separate primitive tests. `BR-CO-13` preserves the source's double sum before
+casting its binary value to decimal; other implemented monetary predicates
+use explicit decimals.
 
 Reports identify the pinned profile, caller-supplied evaluation instant and
 offset, source, completed assertion sites, findings and source status. Successful
