@@ -866,6 +866,23 @@ struct FfiResult_bool fatoora_validate_xml_invoice_from_str(struct FfiConfig *co
                                                             const char *xml);
 
 /**
+ * Validate raw XML with the local ZATCA profile and return an owned JSON report.
+ *
+ * `options_json` may be null for defaults, or an object with optional
+ * `evaluated_at` (RFC3339) and `previous_invoice_hash` fields, at most 4 KiB.
+ * Rejections and incomplete coverage are successful calls: inspect `is_valid`, `is_complete`,
+ * `has_errors`, and stages. Execution errors retain a partial report in error
+ * details. Release the returned string with `fatoora_string_free`.
+ *
+ * # Safety
+ * `config` must be live. String pointers must be valid NUL-terminated UTF-8;
+ * `xml` must not be null. Inputs are borrowed only for this call.
+ */
+struct FfiResult_FfiString fatoora_validate_zatca_invoice_from_str(struct FfiConfig *config,
+                                                                   const char *xml,
+                                                                   const char *options_json);
+
+/**
  * # Safety
  * Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.
  */
