@@ -3,6 +3,28 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::{collections::BTreeMap, path::Path};
 
+// Primitive contracts use deliberately incomplete XML and isolate the original
+// slice. Corpus comparisons below always run every implemented rule.
+fn evaluate_slice(
+    input: &str,
+    context: &EvaluationContext,
+) -> Result<SliceReport, Box<EvaluationFailure>> {
+    evaluate_matching(input, context, |r| {
+        matches!(
+            r.check,
+            rules::Check::LineSum
+                | rules::Check::TotalScale(_)
+                | rules::Check::InclusiveTotal
+                | rules::Check::ItemName
+                | rules::Check::LineAllowanceScale(_)
+                | rules::Check::TaxSum
+                | rules::Check::TaxScale(_)
+                | rules::Check::TaxCurrency
+                | rules::Check::BareTaxTotal
+        )
+    })
+}
+
 fn context() -> EvaluationContext {
     EvaluationContext {
         instant: "2026-09-23T12:00:00+03:00".parse().unwrap(),
@@ -226,7 +248,7 @@ fn rule_metadata_matches_the_pinned_source_assertion_sites() {
             .trim()
     );
     let catalog: Value = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(metadata::RULES.len(), 38);
+    assert_eq!(metadata::RULES.len(), 98);
     let coverage: Value = serde_json::from_str(
         &std::fs::read_to_string(fixture_root().join("coverage.json")).unwrap(),
     )
@@ -274,6 +296,11 @@ fn frozen_sdk_identity_mutations_match_implemented_rules() {
     assert_frozen_corpus("identity", 46);
 }
 
+#[test]
+fn frozen_sdk_structural_mutations_match_implemented_rules() {
+    assert_frozen_corpus("structural", 57);
+}
+
 fn assert_frozen_corpus(family: &str, expected_cases: usize) {
     let corpus = fixture_root().join(family);
     let manifest: Value =
@@ -296,7 +323,8 @@ fn assert_frozen_corpus(family: &str, expected_cases: usize) {
             &std::fs::read_to_string(directory.join("expected.json")).unwrap(),
         )
         .unwrap();
-        let report = evaluate_slice(&input, &context()).unwrap_or_else(|e| panic!("{id}: {e:?}"));
+        let report =
+            super::evaluate_slice(&input, &context()).unwrap_or_else(|e| panic!("{id}: {e:?}"));
         let mut observed = BTreeMap::new();
         let mut wanted = BTreeMap::new();
         for source in &report.stages {
@@ -320,7 +348,9 @@ fn assert_frozen_corpus(family: &str, expected_cases: usize) {
                 .iter()
                 .any(|r| r.source.sdk_name() == f["source"] && r.code == f["code"])
             {
-                let count = if id == "repeated-empty-item-name" && f["code"] == "BR-25" {
+                let count = if id == "repeated-empty-item-name"
+                    && (f["code"] == "BR-25" || f["code"] == "BR-KSA-F-06-C19")
+                {
                     2
                 } else {
                     1
@@ -511,7 +541,7 @@ fn all_six_document_variants_match_the_frozen_observations_for_the_subset() {
         let input =
             std::fs::read_to_string(original.join("cases").join(case).join("sdk-signed.xml"))
                 .unwrap();
-        let report = evaluate_slice(&input, &context()).unwrap();
+        let report = super::evaluate_slice(&input, &context()).unwrap();
         let expected = &observations["cases"][case]["signed-validate"]["report"]["findings"];
         let mut wanted = Vec::new();
         for finding in expected.as_array().unwrap() {

@@ -2,7 +2,7 @@
 
 [Issue #1](https://github.com/mqqz/fatoora-rs/issues/1) is being implemented against
 the two rule profiles in ZATCA SDK `238-R3.4.8`. An internal Rust evaluator covers
-38 of the 257 inventoried assertion sites, with source metadata and offline SDK
+98 of the 257 inventoried assertion sites, with source metadata and offline SDK
 comparisons. **The full profile remains incomplete.** Public invoice validation
 continues to check XSD only; the native subset has no public entry point.
 
@@ -24,7 +24,7 @@ The fixtures in `fatoora-core/tests/fixtures/business-rules/` contain:
   ordered executable template trees, global declarations, and assertion metadata.
   Extraction preserves zero-assertion templates because they can suppress a later
   rule. The trees preserve the source instructions for review.
-- `coverage.json`: one entry per assertion site, with 38 implemented and 219
+- `coverage.json`: one entry per assertion site, with 98 implemented and 159
   pending. An implemented entry needs implementation and test paths. An
   unreachable entry needs evidence. File paths alone do not establish semantic
   coverage; reviewers must check branch and boundary tests.
@@ -43,6 +43,10 @@ The fixtures in `fatoora-core/tests/fixtures/business-rules/` contain:
   numbers, address presence, Unicode field lengths, scheme whitespace,
   predictable identifiers, and contact fields. Capture them with
   `capture --family identity --output /tmp/business-rule-identity`.
+
+- `structural/`: 57 official-SDK cases covering field presence, lexical limits,
+  quantity zero, category presence and the pinned code lists. Capture them with
+  `capture --family structural --output /tmp/business-rule-structural`.
 
 ## Interpret SDK findings accurately
 
@@ -64,7 +68,8 @@ invoices.
 
 The `repeated-empty-item-name` fixture has two empty line item names but the SDK
 prints only one `BR-25` warning. The manifest records both observations: one
-SDK-visible warning and two expected native occurrences. Do not infer a general
+SDK-visible warning and two expected native occurrences. Its two empty names
+also produce two native `BR-KSA-F-06-C19` findings and one SDK finding. Do not infer a general
 deduplication algorithm from this example, discard duplicate log entries, or use
 SDK finding counts as a substitute for per-node execution tests.
 
@@ -121,8 +126,8 @@ cargo test -p fatoora-core --locked --offline --lib business_rules
 
 The module in `fatoora-core/src/invoice/validation/business_rules/` evaluates
 `BR-CO-10`, `BR-CO-14`, `BR-CO-15`, `BR-25`, the selected total and allowance
-decimal limits, `BR-KSA-EN16931-02`/`09`, and 20 Saudi identity/address checks.
-Tests compare this subset against all 70 mutation captures and the signed
+decimal limits, `BR-KSA-EN16931-02`/`09`, 20 Saudi identity/address checks, and 60 CEN structure and code-list checks.
+Tests compare this subset against all 127 mutation captures and the signed
 fixtures for all six document variants.
 Additional tests cover locations, duplicate operands, template suppression,
 overlapping patterns, and evaluation failures. The Rust metadata test requires

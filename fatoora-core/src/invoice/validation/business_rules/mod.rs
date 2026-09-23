@@ -2,10 +2,12 @@
 //!
 //! This is not the public ZATCA validator. No successful subset run claims that
 //! either full business-rule profile, XSD, or cryptographic validation completed.
+mod code_lists;
 mod decimal;
 mod identity;
 mod metadata;
 mod rules;
+mod structural;
 mod xml;
 
 use super::Severity;
@@ -160,6 +162,14 @@ pub(super) fn evaluate_slice(
     input: &str,
     context: &EvaluationContext,
 ) -> Result<SliceReport, Box<EvaluationFailure>> {
+    evaluate_matching(input, context, |_| true)
+}
+
+fn evaluate_matching(
+    input: &str,
+    context: &EvaluationContext,
+    include: impl Fn(&metadata::Rule) -> bool,
+) -> Result<SliceReport, Box<EvaluationFailure>> {
     let mut report = SliceReport::new(context);
     let view = match xml::XmlView::parse(input, &context.limits) {
         Ok(view) => view,
@@ -187,7 +197,10 @@ pub(super) fn evaluate_slice(
     let mut finding_bytes = 0usize;
     for index in 0..report.stages.len() {
         let source = report.stages[index].source;
-        for rule in metadata::RULES.iter().filter(|r| r.source == source) {
+        for rule in metadata::RULES
+            .iter()
+            .filter(|r| r.source == source && include(r))
+        {
             for node in facts.contexts(rule.check) {
                 let bytes = view.node(node).location.len() + rule.message.len();
                 let result = facts.passes(rule.check, node).and_then(|passed| {
@@ -242,3 +255,9 @@ mod xml_tests;
 
 #[cfg(test)]
 mod identity_tests;
+
+#[cfg(test)]
+mod structural_tests;
+
+#[cfg(test)]
+mod code_list_tests;

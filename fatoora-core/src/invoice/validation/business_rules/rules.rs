@@ -11,6 +11,8 @@ use std::cell::OnceCell;
 #[derive(Debug, Clone, Copy)]
 pub(super) enum Check {
     Identity(super::identity::IdentityCheck),
+    Structural(super::structural::Context, super::structural::Requirement),
+    CodeList(super::code_lists::CodeListCheck),
     LineSum,
     TotalScale(&'static str),
     InclusiveTotal,
@@ -47,6 +49,8 @@ impl<'a> Facts<'a> {
         let xml = self.xml;
         match check {
             Check::Identity(check) => check.contexts(xml),
+            Check::CodeList(check) => check.contexts(xml),
+            Check::Structural(context, _) => context.nodes(xml),
             Check::LineSum | Check::TotalScale(_) => xml.all(CAC, "LegalMonetaryTotal"),
             Check::InclusiveTotal => vec![0],
             Check::ItemName => {
@@ -128,6 +132,10 @@ impl<'a> Facts<'a> {
         let xml = self.xml;
         match check {
             Check::Identity(check) => check.passes(xml, node),
+            Check::CodeList(check) => check.passes(xml, node),
+            Check::Structural(context, requirement) => {
+                Ok(!context.applies(xml, node)? || requirement.passes(xml, node)?)
+            }
             Check::LineSum => {
                 let amount = self.amount(node, "LineExtensionAmount")?;
                 let sum = self
