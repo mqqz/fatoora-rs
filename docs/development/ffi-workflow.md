@@ -39,6 +39,11 @@ c++ -x c++ -std=c++17 -Wall -Wextra -Werror -I fatoora-ffi/include \
 /tmp/fatoora-error-contract-cpp
 ```
 
+Run `fatoora-ffi/tests/zatca_contract.c` with the same C and C++ compiler options,
+passing `fatoora-core/tests/fixtures/sdk-parity/cases/standard-invoice/input.xml`
+as its argument. It checks report ownership, warning/rejection/incomplete outcomes,
+structured execution errors, invalid UTF-8 and bounded options JSON.
+
 Wrap fallible exports in `crate::error::boundary` and pass core errors through
 `ffi_error_from_core` or a module helper. These preserve classification and JSON
 details. Never convert a core error to a message before passing it to the helper.

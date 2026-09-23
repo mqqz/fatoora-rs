@@ -1,4 +1,4 @@
-//! Metadata extracted from the SDK 238-R3.4.8 catalog for the implemented slice.
+//! Metadata for all assertion sites in the SDK 238-R3.4.8 catalog.
 //! Imported rule messages retain their recorded LGPL-3.0 terms.
 //! See THIRD_PARTY_NOTICES.md and the business-rules fixture NOTICE.md.
 //! The catalog regression test detects drift in source, site, message or severity.
