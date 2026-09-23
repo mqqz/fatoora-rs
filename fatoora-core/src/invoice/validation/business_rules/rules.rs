@@ -17,6 +17,7 @@ pub(super) enum Check {
     Totals(super::totals::TotalsCheck),
     KsaBuyer(super::ksa_buyer::KsaBuyerCheck),
     KsaCommon(super::ksa_common::KsaCommonCheck),
+    Vat(super::vat::VatCheck),
     LineSum,
     TotalScale(&'static str),
     InclusiveTotal,
@@ -61,6 +62,7 @@ impl<'a> Facts<'a> {
             Check::Structural(context, _) => context.nodes(xml),
             Check::KsaBuyer(check) => check.contexts(xml),
             Check::KsaCommon(check) => check.contexts(xml),
+            Check::Vat(check) => check.contexts(xml),
             Check::LineSum | Check::TotalScale(_) => xml.all(CAC, "LegalMonetaryTotal"),
             Check::InclusiveTotal => vec![0],
             Check::ItemName => {
@@ -150,6 +152,7 @@ impl<'a> Facts<'a> {
             }
             Check::KsaBuyer(check) => check.passes(xml, node),
             Check::KsaCommon(check) => check.passes(xml, node),
+            Check::Vat(check) => check.passes(xml, node, self.digits),
             Check::LineSum => {
                 let amount = self.amount(node, "LineExtensionAmount")?;
                 let sum = self

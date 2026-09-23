@@ -405,34 +405,52 @@
       ]
     },
     "cen:050:BR-E-01": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:051:BR-O-01": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:052:BR-S-01": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:053:BR-Z-07": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:054:BR-E-07": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:055:BR-Z-01": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:056:BR-KSA-F-06-C18": {
       "status": "implemented",
@@ -615,9 +633,12 @@
       ]
     },
     "cen:078:BR-CO-17": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:079:BR-DEC-19": {
       "status": "implemented",
@@ -636,79 +657,124 @@
       ]
     },
     "cen:081:BR-E-08": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:082:BR-E-09": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:083:BR-E-06": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:084:BR-E-05": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:085:BR-O-08": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:086:BR-O-09": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:087:BR-S-08": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:088:BR-S-09": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:089:BR-S-10": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:090:BR-S-06": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:091:BR-S-07": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:092:BR-Z-08": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:093:BR-Z-09": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:094:BR-Z-06": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:095:BR-Z-05": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "cen:096:BR-DEC-13": {
       "status": "implemented",
@@ -785,9 +851,12 @@
       ]
     },
     "cen:105:BR-S-05": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:001:BR-KSA-F-06-C3": {
       "status": "implemented",

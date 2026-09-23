@@ -248,7 +248,7 @@ fn rule_metadata_matches_the_pinned_source_assertion_sites() {
             .trim()
     );
     let catalog: Value = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(metadata::RULES.len(), 166);
+    assert_eq!(metadata::RULES.len(), 189);
     let coverage: Value = serde_json::from_str(
         &std::fs::read_to_string(fixture_root().join("coverage.json")).unwrap(),
     )
@@ -319,6 +319,11 @@ fn frozen_sdk_buyer_mutations_match_implemented_rules() {
 #[test]
 fn frozen_sdk_document_mutations_match_implemented_rules() {
     assert_frozen_corpus("ksa-common", 21);
+}
+
+#[test]
+fn frozen_sdk_vat_mutations_match_implemented_rules() {
+    assert_frozen_corpus("vat", 22);
 }
 
 fn assert_frozen_corpus(family: &str, expected_cases: usize) {

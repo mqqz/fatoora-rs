@@ -12,6 +12,7 @@ mod metadata;
 mod rules;
 mod structural;
 mod totals;
+mod vat;
 mod xml;
 
 use super::Severity;
@@ -277,3 +278,6 @@ mod ksa_buyer_tests;
 
 #[cfg(test)]
 mod ksa_common_tests;
+
+#[cfg(test)]
+mod vat_tests;
