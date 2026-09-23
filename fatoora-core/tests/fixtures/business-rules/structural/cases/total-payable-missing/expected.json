@@ -1,0 +1,49 @@
+{
+  "layers": {
+    "xsd": "failed",
+    "en": "failed",
+    "ksa": "passed",
+    "qr": "not_run",
+    "signature": "not_run",
+    "pih": "passed",
+    "global": "failed"
+  },
+  "findings": [
+    {
+      "source": "xsd",
+      "severity": "error",
+      "code": "SAXParseException",
+      "message": "Schema validation failed; XML does not comply with UBL 2.1 standards in line with ZATCA specifications. ERROR: org.xml.sax.SAXParseException; lineNumber: 135; columnNumber: 30; cvc-complex-type.2.4.b: The content of element 'ns2:LegalMonetaryTotal' is not complete. One of '{\"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":PayableAmount}' is expected."
+    },
+    {
+      "source": "en",
+      "severity": "error",
+      "code": "BR-15",
+      "message": "[BR-15]-An Invoice shall have the Amount due for payment (BT-115)."
+    },
+    {
+      "source": "en",
+      "severity": "warning",
+      "code": "BR-CO-16",
+      "message": "[BR-CO-16]-Amount due for payment (BT-115) = Invoice total amount with VAT (BT-112) -Pre-Paid amount (BT-113) + Rounding amount (BT-114)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-19",
+      "message": "[BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-69",
+      "message": "[BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-15",
+      "message": "[BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has \"01\" as first 2 digits)) must contain the supply date (KSA-5)."
+    }
+  ]
+}

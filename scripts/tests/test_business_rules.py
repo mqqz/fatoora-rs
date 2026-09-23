@@ -180,6 +180,16 @@ class MutationContracts(unittest.TestCase):
         self.assertEqual(manifest["family"], "identity")
         self.assertEqual(len(manifest["cases"]), len(rules.mutation_cases("identity")))
 
+    def test_structural_corpus_replays_with_catalog_severities(self):
+        manifest = rules.load_mutations(rules.ROOT / "structural")
+        self.assertEqual(manifest["family"], "structural")
+        self.assertEqual(len(manifest["cases"]), 57)
+        catalog = rules.load_catalog()["sources"][0]["assertions"]
+        known = {(r["rule_id"], r["severity"]) for r in catalog}
+        for case in rules.mutation_cases("structural"):
+            for target in case["targets"]:
+                self.assertIn((target["code"], target["severity"]), known)
+
     def test_empty_or_missing_mutation_does_not_silently_pass(self):
         for old, new in [("missing", "new"), ("same", "same")]:
             with self.assertRaises(sdk.CaptureError):

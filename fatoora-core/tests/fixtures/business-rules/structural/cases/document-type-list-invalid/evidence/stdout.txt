@@ -1,0 +1,20 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-23 12:36:54,952 [INFO] ValidationProcessorImpl - [XSD] validation result : PASSED
+2026-09-23 12:36:55,336 [INFO] ValidationProcessorImpl - [EN] validation result : FAILED
+2026-09-23 12:36:55,336 [ERROR] ValidationProcessorImpl - en validation errors : 
+2026-09-23 12:36:55,336 [ERROR] ValidationProcessorImpl - CODE : BR-CL-01, MESSAGE : [BR-CL-01]-The document type code MUST be coded by the invoice and credit note related code lists of UNTDID 1001.
+2026-09-23 12:36:55,493 [INFO] ValidationProcessorImpl - [KSA] validation result : FAILED
+2026-09-23 12:36:55,493 [ERROR] ValidationProcessorImpl - ksa validation errors : 
+2026-09-23 12:36:55,493 [ERROR] ValidationProcessorImpl - CODE : BR-KSA-05, MESSAGE : [BR-KSA-05]-The invoice type code (BT-3) must be equal to one of value from the subset of UN/CEFACT code list 1001, D.16B agreed for KSA electronic invoices. Please refer paragraph 11.2.1 of XML implementation Standards.
+2026-09-23 12:36:55,493 [ERROR] ValidationProcessorImpl - ksa validation warnings : 
+2026-09-23 12:36:55,493 [WARN] ValidationProcessorImpl - CODE : BR-KSA-19, MESSAGE : [BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105).
+2026-09-23 12:36:55,493 [WARN] ValidationProcessorImpl - CODE : BR-KSA-69, MESSAGE : [BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121).
+2026-09-23 12:36:55,510 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-23 12:36:55,510 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = FAILED 

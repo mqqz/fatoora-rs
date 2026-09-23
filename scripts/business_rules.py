@@ -270,6 +270,10 @@ def replace_once(xml, old, new):
 
 
 def mutation_cases(family="mutations"):
+    if family == "structural":
+        return families.structural_cases(
+            (sdk.CORPUS / "cases/standard-invoice/input.xml").read_text()
+        )
     if family == "identity":
         return families.identity_cases(
             (sdk.CORPUS / "cases/standard-invoice/input.xml").read_text()
@@ -640,7 +644,7 @@ def main():
     )
     capture.add_argument("--output", type=Path, required=True)
     capture.add_argument(
-        "--family", choices=["mutations", "identity"], default="mutations"
+        "--family", choices=["mutations", "identity", "structural"], default="mutations"
     )
     commands.add_parser(
         "check", help="Verify catalog, coverage and observations offline"
@@ -672,6 +676,7 @@ def main():
             observations = load_observations()
             mutations = load_mutations()
             identity = load_mutations(ROOT / "identity")
+            structural = load_mutations(ROOT / "structural")
             counts = Counter(e["status"] for e in coverage["sites"].values())
             print(
                 f"SDK {sdk.VERSION}: {len(coverage['sites'])} inventoried assertion sites; "
@@ -684,6 +689,7 @@ def main():
             )
             print(f"Verified {len(mutations['cases'])} targeted SDK mutation cases.")
             print(f"Verified {len(identity['cases'])} identity/address SDK cases.")
+            print(f"Verified {len(structural['cases'])} structure/code-list SDK cases.")
     except (sdk.CaptureError, OSError, KeyError, ValueError) as exc:
         parser.exit(1, f"business rules: {exc}\n")
 
