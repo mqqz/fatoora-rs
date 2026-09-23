@@ -9,6 +9,7 @@ mod ksa_adjustments;
 mod ksa_buyer;
 mod ksa_common;
 mod ksa_currency;
+mod ksa_dates;
 mod ksa_exemptions;
 mod ksa_fields;
 mod metadata;
@@ -156,6 +157,8 @@ pub(super) enum FailureKind {
     InvalidBoolean,
     #[error("invalid XPath regular expression")]
     InvalidRegex,
+    #[error("invalid XML Schema date or time")]
+    InvalidDateTime,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -203,7 +206,7 @@ fn evaluate_matching(
             kind: FailureKind::UnsupportedXml("expected UBL Invoice or CreditNote".into()),
         }));
     }
-    let facts = rules::Facts::new(&view, context.limits.decimal_digits);
+    let facts = rules::Facts::new(&view, context.limits.decimal_digits, context.instant);
     let mut finding_count = 0;
     let mut finding_bytes = 0usize;
     for index in 0..report.stages.len() {
@@ -313,3 +316,6 @@ mod pattern_tests;
 
 #[cfg(test)]
 mod ksa_currency_tests;
+
+#[cfg(test)]
+mod ksa_date_tests;

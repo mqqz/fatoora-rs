@@ -21,6 +21,7 @@ pub(super) enum Check {
     KsaAdjustment(super::ksa_adjustments::KsaAdjustmentCheck),
     KsaExemption(super::ksa_exemptions::KsaExemptionCheck),
     KsaCurrency(super::ksa_currency::KsaCurrencyCheck),
+    KsaDate(super::ksa_dates::KsaDateCheck),
     LineSum,
     TotalScale(&'static str),
     InclusiveTotal,
@@ -34,6 +35,7 @@ pub(super) enum Check {
 
 pub(super) struct Facts<'a> {
     xml: &'a XmlView,
+    instant: chrono::DateTime<chrono::FixedOffset>,
     digits: usize,
     patterns: super::patterns::MatchCache,
     line_sum: OnceCell<Result<ExactDecimal, FailureKind>>,
@@ -44,9 +46,14 @@ pub(super) struct Facts<'a> {
 }
 
 impl<'a> Facts<'a> {
-    pub fn new(xml: &'a XmlView, digits: usize) -> Self {
+    pub fn new(
+        xml: &'a XmlView,
+        digits: usize,
+        instant: chrono::DateTime<chrono::FixedOffset>,
+    ) -> Self {
         Self {
             xml,
+            instant,
             digits,
             patterns: Default::default(),
             line_sum: OnceCell::new(),
@@ -71,6 +78,7 @@ impl<'a> Facts<'a> {
             Check::KsaAdjustment(check) => check.contexts(xml),
             Check::KsaExemption(check) => check.contexts(xml)?,
             Check::KsaCurrency(check) => check.contexts(xml)?,
+            Check::KsaDate(check) => check.contexts(xml),
             Check::LineSum | Check::TotalScale(_) => xml.all(CAC, "LegalMonetaryTotal"),
             Check::InclusiveTotal => vec![0],
             Check::ItemName => {
@@ -174,6 +182,7 @@ impl<'a> Facts<'a> {
             Check::KsaAdjustment(check) => check.passes(xml, node, self.digits),
             Check::KsaExemption(check) => check.passes(xml, node, self.digits),
             Check::KsaCurrency(check) => check.passes(xml, node, &self.patterns),
+            Check::KsaDate(check) => check.passes(xml, node, &self.instant, self.digits),
             Check::LineSum => {
                 let amount = self.amount(node, "LineExtensionAmount")?;
                 let sum = self

@@ -36,6 +36,8 @@ use super::ksa_exemptions::KsaExemptionCheck;
 
 use super::ksa_currency::KsaCurrencyCheck;
 
+use super::ksa_dates::KsaDateCheck;
+
 pub(super) const RULES: &[Rule] = &[
     Rule {
         source: Source::Cen,
@@ -996,6 +998,14 @@ pub(super) const RULES: &[Rule] = &[
     },
     Rule {
         source: Source::Ksa,
+        site: "ksa:002:BR-KSA-98",
+        code: "BR-KSA-98",
+        severity: Severity::Warning,
+        message: "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice.",
+        check: Check::KsaDate(KsaDateCheck::SubmissionDeadline),
+    },
+    Rule {
+        source: Source::Ksa,
         site: "ksa:003:BR-KSA-F-06-C5",
         code: "BR-KSA-F-06-C5",
         severity: Severity::Warning,
@@ -1100,11 +1110,27 @@ pub(super) const RULES: &[Rule] = &[
     },
     Rule {
         source: Source::Ksa,
+        site: "ksa:016:BR-KSA-70",
+        code: "BR-KSA-70",
+        severity: Severity::Error,
+        message: "[BR-KSA-70]-The invoice must contain Invoice Issue Time (KSA-25). This value should be in the format: hh:mm:ss for time expressed in local time (eg 19:20:30) or hh:mm:ssZ for time expressed in UTC (eg 19:20:30Z).\"The invoice must contain Invoice Issue Time (KSA-25). This value should be in the format: hh:mm:ss for time expressed in local time (eg 19:20:30) or hh:mm:ssZ for time expressed in UTC (eg 19:20:30Z).",
+        check: Check::KsaDate(KsaDateCheck::IssueTime),
+    },
+    Rule {
+        source: Source::Ksa,
         site: "ksa:032:BR-KSA-49",
         code: "BR-KSA-49",
         severity: Severity::Error,
         message: "[BR-KSA-49]-If the tax exemption reason code (BT-121) is equal to VATEX-SA-EDU or VATEX-SA-HEA, then the other buyer ID (BT-46) is mandatory and must be national ID (BT-46-1 = NAT).",
         check: Check::KsaCommon(KsaCommonCheck::NationalBuyer),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:033:BR-KSA-04",
+        code: "BR-KSA-04",
+        severity: Severity::Error,
+        message: "[BR-KSA-04]-The document issue date (BT-2) must be less or equal to the current date.",
+        check: Check::KsaDate(KsaDateCheck::FutureIssueDate),
     },
     Rule {
         source: Source::Ksa,
@@ -1281,6 +1307,14 @@ pub(super) const RULES: &[Rule] = &[
         severity: Severity::Warning,
         message: "[BR-KSA-35]-If the invoice contains a supply end date (KSA-24), then the invoice must contain a supply date (KSA-5).",
         check: Check::KsaCommon(KsaCommonCheck::ActualDeliveryDate),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:056:BR-KSA-36",
+        code: "BR-KSA-36",
+        severity: Severity::Warning,
+        message: "[BR-KSA-36]-If the invoice contains a supply end date (KSA-24), then this date must be greater than or equal to the supply date (KSA-5).",
+        check: Check::KsaDate(KsaDateCheck::DeliveryOrder),
     },
     Rule {
         source: Source::Ksa,
@@ -1849,6 +1883,22 @@ pub(super) const RULES: &[Rule] = &[
         severity: Severity::Warning,
         message: "[BR-KSA-F-06-C39] - Field character limits for the Prepayment VAT exemption reason text (KSA-42) have not been met. The maximum limit is 1000 characters.",
         check: Check::KsaExemption(KsaExemptionCheck::PrepaymentExemptionReasonLength),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:129:BR-KSA-F-01",
+        code: "BR-KSA-F-01",
+        severity: Severity::Error,
+        message: "[BR-KSA-F-01]-A date MUST be formatted YYYY-MM-DD, in accordance to the \"Calendar date complete representation\" as specified by ISO 8601:2004, format YYYY-MM-DD.",
+        check: Check::KsaDate(KsaDateCheck::DateFormat),
+    },
+    Rule {
+        source: Source::Ksa,
+        site: "ksa:130:BR-KSA-F-05",
+        code: "BR-KSA-F-05",
+        severity: Severity::Warning,
+        message: "[BR-KSA-F-05]-Prepayment Issue Time (KSA-29) must be in the format: hh:mm:ss for time expressed in local time or hh:mm:ssZ for time expressed in UTC.(eg 19:20:30)",
+        check: Check::KsaDate(KsaDateCheck::PrepaymentTime),
     },
     Rule {
         source: Source::Ksa,
