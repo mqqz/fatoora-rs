@@ -4,6 +4,11 @@
 //! verification. Parsing a signed invoice does not verify its signature.
 mod report;
 mod schemas;
+mod zatca_report;
+pub use zatca_report::{
+    ZatcaFailureKind, ZatcaFinding, ZatcaRuleSource, ZatcaStage, ZatcaStageReport,
+    ZatcaStageStatus, ZatcaValidationError, ZatcaValidationOptions, ZatcaValidationReport,
+};
 // The native subset remains internal until the full profile can be exposed.
 #[allow(dead_code)]
 mod business_rules;

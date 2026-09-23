@@ -3,7 +3,7 @@ use super::{Diagnostic, DiagnosticSeverity, Error};
 use crate::api::ZatcaError;
 use crate::csr::CsrError;
 use crate::invoice::sign::SigningError;
-use crate::invoice::validation::XmlValidationError;
+use crate::invoice::validation::{XmlValidationError, ZatcaValidationError};
 use crate::invoice::xml::{InvoiceXmlError, parse::ParseError};
 use crate::invoice::{InvoiceError, InvoiceField, QrCodeError, ValidationKind};
 use serde_json::{Value, json};
@@ -28,6 +28,7 @@ impl Error {
             Self::Xml(error) => error.details(),
             Self::Parse(error) => error.details(),
             Self::XmlValidation(error) => error.details(),
+            Self::ZatcaValidation(error) => error.details(),
             Self::Api(error) => error.details(),
         };
         details.to_string()
@@ -71,6 +72,20 @@ impl XmlValidationError {
             Self::InvalidXsdPath { path } => json!({"type": "invalid_xsd_path", "path": path}),
             Self::XmlParse { message } => message_details("xml_parse", message),
         }
+    }
+}
+
+impl ZatcaValidationError {
+    fn details(&self) -> Value {
+        json!({
+            "type": "zatca_validation_execution",
+            "kind": self.kind,
+            "stage": self.stage,
+            "assertion_site": self.assertion_site,
+            "location": self.location,
+            "diagnostics": [{ "message": self.message }],
+            "report": self.report,
+        })
     }
 }
 
@@ -256,5 +271,101 @@ fn validation_kind_name(value: ValidationKind) -> &'static str {
         ValidationKind::InvalidFormat => "invalid_format",
         ValidationKind::OutOfRange => "out_of_range",
         ValidationKind::Mismatch => "mismatch",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::invoice::validation::{
+        Severity, ValidationFinding, ValidationLayer, ValidationLocation, ZatcaFailureKind,
+        ZatcaFinding, ZatcaRuleSource, ZatcaStage, ZatcaStageReport, ZatcaStageStatus,
+        ZatcaValidationError, ZatcaValidationReport,
+    };
+
+    #[test]
+    fn zatca_execution_details_preserve_partial_stage_evidence_and_locations() {
+        let location = ValidationLocation::XPath("/*[local-name()='Invoice'][1]".to_owned());
+        let stages = vec![
+            ZatcaStageReport {
+                stage: ZatcaStage::Cen,
+                status: ZatcaStageStatus::Completed,
+                provenance: Some(ZatcaRuleSource {
+                    stylesheet: "CEN-EN16931-UBL.xsl".to_owned(),
+                    sha256: "pinned-cen-digest".to_owned(),
+                }),
+                evaluated_assertions: vec!["cen:001:BR-01".to_owned()],
+                findings: Vec::new(),
+            },
+            ZatcaStageReport {
+                stage: ZatcaStage::Ksa,
+                status: ZatcaStageStatus::EvaluationFailed,
+                provenance: None,
+                evaluated_assertions: vec!["ksa:001:BR-KSA-F-01".to_owned()],
+                findings: vec![ZatcaFinding {
+                    assertion_site: Some("ksa:001:BR-KSA-F-01".to_owned()),
+                    finding: ValidationFinding {
+                        layer: ValidationLayer::BusinessRules,
+                        code: "BR-KSA-F-01".to_owned(),
+                        severity: Severity::Warning,
+                        message: "earlier finding".to_owned(),
+                        location: Some(location.clone()),
+                    },
+                }],
+            },
+        ];
+        let report = ZatcaValidationReport {
+            schema_version: 1,
+            profile: "zatca-sdk-238-R3.4.8".to_owned(),
+            evaluated_at: chrono::DateTime::parse_from_rfc3339("2026-09-23T12:00:00+03:00")
+                .unwrap(),
+            stages,
+        };
+        let message = "خطأ\u{0}\n\"invalid numeric operand\"";
+        let error = Error::from(ZatcaValidationError {
+            kind: ZatcaFailureKind::RuleEvaluation,
+            stage: Some(ZatcaStage::Ksa),
+            assertion_site: Some("ksa:017:BR-KSA-80".to_owned()),
+            location: Some(location.clone()),
+            message: message.to_owned(),
+            report: Box::new(report.clone()),
+        });
+        let details: Value = serde_json::from_str(&error.details_json()).unwrap();
+        assert_eq!(details["type"], "zatca_validation_execution");
+        assert_eq!(details["kind"], "rule_evaluation");
+        assert_eq!(details["stage"], "ksa");
+        assert_eq!(details["assertion_site"], "ksa:017:BR-KSA-80");
+        assert_eq!(details["location"], json!(location));
+        assert_eq!(details["diagnostics"], json!([{ "message": message }]));
+        let restored: ZatcaValidationReport =
+            serde_json::from_value(details["report"].clone()).unwrap();
+        assert_eq!(restored, report);
+        assert!(!restored.is_complete());
+        assert_eq!(restored.validation_report().issues.len(), 1);
+    }
+
+    #[test]
+    fn zatca_execution_details_preserve_absent_stage_and_assertion_metadata() {
+        let error = Error::from(ZatcaValidationError {
+            kind: ZatcaFailureKind::InvalidXml,
+            stage: None,
+            assertion_site: None,
+            location: None,
+            message: "malformed XML".to_owned(),
+            report: Box::new(ZatcaValidationReport {
+                schema_version: 1,
+                profile: "zatca-sdk-238-R3.4.8".to_owned(),
+                evaluated_at: chrono::DateTime::parse_from_rfc3339("2026-09-23T12:00:00+03:00")
+                    .unwrap(),
+                stages: Vec::new(),
+            }),
+        });
+        let details: Value = serde_json::from_str(&error.details_json()).unwrap();
+        assert_eq!(details["type"], "zatca_validation_execution");
+        assert_eq!(details["kind"], "invalid_xml");
+        assert!(details["stage"].is_null());
+        assert!(details["assertion_site"].is_null());
+        assert!(details["location"].is_null());
+        assert_eq!(details["report"]["stages"], json!([]));
     }
 }
