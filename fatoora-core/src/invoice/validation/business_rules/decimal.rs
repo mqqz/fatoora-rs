@@ -178,6 +178,7 @@ impl ExactDecimal {
         Self::normalized(quotient, scale).bounded(digits)
     }
 
+    #[cfg(test)]
     pub fn abs(&self) -> Self {
         Self {
             coefficient: self.coefficient.abs(),

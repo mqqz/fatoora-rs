@@ -64,12 +64,14 @@ pub(super) enum Source {
 }
 
 impl Source {
+    #[cfg(test)]
     fn name(self) -> &'static str {
         match self {
             Self::Cen => "cen",
             Self::Ksa => "ksa",
         }
     }
+    #[cfg(test)]
     fn sdk_name(self) -> &'static str {
         match self {
             Self::Cen => "en",
@@ -129,6 +131,7 @@ impl BusinessRuleReport {
                 .collect(),
         }
     }
+    #[cfg(test)]
     pub fn is_complete(&self) -> bool {
         self.stages.len() == 2
             && self
@@ -136,6 +139,7 @@ impl BusinessRuleReport {
                 .iter()
                 .all(|s| s.status == StageStatus::Completed)
     }
+    #[cfg(test)]
     pub fn has_errors(&self) -> bool {
         self.stages
             .iter()
@@ -183,7 +187,13 @@ pub(super) fn check_input(input: &str) -> Result<(), FailureKind> {
     xml::XmlView::parse(input, &Limits::default()).map(|_| ())
 }
 
-/// Evaluate the implemented sites only. Order is source, assertion site, document.
+/// Reuse the raw-XML decimal domain for QR amount comparisons.
+pub(super) fn decimal_equal(left: &str, right: &str) -> Result<bool, FailureKind> {
+    let digits = Limits::default().decimal_digits;
+    Ok(decimal::ExactDecimal::parse(left, digits)? == decimal::ExactDecimal::parse(right, digits)?)
+}
+
+/// Evaluate both profiles. Order is source, assertion site, document.
 pub(super) fn evaluate(
     input: &str,
     context: &EvaluationContext,

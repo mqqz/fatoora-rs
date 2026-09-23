@@ -237,3 +237,18 @@ fn execution_errors_preserve_partial_reports_and_stable_error_kinds() {
         );
     }
 }
+
+#[test]
+fn serialized_outcomes_are_derived_and_cannot_override_missing_coverage() {
+    let mut incomplete = report();
+    incomplete.stages.clear();
+    let mut value = serde_json::to_value(incomplete).unwrap();
+    assert_eq!(value["is_complete"], false);
+    assert_eq!(value["is_valid"], false);
+    value["is_complete"] = true.into();
+    value["is_valid"] = true.into();
+    let result: ZatcaValidationReport = serde_json::from_value(value).unwrap();
+    assert!(!result.is_complete());
+    assert!(!result.is_valid());
+    assert_eq!(serde_json::to_value(result).unwrap()["is_valid"], false);
+}

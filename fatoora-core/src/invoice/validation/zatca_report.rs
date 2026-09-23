@@ -71,12 +71,29 @@ pub struct ZatcaStageReport {
 ///
 /// Completion and validity describe only this local profile. They do not
 /// establish acceptance by a remote service or certificate issuer trust.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct ZatcaValidationReport {
     pub schema_version: u32,
     pub profile: String,
     pub evaluated_at: DateTime<FixedOffset>,
     pub stages: Vec<ZatcaStageReport>,
+}
+
+// Derived outcomes are serialized for C/Python/CLI consumers. Deserialization
+// recomputes them from stages; supplied booleans never establish coverage.
+impl Serialize for ZatcaValidationReport {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeStruct;
+        let mut value = serializer.serialize_struct("ZatcaValidationReport", 7)?;
+        value.serialize_field("schema_version", &self.schema_version)?;
+        value.serialize_field("profile", &self.profile)?;
+        value.serialize_field("evaluated_at", &self.evaluated_at)?;
+        value.serialize_field("stages", &self.stages)?;
+        value.serialize_field("is_complete", &self.is_complete())?;
+        value.serialize_field("has_errors", &self.has_errors())?;
+        value.serialize_field("is_valid", &self.is_valid())?;
+        value.end()
+    }
 }
 
 impl ZatcaValidationReport {

@@ -1,16 +1,22 @@
-//! XML schema validation and shared validation reports.
+//! XML schema validation and complete local ZATCA validation reports.
 //!
 //! XSD checks do not run builder field checks, business rules, or signature
 //! verification. Parsing a signed invoice does not verify its signature.
+mod integrity;
+mod integrity_xml;
+#[cfg(test)]
+mod integrity_xml_tests;
 mod report;
 mod schemas;
+mod zatca;
+#[cfg(test)]
+mod zatca_tests;
+pub use zatca::validate_zatca_invoice_from_str;
 mod zatca_report;
 pub use zatca_report::{
     ZatcaFailureKind, ZatcaFinding, ZatcaRuleSource, ZatcaStage, ZatcaStageReport,
     ZatcaStageStatus, ZatcaValidationError, ZatcaValidationOptions, ZatcaValidationReport,
 };
-// The native subset remains internal until the full profile can be exposed.
-#[allow(dead_code)]
 mod business_rules;
 use crate::config::Config;
 use libxml::{
