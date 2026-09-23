@@ -155,3 +155,23 @@ fn invalid_context_is_reported_before_validation() {
             .all(|s| s.status == ZatcaStageStatus::NotRun)
     );
 }
+
+#[test]
+fn schema_valid_business_rejection_returns_complete_report() {
+    let xml = STANDARD.replace(
+        "<cbc:UUID>b2a43c49-3aab-4e3b-9d67-0da45a5e33cc</cbc:UUID>",
+        "",
+    );
+    assert_ne!(xml, STANDARD);
+    let report = validate_zatca_invoice_from_str(&xml, &Config::default(), &options()).unwrap();
+    assert!(report.is_complete());
+    assert!(report.has_errors());
+    assert!(!report.is_valid());
+    assert!(report.stages[0].findings.is_empty());
+    assert!(
+        report.stages[2]
+            .findings
+            .iter()
+            .any(|f| f.finding.code == "BR-KSA-03" && f.finding.severity == Severity::Error)
+    );
+}
