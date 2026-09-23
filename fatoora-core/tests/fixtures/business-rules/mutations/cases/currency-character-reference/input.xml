@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2">
+  <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
+  <cbc:ID>INV-STD-1001</cbc:ID>
+  <cbc:UUID>b2a43c49-3aab-4e3b-9d67-0da45a5e33cc</cbc:UUID>
+  <cbc:IssueDate>2024-02-10</cbc:IssueDate>
+  <cbc:IssueTime>09:15:00</cbc:IssueTime>
+  <cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>
+  <cbc:Note languageID="en">Complex standard invoice</cbc:Note>
+  <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
+  <cbc:TaxCurrencyCode>&#83;AR</cbc:TaxCurrencyCode>
+  <cac:AdditionalDocumentReference>
+    <cbc:ID>ICV</cbc:ID>
+    <cbc:UUID>7</cbc:UUID>
+  </cac:AdditionalDocumentReference>
+  <cac:AdditionalDocumentReference>
+    <cbc:ID>PIH</cbc:ID>
+    <cac:Attachment>
+      <cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain">NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==</cbc:EmbeddedDocumentBinaryObject>
+    </cac:Attachment>
+  </cac:AdditionalDocumentReference>
+  <cac:AccountingSupplierParty>
+    <cac:Party>
+      <cac:PartyIdentification>
+        <cbc:ID schemeID="CRN">7003339333</cbc:ID>
+      </cac:PartyIdentification>
+      <cac:PostalAddress>
+        <cbc:StreetName>King Fahd</cbc:StreetName>
+        <cbc:BuildingNumber>1234</cbc:BuildingNumber>
+        <cbc:PlotIdentification>5678</cbc:PlotIdentification>
+        <cbc:CitySubdivisionName>Olaya</cbc:CitySubdivisionName>
+        <cbc:CityName>Riyadh</cbc:CityName>
+        <cbc:PostalZone>12222</cbc:PostalZone>
+        <cac:Country>
+          <cbc:IdentificationCode>SA</cbc:IdentificationCode>
+        </cac:Country>
+      </cac:PostalAddress>
+      <cac:PartyTaxScheme>
+        <cbc:CompanyID>399999999900003</cbc:CompanyID>
+        <cac:TaxScheme>
+          <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:PartyTaxScheme>
+      <cac:PartyLegalEntity>
+        <cbc:RegistrationName>Acme Global Trading Co</cbc:RegistrationName>
+      </cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+  <cac:AccountingCustomerParty>
+    <cac:Party>
+      <cac:PostalAddress>
+        <cbc:StreetName>King Abdulaziz</cbc:StreetName>
+        <cbc:AdditionalStreetName>Al Zahra</cbc:AdditionalStreetName>
+        <cbc:BuildingNumber>4321</cbc:BuildingNumber>
+        <cbc:CitySubdivisionName>North</cbc:CitySubdivisionName>
+        <cbc:CityName>Jeddah</cbc:CityName>
+        <cbc:PostalZone>21577</cbc:PostalZone>
+        <cac:Country>
+          <cbc:IdentificationCode>SA</cbc:IdentificationCode>
+        </cac:Country>
+      </cac:PostalAddress>
+      <cac:PartyTaxScheme>
+        <cbc:CompanyID>310122393500003</cbc:CompanyID>
+        <cac:TaxScheme>
+          <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:PartyTaxScheme>
+      <cac:PartyLegalEntity>
+        <cbc:RegistrationName>Blue Desert Retail LLC</cbc:RegistrationName>
+      </cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:AccountingCustomerParty>
+  <cac:PaymentMeans>
+    <cbc:PaymentMeansCode>30</cbc:PaymentMeansCode>
+  </cac:PaymentMeans>
+  <cac:AllowanceCharge>
+    <cbc:ChargeIndicator>false</cbc:ChargeIndicator>
+    <cbc:AllowanceChargeReason>Seasonal discount</cbc:AllowanceChargeReason>
+    <cbc:Amount currencyID="SAR">20.00</cbc:Amount>
+    <cac:TaxCategory>
+      <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">S</cbc:ID>
+      <cbc:Percent>15</cbc:Percent>
+      <cac:TaxScheme>
+        <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
+      </cac:TaxScheme>
+    </cac:TaxCategory>
+  </cac:AllowanceCharge>
+  <cac:AllowanceCharge>
+    <cbc:ChargeIndicator>true</cbc:ChargeIndicator>
+    <cbc:AllowanceChargeReason>Seasonal discount</cbc:AllowanceChargeReason>
+    <cbc:Amount currencyID="SAR">12.50</cbc:Amount>
+    <cac:TaxCategory>
+      <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">S</cbc:ID>
+      <cbc:Percent>15</cbc:Percent>
+      <cac:TaxScheme>
+        <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
+      </cac:TaxScheme>
+    </cac:TaxCategory>
+  </cac:AllowanceCharge>
+  <cac:TaxTotal>
+    <cbc:TaxAmount currencyID="SAR">118.88</cbc:TaxAmount>
+  </cac:TaxTotal>
+  <cac:TaxTotal>
+    <cbc:TaxAmount currencyID="SAR">118.88</cbc:TaxAmount>
+    <cac:TaxSubtotal>
+      <cbc:TaxableAmount currencyID="SAR">792.50</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="SAR">118.88</cbc:TaxAmount>
+      <cac:TaxCategory>
+        <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">S</cbc:ID>
+        <cbc:Percent>15</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:TaxCategory>
+    </cac:TaxSubtotal>
+    <cac:TaxSubtotal>
+      <cbc:TaxableAmount currencyID="SAR">600.00</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="SAR">0.00</cbc:TaxAmount>
+      <cac:TaxCategory>
+        <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">Z</cbc:ID>
+        <cbc:Percent>0</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:TaxCategory>
+    </cac:TaxSubtotal>
+  </cac:TaxTotal>
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount currencyID="SAR">1400.00</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="SAR">1392.50</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="SAR">1511.38</cbc:TaxInclusiveAmount>
+    <cbc:AllowanceTotalAmount currencyID="SAR">20.00</cbc:AllowanceTotalAmount>
+    <cbc:ChargeTotalAmount currencyID="SAR">12.50</cbc:ChargeTotalAmount>
+    <cbc:PrepaidAmount currencyID="SAR">0.00</cbc:PrepaidAmount>
+    <cbc:PayableRoundingAmount currencyID="SAR">0.00</cbc:PayableRoundingAmount>
+    <cbc:PayableAmount currencyID="SAR">1511.38</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+  <cac:InvoiceLine>
+    <cbc:ID>1</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="HUR">2</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="SAR">300.00</cbc:LineExtensionAmount>
+    <cac:TaxTotal>
+      <cbc:TaxAmount currencyID="SAR">45.00</cbc:TaxAmount>
+      <cbc:RoundingAmount currencyID="SAR">345.00</cbc:RoundingAmount>
+    </cac:TaxTotal>
+    <cac:Item>
+      <cbc:Name>Consulting Services</cbc:Name>
+      <cac:ClassifiedTaxCategory>
+        <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">S</cbc:ID>
+        <cbc:Percent>15</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:ClassifiedTaxCategory>
+    </cac:Item>
+    <cac:Price>
+      <cbc:PriceAmount currencyID="SAR">150</cbc:PriceAmount>
+    </cac:Price>
+  </cac:InvoiceLine>
+  <cac:InvoiceLine>
+    <cbc:ID>2</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="EA">1</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="SAR">500.00</cbc:LineExtensionAmount>
+    <cac:TaxTotal>
+      <cbc:TaxAmount currencyID="SAR">75.00</cbc:TaxAmount>
+      <cbc:RoundingAmount currencyID="SAR">575.00</cbc:RoundingAmount>
+    </cac:TaxTotal>
+    <cac:Item>
+      <cbc:Name>Software License</cbc:Name>
+      <cac:ClassifiedTaxCategory>
+        <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">S</cbc:ID>
+        <cbc:Percent>15</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:ClassifiedTaxCategory>
+    </cac:Item>
+    <cac:Price>
+      <cbc:PriceAmount currencyID="SAR">500</cbc:PriceAmount>
+    </cac:Price>
+  </cac:InvoiceLine>
+  <cac:InvoiceLine>
+    <cbc:ID>3</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="EA">3</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="SAR">600.00</cbc:LineExtensionAmount>
+    <cac:TaxTotal>
+      <cbc:TaxAmount currencyID="SAR">0.00</cbc:TaxAmount>
+      <cbc:RoundingAmount currencyID="SAR">600.00</cbc:RoundingAmount>
+    </cac:TaxTotal>
+    <cac:Item>
+      <cbc:Name>Export Item</cbc:Name>
+      <cac:ClassifiedTaxCategory>
+        <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">Z</cbc:ID>
+        <cbc:Percent>0</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:ClassifiedTaxCategory>
+    </cac:Item>
+    <cac:Price>
+      <cbc:PriceAmount currencyID="SAR">200</cbc:PriceAmount>
+    </cac:Price>
+  </cac:InvoiceLine>
+</Invoice>

@@ -143,6 +143,16 @@ reference above also apply to these source materials. No SDK JAR or executable
 is bundled.
 The Java adapters in `scripts/sdk-parity/` are repository-authored test tooling.
 
+The business-rule development corpus under
+`fatoora-core/tests/fixtures/business-rules/` includes structured extractions of
+the SDK's CEN and Saudi rule stylesheets, findings extracted from the parity logs,
+and targeted invoice mutations with official SDK validation output. Its
+`NOTICE.md` identifies the exact source files and representation changes; source
+hashes are recorded in `catalog.json`. The SDK's LGPL v3 text and the incorporated
+GPL v3 text accompany those materials. Imported rules and messages retain their
+upstream terms. Extraction and capture scripts are repository-authored. No SDK
+JAR or executable is included.
+
 ## Templates
 
 `fatoora-core/assets/templates/*.xml` (3 files) were made by Mohamad Alsadhan,
