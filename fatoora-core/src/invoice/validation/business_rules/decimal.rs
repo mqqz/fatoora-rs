@@ -4,6 +4,7 @@
 use super::{FailureKind, xml::is_xml_space};
 use num_bigint::BigInt;
 use num_traits::{Signed, Zero};
+use std::cmp::Ordering;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) struct ExactDecimal {
@@ -15,6 +16,13 @@ impl ExactDecimal {
     pub fn zero() -> Self {
         Self {
             coefficient: BigInt::zero(),
+            scale: 0,
+        }
+    }
+
+    pub fn from_i64(value: i64) -> Self {
+        Self {
+            coefficient: BigInt::from(value),
             scale: 0,
         }
     }
@@ -47,23 +55,78 @@ impl ExactDecimal {
         Self { coefficient, scale }
     }
 
-    pub fn add(&self, other: &Self, digits: usize) -> Result<Self, FailureKind> {
-        let scale = self.scale.max(other.scale);
-        let ten = BigInt::from(10);
-        let a = &self.coefficient * ten.pow(scale - self.scale);
-        let b = &other.coefficient * ten.pow(scale - other.scale);
-        let result = Self::normalized(a + b, scale);
-        if result
+    fn bounded(self, digits: usize) -> Result<Self, FailureKind> {
+        if self
             .coefficient
             .to_str_radix(10)
             .trim_start_matches('-')
             .len()
-            .max(result.scale as usize)
+            .max(self.scale as usize)
             > digits
         {
             return Err(FailureKind::Limit("decimal digits"));
         }
-        Ok(result)
+        Ok(self)
+    }
+
+    fn aligned_coefficients(&self, other: &Self) -> (BigInt, BigInt, u32) {
+        let scale = self.scale.max(other.scale);
+        let ten = BigInt::from(10);
+        let a = &self.coefficient * ten.pow(scale - self.scale);
+        let b = &other.coefficient * ten.pow(scale - other.scale);
+        (a, b, scale)
+    }
+
+    pub fn add(&self, other: &Self, digits: usize) -> Result<Self, FailureKind> {
+        let (a, b, scale) = self.aligned_coefficients(other);
+        Self::normalized(a + b, scale).bounded(digits)
+    }
+
+    pub fn subtract(&self, other: &Self, digits: usize) -> Result<Self, FailureKind> {
+        let (a, b, scale) = self.aligned_coefficients(other);
+        Self::normalized(a - b, scale).bounded(digits)
+    }
+
+    pub fn multiply(&self, other: &Self, digits: usize) -> Result<Self, FailureKind> {
+        if self.coefficient.is_zero() || other.coefficient.is_zero() {
+            return Self::zero().bounded(digits);
+        }
+        let scale = self
+            .scale
+            .checked_add(other.scale)
+            .ok_or(FailureKind::Limit("decimal digits"))?;
+        Self::normalized(&self.coefficient * &other.coefficient, scale).bounded(digits)
+    }
+
+    pub fn abs(&self) -> Self {
+        Self {
+            coefficient: self.coefficient.abs(),
+            scale: self.scale,
+        }
+    }
+
+    pub fn floor(&self) -> Self {
+        if self.scale == 0 {
+            return self.clone();
+        }
+        let divisor = BigInt::from(10).pow(self.scale);
+        let mut quotient = &self.coefficient / &divisor;
+        if self.coefficient.is_negative() && !(&self.coefficient % divisor).is_zero() {
+            quotient -= 1;
+        }
+        Self::normalized(quotient, 0)
+    }
+
+    /// Divide exactly by 10^places, retaining all fractional digits.
+    pub fn scale_down(&self, places: u32, digits: usize) -> Result<Self, FailureKind> {
+        if self.coefficient.is_zero() {
+            return Self::zero().bounded(digits);
+        }
+        let scale = self
+            .scale
+            .checked_add(places)
+            .ok_or(FailureKind::Limit("decimal digits"))?;
+        Self::normalized(self.coefficient.clone(), scale).bounded(digits)
     }
 
     /// Equivalent to round(value * 10^places) div 10^places for decimals.
@@ -81,6 +144,37 @@ impl ExactDecimal {
             quotient += remainder.signum();
         }
         Self::normalized(quotient, places)
+    }
+
+    /// XPath fn:round-half-to-even, distinct from fn:round's midpoint rule.
+    pub fn round_half_even(&self, places: u32) -> Self {
+        if self.scale <= places {
+            return self.clone();
+        }
+        let divisor = BigInt::from(10).pow(self.scale - places);
+        let mut quotient = &self.coefficient / &divisor;
+        let remainder = &self.coefficient % &divisor;
+        let twice = remainder.abs() * 2u8;
+        if twice > divisor || (twice == divisor && !(&quotient % 2u8).is_zero()) {
+            quotient += remainder.signum();
+        }
+        Self::normalized(quotient, places)
+    }
+}
+
+impl Ord for ExactDecimal {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if self.scale == other.scale {
+            return self.coefficient.cmp(&other.coefficient);
+        }
+        let (a, b, _) = self.aligned_coefficients(other);
+        a.cmp(&b)
+    }
+}
+
+impl PartialOrd for ExactDecimal {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
