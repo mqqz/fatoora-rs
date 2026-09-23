@@ -5,6 +5,7 @@
 mod code_lists;
 mod decimal;
 mod identity;
+mod ksa_adjustments;
 mod ksa_buyer;
 mod ksa_common;
 mod ksa_fields;
@@ -281,3 +282,6 @@ mod ksa_common_tests;
 
 #[cfg(test)]
 mod vat_tests;
+
+#[cfg(test)]
+mod ksa_adjustment_tests;
