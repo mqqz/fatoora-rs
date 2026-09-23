@@ -226,7 +226,7 @@ fn rule_metadata_matches_the_pinned_source_assertion_sites() {
             .trim()
     );
     let catalog: Value = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(metadata::RULES.len(), 18);
+    assert_eq!(metadata::RULES.len(), 38);
     let coverage: Value = serde_json::from_str(
         &std::fs::read_to_string(fixture_root().join("coverage.json")).unwrap(),
     )
@@ -266,13 +266,22 @@ fn rule_metadata_matches_the_pinned_source_assertion_sites() {
 
 #[test]
 fn frozen_sdk_mutations_match_implemented_rules_with_documented_occurrences() {
-    let manifest: Value = serde_json::from_str(
-        &std::fs::read_to_string(fixture_root().join("mutations/manifest.json")).unwrap(),
-    )
-    .unwrap();
-    assert_eq!(manifest["cases"].as_array().unwrap().len(), 24);
+    assert_frozen_corpus("mutations", 24);
+}
+
+#[test]
+fn frozen_sdk_identity_mutations_match_implemented_rules() {
+    assert_frozen_corpus("identity", 46);
+}
+
+fn assert_frozen_corpus(family: &str, expected_cases: usize) {
+    let corpus = fixture_root().join(family);
+    let manifest: Value =
+        serde_json::from_str(&std::fs::read_to_string(corpus.join("manifest.json")).unwrap())
+            .unwrap();
+    assert_eq!(manifest["cases"].as_array().unwrap().len(), expected_cases);
     for (path, checksum) in manifest["artifacts"].as_object().unwrap() {
-        let bytes = std::fs::read(fixture_root().join("mutations").join(path)).unwrap();
+        let bytes = std::fs::read(corpus.join(path)).unwrap();
         assert_eq!(
             format!("{:x}", Sha256::digest(bytes)),
             checksum.as_str().unwrap(),
@@ -281,7 +290,7 @@ fn frozen_sdk_mutations_match_implemented_rules_with_documented_occurrences() {
     }
     for case in manifest["cases"].as_array().unwrap() {
         let id = case["id"].as_str().unwrap();
-        let directory = fixture_root().join("mutations/cases").join(id);
+        let directory = corpus.join("cases").join(id);
         let input = std::fs::read_to_string(directory.join("input.xml")).unwrap();
         let expected: Value = serde_json::from_str(
             &std::fs::read_to_string(directory.join("expected.json")).unwrap(),

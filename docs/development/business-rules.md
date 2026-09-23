@@ -2,7 +2,7 @@
 
 [Issue #1](https://github.com/mqqz/fatoora-rs/issues/1) is being implemented against
 the two rule profiles in ZATCA SDK `238-R3.4.8`. An internal Rust evaluator covers
-18 of the 257 inventoried assertion sites, with source metadata and offline SDK
+38 of the 257 inventoried assertion sites, with source metadata and offline SDK
 comparisons. **The full profile remains incomplete.** Public invoice validation
 continues to check XSD only; the native subset has no public entry point.
 
@@ -24,7 +24,7 @@ The fixtures in `fatoora-core/tests/fixtures/business-rules/` contain:
   ordered executable template trees, global declarations, and assertion metadata.
   Extraction preserves zero-assertion templates because they can suppress a later
   rule. The trees preserve the source instructions for review.
-- `coverage.json`: one entry per assertion site, with 18 implemented and 239
+- `coverage.json`: one entry per assertion site, with 38 implemented and 219
   pending. An implemented entry needs implementation and test paths. An
   unreachable entry needs evidence. File paths alone do not establish semantic
   coverage; reviewers must check branch and boundary tests.
@@ -38,6 +38,11 @@ The fixtures in `fatoora-core/tests/fixtures/business-rules/` contain:
   SDK output, process status, expected findings, and independently written target
   expectations. The manifest records execution intervals, UTC configuration,
   SDK/resource hashes and copies of the capture scripts.
+
+- `identity/`: 46 official-SDK cases covering seller and buyer identifiers, VAT
+  numbers, address presence, Unicode field lengths, scheme whitespace,
+  predictable identifiers, and contact fields. Capture them with
+  `capture --family identity --output /tmp/business-rule-identity`.
 
 ## Interpret SDK findings accurately
 
@@ -116,8 +121,9 @@ cargo test -p fatoora-core --locked --offline --lib business_rules
 
 The module in `fatoora-core/src/invoice/validation/business_rules/` evaluates
 `BR-CO-10`, `BR-CO-14`, `BR-CO-15`, `BR-25`, the selected total and allowance
-decimal limits, and `BR-KSA-EN16931-02`/`09`. Tests compare this subset against all
-24 mutation captures and the signed fixtures for all six document variants.
+decimal limits, `BR-KSA-EN16931-02`/`09`, and 20 Saudi identity/address checks.
+Tests compare this subset against all 70 mutation captures and the signed
+fixtures for all six document variants.
 Additional tests cover locations, duplicate operands, template suppression,
 overlapping patterns, and evaluation failures. The Rust metadata test requires
 the implemented-site set to match the coverage ledger exactly.

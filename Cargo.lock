@@ -917,6 +917,7 @@ dependencies = [
  "num-bigint",
  "num-traits",
  "quick-xml",
+ "regex",
  "reqwest",
  "ron",
  "rust_decimal",

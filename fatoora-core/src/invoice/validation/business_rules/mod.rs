@@ -3,6 +3,7 @@
 //! This is not the public ZATCA validator. No successful subset run claims that
 //! either full business-rule profile, XSD, or cryptographic validation completed.
 mod decimal;
+mod identity;
 mod metadata;
 mod rules;
 mod xml;
@@ -238,3 +239,6 @@ mod numeric_tests;
 mod tests;
 #[cfg(test)]
 mod xml_tests;
+
+#[cfg(test)]
+mod identity_tests;

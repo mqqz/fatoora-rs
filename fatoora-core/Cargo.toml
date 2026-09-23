@@ -52,6 +52,7 @@ bitflags = { version = "2.10.0", features = ["serde"] }
 rust_decimal = { version = "1.40", default-features = false, features = ["std"] }
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
+regex = "1.12.2"
 
 [dev-dependencies]
 ron = "0.8.1"

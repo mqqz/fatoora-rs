@@ -13,6 +13,13 @@ pub(super) const CAC: &str =
     "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2";
 pub(super) const CBC: &str = "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2";
 pub(super) type NodeId = usize;
+pub(super) type Name = (&'static str, &'static str);
+pub(super) const fn a(name: &'static str) -> Name {
+    (CAC, name)
+}
+pub(super) const fn b(name: &'static str) -> Name {
+    (CBC, name)
+}
 
 #[derive(Debug)]
 pub(super) struct Element {
@@ -146,6 +153,29 @@ impl XmlView {
             .copied()
             .filter(|&id| self.is(id, namespace, name))
             .collect()
+    }
+    pub fn path(&self, id: NodeId, steps: &[Name]) -> Vec<NodeId> {
+        let mut nodes = vec![id];
+        for &(namespace, name) in steps {
+            nodes = nodes
+                .into_iter()
+                .flat_map(|id| self.children(id, namespace, name))
+                .collect();
+        }
+        nodes
+    }
+    pub fn all_path(&self, steps: &[Name]) -> Vec<NodeId> {
+        let Some((&(namespace, name), rest)) = steps.split_first() else {
+            return Vec::new();
+        };
+        let mut nodes: Vec<_> = self
+            .all(namespace, name)
+            .into_iter()
+            .flat_map(|id| self.path(id, rest))
+            .collect();
+        nodes.sort_unstable();
+        nodes.dedup();
+        nodes
     }
     pub fn attribute(&self, id: NodeId, namespace: &str, name: &str) -> Option<&str> {
         self.node(id)
