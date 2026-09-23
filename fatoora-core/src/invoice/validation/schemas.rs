@@ -4,7 +4,10 @@
 //! embedded resources into a private directory for compilation; the resulting
 //! schema owns its parsed resources and outlives the extracted files.
 use super::XmlValidationError;
-use libxml::schemas::{SchemaParserContext, SchemaValidationContext};
+use libxml::{
+    parser::Parser,
+    schemas::{SchemaParserContext, SchemaValidationContext},
+};
 use std::path::Path;
 use tempfile::TempDir;
 
@@ -71,6 +74,10 @@ fn compile(directory: &Path) -> Result<SchemaValidationContext, XmlValidationErr
         .ok_or_else(|| XmlValidationError::InvalidXsdPath {
             path: path.display().to_string(),
         })?;
+    // SchemaParserContext bypasses the wrapper's one-time initialization.
+    // Initialize first: concurrent dictionary creation can deadlock libxml2
+    // 2.9.x when schema validation is the process's first XML operation.
+    let _ = Parser::default();
     // Preserve the schema files byte-for-byte, including the trusted XMLDSig
     // schema's internal DTD. Invoice input follows its separate parsing policy.
     let mut parser = SchemaParserContext::from_file(path);
