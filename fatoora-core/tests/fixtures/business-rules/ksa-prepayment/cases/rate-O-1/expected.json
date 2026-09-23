@@ -1,0 +1,79 @@
+{
+  "layers": {
+    "xsd": "passed",
+    "en": "passed",
+    "ksa": "passed",
+    "qr": "not_run",
+    "signature": "not_run",
+    "pih": "passed",
+    "global": "passed"
+  },
+  "findings": [
+    {
+      "source": "en",
+      "severity": "warning",
+      "code": "BR-CO-16",
+      "message": "[BR-CO-16]-Amount due for payment (BT-115) = Invoice total amount with VAT (BT-112) -Pre-Paid amount (BT-113) + Rounding amount (BT-114)."
+    },
+    {
+      "source": "en",
+      "severity": "warning",
+      "code": "BR-S-08",
+      "message": "[BR-S-08]-In a VAT breakdown (BG-23) where the VAT category code (BT-118) is \" Standard rated\" the VAT category taxable amount (BT-116) shall equal the sum of Invoice line net amounts (BT-131) minus the sum of Document level allowance amounts (BT-92) plus the sum of Document level charge amounts (BT-99) where the VAT category codes (BT-151, BT-95, BT-102) are \"Standard Rate\"."
+    },
+    {
+      "source": "en",
+      "severity": "warning",
+      "code": "BR-CO-10",
+      "message": "[BR-CO-10]-Sum of Invoice line net amount (BT-106) = Σ Invoice line net amount (BT-131)."
+    },
+    {
+      "source": "en",
+      "severity": "warning",
+      "code": "BR-CO-13",
+      "message": "[BR-CO-13]-Invoice total amount without VAT (BT-109) = Σ Invoice line net amount (BT-131) - Sum of allowances on document level (BT-107) + Sum of charges on document level (BT-108)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-80",
+      "message": "[BR-KSA-80] - The Pre-Paid amount (BT-113) must be equal to the sum total of the Prepayment VAT category Taxable Amount (KSA-31) and the Prepayment VAT Category Tax Amount (KSA-32)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-19",
+      "message": "[BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-95",
+      "message": "[BR-KSA-95]-An Invoice line (BG-25) where the Prepayment VAT category code (KSA-33) is \" Not subject to VAT \" the Prepayment VAT exception reason code (KSA-41) should be provided."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-78",
+      "message": "[BR-KSA-78]-An Invoice line (BG-25) where the Prepayment VAT category code (KSA-33) is \"Not subject to VAT\" the Prepayment VAT rate (KSA-34) shall be 0 (zero)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-79",
+      "message": "[BR-KSA-79]-The Prepayment VAT Category Tax Amount (KSA-32) must be Prepayment VAT category Taxable Amount( (KSA-31) x Prepayment VAT rate (KSA-34) /100)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-69",
+      "message": "[BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-15",
+      "message": "[BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has \"01\" as first 2 digits)) must contain the supply date (KSA-5)."
+    }
+  ]
+}
