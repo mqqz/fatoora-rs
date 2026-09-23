@@ -302,12 +302,26 @@ def check(corpus):
         raw = (directory / "evidence/stdout.txt").read_text() + (
             directory / "evidence/stderr.txt"
         ).read_text()
-        if sdk.parse_validation_report(raw, process["exit_code"]) != json.loads(
-            (directory / "expected.json").read_text()
-        ):
+        report = sdk.parse_validation_report(raw, process["exit_code"])
+        if report != json.loads((directory / "expected.json").read_text()):
             raise sdk.CaptureError(
                 "Integrity expected results differ from SDK evidence"
             )
+        if not definition["native"] and report["layers"]["global"] != "passed":
+            raise sdk.CaptureError(
+                "Baseline integrity case did not pass SDK validation"
+            )
+        for stage, code in definition["native"].items():
+            source = "pih" if stage == "previous_invoice_hash" else stage
+            outcome = report["layers"][source]
+            if outcome == "not_run":
+                raise sdk.CaptureError("Target SDK integrity stage did not run")
+            if definition["policy"] is None and outcome != (
+                "failed" if code else "passed"
+            ):
+                raise sdk.CaptureError(
+                    "Undocumented native-versus-SDK integrity difference"
+                )
     print(f"Verified {len(defined)} integrity cases and all evidence hashes")
 
 
