@@ -683,7 +683,6 @@ def main():
             mutations = load_mutations()
             identity = load_mutations(ROOT / "identity")
             structural = load_mutations(ROOT / "structural")
-            totals = load_mutations(ROOT / "totals")
             counts = Counter(e["status"] for e in coverage["sites"].values())
             print(
                 f"SDK {sdk.VERSION}: {len(coverage['sites'])} inventoried assertion sites; "
@@ -697,7 +696,6 @@ def main():
             print(f"Verified {len(mutations['cases'])} targeted SDK mutation cases.")
             print(f"Verified {len(identity['cases'])} identity/address SDK cases.")
             print(f"Verified {len(structural['cases'])} structure/code-list SDK cases.")
-            print(f"Verified {len(totals['cases'])} monetary SDK cases.")
     except (sdk.CaptureError, OSError, KeyError, ValueError) as exc:
         parser.exit(1, f"business rules: {exc}\n")
 

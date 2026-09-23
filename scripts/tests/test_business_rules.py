@@ -190,6 +190,19 @@ class MutationContracts(unittest.TestCase):
             for target in case["targets"]:
                 self.assertIn((target["code"], target["severity"]), known)
 
+    def test_totals_corpus_keeps_binary_cast_boundaries(self):
+        manifest = rules.load_mutations(rules.ROOT / "totals")
+        self.assertEqual(len(manifest["cases"]), 18)
+        for name in [
+            "positive-half",
+            "negative-half",
+            "two-sixty-seven",
+            "large-double",
+        ]:
+            cases = {c["id"]: c for c in manifest["cases"]}
+            self.assertEqual(cases[name + "-binary"]["targets"][0]["count"], 0)
+            self.assertEqual(cases[name + "-display"]["targets"][0]["count"], 1)
+
     def test_empty_or_missing_mutation_does_not_silently_pass(self):
         for old, new in [("missing", "new"), ("same", "same")]:
             with self.assertRaises(sdk.CaptureError):
