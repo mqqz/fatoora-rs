@@ -2,6 +2,10 @@
 
 The CLI wraps the Rust core for common workflows like CSR generation, invoice signing, validation, QR generation, QR reading, and hashing.
 
+Native release downloads use `.tar.gz` archives on Linux and macOS and `.zip`
+archives on Windows. Extract the archive before running `fatoora-rs-cli`. Each
+archive includes the SDK license texts and rule notices under `licenses/zatca/`.
+
 ## Examples
 
 ```bash

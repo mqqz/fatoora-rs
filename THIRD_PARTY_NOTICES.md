@@ -160,7 +160,8 @@ the corresponding rule identifiers and messages. The source-site mapping and
 tests are recorded in the corpus coverage ledger. The imported predicates and
 messages retain the upstream terms described above; the general XML, numeric,
 and reporting infrastructure is project-authored. Python wheels include the SDK
-rule notices and LGPL/GPL texts under `fatoora/licenses/zatca/`.
+rule notices and LGPL/GPL texts under `fatoora/licenses/zatca/`. Native CLI and FFI
+archives include the same files under `licenses/zatca/`.
 
 ## Templates
 
