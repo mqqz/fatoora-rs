@@ -1,0 +1,19 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-23 14:37:20,848 [INFO] ValidationProcessorImpl - [XSD] validation result : PASSED
+2026-09-23 14:37:21,242 [INFO] ValidationProcessorImpl - [EN] validation result : PASSED
+2026-09-23 14:37:21,397 [INFO] ValidationProcessorImpl - [KSA] validation result : PASSED
+2026-09-23 14:37:21,397 [ERROR] ValidationProcessorImpl - ksa validation warnings : 
+2026-09-23 14:37:21,398 [WARN] ValidationProcessorImpl - CODE : BR-KSA-80, MESSAGE : [BR-KSA-80] - The Pre-Paid amount (BT-113) must be equal to the sum total of the Prepayment VAT category Taxable Amount (KSA-31) and the Prepayment VAT Category Tax Amount (KSA-32).
+2026-09-23 14:37:21,398 [WARN] ValidationProcessorImpl - CODE : BR-KSA-19, MESSAGE : [BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105).
+2026-09-23 14:37:21,398 [WARN] ValidationProcessorImpl - CODE : BR-KSA-69, MESSAGE : [BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121).
+2026-09-23 14:37:21,398 [WARN] ValidationProcessorImpl - CODE : BR-KSA-15, MESSAGE : [BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has "01" as first 2 digits)) must contain the supply date (KSA-5).
+2026-09-23 14:37:21,398 [WARN] ValidationProcessorImpl - CODE : BR-KSA-CL-07, MESSAGE : [BR-KSA-CL-07]-If the Prepayment VAT Category Code(KSA-33) is 'Z', or 'E' or 'O', the Prepayment VAT exemption (or exception) reason code(KSA-41) must exist with one of the values from paragraph 11.2.4 of XML implementation standards on Tax exemption (or exception) reason code - specific to Saudi Arabia.
+2026-09-23 14:37:21,415 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-23 14:37:21,415 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = PASSED 
