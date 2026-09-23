@@ -51,6 +51,8 @@ jobs:
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Test release checks and SDK capture harness
         run: python3 -m unittest discover -s scripts/tests -v
+      - name: Check business-rule inventory and reference evidence
+        run: python3 scripts/business_rules.py check
       - name: Generate code coverage without the SDK
         shell: bash
         run: |
