@@ -163,7 +163,7 @@ SKIP_ZATCA_LIVE_API=1 CARGO_INCREMENTAL=0 cargo test --workspace --locked --offl
 The live API tests are skipped by that environment variable. SDK compatibility
 coverage remains tracked separately in issue #2. Binding migration remains in
 issue #5. The FFI uses these core methods; its authoritative declarations are the
-[generated header](../../fatoora-ffi/include/fatoora_ffi.h) and
+[generated headers](../../bindings/c) and
 [exports](../../fatoora-ffi/src/lib.rs), rather than a duplicate signature list here.
 
 ## Migration

@@ -49,10 +49,7 @@ If `libxml2` is missing, install it via your system package manager and re-run `
 - Bench results (CLI): `bench/cli/results/hash_bench.md`
 
 ## Bindings Development
-Python bindings use the `fatoora-ffi` shared library.
-- Build FFI: `cargo build -p fatoora-ffi --release`
-- Set `FATOORA_FFI_PATH` to point to a custom shared library build
-- If a `fatoora_ffi.h` header exists (built with `FATOORA_CBINDGEN=1`), the wrapper loads it automatically
+Diplomat generates the native bindings. Follow the [binding workflow](docs/development/diplomat.md) for generation, native contract tests, and installed-wheel verification.
 
 ## Development Workflow
 - Make small, focused changes

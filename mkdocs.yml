@@ -45,6 +45,7 @@ nav:
       - Releases: development/releases.md
       - API Audit: development/api-audit.md
       - FFI Workflow: development/ffi-workflow.md
+      - Diplomat Bindings: development/diplomat.md
       - FFI Parity Workflow: development/ffi-parity.md
       - API Parity Matrix: development/api-parity.md
   - Benchmarks: benchmarks.md

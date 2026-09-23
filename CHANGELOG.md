@@ -5,7 +5,18 @@
 This release breaks compatibility with 0.1.x in Rust, the C ABI, Python, and
 serialized invoice data. Upgrade bindings and their native library together.
 
+### Added
+
+- Diplomat-generated C, C++, and Python native bindings for invoices, signing,
+  keys, CSRs, credentials, and HTTP responses. See the
+  [binding workflow](docs/development/diplomat.md).
+
 ### Breaking changes
+
+- The handwritten C ABI is replaced by generated `fatoora_Type_method` symbols.
+  Recompile C/C++ clients against the matching generated headers. Python retains
+  its high-level API but removes `FfiLibrary`, the CFFI loader, and custom library
+  or header environment overrides; wheels bundle their native implementation.
 
 - Invoice numbers use the crate-owned `Decimal` type. Rust callers construct
   values from strings or integers; JSON encodes them as decimal strings. Python
