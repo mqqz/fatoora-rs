@@ -43,7 +43,7 @@ python examples/invoice_parse.py
 
 ```bash
 uv pip install -e .[dev]
-uv run pytest tests
+SKIP_ZATCA_LIVE_API=1 uv run pytest tests
 ```
 
 ### High-level API
@@ -85,3 +85,23 @@ print(invoice.xml())
 ```
 
 `set_issue_datetime` expects a ZATCA ISO UTC timestamp string (`YYYY-MM-DDTHH:MM:SSZ`).
+
+### Local ZATCA validation
+
+```python
+from fatoora import Config, validate_zatca_invoice_from_str
+
+with Config() as config:
+    report = validate_zatca_invoice_from_str(
+        config, xml, previous_invoice_hash=previous_hash_from_history,
+    )
+if not report["is_valid"]:
+    print(report["stages"])
+```
+
+The report retains warnings and distinguishes rejection from incomplete coverage.
+Missing predecessor context leaves the report incomplete. Execution failures raise
+a typed exception with any partial report in `error.details["report"]`. Standard
+invoices skip signature/QR checks in this SDK profile. Local integrity does not
+establish issuer trust or remote acceptance. The wheel embeds runtime schemas
+and native rules; Java, SDK files and a source checkout are unnecessary.

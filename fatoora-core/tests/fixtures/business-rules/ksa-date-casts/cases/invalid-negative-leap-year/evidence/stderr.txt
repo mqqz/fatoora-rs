@@ -1,0 +1,46 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.timezone=UTC
+Error at char 164 in expression in xsl:if/@test on line 338 column 248 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl:
+  FORG0001  Invalid dateTime value "-0001-02-29T09:00:00" (Non-existent date)
+  In template rule with match="/ubl:Invoice " on line 311 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by built-in template rule (text-only)
+  In template rule with match="/" on line 41 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:apply-templates at file:/tmp/fatoora%20sdk%20parity%20picy3q8b/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#309
+at template d7e29 on line 108 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl:
+     invoked by xsl:call-template at file:/tmp/fatoora%20sdk%20parity%20picy3q8b/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#77
+  In template rule with match="/" on line 41 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+ERROR StatusLogger Could not determine local host name
+ java.net.UnknownHostException: void: void: Temporary failure in name resolution
+	at java.base/java.net.InetAddress.getLocalHost(InetAddress.java:1670)
+	at org.apache.logging.log4j.core.util.NetUtils.getLocalHostname(NetUtils.java:54)
+	at org.apache.logging.log4j.core.LoggerContext.lambda$setConfiguration$0(LoggerContext.java:615)
+	at java.base/java.util.concurrent.ConcurrentHashMap.computeIfAbsent(ConcurrentHashMap.java:1705)
+	at org.apache.logging.log4j.core.LoggerContext.setConfiguration(LoggerContext.java:615)
+	at org.apache.logging.log4j.core.LoggerContext.reconfigure(LoggerContext.java:694)
+	at org.apache.logging.log4j.core.LoggerContext.reconfigure(LoggerContext.java:711)
+	at org.apache.logging.log4j.core.LoggerContext.start(LoggerContext.java:253)
+	at org.apache.logging.log4j.core.impl.Log4jContextFactory.getContext(Log4jContextFactory.java:155)
+	at org.apache.logging.log4j.core.impl.Log4jContextFactory.getContext(Log4jContextFactory.java:47)
+	at org.apache.logging.log4j.LogManager.getContext(LogManager.java:196)
+	at org.apache.commons.logging.LogAdapter$Log4jLog.<clinit>(LogAdapter.java:155)
+	at org.apache.commons.logging.LogAdapter$Log4jAdapter.createLog(LogAdapter.java:122)
+	at org.apache.commons.logging.LogAdapter.createLog(LogAdapter.java:89)
+	at org.apache.commons.logging.LogFactory.getLog(LogFactory.java:67)
+	at org.apache.commons.logging.LogFactory.getLog(LogFactory.java:59)
+	at org.apache.xml.security.Init.<clinit>(Init.java:59)
+	at com.gazt.einvoicing.hashing.generation.service.impl.HashingGenerationServiceImpl.canonicalizeXml(HashingGenerationServiceImpl.java:52)
+	at com.gazt.einvoicing.hashing.generation.service.impl.HashingGenerationServiceImpl.getInvoiceHash(HashingGenerationServiceImpl.java:43)
+	at com.zatca.sdk.service.validation.signature.SignatureValidator.doValidate(SignatureValidator.java:89)
+	at com.zatca.sdk.service.validation.signature.SignatureValidator.validate(SignatureValidator.java:56)
+	at com.zatca.sdk.service.flow.ValidationProcessorImpl.run(ValidationProcessorImpl.java:96)
+	at com.zatca.sdk.service.InvoiceValidationService.process(InvoiceValidationService.java:55)
+	at com.zatca.sdk.service.GeneratorTemplate.generate(GeneratorTemplate.java:36)
+	at com.zatca.sdk.MainApp.execute(MainApp.java:95)
+	at com.zatca.sdk.MainApp.main(MainApp.java:121)
+Caused by: java.net.UnknownHostException: void: Temporary failure in name resolution
+	at java.base/java.net.Inet4AddressImpl.lookupAllHostAddr(Native Method)
+	at java.base/java.net.InetAddress$PlatformNameService.lookupAllHostAddr(InetAddress.java:930)
+	at java.base/java.net.InetAddress.getAddressesFromNameService(InetAddress.java:1543)
+	at java.base/java.net.InetAddress$NameServiceAddresses.get(InetAddress.java:848)
+	at java.base/java.net.InetAddress.getAllByName0(InetAddress.java:1533)
+	at java.base/java.net.InetAddress.getLocalHost(InetAddress.java:1665)
+	... 25 more

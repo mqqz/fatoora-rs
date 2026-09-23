@@ -158,5 +158,84 @@ class CaptureContracts(unittest.TestCase):
             sdk.parse_validation("[XSD] validation result : PASSED", 1)
 
 
+class FindingContracts(unittest.TestCase):
+    def test_real_sdk_output_keeps_errors_and_warnings(self):
+        path = sdk.CORPUS / "cases/foreign-currency/evidence/validate/stdout.txt"
+        report = sdk.parse_validation_report(path.read_text(), 0)
+        self.assertEqual(report["layers"]["ksa"], "failed")
+        self.assertEqual(
+            report["findings"],
+            [
+                {
+                    "source": "ksa",
+                    "severity": "error",
+                    "code": "BR-KSA-EN16931-02",
+                    "message": '[BR-KSA-EN16931-02]-VAT accounting currency code (BT-6) must be "SAR".',
+                },
+                {
+                    "source": "ksa",
+                    "severity": "warning",
+                    "code": "BR-KSA-97",
+                    "message": '[BR-KSA-97]-If the Document Currency Code (BT-5) is different from "SAR", then the value in "Invoice total VAT amount (BT-110)" cannot be the same as the value in "Invoice total VAT amount in accounting currency (BT-111)".',
+                },
+                {
+                    "source": "ksa",
+                    "severity": "warning",
+                    "code": "BR-KSA-15",
+                    "message": '[BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has "01" as first 2 digits)) must contain the supply date (KSA-5).',
+                },
+            ],
+        )
+
+    def test_repeated_codes_and_passed_layer_warnings_are_retained(self):
+        log = """[XSD] validation result : PASSED
+[EN] validation result : PASSED
+en validation warnings :
+CODE : BR-01, MESSAGE : first
+CODE : BR-01, MESSAGE : first
+[KSA] validation result : PASSED
+ksa validation warnings :
+CODE : BR-01, MESSAGE : second, MESSAGE : remains part of text
+"""
+        report = sdk.parse_validation_report(log, 0)
+        self.assertEqual(len(report["findings"]), 3)
+        self.assertEqual(report["findings"][0], report["findings"][1])
+        self.assertEqual(report["findings"][2]["source"], "ksa")
+        self.assertEqual(
+            report["findings"][2]["message"], "second, MESSAGE : remains part of text"
+        )
+
+    def test_continued_messages_and_log_prefixes(self):
+        log = """2026-09-23 12:00:00,000 [INFO] ValidationProcessorImpl - [XSD] validation result : PASSED
+2026-09-23 12:00:00,001 [INFO] ValidationProcessorImpl - [KSA] validation result : PASSED
+2026-09-23 12:00:00,002 [ERROR] ValidationProcessorImpl - ksa validation warnings :
+2026-09-23 12:00:00,003 [WARN] ValidationProcessorImpl - CODE : BR-EXAMPLE, MESSAGE : first line
+   second line
+2026-09-23 12:00:00,004 [INFO] InvoiceValidationService - *** GLOBAL VALIDATION RESULT = PASSED
+"""
+        report = sdk.parse_validation_report(log, 0)
+        self.assertEqual(report["findings"][0]["severity"], "warning")
+        self.assertEqual(report["findings"][0]["message"], "first line\n   second line")
+
+    def test_integrity_codes_can_contain_spaces(self):
+        log = "[XSD] validation result : PASSED\n[QR] validation result : FAILED\nqr validation errors :\nCODE : digital signature, MESSAGE : mismatch\n"
+        report = sdk.parse_validation_report(log, 0)
+        self.assertEqual(report["findings"][0]["code"], "digital signature")
+        self.assertEqual(report["findings"][0]["source"], "qr")
+
+    def test_unattributed_malformed_or_contradictory_findings_fail_capture(self):
+        prefix = "[XSD] validation result : PASSED\n"
+        for body in [
+            "CODE : BR-01, MESSAGE : invalid",
+            "ksa validation warnings :\nCODE : broken",
+            "[QR] validation result : FAILED\nqr validation errors :\nCODE : , MESSAGE : invalid",
+            "ksa validation errors :\nCODE : BR-01, MESSAGE : invalid",
+            "[KSA] validation result : PASSED\nksa validation errors :\nCODE : BR-01, MESSAGE : invalid",
+            "[KSA] validation result : PASSED\nunknown validation warnings :\nCODE : BR-01, MESSAGE : invalid",
+        ]:
+            with self.subTest(body=body), self.assertRaises(sdk.CaptureError):
+                sdk.parse_validation_report(prefix + body, 0)
+
+
 if __name__ == "__main__":
     unittest.main()

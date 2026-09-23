@@ -1,0 +1,67 @@
+{
+  "layers": {
+    "xsd": "failed",
+    "en": "passed",
+    "ksa": "failed",
+    "qr": "failed",
+    "signature": "failed",
+    "pih": "passed",
+    "global": "failed"
+  },
+  "findings": [
+    {
+      "source": "xsd",
+      "severity": "error",
+      "code": "SAXParseException",
+      "message": "Schema validation failed; XML does not comply with UBL 2.1 standards in line with ZATCA specifications. ERROR: org.xml.sax.SAXParseException; lineNumber: 5; columnNumber: 59; cvc-complex-type.2.4.a: Invalid content was found starting with element '{\"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":IssueDate}'. One of '{\"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":IssueTime, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":DueDate, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":InvoiceTypeCode, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":Note, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":TaxPointDate, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":DocumentCurrencyCode, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":TaxCurrencyCode, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":PricingCurrencyCode, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":PaymentCurrencyCode, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":PaymentAlternativeCurrencyCode, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":AccountingCostCode, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":AccountingCost, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":LineCountNumeric, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":BuyerReference, \"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\":InvoicePeriod, \"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\":OrderReference, \"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\":BillingReference, \"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\":DespatchDocumentReference, \"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\":ReceiptDocumentReference, \"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\":StatementDocumentReference, \"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\":OriginatorDocumentReference, \"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\":ContractDocumentReference, \"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\":AdditionalDocumentReference, \"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\":ProjectReference, \"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\":Signature, \"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\":AccountingSupplierParty}' is expected."
+    },
+    {
+      "source": "ksa",
+      "severity": "error",
+      "code": "BR-KSA-70",
+      "message": "[BR-KSA-70]-The invoice must contain Invoice Issue Time (KSA-25). This value should be in the format: hh:mm:ss for time expressed in local time (eg 19:20:30) or hh:mm:ssZ for time expressed in UTC (eg 19:20:30Z).\"The invoice must contain Invoice Issue Time (KSA-25). This value should be in the format: hh:mm:ss for time expressed in local time (eg 19:20:30) or hh:mm:ssZ for time expressed in UTC (eg 19:20:30Z)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-19",
+      "message": "[BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-60",
+      "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-69",
+      "message": "[BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-27",
+      "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+    },
+    {
+      "source": "qr",
+      "severity": "error",
+      "code": "QRCODE_INVALID",
+      "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+    },
+    {
+      "source": "signature",
+      "severity": "error",
+      "code": "NullPointerException",
+      "message": "null"
+    },
+    {
+      "source": "signature",
+      "severity": "error",
+      "code": "certificate",
+      "message": "wrong invoiceCertificate  "
+    }
+  ]
+}

@@ -1,0 +1,1164 @@
+{
+  "schema_version": 1,
+  "sdk_version": "238-R3.4.8",
+  "jar_sha256": "48abeb828d453ef6fafba792fddbbb2701da5c7018c24bde918853e80ff5d530",
+  "sources": {
+    "cen": "378a7a4d697aa96e05edb4649ab4536b33546b8e288453324a5668c3e15735b0",
+    "ksa": "3312e1938829b8972dacf19a3d933deeb97cb71c7e982c56a434b76cc0e5f0c4"
+  },
+  "source_corpus_sha256": "872d251be12e3f3388d1afd57a566be6721d19bafc61b39442dad65902c74411",
+  "family": "structural",
+  "family_tool_sha256": "cabfc87cc2f8fd914a517523be1ecf3d45b3eddad8937cd6ed2e9a3a66629524",
+  "capture_tool_sha256": "405c616c890db6732e12278e8f19a90f87d09171012abc5a29d56d4faaeee8d8",
+  "sdk_tool_sha256": "cfbec9fe7abe7a75bdaf288297998d88be224b1055eac318c9accb545e29b454",
+  "java_version": "openjdk version \"11.0.25\" 2024-10-15\nOpenJDK Runtime Environment (build 11.0.25+5-void-r3)\nOpenJDK 64-Bit Server VM (build 11.0.25+5-void-r3, mixed mode)\n",
+  "timezone": "UTC (TZ=UTC; JAVA_TOOL_OPTIONS=-Duser.timezone=UTC)",
+  "cases": [
+    {
+      "id": "supporting-id-empty",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-52",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:12.110215+00:00",
+      "finished_at": "2026-09-23T12:36:13.106642+00:00",
+      "duration_seconds": 0.9971924859564751
+    },
+    {
+      "id": "document-allowance-no-amount",
+      "expected_xsd": "failed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-31",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:13.107508+00:00",
+      "finished_at": "2026-09-23T12:36:14.096552+00:00",
+      "duration_seconds": 0.9893698529340327
+    },
+    {
+      "id": "document-allowance-no-category",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-32",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:14.096957+00:00",
+      "finished_at": "2026-09-23T12:36:15.084119+00:00",
+      "duration_seconds": 0.9873973130015656
+    },
+    {
+      "id": "document-charge-no-amount",
+      "expected_xsd": "failed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-36",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:15.084422+00:00",
+      "finished_at": "2026-09-23T12:36:16.066820+00:00",
+      "duration_seconds": 0.9827321349876001
+    },
+    {
+      "id": "document-charge-no-category",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-37",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:16.067229+00:00",
+      "finished_at": "2026-09-23T12:36:17.029289+00:00",
+      "duration_seconds": 0.9622731930576265
+    },
+    {
+      "id": "total-exclusive-missing",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-13",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:17.029567+00:00",
+      "finished_at": "2026-09-23T12:36:17.995514+00:00",
+      "duration_seconds": 0.9662326439283788
+    },
+    {
+      "id": "total-inclusive-missing",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-14",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:17.995873+00:00",
+      "finished_at": "2026-09-23T12:36:18.956511+00:00",
+      "duration_seconds": 0.9608590899733827
+    },
+    {
+      "id": "total-payable-missing",
+      "expected_xsd": "failed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-15",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:18.956798+00:00",
+      "finished_at": "2026-09-23T12:36:19.926056+00:00",
+      "duration_seconds": 0.9695579289691523
+    },
+    {
+      "id": "invoice-id-missing",
+      "expected_xsd": "failed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-02",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:19.926430+00:00",
+      "finished_at": "2026-09-23T12:36:20.903276+00:00",
+      "duration_seconds": 0.9770681820809841
+    },
+    {
+      "id": "invoice-id-long",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-KSA-F-06-C1",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:20.903571+00:00",
+      "finished_at": "2026-09-23T12:36:21.841409+00:00",
+      "duration_seconds": 0.9380827199202031
+    },
+    {
+      "id": "issue-date-missing",
+      "expected_xsd": "failed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-03",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:21.841730+00:00",
+      "finished_at": "2026-09-23T12:36:22.786198+00:00",
+      "duration_seconds": 0.944713567965664
+    },
+    {
+      "id": "invoice-type-missing",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-04",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:22.786518+00:00",
+      "finished_at": "2026-09-23T12:36:23.799599+00:00",
+      "duration_seconds": 1.0133122690021992
+    },
+    {
+      "id": "document-currency-missing",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-05",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:23.799906+00:00",
+      "finished_at": "2026-09-23T12:36:24.760047+00:00",
+      "duration_seconds": 0.9603715629782528
+    },
+    {
+      "id": "seller-name-empty",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-06",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:24.760350+00:00",
+      "finished_at": "2026-09-23T12:36:25.724634+00:00",
+      "duration_seconds": 0.9645354220410809
+    },
+    {
+      "id": "seller-name-long",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-KSA-F-06-C10",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:25.724976+00:00",
+      "finished_at": "2026-09-23T12:36:26.679671+00:00",
+      "duration_seconds": 0.9549407480517402
+    },
+    {
+      "id": "seller-address-missing",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-08",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:26.679991+00:00",
+      "finished_at": "2026-09-23T12:36:27.645537+00:00",
+      "duration_seconds": 0.9658005760284141
+    },
+    {
+      "id": "line-id-long",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-KSA-F-06-C17",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:27.645867+00:00",
+      "finished_at": "2026-09-23T12:36:28.591470+00:00",
+      "duration_seconds": 0.9458107920363545
+    },
+    {
+      "id": "item-name-short",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-KSA-F-06-C19",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:28.591745+00:00",
+      "finished_at": "2026-09-23T12:36:29.561559+00:00",
+      "duration_seconds": 0.9700595560716465
+    },
+    {
+      "id": "item-name-numeric",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-KSA-F-C-01",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:29.561883+00:00",
+      "finished_at": "2026-09-23T12:36:30.513301+00:00",
+      "duration_seconds": 0.9516167649999261
+    },
+    {
+      "id": "line-id-empty",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-21",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:30.513564+00:00",
+      "finished_at": "2026-09-23T12:36:31.489647+00:00",
+      "duration_seconds": 0.9763025359716266
+    },
+    {
+      "id": "line-quantity-zero",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-22",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:31.489931+00:00",
+      "finished_at": "2026-09-23T12:36:32.429963+00:00",
+      "duration_seconds": 0.9402616389561445
+    },
+    {
+      "id": "line-extension-missing",
+      "expected_xsd": "failed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-24",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:32.430257+00:00",
+      "finished_at": "2026-09-23T12:36:33.360324+00:00",
+      "duration_seconds": 0.9304212359711528
+    },
+    {
+      "id": "line-price-missing",
+      "expected_xsd": "failed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-26",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:33.360757+00:00",
+      "finished_at": "2026-09-23T12:36:34.345071+00:00",
+      "duration_seconds": 0.9846215160796419
+    },
+    {
+      "id": "line-tax-category-missing",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-04",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:34.345477+00:00",
+      "finished_at": "2026-09-23T12:36:35.294065+00:00",
+      "duration_seconds": 0.9488494270481169
+    },
+    {
+      "id": "payment-code-missing",
+      "expected_xsd": "failed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-49",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:35.294395+00:00",
+      "finished_at": "2026-09-23T12:36:36.255569+00:00",
+      "duration_seconds": 0.9614454569527879
+    },
+    {
+      "id": "seller-country-empty",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-09",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:36.255917+00:00",
+      "finished_at": "2026-09-23T12:36:37.237685+00:00",
+      "duration_seconds": 0.982028728001751
+    },
+    {
+      "id": "subtotal-taxable-missing",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-45",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:37.238040+00:00",
+      "finished_at": "2026-09-23T12:36:38.191218+00:00",
+      "duration_seconds": 0.953465124941431
+    },
+    {
+      "id": "subtotal-tax-missing",
+      "expected_xsd": "failed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-46",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:38.191597+00:00",
+      "finished_at": "2026-09-23T12:36:39.172825+00:00",
+      "duration_seconds": 0.9815910500474274
+    },
+    {
+      "id": "subtotal-category-missing",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-47",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:39.173269+00:00",
+      "finished_at": "2026-09-23T12:36:40.167298+00:00",
+      "duration_seconds": 0.9942425399785861
+    },
+    {
+      "id": "subtotal-rate-missing",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-48",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:40.167578+00:00",
+      "finished_at": "2026-09-23T12:36:41.099317+00:00",
+      "duration_seconds": 0.9320562790380791
+    },
+    {
+      "id": "allowance-scale",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-01",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:41.099715+00:00",
+      "finished_at": "2026-09-23T12:36:42.006396+00:00",
+      "duration_seconds": 0.9068830190226436
+    },
+    {
+      "id": "allowance-scale-valid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-01",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:36:42.006663+00:00",
+      "finished_at": "2026-09-23T12:36:42.980121+00:00",
+      "duration_seconds": 0.9736519779544324
+    },
+    {
+      "id": "charge-scale",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-05",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:42.980391+00:00",
+      "finished_at": "2026-09-23T12:36:43.967682+00:00",
+      "duration_seconds": 0.9874950021039695
+    },
+    {
+      "id": "charge-scale-valid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-05",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:36:43.967953+00:00",
+      "finished_at": "2026-09-23T12:36:44.949186+00:00",
+      "duration_seconds": 0.9814597810618579
+    },
+    {
+      "id": "line-scale",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-23",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:44.949487+00:00",
+      "finished_at": "2026-09-23T12:36:45.887351+00:00",
+      "duration_seconds": 0.9380654089618474
+    },
+    {
+      "id": "line-scale-valid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-23",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:36:45.887617+00:00",
+      "finished_at": "2026-09-23T12:36:46.837981+00:00",
+      "duration_seconds": 0.9505735390121117
+    },
+    {
+      "id": "taxable-scale",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-19",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:46.838254+00:00",
+      "finished_at": "2026-09-23T12:36:47.803041+00:00",
+      "duration_seconds": 0.9650544599862769
+    },
+    {
+      "id": "taxable-scale-valid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-19",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:36:47.803383+00:00",
+      "finished_at": "2026-09-23T12:36:48.797194+00:00",
+      "duration_seconds": 0.9940049910219386
+    },
+    {
+      "id": "tax-scale",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-20",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:48.797456+00:00",
+      "finished_at": "2026-09-23T12:36:49.773397+00:00",
+      "duration_seconds": 0.9761846970068291
+    },
+    {
+      "id": "tax-scale-valid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-20",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:36:49.773717+00:00",
+      "finished_at": "2026-09-23T12:36:50.707697+00:00",
+      "duration_seconds": 0.9341699379729107
+    },
+    {
+      "id": "unit-code-long",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-KSA-F-06-C18",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:50.707960+00:00",
+      "finished_at": "2026-09-23T12:36:51.675614+00:00",
+      "duration_seconds": 0.967901695985347
+    },
+    {
+      "id": "unit-code-boundary",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-KSA-F-06-C18",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:36:51.675938+00:00",
+      "finished_at": "2026-09-23T12:36:52.630147+00:00",
+      "duration_seconds": 0.9544453299604356
+    },
+    {
+      "id": "quantity-zero-decimal",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-22",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:36:52.630448+00:00",
+      "finished_at": "2026-09-23T12:36:53.590187+00:00",
+      "duration_seconds": 0.9599439140874892
+    },
+    {
+      "id": "document-type-list-valid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CL-01",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:36:53.590457+00:00",
+      "finished_at": "2026-09-23T12:36:54.593962+00:00",
+      "duration_seconds": 1.0037066749064252
+    },
+    {
+      "id": "document-type-list-invalid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CL-01",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:54.594234+00:00",
+      "finished_at": "2026-09-23T12:36:55.547549+00:00",
+      "duration_seconds": 0.9535657849628478
+    },
+    {
+      "id": "amount-currency-list-valid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CL-03",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:36:55.547874+00:00",
+      "finished_at": "2026-09-23T12:36:56.500326+00:00",
+      "duration_seconds": 0.9526414690772071
+    },
+    {
+      "id": "amount-currency-list-invalid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CL-03",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:56.500582+00:00",
+      "finished_at": "2026-09-23T12:36:57.478188+00:00",
+      "duration_seconds": 0.9778254589764401
+    },
+    {
+      "id": "document-currency-list-valid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CL-04",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:36:57.478473+00:00",
+      "finished_at": "2026-09-23T12:36:58.481624+00:00",
+      "duration_seconds": 1.0034276159713045
+    },
+    {
+      "id": "document-currency-list-invalid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CL-04",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:36:58.481977+00:00",
+      "finished_at": "2026-09-23T12:36:59.446569+00:00",
+      "duration_seconds": 0.9648333410732448
+    },
+    {
+      "id": "tax-currency-list-valid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CL-05",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:36:59.446879+00:00",
+      "finished_at": "2026-09-23T12:37:00.405392+00:00",
+      "duration_seconds": 0.9587162309326231
+    },
+    {
+      "id": "tax-currency-list-invalid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CL-05",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:37:00.405674+00:00",
+      "finished_at": "2026-09-23T12:37:01.400200+00:00",
+      "duration_seconds": 0.9949105469277129
+    },
+    {
+      "id": "country-list-valid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CL-14",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:37:01.400663+00:00",
+      "finished_at": "2026-09-23T12:37:02.390909+00:00",
+      "duration_seconds": 0.9904941680142656
+    },
+    {
+      "id": "country-list-invalid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CL-14",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:37:02.391235+00:00",
+      "finished_at": "2026-09-23T12:37:03.361341+00:00",
+      "duration_seconds": 0.9703041450120509
+    },
+    {
+      "id": "payment-list-valid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CL-16",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:37:03.361607+00:00",
+      "finished_at": "2026-09-23T12:37:04.348560+00:00",
+      "duration_seconds": 0.9871506940107793
+    },
+    {
+      "id": "payment-list-invalid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CL-16",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:37:04.348825+00:00",
+      "finished_at": "2026-09-23T12:37:05.300917+00:00",
+      "duration_seconds": 0.9523649109760299
+    },
+    {
+      "id": "category-list-valid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CL-18",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:37:05.301264+00:00",
+      "finished_at": "2026-09-23T12:37:06.250097+00:00",
+      "duration_seconds": 0.9491072669625282
+    },
+    {
+      "id": "category-list-invalid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CL-18",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:37:06.250447+00:00",
+      "finished_at": "2026-09-23T12:37:07.212461+00:00",
+      "duration_seconds": 0.9622975930105895
+    }
+  ],
+  "artifacts": {
+    "capture-tools/business_rule_cases.py": "cabfc87cc2f8fd914a517523be1ecf3d45b3eddad8937cd6ed2e9a3a66629524",
+    "capture-tools/business_rules.py": "405c616c890db6732e12278e8f19a90f87d09171012abc5a29d56d4faaeee8d8",
+    "capture-tools/sdk_parity.py": "cfbec9fe7abe7a75bdaf288297998d88be224b1055eac318c9accb545e29b454",
+    "cases/allowance-scale/evidence/process.json": "566cde7064248787ba73790e23a5518f5b13a6b6884ed0ac0e5ad3914bfc41ee",
+    "cases/allowance-scale/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/allowance-scale/evidence/stdout.txt": "660f5fdd38fdaf77116901e4a64a288a9163ef043d0b9288ec5202cb814bf9db",
+    "cases/allowance-scale/expected.json": "f2582bcecbfa6b1fcd665023047be4a3671b664d05aceeecf879064a4b32e0e6",
+    "cases/allowance-scale/input.xml": "d40fd780ae27a9631d02a4782e2f73ec24fd9ba4e2e40dc80ca8297941be4657",
+    "cases/allowance-scale-valid/evidence/process.json": "a0aca476c98d0341fae71796bff0b22179d287293a4119815e194832f81c0ff5",
+    "cases/allowance-scale-valid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/allowance-scale-valid/evidence/stdout.txt": "3eeadc18d44be9d0fab3ea82b027afb6242c1b4272e03b7e9cd3f2f2d86bce13",
+    "cases/allowance-scale-valid/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/allowance-scale-valid/input.xml": "b551e88882cb34f772dbee3041614c9d3998a1c3ee7b79d92d1f84fcc2fdb1be",
+    "cases/amount-currency-list-invalid/evidence/process.json": "63b28e78957db6c6f5fd5c3f18bba1a9d70d2e2b906687c749471314f52fd0b1",
+    "cases/amount-currency-list-invalid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/amount-currency-list-invalid/evidence/stdout.txt": "79ca2c32238faa70d1ba1842c79dae0f768719cac3a0635e3f42238a9f51b5ec",
+    "cases/amount-currency-list-invalid/expected.json": "46d20a1697f58ba1cf569a7fce83e9722a970f824c08b54f9fb6e4c2453ade94",
+    "cases/amount-currency-list-invalid/input.xml": "320fd12214b7af4ce5eb1994e55073682b74c9eb8abd9892eab8ac64ff21ed8d",
+    "cases/amount-currency-list-valid/evidence/process.json": "5c0d96477f48e79e568d150619f4057307275b55d0cc0dd0325745d0696c5f9c",
+    "cases/amount-currency-list-valid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/amount-currency-list-valid/evidence/stdout.txt": "1284559b86c4f001c1e8d449ed1e450ff587a91ed432846347784d24e75146c5",
+    "cases/amount-currency-list-valid/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/amount-currency-list-valid/input.xml": "b551e88882cb34f772dbee3041614c9d3998a1c3ee7b79d92d1f84fcc2fdb1be",
+    "cases/category-list-invalid/evidence/process.json": "a88c59fb85d41ed54f6252ea1efe544fe49d75721ea506872a72b13da27572c6",
+    "cases/category-list-invalid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/category-list-invalid/evidence/stdout.txt": "77587d2992023a2f3aad410ac0a34118a314906140b4c25412283656bb131794",
+    "cases/category-list-invalid/expected.json": "0fa1ddeafafce00ae5ae7a0d7b861dea0cdd55c1f569371d7e32ac1f9d9b2c50",
+    "cases/category-list-invalid/input.xml": "848885d93717e86de8f42261b1c3e16f6e537c5def91f1584e5956834ac5594e",
+    "cases/category-list-valid/evidence/process.json": "329a64ff8a3d6b357b3c749e0580851ae15e2a9c868e02b889a7fef49a2514e4",
+    "cases/category-list-valid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/category-list-valid/evidence/stdout.txt": "abe07d668179cb646d54a97a24819a351a5012a57da5ec879c21f292afc35347",
+    "cases/category-list-valid/expected.json": "d442c64ede86e2a8584c8a5e2b26c812b3301d3eab921abb46e591b564b1d15c",
+    "cases/category-list-valid/input.xml": "e22886bf42e122a7b210ef90ed47438cb576fccba611bb43d4594f1fcbadd850",
+    "cases/charge-scale/evidence/process.json": "06c3aad004bef3ff928bba06299b6f33360bbd154b9799d879db5a241a1e60ce",
+    "cases/charge-scale/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/charge-scale/evidence/stdout.txt": "2849ee9bec26c625bceb639888e6896d0be0c032d55281dbf4e697b2dbbf34e9",
+    "cases/charge-scale/expected.json": "c18cf47ebd3905da74f5d8f4c1255d64bb2c99532353b6a16d6797726f55bd21",
+    "cases/charge-scale/input.xml": "bbd7664b7669902dd55093b165d4e7014c5e9c8fd7c655221751146ccf87eae7",
+    "cases/charge-scale-valid/evidence/process.json": "841c2c605f61ba3f32258c1692fcfb2d04682101dd298abe1c2b1ba1c872774d",
+    "cases/charge-scale-valid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/charge-scale-valid/evidence/stdout.txt": "7231b687900db00e6f60e47835b7755aad5971cbbf32c1db4598fbb2e608e704",
+    "cases/charge-scale-valid/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/charge-scale-valid/input.xml": "b551e88882cb34f772dbee3041614c9d3998a1c3ee7b79d92d1f84fcc2fdb1be",
+    "cases/country-list-invalid/evidence/process.json": "044093e98f363664c07cf6bc504b6e7b91d3e290706f425c880aeb60096c4bdc",
+    "cases/country-list-invalid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/country-list-invalid/evidence/stdout.txt": "f479da81f9a0273c3c388ae9ae8a184900a1c1e8bcfeee51fcf68239acf8dcc9",
+    "cases/country-list-invalid/expected.json": "f17f5999b19b57f7eeb3d794f688a139ad092d7a8b1e1134395f1a1922045882",
+    "cases/country-list-invalid/input.xml": "58acd0aa47f6ba32267e7a61253d7d3164ed9f54b3b1694deff032584d53edc7",
+    "cases/country-list-valid/evidence/process.json": "243624a452040605a7030ca60c8d65b705e3c37ef34a6b106468574aceef74c8",
+    "cases/country-list-valid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/country-list-valid/evidence/stdout.txt": "9ad1ba9ddf692a98147bc29f1c7f4e177570039e6b135c1ed2aee1f541fa0302",
+    "cases/country-list-valid/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/country-list-valid/input.xml": "74b9c3d03e23f52a67f85f1f9271a14cd52c0eac95e7b47e654c6d5334b5dcba",
+    "cases/document-allowance-no-amount/evidence/process.json": "c8a1e18dd1c10ab5033d44d58c734de3e560ccf32d3f2659c067d9c8674e3f07",
+    "cases/document-allowance-no-amount/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-allowance-no-amount/evidence/stdout.txt": "3143a690280a847b661df970f319271a22d3de08b38ebf60d6e0bacb72b03b7d",
+    "cases/document-allowance-no-amount/expected.json": "b2fe606b5a577a167f8d38375b6a43dcda0c24a9611a904b465105bc018eef7d",
+    "cases/document-allowance-no-amount/input.xml": "7091058df40506a2682128710a59b59c3363698eb3bc2a6deb72cfed1ac7c349",
+    "cases/document-allowance-no-category/evidence/process.json": "e771a5405e218b4dee63129b8eb9a8dd97425e243384bd5fc78d02ff840fd8b7",
+    "cases/document-allowance-no-category/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-allowance-no-category/evidence/stdout.txt": "b53d0f397febabc22a08cade6f9f2c5e06c4d338171857ca81be335ebfa82411",
+    "cases/document-allowance-no-category/expected.json": "db3efec0900c7353a2fbe560a0f7cdde575eece868b80862c59bb675d60bdf9b",
+    "cases/document-allowance-no-category/input.xml": "89a6d974baf7856f0934250969fa4f0a0536f0ef817cb26f58a0530d6993d5d7",
+    "cases/document-charge-no-amount/evidence/process.json": "085ad4633d20ac458e985fcccde90ec98dbc1deae7e16b54a7d2a9d03ca3711b",
+    "cases/document-charge-no-amount/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-charge-no-amount/evidence/stdout.txt": "c6bf54d813ba632b4186a3a39af96dca3b17ba9880e343f8e62186a67fe6f0b4",
+    "cases/document-charge-no-amount/expected.json": "8faf6f386d56c40ffa8ffe36ca9c11bb22db88285bdb7fd6f340a08fed548fb0",
+    "cases/document-charge-no-amount/input.xml": "309611e523e6b1cd8bfa26fe69648bfb08770cd071aff1659fb39d5336fb0729",
+    "cases/document-charge-no-category/evidence/process.json": "6c259388b3fa508ba99f57cfeefb0ea7ddeb33db02b7cfcf941a6a8a184b121b",
+    "cases/document-charge-no-category/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-charge-no-category/evidence/stdout.txt": "8e8434555dfa0a42086c2f9110f300339acacbe93b4bd2b0a764b2c47f3cdb79",
+    "cases/document-charge-no-category/expected.json": "c4dc2cd89845cf8d5a2f7d7f54951ab2d9f7477588ab639a3ecf700afc308674",
+    "cases/document-charge-no-category/input.xml": "fd2c0d202024a2a5accae05012f2b71562a832041e69d3789039206949122cc4",
+    "cases/document-currency-list-invalid/evidence/process.json": "31584f9fd382248dd0e2c92a38b22531e98514f8e49c014203d8619bb74b2889",
+    "cases/document-currency-list-invalid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-currency-list-invalid/evidence/stdout.txt": "f6a0098dfdf071b05569d10510e461d17a2cab4d06d3c432f06876e9ed30ee64",
+    "cases/document-currency-list-invalid/expected.json": "25e1b4ed4ed94e53bf000ea44c4fb6c669d11a757433f233580c6011a00bd75b",
+    "cases/document-currency-list-invalid/input.xml": "322bf8a47e53b357e55ab6bdd21cfc2fc4a2dc383aa9f3c3d704a598960d3516",
+    "cases/document-currency-list-valid/evidence/process.json": "6e7e0ddb7c0f1ea9aaa4201f61e07e08cc9f356d5e076c57382e2203d545d829",
+    "cases/document-currency-list-valid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-currency-list-valid/evidence/stdout.txt": "1906a39c5aa9db3efb84fa25cfbccd527d8506d3dcc84d9fd5103454e6772f9f",
+    "cases/document-currency-list-valid/expected.json": "83c8352e616eabda5c0b30ee817b1c41d30bcb69fdf6cb7a15cb602c0fa73bff",
+    "cases/document-currency-list-valid/input.xml": "803dd4354f4e5befba98e417484fc633ea3cc0b8d7008fc6ba4706b0d6e8c698",
+    "cases/document-currency-missing/evidence/process.json": "dc7bac2d76e51cf021071884aef71cbcb5e80bb3df600e60e01c67cc463c752d",
+    "cases/document-currency-missing/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-currency-missing/evidence/stdout.txt": "7e698a736403738b301a8e869adeaffdc756aa561694db493a44aa717efb2bf1",
+    "cases/document-currency-missing/expected.json": "9f76a380dd26e2d79c283957baea2ab80a755737cc5884c62fe42761fe27d0c7",
+    "cases/document-currency-missing/input.xml": "fc5d3a8d9bbb48fac3102b26aada8f03cf323aecff71319714c33ab65e745740",
+    "cases/document-type-list-invalid/evidence/process.json": "f40aa1dd7c10049842ce763d8981025d3157a7409f8346aff90002266c0d559f",
+    "cases/document-type-list-invalid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-type-list-invalid/evidence/stdout.txt": "98d83bc6010ef2f0fdc699aaf680f41f69539365bffadb7bb2bf7f477311ee08",
+    "cases/document-type-list-invalid/expected.json": "ea5221b6dd6370fd0c0b6e14bfc5087010d1ea9e9da446a2cdf33f14cf28b753",
+    "cases/document-type-list-invalid/input.xml": "31ebe7502b235922bb9db2a2451a20e0565a4fe2f4f80453840db0d746e63483",
+    "cases/document-type-list-valid/evidence/process.json": "eb14ad85c4e0c030b57184157daaf85c2ff2f48bf6cccf6bf267631b92bfae30",
+    "cases/document-type-list-valid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-type-list-valid/evidence/stdout.txt": "9ead0737489811631ef7f217267b7f922d65001aee5e3cb8b33a31a0ed6adc58",
+    "cases/document-type-list-valid/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/document-type-list-valid/input.xml": "b551e88882cb34f772dbee3041614c9d3998a1c3ee7b79d92d1f84fcc2fdb1be",
+    "cases/invoice-id-long/evidence/process.json": "4b9b27067936ff1526bf3631c13d15694ae67feb89b9247b1877e6997379cdb0",
+    "cases/invoice-id-long/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/invoice-id-long/evidence/stdout.txt": "c44166ce0a5cde3cd7ce28afee7b164518569baf93fb5c9f102ac8e343925de3",
+    "cases/invoice-id-long/expected.json": "f9a2a4b1af9f8d2209aa9c74d6b82a951ada59f5b75f44ef2f478bc3b95c24cf",
+    "cases/invoice-id-long/input.xml": "41f99dbfc6f76445a5400d36f62cf03f369e34b6ca5815b58ac7a1cebdf80b5f",
+    "cases/invoice-id-missing/evidence/process.json": "c7e7f1d5ec80283c1617afbd9570047984cd100bc83b2c22a1cd3e8e64b956e9",
+    "cases/invoice-id-missing/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/invoice-id-missing/evidence/stdout.txt": "b64245b4f20bd93a5156a10514eafbdd10db1cc7c8bd3b1c4cf1b93dba134df9",
+    "cases/invoice-id-missing/expected.json": "bad0a29440cd4a3c8cbb1e6c17aea0f621dad19aab7f198e5edf88f96d242fd9",
+    "cases/invoice-id-missing/input.xml": "29ede3d66d679903338c88e5f24b5e077db7d68ca11ef946cd6628e6b20ef855",
+    "cases/invoice-type-missing/evidence/process.json": "5256747ae151500abcd4bda06893dc5180f9a891c9744445d5bbcf18cffbc519",
+    "cases/invoice-type-missing/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/invoice-type-missing/evidence/stdout.txt": "c654cc3d45db0e3a093b03ceb5339f80c9a36b15239c6ed4e96ca4e43494a029",
+    "cases/invoice-type-missing/expected.json": "4d1ac7854476e5db40b325df2b0c2c1c63dc8f252cc32958603cd27c089accbe",
+    "cases/invoice-type-missing/input.xml": "a7e483f91ae884b25ca65db91eeaee5886a79c550295f9855cf14c66762ed78b",
+    "cases/issue-date-missing/evidence/process.json": "2ffc55beaf892f9c090a4fc67aab933a6bc1eca546197a384ea5788634273d36",
+    "cases/issue-date-missing/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/issue-date-missing/evidence/stdout.txt": "6ab3ab202b988d8c59b3116680410c70870b7b5b67abc6f8e3c0a42cc01ae9bc",
+    "cases/issue-date-missing/expected.json": "495292cae2a70bd29148a4feb3b50e0d3b6466358ec47de8c4e3473a395acb26",
+    "cases/issue-date-missing/input.xml": "2cc81e62cf5457302bd9bb2ddcaa4c5ca6b9e813fd0547c2186c1f362ceaeee9",
+    "cases/item-name-numeric/evidence/process.json": "22244b4a1ac1fa4d67ddf0d4ee058e2d00785f342de79efe6959ec1169724386",
+    "cases/item-name-numeric/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/item-name-numeric/evidence/stdout.txt": "347c358638660960c224077fef5a46377f7270c29f55023e88e1764ead77f9f8",
+    "cases/item-name-numeric/expected.json": "864f4545aed9d7ab98d5ca8fb6e7d93441152b7fd836012137ead2290a790bbd",
+    "cases/item-name-numeric/input.xml": "d28ba8861ae216ba29af7d1694df283595640a07e6476708010baaca0e7b8503",
+    "cases/item-name-short/evidence/process.json": "9579cba9655aa80fb9da0f16f8b342ddbdc67bf1419fe8507a275c5b5ea27f1b",
+    "cases/item-name-short/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/item-name-short/evidence/stdout.txt": "bd724348a67d8a6f2ee60f2bebfcc6f51f67bd1b986e1f2987d65b931ad2ecf3",
+    "cases/item-name-short/expected.json": "04a46c92c018c39a756221a9cbfb7e920a2cda0727f460cc48e7c01684e346bb",
+    "cases/item-name-short/input.xml": "7a0c9e6eeee62480cbc986f53752dd48545609d82fcbef1f18e88e496567fd8c",
+    "cases/line-extension-missing/evidence/process.json": "bbc70b5f6518485971adbcc30301edf668c267d690d2507b8846e7d4c59af685",
+    "cases/line-extension-missing/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/line-extension-missing/evidence/stdout.txt": "79399fff06a7841f0580e8e4be30c5d58f0a67ebd7b1c0902aca46cfa9b25072",
+    "cases/line-extension-missing/expected.json": "9a7cba88aac04061e249f544760408b69cf95e4f6f5e1ab45ff0124a9a3e9315",
+    "cases/line-extension-missing/input.xml": "5eb43c03b64a13e3be92a68bc26d1d28dde3eb71dc979106efb73624cebf6b39",
+    "cases/line-id-empty/evidence/process.json": "893359a273d89799e1d32c2036f2fc87036c92d2178461c95a710f6a51a98e94",
+    "cases/line-id-empty/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/line-id-empty/evidence/stdout.txt": "f316f49017421b9d076d979cc385bbca3a2ef7802f32196259988a50d8158b14",
+    "cases/line-id-empty/expected.json": "bb1dc51e1fe70a9f649080162afe65adbaba4be5d6c0b191519ba35ba25b0c16",
+    "cases/line-id-empty/input.xml": "a67777e86af7f5c4bfeee503e0f802893beaa0a11e390913412a7eacc40e8130",
+    "cases/line-id-long/evidence/process.json": "0550ebff1b10530194a61694b647d2ad8ec81033b34bf20fa811f6fbd4ea8475",
+    "cases/line-id-long/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/line-id-long/evidence/stdout.txt": "89622e50d2c0f0a69e9a8bdcb28f5b1a8782b4eabcda8a43bddbd7c6999df1eb",
+    "cases/line-id-long/expected.json": "2e3587be9e20abb2b2d9da1012ab0de6d900e2954c0fde84b71c1ed71e5aca23",
+    "cases/line-id-long/input.xml": "a064aadf712942b8244c458b6fed4fbc4884a85a1995e811145a9d5304927fa6",
+    "cases/line-price-missing/evidence/process.json": "cff7d9bbed02c113762e2a64591f232a0184218d34f52bd41ecb65748c208488",
+    "cases/line-price-missing/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/line-price-missing/evidence/stdout.txt": "6cf6c03afd7cd041b5677331105004c6a18f085593f3d22d640d9b4d59ff6d40",
+    "cases/line-price-missing/expected.json": "f8b3cac0297ace8cfd592c81b6e69164e2f49f697c69cb3f3381c5582a5bf89f",
+    "cases/line-price-missing/input.xml": "5b1871c22fdb1c3a4079c4f62981257739590e0a77858abd84a18f7acb360c3b",
+    "cases/line-quantity-zero/evidence/process.json": "312265c6ae449a4ff26a4fa05c68fbcc12281768d4e9163b95fd782c4dc8b732",
+    "cases/line-quantity-zero/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/line-quantity-zero/evidence/stdout.txt": "0c1eb41b01b88a93e05f0b9df30e4dc951e27e097d4e4b6e53523e6cf7522e4d",
+    "cases/line-quantity-zero/expected.json": "f6e540f0eff6ecd74cbc1e807660c966a35fe9e6b1355b3510875e89f63c52b7",
+    "cases/line-quantity-zero/input.xml": "11cd84d8d0f3f78df740f674e65107283f5fd2b7db37d9db9815c11396052653",
+    "cases/line-scale/evidence/process.json": "3a8081fd3322834915f495da0351777c6c11507958daf3dd532d104142e3a3d3",
+    "cases/line-scale/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/line-scale/evidence/stdout.txt": "1bb4f8471a7bd8e61943192834f4a1281cb41d314285dc42ce2b4d1077dd6a12",
+    "cases/line-scale/expected.json": "6bfc40cec180c62d5efb4dc8a2b4125a828af6d66c302e461dd0a0ec855c5bd6",
+    "cases/line-scale/input.xml": "1a137c1e5191a56a20d374821a534b9f2efea68fd5486b352221b7ca5b673486",
+    "cases/line-scale-valid/evidence/process.json": "0aa8f1a40a63a6048757520dbde461c1852a1a3f4fbc47ce5fa905403c26209c",
+    "cases/line-scale-valid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/line-scale-valid/evidence/stdout.txt": "b2adda37412905676c12ae3a74dac3bba54a727a735afd67464b3f4c0c524155",
+    "cases/line-scale-valid/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/line-scale-valid/input.xml": "b551e88882cb34f772dbee3041614c9d3998a1c3ee7b79d92d1f84fcc2fdb1be",
+    "cases/line-tax-category-missing/evidence/process.json": "6f5adf7d53c4c1e5e14f2f8ce6bb92fe757a574936cec434828c23439cb468d8",
+    "cases/line-tax-category-missing/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/line-tax-category-missing/evidence/stdout.txt": "8ced5220a71480775266b1e524cf206afcce1876d504ff3220ba71036f39391b",
+    "cases/line-tax-category-missing/expected.json": "0feedb81e3908563f9651d48277218d73ee2c1d871d89a0c63ccb51906841023",
+    "cases/line-tax-category-missing/input.xml": "d53f2d7ee9fcaf5ac2a57138b460792024c088accbaf5fad29ff0f07871a0d35",
+    "cases/payment-code-missing/evidence/process.json": "b88ae6dc1b2171c44e67d37e34b0e4292c7e2c28adbed9ca57fb0fa5630c944d",
+    "cases/payment-code-missing/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/payment-code-missing/evidence/stdout.txt": "23e9a9da39589e9ed6540c7206997d6105805e00510e5ca6c0b4b6ce2798a797",
+    "cases/payment-code-missing/expected.json": "40df49d6ddef23e5873c2a0d26544415e80d5470ffa1e922554a94dee6d1ef53",
+    "cases/payment-code-missing/input.xml": "acfc5065ed57215154759e3716f0eab80566a6826875614da5cc8930540b5f1f",
+    "cases/payment-list-invalid/evidence/process.json": "617ed18c365fa36b66d3c307229cf8c327433f2311cb149ef2cc457ef3d9cc85",
+    "cases/payment-list-invalid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/payment-list-invalid/evidence/stdout.txt": "7b2127012a0a8ad9fc0687be12c85c56f212a7b823dfd22a0317a321da889b0a",
+    "cases/payment-list-invalid/expected.json": "d2ea02a47e4cbf2b66e1345a558d465933dd44381a201d31b75ad9bd6b911956",
+    "cases/payment-list-invalid/input.xml": "e34d45927f7837625c86e3cc8f6e4e093d7ed8c2fe91d9c4f083568b572089c7",
+    "cases/payment-list-valid/evidence/process.json": "bc998274164d134c11b794140235c2eceeac9cf5e8d4fb0e2113f40c0f4311e4",
+    "cases/payment-list-valid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/payment-list-valid/evidence/stdout.txt": "e6e6e3d6c94623158789ffa3f4aaa3ec504fb915e0e7e12c63fe5cd4ff23ff23",
+    "cases/payment-list-valid/expected.json": "3598531eaf9d829f54e4136d445cacfd6f7071c6cf9de40e3f9f749f8be1639e",
+    "cases/payment-list-valid/input.xml": "2f8bd6e3ca2c602915e16d69e450f45b6477bb914fc9add79f11e9b934a62462",
+    "cases/quantity-zero-decimal/evidence/process.json": "2e4e50ab368d73134a87e5f761c01e397ec605024eecef07a912d894817ec104",
+    "cases/quantity-zero-decimal/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/quantity-zero-decimal/evidence/stdout.txt": "77e7482ca5433d1d9e00841632ea64eb2b8f0ed8f6eae1ab88e2359b29859496",
+    "cases/quantity-zero-decimal/expected.json": "ce23f66e5063a3055e26d203887ae639318b378a547d4420d1d3e3d2f8c15c1f",
+    "cases/quantity-zero-decimal/input.xml": "bc2bf77a2e0d897a1564e45040b35541f4fc41607a38f775fab43732349faab4",
+    "cases/seller-address-missing/evidence/process.json": "4e5cefb71977894cf4e353143a257841aaa009242684191e7e92dc72df2a7838",
+    "cases/seller-address-missing/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/seller-address-missing/evidence/stdout.txt": "dba6184b640ac7d4bcf8961f83559655ee6f5e4c94f9ecd1a891fc53bffa4363",
+    "cases/seller-address-missing/expected.json": "601ab454116edaba6c88f50c042386e7072a27ff5771f4b5007bca636e0bd6a7",
+    "cases/seller-address-missing/input.xml": "de8c06b1cecf7e02db16597ca0fdc088758908b5d2e7bce66d41810d4e44e361",
+    "cases/seller-country-empty/evidence/process.json": "8fdaba940dd2d8aa7883a3896f1a9522a05d4e2fc6adcd9bc17564da4b63df0d",
+    "cases/seller-country-empty/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/seller-country-empty/evidence/stdout.txt": "e9c60ab9578fd73afeb4e779e006a537e507e99256531296dcbb25fd777b0c80",
+    "cases/seller-country-empty/expected.json": "f7cf619b9eebf5c73a8bd5fc1d5ef7aa08f762b29214077c2cf8cdc32dac9f3a",
+    "cases/seller-country-empty/input.xml": "1a9320c30a9d725a7a244b31bb0692b1e112fdd5b48de3e4e6c52070a55d5b71",
+    "cases/seller-name-empty/evidence/process.json": "c2d92bc4ee29001b1f2866b3a762c1a25f9d000cf1e63e8a709e3fee9bcd5933",
+    "cases/seller-name-empty/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/seller-name-empty/evidence/stdout.txt": "067b8199af862b4c6cb100236e637234cb096c2126f9071af0cdaf05883a267a",
+    "cases/seller-name-empty/expected.json": "029ea5fd1aff6c1833dbc08906fb38a4bc77e579261a7c2aa39dead7ca9d66ed",
+    "cases/seller-name-empty/input.xml": "6cfb1adc870e7958d1393588cd96aae2650776851df66fb62a2522e478ba87b4",
+    "cases/seller-name-long/evidence/process.json": "9e4c55dc6115d5747ba6ca14dc500bf8faff0dbcaf3e93e769610963537a2502",
+    "cases/seller-name-long/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/seller-name-long/evidence/stdout.txt": "796a064ffa6cb2236fcb5e4af7b0301b634c56950cd119aaeb52fcd921f72980",
+    "cases/seller-name-long/expected.json": "233e2bb8b087fbdb947096fe4b4cb626a19c402a89e2c10b51ab3130b6d241e2",
+    "cases/seller-name-long/input.xml": "a8b79c252c8a51feea998b75b8758453431647bbb4b4df933321747728025128",
+    "cases/subtotal-category-missing/evidence/process.json": "ae000c8422ef29c38b60ad6f57d6778db9981865d4be79fab1c6372864c37e88",
+    "cases/subtotal-category-missing/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/subtotal-category-missing/evidence/stdout.txt": "599da9ca9115973bf2da2c4b72dcbd2bc8e42240533f03fc96fa555337ebdc24",
+    "cases/subtotal-category-missing/expected.json": "008b2acd2bbbd26902637ca8d40435f0ad55826d9fa16408090f7d7504888088",
+    "cases/subtotal-category-missing/input.xml": "9d1a238af3fb5f5a880cd9931c09f3a82de952e8d4b7bdfa8dc6ba07a1a0ce08",
+    "cases/subtotal-rate-missing/evidence/process.json": "1c5b197e68683d2d62b48a634c6054b0251dd206c395d94fde5a2b3241cb5da9",
+    "cases/subtotal-rate-missing/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/subtotal-rate-missing/evidence/stdout.txt": "a3606ea65cb87a9c18103a13f57f6573c85ab356ebb101489dbce067ccd5bbd8",
+    "cases/subtotal-rate-missing/expected.json": "9e742b55f2504a71f9966b2348bab30b450ed3b8fca54567989fc1ee33c3efe3",
+    "cases/subtotal-rate-missing/input.xml": "1fdfdf014edb4b9404c138f67e400938054af92092a865dac4c3a4eb00263c7b",
+    "cases/subtotal-tax-missing/evidence/process.json": "ab31d45954f2357e7efeea6469d6817d64e22b6c742fd5ea5d2eeceb62d7f272",
+    "cases/subtotal-tax-missing/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/subtotal-tax-missing/evidence/stdout.txt": "64376fc3bb7a8b484769c5d66f98ecf36a25531a67d70a30a80606cb0e533093",
+    "cases/subtotal-tax-missing/expected.json": "b7106c861c32a88e430e9cc78680db5f9314925c653970187102df52fd96f22b",
+    "cases/subtotal-tax-missing/input.xml": "b358a74d853c5eab5101196841003d28ae58ef17b8cbaad7a2721f8fc6010486",
+    "cases/subtotal-taxable-missing/evidence/process.json": "f0a2263d0eed7803176b8780ba36009f90282353b196d62103d0555319319ec1",
+    "cases/subtotal-taxable-missing/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/subtotal-taxable-missing/evidence/stdout.txt": "336e57b99a100541fd6bff875e8a4f222574f1ea69bde19c8fa79a539005da99",
+    "cases/subtotal-taxable-missing/expected.json": "30b100357dda72425fa1eca758d3aa79e2eee3a5dabc22eca772aad317dfe4c9",
+    "cases/subtotal-taxable-missing/input.xml": "561dcbf5b73563abf17528366212ca75fd683b37ab8bbb7e70c0b79290de8324",
+    "cases/supporting-id-empty/evidence/process.json": "f926cd9a872adc9a0d420bb53b9511c2f6d0afca8b08b202bfd98dade23cdee5",
+    "cases/supporting-id-empty/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/supporting-id-empty/evidence/stdout.txt": "0e563362ca5e51d46e38e84c8184d69df7b64f276c80ae2a7bf5f2d12f62b851",
+    "cases/supporting-id-empty/expected.json": "413f689c2fd2d68978176cf7aa51d6732c16be5f9b6fa5f5d62b2fbb3cc37b77",
+    "cases/supporting-id-empty/input.xml": "69a3a1548edbe7cd09a32dbd6771af8d7ab11ea02b1ac2ad665d8bb99294fefd",
+    "cases/tax-currency-list-invalid/evidence/process.json": "882041acfe3573037ba66e9e7e8f7adb03acabde56e61712612336c60771b464",
+    "cases/tax-currency-list-invalid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/tax-currency-list-invalid/evidence/stdout.txt": "999a66eb2032f7b5cd2c652796c745a59c138f64de63874464cd8588c135cb74",
+    "cases/tax-currency-list-invalid/expected.json": "8b6797405855bad8a48e0ec23412c15781102e96ec56d412591f58d89691291f",
+    "cases/tax-currency-list-invalid/input.xml": "816877707e7348265b11cbcfc8633e3159cc9599029e214a48c29fac27c4d420",
+    "cases/tax-currency-list-valid/evidence/process.json": "7bf5faf66001cb5e7b2ffabd09d0c3e7327bd0669564db30209245ae90d553b3",
+    "cases/tax-currency-list-valid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/tax-currency-list-valid/evidence/stdout.txt": "c1e40f38374e8900d881878b64ca3abb351f3c577d663fb33d59865ec504dba9",
+    "cases/tax-currency-list-valid/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/tax-currency-list-valid/input.xml": "b551e88882cb34f772dbee3041614c9d3998a1c3ee7b79d92d1f84fcc2fdb1be",
+    "cases/tax-scale/evidence/process.json": "4ce8f41eb5f284b74a8253ddf57598d8af950ed5d5217a6187fd6abf764ea7b8",
+    "cases/tax-scale/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/tax-scale/evidence/stdout.txt": "19b2e6bacf2d559bf5383d5739d4d4e2504b6666c52a3d3c69c756802cc86031",
+    "cases/tax-scale/expected.json": "9bae57c28a24ff2afbd87ed448869d957b84571368264ff55f35d3b984810813",
+    "cases/tax-scale/input.xml": "65b1d9e6c349ca2b29f3ce36101d8d755dffc08fe4d75d5d49da535d73a851e6",
+    "cases/tax-scale-valid/evidence/process.json": "5186567371b10a4021d3641959f6bdc5a7066693a9a8a64824114e5f05b1f9d9",
+    "cases/tax-scale-valid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/tax-scale-valid/evidence/stdout.txt": "36decdac776e821eec7376a45d27e828dc3e75a5d6bc04f4dca069e0db8bf5e1",
+    "cases/tax-scale-valid/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/tax-scale-valid/input.xml": "b551e88882cb34f772dbee3041614c9d3998a1c3ee7b79d92d1f84fcc2fdb1be",
+    "cases/taxable-scale/evidence/process.json": "d507decae1cef267285eccc8490a87ef0e5f47240aad9da82a26e6df1ca81d28",
+    "cases/taxable-scale/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/taxable-scale/evidence/stdout.txt": "c901578b0eb9b0687e6e16470f4e7fd8453abaebcc39abfa7b23845006d9ea08",
+    "cases/taxable-scale/expected.json": "95d3db3d683f3e467045e45b93e4f694daecc42847fcb533155bf075bca104d1",
+    "cases/taxable-scale/input.xml": "c1fcb61e8c29bc0c92c6d27a243d6c9afc56870333704d4b8d9cdc6455a3ce58",
+    "cases/taxable-scale-valid/evidence/process.json": "e5f14a045ab5cd86d98f4f2151d586e30085b07077cb466e5ff417a7daa2adb8",
+    "cases/taxable-scale-valid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/taxable-scale-valid/evidence/stdout.txt": "68baf30c6382b5c6a6440e451843f5ab7252110a214dc6a1c3ddbb32661a152e",
+    "cases/taxable-scale-valid/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/taxable-scale-valid/input.xml": "b551e88882cb34f772dbee3041614c9d3998a1c3ee7b79d92d1f84fcc2fdb1be",
+    "cases/total-exclusive-missing/evidence/process.json": "4f7e46749ea31d29d82f6473a6ec9522f70875ff02659d9dfbb3fdc76440bec6",
+    "cases/total-exclusive-missing/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/total-exclusive-missing/evidence/stdout.txt": "23d35a818e26049b2c75a919f3ac6c60024fa897605fa35be19eff88be0035c2",
+    "cases/total-exclusive-missing/expected.json": "abd6cd5f985c2549d99122ae2b62d1af865a39ac7014330a2ac0868c4436fb18",
+    "cases/total-exclusive-missing/input.xml": "40dd779ace5074bd8a78f6aee484b4ea865994a40c98770f80adb6a8fc9e3096",
+    "cases/total-inclusive-missing/evidence/process.json": "90babe18b00e96a00d30ab6d9f178823a4db7d603587ce1aefedb2e0e11a6a73",
+    "cases/total-inclusive-missing/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/total-inclusive-missing/evidence/stdout.txt": "51c876305cec8fd8020963d509b408f62358f21dd5885734cddaff7d6bd53c07",
+    "cases/total-inclusive-missing/expected.json": "be39be517fd5749151f06c254855947a1e3931ac3f3284e44d41b592d62282f4",
+    "cases/total-inclusive-missing/input.xml": "5e9ddc3757622daa057f23177e964c5a1f99893c74e6ede94ae493e95c29784c",
+    "cases/total-payable-missing/evidence/process.json": "b39eb47dfbf765c4df5d0f7e462ac145d948727b3732608c95c7e4aacff6611d",
+    "cases/total-payable-missing/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/total-payable-missing/evidence/stdout.txt": "b26be475eee3ce0ab43eb2aafc494d402cc7bc9054d3e408008b2820ed3f317e",
+    "cases/total-payable-missing/expected.json": "19bf2c0957f36e3ae4b22fbb719b4ff9f74cd134572a5604ecb99838c63586d9",
+    "cases/total-payable-missing/input.xml": "3efedd97f802ac01e8d16fbc23455555670014d0b41134299c04f24a4415caf4",
+    "cases/unit-code-boundary/evidence/process.json": "72151febfc1fdcf614c827daf19722991e7401e675d8fb0ee239bbf7df7c7d62",
+    "cases/unit-code-boundary/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/unit-code-boundary/evidence/stdout.txt": "cc3775add050a6d10c3359f7fd42f10c2acf4d50b07030cb40f2beabcace13da",
+    "cases/unit-code-boundary/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/unit-code-boundary/input.xml": "8f441dc2e64a80e479ddc9afc62d3556af643e0597b84af7588921fd2fdde2c7",
+    "cases/unit-code-long/evidence/process.json": "4ca99eef4a55ebf190a984c4d962ce071c9614c69592f33965f878090345d661",
+    "cases/unit-code-long/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/unit-code-long/evidence/stdout.txt": "5f1e0bc27197bc9e5c49408c326907e1626eca4806289e7e669ad9848936d02e",
+    "cases/unit-code-long/expected.json": "a304e723d06d18534bfd8188c24e1825fe91763609f7ee054b6f59225301ac97",
+    "cases/unit-code-long/input.xml": "0c2fc260070cf9638dc228fd0196ac183b322256a40a20c959c7705128b07c63"
+  },
+  "expectation_mismatches": []
+}

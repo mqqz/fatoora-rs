@@ -1,0 +1,22 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-23 15:03:28,161 [INFO] ValidationProcessorImpl - [XSD] validation result : PASSED
+2026-09-23 15:03:28,595 [INFO] ValidationProcessorImpl - [EN] validation result : PASSED
+2026-09-23 15:03:28,595 [ERROR] ValidationProcessorImpl - en validation warnings : 
+2026-09-23 15:03:28,595 [WARN] ValidationProcessorImpl - CODE : BR-CO-16, MESSAGE : [BR-CO-16]-Amount due for payment (BT-115) = Invoice total amount with VAT (BT-112) -Pre-Paid amount (BT-113) + Rounding amount (BT-114).
+2026-09-23 15:03:28,595 [WARN] ValidationProcessorImpl - CODE : BR-S-08, MESSAGE : [BR-S-08]-In a VAT breakdown (BG-23) where the VAT category code (BT-118) is " Standard rated" the VAT category taxable amount (BT-116) shall equal the sum of Invoice line net amounts (BT-131) minus the sum of Document level allowance amounts (BT-92) plus the sum of Document level charge amounts (BT-99) where the VAT category codes (BT-151, BT-95, BT-102) are "Standard Rate".
+2026-09-23 15:03:28,595 [WARN] ValidationProcessorImpl - CODE : BR-CO-10, MESSAGE : [BR-CO-10]-Sum of Invoice line net amount (BT-106) = Σ Invoice line net amount (BT-131).
+2026-09-23 15:03:28,596 [WARN] ValidationProcessorImpl - CODE : BR-CO-13, MESSAGE : [BR-CO-13]-Invoice total amount without VAT (BT-109) = Σ Invoice line net amount (BT-131) - Sum of allowances on document level (BT-107) + Sum of charges on document level (BT-108).
+2026-09-23 15:03:28,738 [INFO] ValidationProcessorImpl - [KSA] validation result : PASSED
+2026-09-23 15:03:28,738 [ERROR] ValidationProcessorImpl - ksa validation warnings : 
+2026-09-23 15:03:28,738 [WARN] ValidationProcessorImpl - CODE : BR-KSA-19, MESSAGE : [BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105).
+2026-09-23 15:03:28,738 [WARN] ValidationProcessorImpl - CODE : BR-KSA-69, MESSAGE : [BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121).
+2026-09-23 15:03:28,738 [WARN] ValidationProcessorImpl - CODE : BR-KSA-15, MESSAGE : [BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has "01" as first 2 digits)) must contain the supply date (KSA-5).
+2026-09-23 15:03:28,754 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-23 15:03:28,754 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = PASSED 

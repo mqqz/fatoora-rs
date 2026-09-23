@@ -1,0 +1,19 @@
+{
+  "layers": {
+    "xsd": "passed",
+    "en": "passed",
+    "ksa": "failed",
+    "qr": "not_run",
+    "signature": "not_run",
+    "pih": "passed",
+    "global": "failed"
+  },
+  "findings": [
+    {
+      "source": "ksa",
+      "severity": "error",
+      "code": "SaxonApiException",
+      "message": "Decimal divide by zero"
+    }
+  ]
+}

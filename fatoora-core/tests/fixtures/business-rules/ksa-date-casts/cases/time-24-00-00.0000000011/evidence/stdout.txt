@@ -1,0 +1,21 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-23 15:06:34,775 [ERROR] XsdValidator - Schema validation failed due to SAXParseException
+2026-09-23 15:06:34,778 [INFO] ValidationProcessorImpl - [XSD] validation result : FAILED
+2026-09-23 15:06:34,778 [ERROR] ValidationProcessorImpl - xsd validation errors : 
+2026-09-23 15:06:34,778 [ERROR] ValidationProcessorImpl - CODE : SAXParseException, MESSAGE : Schema validation failed; XML does not comply with UBL 2.1 standards in line with ZATCA specifications. ERROR: org.xml.sax.SAXParseException; lineNumber: 141; columnNumber: 102; cvc-datatype-valid.1.2.1: '24:00:00.0000000011' is not a valid value for 'time'.
+2026-09-23 15:06:35,148 [INFO] ValidationProcessorImpl - [EN] validation result : PASSED
+2026-09-23 15:06:35,273 [INFO] ValidationProcessorImpl - [KSA] validation result : PASSED
+2026-09-23 15:06:35,273 [ERROR] ValidationProcessorImpl - ksa validation warnings : 
+2026-09-23 15:06:35,273 [WARN] ValidationProcessorImpl - CODE : BR-KSA-19, MESSAGE : [BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105).
+2026-09-23 15:06:35,273 [WARN] ValidationProcessorImpl - CODE : BR-KSA-F-05, MESSAGE : [BR-KSA-F-05]-Prepayment Issue Time (KSA-29) must be in the format: hh:mm:ss for time expressed in local time or hh:mm:ssZ for time expressed in UTC.(eg 19:20:30)
+2026-09-23 15:06:35,273 [WARN] ValidationProcessorImpl - CODE : BR-KSA-69, MESSAGE : [BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121).
+2026-09-23 15:06:35,273 [WARN] ValidationProcessorImpl - CODE : BR-KSA-15, MESSAGE : [BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has "01" as first 2 digits)) must contain the supply date (KSA-5).
+2026-09-23 15:06:35,288 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-23 15:06:35,288 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = FAILED 

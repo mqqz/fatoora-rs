@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "java",
+    "-Djdk.sunec.disableNative=false",
+    "-jar",
+    "/tmp/fatoora sdk parity wx_20aqk/sdk/Apps/zatca-einvoicing-sdk-238-R3.4.8.jar",
+    "--globalVersion",
+    "238-R3.4.8",
+    "-validate",
+    "-invoice",
+    "/tmp/fatoora-identity-capture-v2/cases/contact-telephone-valid/input.xml"
+  ],
+  "cwd": "/tmp/fatoora sdk parity wx_20aqk/sdk/Apps",
+  "exit_code": 0
+}

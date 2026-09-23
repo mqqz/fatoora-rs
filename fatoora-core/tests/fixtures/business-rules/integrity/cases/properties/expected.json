@@ -1,0 +1,25 @@
+{
+  "layers": {
+    "xsd": "passed",
+    "en": "passed",
+    "ksa": "passed",
+    "qr": "passed",
+    "signature": "failed",
+    "pih": "passed",
+    "global": "failed"
+  },
+  "findings": [
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-98",
+      "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+    },
+    {
+      "source": "signature",
+      "severity": "error",
+      "code": "xadesSignedPropertiesDigestValue",
+      "message": "wrong xadesSignedPropertiesDigestValue  "
+    }
+  ]
+}

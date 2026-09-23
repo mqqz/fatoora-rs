@@ -1,0 +1,496 @@
+{
+  "schema_version": 1,
+  "sdk_version": "238-R3.4.8",
+  "jar_sha256": "48abeb828d453ef6fafba792fddbbb2701da5c7018c24bde918853e80ff5d530",
+  "sources": {
+    "cen": "378a7a4d697aa96e05edb4649ab4536b33546b8e288453324a5668c3e15735b0",
+    "ksa": "3312e1938829b8972dacf19a3d933deeb97cb71c7e982c56a434b76cc0e5f0c4"
+  },
+  "source_corpus_sha256": "872d251be12e3f3388d1afd57a566be6721d19bafc61b39442dad65902c74411",
+  "capture_tool_sha256": "d822ec57ad73e000e3ae2d0a8639f6d9ee8e3704d3db1a2dda82b41b8e3e3cf3",
+  "sdk_tool_sha256": "cfbec9fe7abe7a75bdaf288297998d88be224b1055eac318c9accb545e29b454",
+  "java_version": "openjdk version \"11.0.25\" 2024-10-15\nOpenJDK Runtime Environment (build 11.0.25+5-void-r3)\nOpenJDK 64-Bit Server VM (build 11.0.25+5-void-r3, mixed mode)\n",
+  "timezone": "UTC (TZ=UTC; JAVA_TOOL_OPTIONS=-Duser.timezone=UTC)",
+  "cases": [
+    {
+      "id": "baseline",
+      "expected_xsd": "passed",
+      "targets": [],
+      "started_at": "2026-09-23T10:45:29.906641+00:00",
+      "finished_at": "2026-09-23T10:45:30.901365+00:00",
+      "duration_seconds": 0.9954127840464935
+    },
+    {
+      "id": "foreign-tax-currency",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-EN16931-02",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:30.902162+00:00",
+      "finished_at": "2026-09-23T10:45:31.831873+00:00",
+      "duration_seconds": 0.9300151860807091
+    },
+    {
+      "id": "lowercase-tax-currency",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-EN16931-02",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T10:45:31.832247+00:00",
+      "finished_at": "2026-09-23T10:45:32.826914+00:00",
+      "duration_seconds": 0.9949426059611142
+    },
+    {
+      "id": "xml-whitespace-tax-currency",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-EN16931-02",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T10:45:32.827267+00:00",
+      "finished_at": "2026-09-23T10:45:33.792426+00:00",
+      "duration_seconds": 0.9654075120342895
+    },
+    {
+      "id": "unicode-whitespace-tax-currency",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-EN16931-02",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:33.792752+00:00",
+      "finished_at": "2026-09-23T10:45:34.709289+00:00",
+      "duration_seconds": 0.9168098440859467
+    },
+    {
+      "id": "missing-tax-currency",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-EN16931-02",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T10:45:34.709636+00:00",
+      "finished_at": "2026-09-23T10:45:35.658919+00:00",
+      "duration_seconds": 0.9494971580570564
+    },
+    {
+      "id": "excess-scale-line-sum",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-09",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:35.659204+00:00",
+      "finished_at": "2026-09-23T10:45:36.610141+00:00",
+      "duration_seconds": 0.951185746002011
+    },
+    {
+      "id": "excess-scale-allowance",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-10",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:36.610463+00:00",
+      "finished_at": "2026-09-23T10:45:37.574031+00:00",
+      "duration_seconds": 0.9637801230419427
+    },
+    {
+      "id": "excess-scale-charge",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-11",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:37.574318+00:00",
+      "finished_at": "2026-09-23T10:45:38.567073+00:00",
+      "duration_seconds": 0.9929719890933484
+    },
+    {
+      "id": "excess-scale-exclusive",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-12",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:38.567361+00:00",
+      "finished_at": "2026-09-23T10:45:39.601240+00:00",
+      "duration_seconds": 1.0340873170644045
+    },
+    {
+      "id": "excess-scale-inclusive",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-14",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:39.601515+00:00",
+      "finished_at": "2026-09-23T10:45:40.532894+00:00",
+      "duration_seconds": 0.931628916063346
+    },
+    {
+      "id": "excess-scale-prepaid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-16",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:40.533215+00:00",
+      "finished_at": "2026-09-23T10:45:41.445555+00:00",
+      "duration_seconds": 0.9125849719857797
+    },
+    {
+      "id": "excess-scale-rounding",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-17",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:41.445889+00:00",
+      "finished_at": "2026-09-23T10:45:42.342069+00:00",
+      "duration_seconds": 0.8964309690054506
+    },
+    {
+      "id": "excess-scale-payable",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-DEC-18",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:42.342388+00:00",
+      "finished_at": "2026-09-23T10:45:43.226497+00:00",
+      "duration_seconds": 0.8843537290813401
+    },
+    {
+      "id": "wrong-line-sum",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-10",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:43.226823+00:00",
+      "finished_at": "2026-09-23T10:45:44.166019+00:00",
+      "duration_seconds": 0.9394731540232897
+    },
+    {
+      "id": "wrong-inclusive",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-15",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:44.166365+00:00",
+      "finished_at": "2026-09-23T10:45:45.095303+00:00",
+      "duration_seconds": 0.9292012620717287
+    },
+    {
+      "id": "wrong-tax-total",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-14",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:45.095654+00:00",
+      "finished_at": "2026-09-23T10:45:46.031247+00:00",
+      "duration_seconds": 0.9358484779950231
+    },
+    {
+      "id": "duplicate-tax-total",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-EN16931-09",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:46.031577+00:00",
+      "finished_at": "2026-09-23T10:45:46.992732+00:00",
+      "duration_seconds": 0.9613948490004987
+    },
+    {
+      "id": "missing-bare-tax-total",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-EN16931-09",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:46.993046+00:00",
+      "finished_at": "2026-09-23T10:45:47.922691+00:00",
+      "duration_seconds": 0.9298841380514205
+    },
+    {
+      "id": "repeated-empty-item-name",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-25",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "native_occurrences": 2,
+      "observation_note": "The pinned SDK emits one BR-25 warning for two empty line item names. SDK-observable finding count does not prove per-node execution coverage.",
+      "started_at": "2026-09-23T10:45:47.923005+00:00",
+      "finished_at": "2026-09-23T10:45:48.860513+00:00",
+      "duration_seconds": 0.9377646050415933
+    },
+    {
+      "id": "renamed-prefixes",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-EN16931-02",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T10:45:48.860845+00:00",
+      "finished_at": "2026-09-23T10:45:49.812254+00:00",
+      "duration_seconds": 0.9515996730187908
+    },
+    {
+      "id": "currency-character-reference",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-EN16931-02",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T10:45:49.812509+00:00",
+      "finished_at": "2026-09-23T10:45:50.748182+00:00",
+      "duration_seconds": 0.9359095570398495
+    },
+    {
+      "id": "future-issue-date",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-04",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:50.748493+00:00",
+      "finished_at": "2026-09-23T10:45:51.690938+00:00",
+      "duration_seconds": 0.9426590329967439
+    },
+    {
+      "id": "old-simplified-invoice",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-98",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T10:45:51.691219+00:00",
+      "finished_at": "2026-09-23T10:45:52.834938+00:00",
+      "duration_seconds": 1.1442803170066327
+    }
+  ],
+  "artifacts": {
+    "capture-tools/business_rules.py": "d822ec57ad73e000e3ae2d0a8639f6d9ee8e3704d3db1a2dda82b41b8e3e3cf3",
+    "capture-tools/sdk_parity.py": "cfbec9fe7abe7a75bdaf288297998d88be224b1055eac318c9accb545e29b454",
+    "cases/baseline/evidence/process.json": "d710be2e571a95557fc1b4366dc858856f3f99251d68b51623968d79765a664a",
+    "cases/baseline/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/baseline/evidence/stdout.txt": "7cdf9d68e49fcccfbd7cb375010fdc9a80587b96142a8d14252d8f47cf25b782",
+    "cases/baseline/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/baseline/input.xml": "84a7e52bb011067c8c8aaae2c981c77779691962eac15e709f37e2adcaa402b4",
+    "cases/currency-character-reference/evidence/process.json": "e8d2d84e93ddb57032883957936d843df984ddff0632b44b3125b394e25bb97b",
+    "cases/currency-character-reference/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/currency-character-reference/evidence/stdout.txt": "50e19edc3fb86dbd8574bb61650b587802bd0acfc083f141a5c031fae2cbd114",
+    "cases/currency-character-reference/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/currency-character-reference/input.xml": "e55b1fc1155205db72580cca94d494fc32984b3881834630252d47e36e4ea75b",
+    "cases/duplicate-tax-total/evidence/process.json": "f377c36e44cdebfd7d17df9883d4ad5feef9ec6ed1d620250e1c12ccb2c95646",
+    "cases/duplicate-tax-total/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/duplicate-tax-total/evidence/stdout.txt": "b67a04bfd0e4602890e2c06048d319381bb57f3d37ea409e4da5e61a4a905989",
+    "cases/duplicate-tax-total/expected.json": "9a1438d50194ec05951aee046505e3a4f1762136e69147585f105903361e7ff1",
+    "cases/duplicate-tax-total/input.xml": "8d4021e91092641c871810af1829bbcf50ca01e9c16bce04c84f977e361b1337",
+    "cases/excess-scale-allowance/evidence/process.json": "446ff3240793e5f9fc0a21222c98fd534e08dea94c3903d68ce0884979027577",
+    "cases/excess-scale-allowance/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/excess-scale-allowance/evidence/stdout.txt": "76ee1d88e0fda5fa5af1179dbec04f401a0330a002fa0fb982226393516c2199",
+    "cases/excess-scale-allowance/expected.json": "d0a7a8ca4273e900c0410df44d25a8eead2b0fb577be303eeac534af32a8a6a3",
+    "cases/excess-scale-allowance/input.xml": "dec42138162321e4488119edd21b24beef055d1f5bdb8c2b84f3e92f7427a98e",
+    "cases/excess-scale-charge/evidence/process.json": "dec0a77a97333add34ccaea9787f6115a31d9b2a2f51f112066cd188b27d1a0e",
+    "cases/excess-scale-charge/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/excess-scale-charge/evidence/stdout.txt": "8659cb0c219a5ecb893ea2a70412c7544da7846c177e2ae95e30468f85dbb3bd",
+    "cases/excess-scale-charge/expected.json": "f6d5abc8b3d3cba692f2d00abdbbaf76ba4c8a5c99676e2ffa0a67f1f4eadb85",
+    "cases/excess-scale-charge/input.xml": "30bf2506f9a5499e5a5eb5b018e294cec5e2dd6527a0585e2bbb382ea6f44bd7",
+    "cases/excess-scale-exclusive/evidence/process.json": "a2d20d0939a752975aa58121a5e325d85af52f4a8605b5c65b1618be83d60588",
+    "cases/excess-scale-exclusive/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/excess-scale-exclusive/evidence/stdout.txt": "87eba4df042fbfe9f4fc517a19525c352f4ca282bd33dc43f6808d7f413321da",
+    "cases/excess-scale-exclusive/expected.json": "7326b15d8a6f2304de52bc8977ce6099fceff2e5aa3d105bf9622a0a350d619c",
+    "cases/excess-scale-exclusive/input.xml": "f60798604bb58d2fc39449922353f46bb65faae939a7e80b992a8d275b448f81",
+    "cases/excess-scale-inclusive/evidence/process.json": "4c1a44c8501591e932d60a80ad0a6a171310df161a042568ed012eba04b839fc",
+    "cases/excess-scale-inclusive/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/excess-scale-inclusive/evidence/stdout.txt": "4b78becfbc36f21202b285f012ecfee8852c4388fa6701e1f3d37065bc8c780d",
+    "cases/excess-scale-inclusive/expected.json": "97dcee4793d82720c2575620f45b028c863eacee08f31328fd1db7d49b1ee2e8",
+    "cases/excess-scale-inclusive/input.xml": "f8dbb09f52c0990e62a02fe7eda7a1bfd67244b27df3e15172f7dc25658be6d6",
+    "cases/excess-scale-line-sum/evidence/process.json": "132557058cdaadae42cf976b0d8b6bf226953ad101d321f6a80887b10310360c",
+    "cases/excess-scale-line-sum/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/excess-scale-line-sum/evidence/stdout.txt": "d5bc2d3472ce275e721b22e3b7eb051d00d8036be1421364c76fcace1d96f449",
+    "cases/excess-scale-line-sum/expected.json": "6b1c9957446b07aca592362d2d3326fc95fa67ae5e139457a0f510f87b26b3f4",
+    "cases/excess-scale-line-sum/input.xml": "9d0ebb09c280fff1bfe35b095b4b49fa9df9cb20fff041898d527150a83130f0",
+    "cases/excess-scale-payable/evidence/process.json": "528f79616f25afe5d930388adf43783a0c5989e927be5b5f4cd393bfaee23228",
+    "cases/excess-scale-payable/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/excess-scale-payable/evidence/stdout.txt": "ba9014b5de2340d0836d69b105111fccee8d7164b8a56ae028d9b5f54e1bec64",
+    "cases/excess-scale-payable/expected.json": "7e6302c32e3d115995af1a81dec729f56fca2d5b1cd9d45d74915f21c6352623",
+    "cases/excess-scale-payable/input.xml": "ab47a34976a457aec5179d4828c7d79d5c5744d009a9944dc678c166525b4441",
+    "cases/excess-scale-prepaid/evidence/process.json": "63919c666c0b0a995e9a81c59ef6a6b5b51e93c946fc6bf2d4115903538a2495",
+    "cases/excess-scale-prepaid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/excess-scale-prepaid/evidence/stdout.txt": "f7da6002d5ae0b3969feaafc63331849515b698b3a28f5bc02b656c3b7448991",
+    "cases/excess-scale-prepaid/expected.json": "fcdaf5a4325bdff6e13384267f45f1efdf153fc2de4a8fc2ee2621ab98a331d0",
+    "cases/excess-scale-prepaid/input.xml": "bcd98d8796b743d921a77f01375e6fb7c481caa17a344e02b9b71a5af9d63510",
+    "cases/excess-scale-rounding/evidence/process.json": "036f292e25a417a240e1a6e89040905f048d7197e76788c72912b15ac1b7a6f8",
+    "cases/excess-scale-rounding/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/excess-scale-rounding/evidence/stdout.txt": "c8d22df7bf6ed63d00bafdada415ef05d41582b466c09af73dfd467b8322fa40",
+    "cases/excess-scale-rounding/expected.json": "0f554177eef6a746c152d638d496678c8f6ba6e84e4e73d4630886b5a6e942ae",
+    "cases/excess-scale-rounding/input.xml": "1c1e9b016e6d68a8117bf499c1e21a45adfe8f75ebe2ed347d426d9a6b4079c2",
+    "cases/foreign-tax-currency/evidence/process.json": "e6bd0cd5f554575118d22e054ff0633f836ade2744f891287529e9f0b34e27ca",
+    "cases/foreign-tax-currency/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/foreign-tax-currency/evidence/stdout.txt": "8c44327729868865858aec55aa3be4d6e4ebc04dbf969e68b48f8fef0ac903ed",
+    "cases/foreign-tax-currency/expected.json": "b312ee0bb8e36895dc4b44100c743026677fd1502e0c37fe07db09865f4967cc",
+    "cases/foreign-tax-currency/input.xml": "76c197f2e84dd67d9867370628c35ca34623229ca3ee26a6af2e1a9fb79efb17",
+    "cases/future-issue-date/evidence/process.json": "22f462a89c5ee4f8fefe9c12a22311fef81df660cccf6e716704ff3aca74143b",
+    "cases/future-issue-date/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/future-issue-date/evidence/stdout.txt": "dbb490bd93c448827814ea13eacf76bc33fc3e006e5a2ac26cf7fcccbd68b135",
+    "cases/future-issue-date/expected.json": "c126e08f93567f0d3ac68348541826edb391a6baa6142d2f1c98ec3c1f182afa",
+    "cases/future-issue-date/input.xml": "386ea1f560ef2a9ea8aa7fc114b6c0f5750dc2c91994851166e1981cfea1459f",
+    "cases/lowercase-tax-currency/evidence/process.json": "9d1b2c2f58305ff0957e8a0094e0f82fe1cd0e6c0c4de39c7b6e31da590cf9ec",
+    "cases/lowercase-tax-currency/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/lowercase-tax-currency/evidence/stdout.txt": "2abd586e807ce6a4eb4e330355574cfa87592f042588d63f6d624b1afa0ca05b",
+    "cases/lowercase-tax-currency/expected.json": "642c706aa19f5a27045193c26ef2f9aed4156c6306865cb91c95a5981a574611",
+    "cases/lowercase-tax-currency/input.xml": "c5e0a4c11d15c398bd534abd01f7ba3a0149fea4f37813afad50184f7047fb5b",
+    "cases/missing-bare-tax-total/evidence/process.json": "e0bf50fbdbcc50871e01a36c9b02f97edcdd53856867466c78cdd587335ea8cf",
+    "cases/missing-bare-tax-total/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/missing-bare-tax-total/evidence/stdout.txt": "00ff1ab026cc156af42dbebec91aab4de9c3d85f2f8db92ef4ac4a3913ef44d7",
+    "cases/missing-bare-tax-total/expected.json": "9a1438d50194ec05951aee046505e3a4f1762136e69147585f105903361e7ff1",
+    "cases/missing-bare-tax-total/input.xml": "fd4382d4c17e52c1cd5f236d451bca420a8a43937fb5fa8b39595f5a8140f31a",
+    "cases/missing-tax-currency/evidence/process.json": "aec7f149057805171aa50fbc75723ffbdf84d21eadcca060c42511b8944f3e3b",
+    "cases/missing-tax-currency/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/missing-tax-currency/evidence/stdout.txt": "d6ea10efe8e360165220b94be1cbd8dcde4e35dc54476bb6cc5a0a816b461181",
+    "cases/missing-tax-currency/expected.json": "9cee2dcbb55cb30148430acdadf04595afecd72ee9862e06c914bd654f49c486",
+    "cases/missing-tax-currency/input.xml": "85c85357f096bc38787bcd6948e343f682280e8f0d72a90bf3ac803f27eac0a9",
+    "cases/old-simplified-invoice/evidence/process.json": "ea1d03ad22e93851ac691e1f322ebbb9c3fddcfe3aae84ea2ef1f61abd47a38d",
+    "cases/old-simplified-invoice/evidence/stderr.txt": "390491813444479ac274e3d9e67264486c1aaec0c6f7759a2cb6d2be166b2101",
+    "cases/old-simplified-invoice/evidence/stdout.txt": "c92979dbe3bff4abe6cccfb21e4721cbdbf25ed66b05925527c7b6f8efa907ea",
+    "cases/old-simplified-invoice/expected.json": "27490a9308f052939127c861f376dc6cd05bcd2da13d39f82b33302c685b5668",
+    "cases/old-simplified-invoice/input.xml": "686faf28f62ceb83dd9948b504e1eddc05bdf872bc565bc48efe7d2ebf911d4e",
+    "cases/renamed-prefixes/evidence/process.json": "af554f93e3519193a42c6d332be36971428c46c5acfdfab732212db05e26657c",
+    "cases/renamed-prefixes/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/renamed-prefixes/evidence/stdout.txt": "334f8cf90f65ae01db697eef03833bd5725eee87ac58abfed61aa09027f76bf3",
+    "cases/renamed-prefixes/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/renamed-prefixes/input.xml": "cff5a5016e64a7102712909e164a80d7537a4063714d2d502101f8996597ad66",
+    "cases/repeated-empty-item-name/evidence/process.json": "11d890d9608976fddcd29a471fc48f32499f40209be1cb39a5bfcdf41adbfbd7",
+    "cases/repeated-empty-item-name/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/repeated-empty-item-name/evidence/stdout.txt": "5d54ad1ef41d946756a812b8829359815643f159730bf6cfaa59ab4516754933",
+    "cases/repeated-empty-item-name/expected.json": "267aa4758fa6d977975eacc9daf1cf9a22771fd07848f516dff3b32d41d0d0c5",
+    "cases/repeated-empty-item-name/input.xml": "1f461df881d5b3e73a4866920e8b1e49b5c30959629102b4490ca8fd0080bc12",
+    "cases/unicode-whitespace-tax-currency/evidence/process.json": "dab647980aaa931fc1c4f925d3876b0fa78ed28b60190077c9d51f1823d796ed",
+    "cases/unicode-whitespace-tax-currency/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/unicode-whitespace-tax-currency/evidence/stdout.txt": "62df95979a6f712bfd5b7e8a5d0035add5d36ddbaaa84b6377412930698154e6",
+    "cases/unicode-whitespace-tax-currency/expected.json": "8b6797405855bad8a48e0ec23412c15781102e96ec56d412591f58d89691291f",
+    "cases/unicode-whitespace-tax-currency/input.xml": "7f078b2c762999a78f518e80407bacfaecdf5c2eb54e4c731dad75848dc344c3",
+    "cases/wrong-inclusive/evidence/process.json": "9a95b5ebead0185244d53cb56414cd4129c1c0a495e89421f2a219889e518ef8",
+    "cases/wrong-inclusive/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/wrong-inclusive/evidence/stdout.txt": "7199a0dad80e83ec57ee3199c2441e64863dd47ed3009b6b74b194067d841b43",
+    "cases/wrong-inclusive/expected.json": "52e80f431c95573e867eb54750f252853c8b64a91cbec134a23b47fe635fb7d3",
+    "cases/wrong-inclusive/input.xml": "512d2932e5554cb5be1593133aee5b3e3b740a73a378e579d3c2d6da46b30d0c",
+    "cases/wrong-line-sum/evidence/process.json": "ea4595ea520a57e2c868411448c0ee605d16c73dfe7b2f41d0626e28dfbbe824",
+    "cases/wrong-line-sum/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/wrong-line-sum/evidence/stdout.txt": "6710040345f544438294b35d048d300fd5322354800b1303204fca22802830b6",
+    "cases/wrong-line-sum/expected.json": "d34708b5cb74b8d5845bd8e6fb6ed18f0ca2da4f46b1a5d0f64d8345668d8618",
+    "cases/wrong-line-sum/input.xml": "5f8639e1bab3eb963ce3797fcd739fa45befb31f98921a340e71fa44385e1e10",
+    "cases/wrong-tax-total/evidence/process.json": "216fd53c701781678f1dd03df14c237d276a76ec51ae450c7478d4ed145cb31a",
+    "cases/wrong-tax-total/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/wrong-tax-total/evidence/stdout.txt": "5bc1b98b1b22e73cc81aca425ac275141c7c8572106c5f0f3420e0937ea7b160",
+    "cases/wrong-tax-total/expected.json": "496328ec20f339fa6a6a4dfb08a29ed221cacf69d00631f0e10384c4dda6eaa6",
+    "cases/wrong-tax-total/input.xml": "4d491d95bcf97efff923694ef626d4df6be4f0b8e043d80d805d57662543f8eb",
+    "cases/xml-whitespace-tax-currency/evidence/process.json": "1d0a07b8fb123374f2d3054c684f4ac4d8fbf72828264fda0f80cc7bf79d762a",
+    "cases/xml-whitespace-tax-currency/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/xml-whitespace-tax-currency/evidence/stdout.txt": "71be5f0001427e91089fd2e8b97dff10bd15afb38656f5cab3d46c18ecf4dbe9",
+    "cases/xml-whitespace-tax-currency/expected.json": "f1f4739bc45466c90890814bd6bd342b560fdadd997889c75a6acdb1d4c8b029",
+    "cases/xml-whitespace-tax-currency/input.xml": "774164e4d51621574b1cfc7a6b2305fd9828d213677958c5d58636540fc2300e"
+  },
+  "expectation_mismatches": []
+}

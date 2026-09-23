@@ -1,0 +1,596 @@
+{
+  "schema_version": 1,
+  "sdk_version": "238-R3.4.8",
+  "jar_sha256": "48abeb828d453ef6fafba792fddbbb2701da5c7018c24bde918853e80ff5d530",
+  "sources": {
+    "cen": "378a7a4d697aa96e05edb4649ab4536b33546b8e288453324a5668c3e15735b0",
+    "ksa": "3312e1938829b8972dacf19a3d933deeb97cb71c7e982c56a434b76cc0e5f0c4"
+  },
+  "source_corpus_sha256": "872d251be12e3f3388d1afd57a566be6721d19bafc61b39442dad65902c74411",
+  "family": "vat",
+  "family_tool_sha256": "4954564cc6a79065aa6c56e1042f3d9b7b00e17ce8376b701226b5c8e53d30cd",
+  "capture_tool_sha256": "8e9e6622fdc3df5884b5b9de3d493f266c547a124b80f533803141f22aa016c0",
+  "sdk_tool_sha256": "cfbec9fe7abe7a75bdaf288297998d88be224b1055eac318c9accb545e29b454",
+  "java_version": "openjdk version \"11.0.25\" 2024-10-15\nOpenJDK Runtime Environment (build 11.0.25+5-void-r3)\nOpenJDK 64-Bit Server VM (build 11.0.25+5-void-r3, mixed mode)\n",
+  "timezone": "UTC (TZ=UTC; JAVA_TOOL_OPTIONS=-Duser.timezone=UTC)",
+  "cases": [
+    {
+      "id": "round-1.005-0.99",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 0
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T13:10:09.949671+00:00",
+      "finished_at": "2026-09-23T13:10:10.945004+00:00",
+      "duration_seconds": 0.9962846840498969
+    },
+    {
+      "id": "round-1.005-1.02",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T13:10:10.946070+00:00",
+      "finished_at": "2026-09-23T13:10:11.906302+00:00",
+      "duration_seconds": 0.9605477330042049
+    },
+    {
+      "id": "round-2.675-2.66",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T13:10:11.906684+00:00",
+      "finished_at": "2026-09-23T13:10:12.895170+00:00",
+      "duration_seconds": 0.9888714209664613
+    },
+    {
+      "id": "round-2.675-2.69",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 0
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T13:10:12.895642+00:00",
+      "finished_at": "2026-09-23T13:10:13.870964+00:00",
+      "duration_seconds": 0.9756829460384324
+    },
+    {
+      "id": "round-1.015-1.00",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T13:10:13.871399+00:00",
+      "finished_at": "2026-09-23T13:10:14.818282+00:00",
+      "duration_seconds": 0.9472483289428055
+    },
+    {
+      "id": "round-1.015-1.03",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 0
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T13:10:14.818722+00:00",
+      "finished_at": "2026-09-23T13:10:15.732961+00:00",
+      "duration_seconds": 0.9145743179833516
+    },
+    {
+      "id": "round--1.005--1.02",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T13:10:15.733363+00:00",
+      "finished_at": "2026-09-23T13:10:16.631707+00:00",
+      "duration_seconds": 0.8987328499788418
+    },
+    {
+      "id": "round--1.005--0.99",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 0
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T13:10:16.632180+00:00",
+      "finished_at": "2026-09-23T13:10:17.585390+00:00",
+      "duration_seconds": 0.9535622779512778
+    },
+    {
+      "id": "round--2.675--2.69",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 0
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T13:10:17.585816+00:00",
+      "finished_at": "2026-09-23T13:10:18.533603+00:00",
+      "duration_seconds": 0.9481425730045885
+    },
+    {
+      "id": "round--2.675--2.66",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T13:10:18.534034+00:00",
+      "finished_at": "2026-09-23T13:10:19.518504+00:00",
+      "duration_seconds": 0.9848471879959106
+    },
+    {
+      "id": "round-2.6749999999999994-2.66",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 0
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T13:10:19.518955+00:00",
+      "finished_at": "2026-09-23T13:10:20.439607+00:00",
+      "duration_seconds": 0.9209396769292653
+    },
+    {
+      "id": "round-2.6749999999999994-2.69",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T13:10:20.439968+00:00",
+      "finished_at": "2026-09-23T13:10:21.376258+00:00",
+      "duration_seconds": 0.9365916369715706
+    },
+    {
+      "id": "round-2.6750000000000003-2.66",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T13:10:21.376627+00:00",
+      "finished_at": "2026-09-23T13:10:22.310700+00:00",
+      "duration_seconds": 0.93444347998593
+    },
+    {
+      "id": "round-2.6750000000000003-2.69",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 0
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T13:10:22.311157+00:00",
+      "finished_at": "2026-09-23T13:10:23.239966+00:00",
+      "duration_seconds": 0.9291639750590548
+    },
+    {
+      "id": "round-2.67499999999999-2.66",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 0
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T13:10:23.240399+00:00",
+      "finished_at": "2026-09-23T13:10:24.201961+00:00",
+      "duration_seconds": 0.961919975001365
+    },
+    {
+      "id": "round-2.67499999999999-2.69",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T13:10:24.202394+00:00",
+      "finished_at": "2026-09-23T13:10:25.135208+00:00",
+      "duration_seconds": 0.9331811560550705
+    },
+    {
+      "id": "round-2.67500000000001-2.66",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T13:10:25.135650+00:00",
+      "finished_at": "2026-09-23T13:10:26.052931+00:00",
+      "duration_seconds": 0.9176825450267643
+    },
+    {
+      "id": "round-2.67500000000001-2.69",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 0
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T13:10:26.053399+00:00",
+      "finished_at": "2026-09-23T13:10:27.003292+00:00",
+      "duration_seconds": 0.9501721090637147
+    },
+    {
+      "id": "round-1.0149999999999997-1.00",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 0
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T13:10:27.003635+00:00",
+      "finished_at": "2026-09-23T13:10:27.950690+00:00",
+      "duration_seconds": 0.9473971669794992
+    },
+    {
+      "id": "round-1.0149999999999997-1.03",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T13:10:27.951121+00:00",
+      "finished_at": "2026-09-23T13:10:28.913348+00:00",
+      "duration_seconds": 0.9625263799680397
+    },
+    {
+      "id": "round-1.0150000000000001-1.00",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T13:10:28.913721+00:00",
+      "finished_at": "2026-09-23T13:10:29.835402+00:00",
+      "duration_seconds": 0.9220423200167716
+    },
+    {
+      "id": "round-1.0150000000000001-1.03",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-17",
+          "severity": "warning",
+          "count": 0
+        },
+        {
+          "source": "en",
+          "code": "BR-S-09",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T13:10:29.835839+00:00",
+      "finished_at": "2026-09-23T13:10:30.813779+00:00",
+      "duration_seconds": 0.9782999689923599
+    }
+  ],
+  "artifacts": {
+    "capture-tools/business_rule_cases.py": "4954564cc6a79065aa6c56e1042f3d9b7b00e17ce8376b701226b5c8e53d30cd",
+    "capture-tools/business_rules.py": "8e9e6622fdc3df5884b5b9de3d493f266c547a124b80f533803141f22aa016c0",
+    "capture-tools/sdk_parity.py": "cfbec9fe7abe7a75bdaf288297998d88be224b1055eac318c9accb545e29b454",
+    "cases/round--1.005--0.99/evidence/process.json": "49471848430025f4d4f5115b0c5b44704da0a32ff29e26c4628517da76f8317a",
+    "cases/round--1.005--0.99/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round--1.005--0.99/evidence/stdout.txt": "1aee0bbaa2d3440c0cd006c78a5404e61d8b1e147ca6170bee62e45c142b7c6a",
+    "cases/round--1.005--0.99/expected.json": "6665c574f82b583b395cd41e4b047059111f4e525c53b769a67f259a85511519",
+    "cases/round--1.005--0.99/input.xml": "4c6044b2a16b788d3838bb3193439929112f62cd0abeb2c8a270da460d1aa21d",
+    "cases/round--1.005--1.02/evidence/process.json": "508e0b707790bd5e8ecf1bc9ed9495a860165a7cf9f7185fb1fe90d44d5d4052",
+    "cases/round--1.005--1.02/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round--1.005--1.02/evidence/stdout.txt": "dd83aa2d721b52d10a25e28cee9d98f922c844a5a869d7e6ffa36bfa3c1e9199",
+    "cases/round--1.005--1.02/expected.json": "95d210bfc20dd7c03c5cd323c808898fdab9c451cad314e71e6657310189c872",
+    "cases/round--1.005--1.02/input.xml": "123b9bc1cb63957973b89f4428aa86d4aad7efe70332b8aeee6834144394e227",
+    "cases/round--2.675--2.66/evidence/process.json": "9ec65c79dc3b67e34a379c4566c7059f6ebe07955d8033e79979a6a0ebbc0fc1",
+    "cases/round--2.675--2.66/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round--2.675--2.66/evidence/stdout.txt": "09aeb5d431dcbfdfba56adcdac96638e00442330dbc104e29615bf2d736fe8d2",
+    "cases/round--2.675--2.66/expected.json": "95d210bfc20dd7c03c5cd323c808898fdab9c451cad314e71e6657310189c872",
+    "cases/round--2.675--2.66/input.xml": "73755cb4b826eb4ce0301e18f28ef2821604b051875634dfca551a66c75d5878",
+    "cases/round--2.675--2.69/evidence/process.json": "6a0f986d5861a336eabd02ab8449bcfdcf57d4f24260ba6a9d1f800cd46011da",
+    "cases/round--2.675--2.69/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round--2.675--2.69/evidence/stdout.txt": "b32f957c52f53259d6d4ec2652a5da7c2a2b3cc329a6c4b990386400ee2a04d3",
+    "cases/round--2.675--2.69/expected.json": "6665c574f82b583b395cd41e4b047059111f4e525c53b769a67f259a85511519",
+    "cases/round--2.675--2.69/input.xml": "2c2a43d13c2381985626497b7da194adcf4c3d1daaaf9f0312e1004caa5b4229",
+    "cases/round-1.005-0.99/evidence/process.json": "b02f794b335f68cb4c4241c2f52f550abfe7d1197f90addf4d2d9d2503552c3a",
+    "cases/round-1.005-0.99/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-1.005-0.99/evidence/stdout.txt": "e8848a324fcf1d1aca3dfc865f4309d3241af273a0d28595e529e2241d837ba6",
+    "cases/round-1.005-0.99/expected.json": "602d1d6b265401c0c1c03f778f08393dc1d3df8c3c2299cc6563bacd716e5924",
+    "cases/round-1.005-0.99/input.xml": "4ed2b8e8f85f87db003648e4f425f4b42c868e31e7307b06198cbe630418596b",
+    "cases/round-1.005-1.02/evidence/process.json": "ab6d4a137cb48db8b8a8d6b2c498d69768c55a0d49b3c4eb33a9509e166f96a1",
+    "cases/round-1.005-1.02/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-1.005-1.02/evidence/stdout.txt": "5eaa1da236de09e24cef5f9b6bb7e0b27fe4a481b1b63b2064c8a71717d3b3e7",
+    "cases/round-1.005-1.02/expected.json": "efbcb47865c97003a4f67de61a8a43075d5a3c1715529842d7902c2098dc801d",
+    "cases/round-1.005-1.02/input.xml": "50edc1cf3efbdbd86d28660cca64691315f740c56e09de99cf30fa3b697680b0",
+    "cases/round-1.0149999999999997-1.00/evidence/process.json": "f8eed104730b190eecca990fcc804607bfd12e31d1e73c9752483d1bf9421f1d",
+    "cases/round-1.0149999999999997-1.00/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-1.0149999999999997-1.00/evidence/stdout.txt": "8bbc99d60b4883d7ec9825e71cb9caa211c083cd19b62fade4238f3a839d389d",
+    "cases/round-1.0149999999999997-1.00/expected.json": "602d1d6b265401c0c1c03f778f08393dc1d3df8c3c2299cc6563bacd716e5924",
+    "cases/round-1.0149999999999997-1.00/input.xml": "31ae48302ff0148390a1b5b2985bb78171e7f4ee066e1477614786f2317b8214",
+    "cases/round-1.0149999999999997-1.03/evidence/process.json": "0937ea9f169be2097412a6f5461984e7daa7d4d724c425511f544da822d5fcf1",
+    "cases/round-1.0149999999999997-1.03/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-1.0149999999999997-1.03/evidence/stdout.txt": "76995cc9e2626d36663fd18ecaeca65de470ce23eae2b47dc24bad5468df45ac",
+    "cases/round-1.0149999999999997-1.03/expected.json": "efbcb47865c97003a4f67de61a8a43075d5a3c1715529842d7902c2098dc801d",
+    "cases/round-1.0149999999999997-1.03/input.xml": "a431a4c819bace0dc0b64cded531c9261fb8502bad9b3193d681b0746f3a9d10",
+    "cases/round-1.015-1.00/evidence/process.json": "b0f420025b35bcb6319bac9b8149a9f8b10f25b27488c5b287e898f37c5dd20e",
+    "cases/round-1.015-1.00/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-1.015-1.00/evidence/stdout.txt": "8cd2352c1186b11423ffe9b49c0f7ae011a39f78bbb5959a60d70ecc73d2c604",
+    "cases/round-1.015-1.00/expected.json": "efbcb47865c97003a4f67de61a8a43075d5a3c1715529842d7902c2098dc801d",
+    "cases/round-1.015-1.00/input.xml": "b090906cfb4c8f2a5c25eaff129900074ab3e2876caed69372a86a62a0e36ff3",
+    "cases/round-1.015-1.03/evidence/process.json": "0e50563bf3344817ce77fd3f3ccf654cf1f1ed15c08d8f02565551c86a9f45a8",
+    "cases/round-1.015-1.03/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-1.015-1.03/evidence/stdout.txt": "c52382df9a6e37a17fb0e4247e9cade01c1d79418cec0a8b03c12802a158034a",
+    "cases/round-1.015-1.03/expected.json": "602d1d6b265401c0c1c03f778f08393dc1d3df8c3c2299cc6563bacd716e5924",
+    "cases/round-1.015-1.03/input.xml": "196ec6d3acb9e82f1e6b477a3f037b5bf498e7a12d8140e8fbe7e6cd5641ce73",
+    "cases/round-1.0150000000000001-1.00/evidence/process.json": "d39f25e09b29d4eef9942a3e67c04023c116b4a702003e05c61631e3cf494de3",
+    "cases/round-1.0150000000000001-1.00/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-1.0150000000000001-1.00/evidence/stdout.txt": "a141f940bd5ff022cded986613ed590bb81d99d76037a23dc8196d62e1ce424d",
+    "cases/round-1.0150000000000001-1.00/expected.json": "efbcb47865c97003a4f67de61a8a43075d5a3c1715529842d7902c2098dc801d",
+    "cases/round-1.0150000000000001-1.00/input.xml": "c1e1d9f9eab3ecc58983cb77a5077328e91527633055ee7f092e5dfbb81ef5f4",
+    "cases/round-1.0150000000000001-1.03/evidence/process.json": "f24da71bd3b750887aa04f7cd5b7c6fb47a5387806def1fef50a5cc57f439ea1",
+    "cases/round-1.0150000000000001-1.03/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-1.0150000000000001-1.03/evidence/stdout.txt": "041e0d29ca611009133bed0eb8f96ff1e796a0443331c9ace56548a67d903abc",
+    "cases/round-1.0150000000000001-1.03/expected.json": "602d1d6b265401c0c1c03f778f08393dc1d3df8c3c2299cc6563bacd716e5924",
+    "cases/round-1.0150000000000001-1.03/input.xml": "39979d9e81ae03b1b8898bd3d65261237699cb98fe9c6bc605b8c0e3be6e032d",
+    "cases/round-2.67499999999999-2.66/evidence/process.json": "a97eaa59d56b869a7e9f6a0ac8d9470a039e4501a5f27dcd8acea57a91457198",
+    "cases/round-2.67499999999999-2.66/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-2.67499999999999-2.66/evidence/stdout.txt": "c84eb07287b297f044c90f89d88287427e279ffc84ffb4c2429ca92a26432094",
+    "cases/round-2.67499999999999-2.66/expected.json": "602d1d6b265401c0c1c03f778f08393dc1d3df8c3c2299cc6563bacd716e5924",
+    "cases/round-2.67499999999999-2.66/input.xml": "52256c9f90dd0be56e8f17cb970a94bdb71dcd2c0bd38d2b16da8901c4d0052a",
+    "cases/round-2.67499999999999-2.69/evidence/process.json": "bcaf7ccec5f32208771bcec65e2911e9d94bb4288ac628df1a7da8ded64bf9ed",
+    "cases/round-2.67499999999999-2.69/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-2.67499999999999-2.69/evidence/stdout.txt": "b602f6b2339792fac09ab87299182e14edf16a5bc65761e8dec2844220fd0411",
+    "cases/round-2.67499999999999-2.69/expected.json": "efbcb47865c97003a4f67de61a8a43075d5a3c1715529842d7902c2098dc801d",
+    "cases/round-2.67499999999999-2.69/input.xml": "4362868d6c5339d64305e086f6cc257c76fa9796c18f9224fd1d58909d1945fc",
+    "cases/round-2.6749999999999994-2.66/evidence/process.json": "44f10effd78334581c6286dab562c45df8c44df86876a2ace07a320130411e85",
+    "cases/round-2.6749999999999994-2.66/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-2.6749999999999994-2.66/evidence/stdout.txt": "668eec48783c3000a1a18870258241d9edc28b88097309f095250830fdd80e15",
+    "cases/round-2.6749999999999994-2.66/expected.json": "602d1d6b265401c0c1c03f778f08393dc1d3df8c3c2299cc6563bacd716e5924",
+    "cases/round-2.6749999999999994-2.66/input.xml": "8e734bd16eeae99f4f641bdd0a8c05163dae856be1e71c5febfd972647d9b016",
+    "cases/round-2.6749999999999994-2.69/evidence/process.json": "415165adbc082abcda33d15403cd9d39aa7c839fc9015825ea63e74c05ed0a04",
+    "cases/round-2.6749999999999994-2.69/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-2.6749999999999994-2.69/evidence/stdout.txt": "194cff874b65ac54ff5fbc1b19a6c98f7e1dfcbb86dacac2c7d5906a3f013fd7",
+    "cases/round-2.6749999999999994-2.69/expected.json": "efbcb47865c97003a4f67de61a8a43075d5a3c1715529842d7902c2098dc801d",
+    "cases/round-2.6749999999999994-2.69/input.xml": "29f9eb434fcc70dbad73dc767deea952b86b8e6f3222e438882c6c008657374a",
+    "cases/round-2.675-2.66/evidence/process.json": "9300b8e4b28ba11556cf3682624df0fe88b4785c371658099366fe681cede2fc",
+    "cases/round-2.675-2.66/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-2.675-2.66/evidence/stdout.txt": "dad82bd16b0a83831f99e8a7b9522af59587c36024b0f3b3d378453e421a1315",
+    "cases/round-2.675-2.66/expected.json": "efbcb47865c97003a4f67de61a8a43075d5a3c1715529842d7902c2098dc801d",
+    "cases/round-2.675-2.66/input.xml": "326ec8b3373d9ef76e62bcffb50e0d52670e79ffe73af4e037d917a1bfaf5372",
+    "cases/round-2.675-2.69/evidence/process.json": "e41b13ce16edf891c862d9b02bca2d44324b33a2043fff56336e87ae0e96702c",
+    "cases/round-2.675-2.69/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-2.675-2.69/evidence/stdout.txt": "3f9e4a381bd4267e564b46d5339a820738c1b69462c607f69e0ef165ce402c50",
+    "cases/round-2.675-2.69/expected.json": "602d1d6b265401c0c1c03f778f08393dc1d3df8c3c2299cc6563bacd716e5924",
+    "cases/round-2.675-2.69/input.xml": "7b664c4a1272bbc0820f61eafe6ec6d4916fd3fd51d0f5e2356e5420e51ef689",
+    "cases/round-2.6750000000000003-2.66/evidence/process.json": "1e4726e592187b9372c5c4ed2fb79e4245620138e59b8636898835981377f312",
+    "cases/round-2.6750000000000003-2.66/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-2.6750000000000003-2.66/evidence/stdout.txt": "d66dd7e5259d8da700bca343de0a48b3323adc16d7c0098607e3eed951f6632c",
+    "cases/round-2.6750000000000003-2.66/expected.json": "efbcb47865c97003a4f67de61a8a43075d5a3c1715529842d7902c2098dc801d",
+    "cases/round-2.6750000000000003-2.66/input.xml": "ed65da4ec5bb5ac2594502b28ee893bd5128b988f80dd4a49aa89bcf5bcf09ef",
+    "cases/round-2.6750000000000003-2.69/evidence/process.json": "40698ab24a4c23d97d18a9dd34511f558447ff2efb74212d9bf0335de88d520f",
+    "cases/round-2.6750000000000003-2.69/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-2.6750000000000003-2.69/evidence/stdout.txt": "70a6b62dedbd2d71ca09561a29dfdc2a7a3b215a28305404c5e3f869c02772b7",
+    "cases/round-2.6750000000000003-2.69/expected.json": "602d1d6b265401c0c1c03f778f08393dc1d3df8c3c2299cc6563bacd716e5924",
+    "cases/round-2.6750000000000003-2.69/input.xml": "a1d7869cd8693e804eb3edb6daa02db15999e07511c58d965eda42f780562d6a",
+    "cases/round-2.67500000000001-2.66/evidence/process.json": "91c8391c10a4bd10158aab8f09f1d76b6eeceafa1374b1285b7e5185067e1740",
+    "cases/round-2.67500000000001-2.66/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-2.67500000000001-2.66/evidence/stdout.txt": "73a891645919a7e80e5f1135668e316e5ee09270b712582229c1410b10aae272",
+    "cases/round-2.67500000000001-2.66/expected.json": "efbcb47865c97003a4f67de61a8a43075d5a3c1715529842d7902c2098dc801d",
+    "cases/round-2.67500000000001-2.66/input.xml": "40c05e1f9705f1f17586f63036788d8462ff6614bbc2f8ffb0db73f2f4246872",
+    "cases/round-2.67500000000001-2.69/evidence/process.json": "07291e8e69aa669c7f45851af3d147803ba336273e916b158258af683793d648",
+    "cases/round-2.67500000000001-2.69/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/round-2.67500000000001-2.69/evidence/stdout.txt": "2be42246ec1523453e05bc5d0532c899b15f36f287225fefba8e0b2eb58e96a4",
+    "cases/round-2.67500000000001-2.69/expected.json": "602d1d6b265401c0c1c03f778f08393dc1d3df8c3c2299cc6563bacd716e5924",
+    "cases/round-2.67500000000001-2.69/input.xml": "d699d35cfe4c2f43899afac7ed60d8b3db9319181af8a222dcca44883e688168"
+  },
+  "expectation_mismatches": []
+}

@@ -1,0 +1,384 @@
+{
+  "schema_version": 1,
+  "sdk_version": "238-R3.4.8",
+  "jar_sha256": "48abeb828d453ef6fafba792fddbbb2701da5c7018c24bde918853e80ff5d530",
+  "sources": {
+    "cen": "378a7a4d697aa96e05edb4649ab4536b33546b8e288453324a5668c3e15735b0",
+    "ksa": "3312e1938829b8972dacf19a3d933deeb97cb71c7e982c56a434b76cc0e5f0c4"
+  },
+  "source_corpus_sha256": "872d251be12e3f3388d1afd57a566be6721d19bafc61b39442dad65902c74411",
+  "family": "totals",
+  "family_tool_sha256": "9750300e28d4c0c28ad5621121023f07a295a356bd2bc6df3eef071b2de20707",
+  "capture_tool_sha256": "cb5f74aad20cc32f6b832c2893fb9ecdb49cf5c34d6e52b4769184e775a168c6",
+  "sdk_tool_sha256": "cfbec9fe7abe7a75bdaf288297998d88be224b1055eac318c9accb545e29b454",
+  "java_version": "openjdk version \"11.0.25\" 2024-10-15\nOpenJDK Runtime Environment (build 11.0.25+5-void-r3)\nOpenJDK 64-Bit Server VM (build 11.0.25+5-void-r3, mixed mode)\n",
+  "timezone": "UTC (TZ=UTC; JAVA_TOOL_OPTIONS=-Duser.timezone=UTC)",
+  "cases": [
+    {
+      "id": "AllowanceTotalAmount-valid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-11",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:45:19.692509+00:00",
+      "finished_at": "2026-09-23T12:45:20.646670+00:00",
+      "duration_seconds": 0.9549978390568867
+    },
+    {
+      "id": "AllowanceTotalAmount-invalid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-11",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:45:20.647607+00:00",
+      "finished_at": "2026-09-23T12:45:21.613686+00:00",
+      "duration_seconds": 0.9663496450521052
+    },
+    {
+      "id": "ChargeTotalAmount-valid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-12",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:45:21.614033+00:00",
+      "finished_at": "2026-09-23T12:45:22.567921+00:00",
+      "duration_seconds": 0.954124363954179
+    },
+    {
+      "id": "ChargeTotalAmount-invalid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-12",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:45:22.568232+00:00",
+      "finished_at": "2026-09-23T12:45:23.521384+00:00",
+      "duration_seconds": 0.9534241989022121
+    },
+    {
+      "id": "TaxExclusiveAmount-valid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-13",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:45:23.521731+00:00",
+      "finished_at": "2026-09-23T12:45:24.476958+00:00",
+      "duration_seconds": 0.955485405982472
+    },
+    {
+      "id": "TaxExclusiveAmount-invalid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-13",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:45:24.477285+00:00",
+      "finished_at": "2026-09-23T12:45:25.420910+00:00",
+      "duration_seconds": 0.9439103399636224
+    },
+    {
+      "id": "PayableAmount-valid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-16",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:45:25.421269+00:00",
+      "finished_at": "2026-09-23T12:45:26.365054+00:00",
+      "duration_seconds": 0.9440212990157306
+    },
+    {
+      "id": "PayableAmount-invalid",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-16",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:45:26.365364+00:00",
+      "finished_at": "2026-09-23T12:45:27.316026+00:00",
+      "duration_seconds": 0.950921194977127
+    },
+    {
+      "id": "charge-empty-sum",
+      "expected_xsd": "failed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-12",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:45:27.316355+00:00",
+      "finished_at": "2026-09-23T12:45:28.311105+00:00",
+      "duration_seconds": 0.9950479220133275
+    },
+    {
+      "id": "charge-empty-exclusive",
+      "expected_xsd": "failed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-13",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:45:28.311477+00:00",
+      "finished_at": "2026-09-23T12:45:29.267845+00:00",
+      "duration_seconds": 0.9567741981009021
+    },
+    {
+      "id": "positive-half-binary",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-13",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:45:29.268315+00:00",
+      "finished_at": "2026-09-23T12:45:30.239963+00:00",
+      "duration_seconds": 0.9720156299881637
+    },
+    {
+      "id": "positive-half-display",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-13",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:45:30.240408+00:00",
+      "finished_at": "2026-09-23T12:45:31.207672+00:00",
+      "duration_seconds": 0.9675689280265942
+    },
+    {
+      "id": "negative-half-binary",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-13",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:45:31.208042+00:00",
+      "finished_at": "2026-09-23T12:45:32.147035+00:00",
+      "duration_seconds": 0.9393898090347648
+    },
+    {
+      "id": "negative-half-display",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-13",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:45:32.147508+00:00",
+      "finished_at": "2026-09-23T12:45:33.126706+00:00",
+      "duration_seconds": 0.9796003908850253
+    },
+    {
+      "id": "two-sixty-seven-binary",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-13",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:45:33.127196+00:00",
+      "finished_at": "2026-09-23T12:45:34.119181+00:00",
+      "duration_seconds": 0.9922888290602714
+    },
+    {
+      "id": "two-sixty-seven-display",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-13",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:45:34.119552+00:00",
+      "finished_at": "2026-09-23T12:45:35.060247+00:00",
+      "duration_seconds": 0.9409961479250342
+    },
+    {
+      "id": "large-double-binary",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-13",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T12:45:35.060613+00:00",
+      "finished_at": "2026-09-23T12:45:36.009112+00:00",
+      "duration_seconds": 0.948848458006978
+    },
+    {
+      "id": "large-double-display",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "en",
+          "code": "BR-CO-13",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T12:45:36.009537+00:00",
+      "finished_at": "2026-09-23T12:45:36.975839+00:00",
+      "duration_seconds": 0.9666946630459279
+    }
+  ],
+  "artifacts": {
+    "capture-tools/business_rule_cases.py": "9750300e28d4c0c28ad5621121023f07a295a356bd2bc6df3eef071b2de20707",
+    "capture-tools/business_rules.py": "cb5f74aad20cc32f6b832c2893fb9ecdb49cf5c34d6e52b4769184e775a168c6",
+    "capture-tools/sdk_parity.py": "cfbec9fe7abe7a75bdaf288297998d88be224b1055eac318c9accb545e29b454",
+    "cases/AllowanceTotalAmount-invalid/evidence/process.json": "b4ab941f1f1f796c367e2184aa6317231c968b17eb76c9b73df31f3a9b1bd35b",
+    "cases/AllowanceTotalAmount-invalid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/AllowanceTotalAmount-invalid/evidence/stdout.txt": "2c503d74e6f731fab6f8ca710c0dee7459f23f87002c45f4ad59a9368ac415b3",
+    "cases/AllowanceTotalAmount-invalid/expected.json": "390bb085ed9eba3da1336e5272573166c90c8d053bbf75dd28d94cdb28bf344a",
+    "cases/AllowanceTotalAmount-invalid/input.xml": "56f966c106aede58f4263e8739fea53dfaea16eb32a46223d91a62724ebf4818",
+    "cases/AllowanceTotalAmount-valid/evidence/process.json": "86788c88391367bfb7773465ba23b77ceeaaeb0909bd5c0e2feb561e1b6e883f",
+    "cases/AllowanceTotalAmount-valid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/AllowanceTotalAmount-valid/evidence/stdout.txt": "b586f7ec967258e37321e8af23829d9d47c7cb7e06b429c2620f72fdac850a08",
+    "cases/AllowanceTotalAmount-valid/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/AllowanceTotalAmount-valid/input.xml": "b551e88882cb34f772dbee3041614c9d3998a1c3ee7b79d92d1f84fcc2fdb1be",
+    "cases/ChargeTotalAmount-invalid/evidence/process.json": "27c976ec91475318fdd140de49b603bc42c15803d5d6a3948f2d375b39c46fd4",
+    "cases/ChargeTotalAmount-invalid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/ChargeTotalAmount-invalid/evidence/stdout.txt": "8dce93ae9e670745051c8cd81f1be3c49338858d802900f003c887559f7f5796",
+    "cases/ChargeTotalAmount-invalid/expected.json": "0e891dea6d9c7bab283b58ffd10ab19a3c2e5c8cbc025bed795e5e8330f38158",
+    "cases/ChargeTotalAmount-invalid/input.xml": "0d61b1ae28876e3b1bf51b676408f4c4fdb6c977885dbf9d322696131c2c210c",
+    "cases/ChargeTotalAmount-valid/evidence/process.json": "bad83cf173106d3175e4582e2acdd557314cdd992368456b0433c0d876e50755",
+    "cases/ChargeTotalAmount-valid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/ChargeTotalAmount-valid/evidence/stdout.txt": "bf35c9e94f901bd5204aea9f60e6d98a4ffb5c76bdaa4efd87fd9769863fb3ca",
+    "cases/ChargeTotalAmount-valid/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/ChargeTotalAmount-valid/input.xml": "b551e88882cb34f772dbee3041614c9d3998a1c3ee7b79d92d1f84fcc2fdb1be",
+    "cases/PayableAmount-invalid/evidence/process.json": "fe8eca51348bada111f720cee4f19bd54d37b7a1a90fe5ebb65652c81df22817",
+    "cases/PayableAmount-invalid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/PayableAmount-invalid/evidence/stdout.txt": "c56a3f83f5b892766d1905c5d727db4bec168084957efa82b8b5b6832bd02c89",
+    "cases/PayableAmount-invalid/expected.json": "b7255f5bb329d872f0dcd4b41cd0905ef0a258a1b98d22668f2846d3b666c287",
+    "cases/PayableAmount-invalid/input.xml": "9ad500678e3d5b216a0cfd6764bed75d1e85b77d03c41031e28a8e666fa7aaf5",
+    "cases/PayableAmount-valid/evidence/process.json": "89c600d565372ba145d64da3d86e38bdab5a9510c1049b62eed53c0abb9e0cf5",
+    "cases/PayableAmount-valid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/PayableAmount-valid/evidence/stdout.txt": "633e1fdc6afdd9ff19cce93a40f3693d29da2564329f74468264cd00567a06b9",
+    "cases/PayableAmount-valid/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/PayableAmount-valid/input.xml": "b551e88882cb34f772dbee3041614c9d3998a1c3ee7b79d92d1f84fcc2fdb1be",
+    "cases/TaxExclusiveAmount-invalid/evidence/process.json": "bde68482f41b3d5be88b907a0ec9f2ff62ecb7e1436b43116e048b57cfe3ddeb",
+    "cases/TaxExclusiveAmount-invalid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/TaxExclusiveAmount-invalid/evidence/stdout.txt": "c88d63f771e01900e26b731deb45884134638d797ed461c0a01f34f41ad7d816",
+    "cases/TaxExclusiveAmount-invalid/expected.json": "77efe8187ebb6066bba52ad59c8b7c43a74156b744a8b748a9e1b4abcf13e1fe",
+    "cases/TaxExclusiveAmount-invalid/input.xml": "71155af44cda441ed14259ad78cffc7cb6348992f18e0a7be56b9f0bd9a5421c",
+    "cases/TaxExclusiveAmount-valid/evidence/process.json": "b49c3d09c924e5cafd861ef968f16a863157b520753b5eb1c68a947e03e3d5d8",
+    "cases/TaxExclusiveAmount-valid/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/TaxExclusiveAmount-valid/evidence/stdout.txt": "5203bfbc9477ca815a2e935535c8b5ae6403b133f444190b5ccba88ec5aa6900",
+    "cases/TaxExclusiveAmount-valid/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/TaxExclusiveAmount-valid/input.xml": "b551e88882cb34f772dbee3041614c9d3998a1c3ee7b79d92d1f84fcc2fdb1be",
+    "cases/charge-empty-exclusive/evidence/process.json": "15c4f557d8f2b7e5e031ff406142857d7bd3af8f4011b394d5d713459b75e275",
+    "cases/charge-empty-exclusive/evidence/stderr.txt": "6f5e0b759b7d9865e581e5ce32526647ae98bce0e780b1d4ac682c55cf43a1ba",
+    "cases/charge-empty-exclusive/evidence/stdout.txt": "a9d54852fc204c64c5108d985d9108bc40e35bbc48f769f96c3352d801099b77",
+    "cases/charge-empty-exclusive/expected.json": "611ed742ed615543d932ef9ca927561133eac6ed17233e39a59cde815e277188",
+    "cases/charge-empty-exclusive/input.xml": "54aff3706bcb76ee59085e31f6ec26ef2d0b20c6b36ebafd603f74dd55110006",
+    "cases/charge-empty-sum/evidence/process.json": "b5f14713c61c801ab3e22307e8ba47bd9839b753da3900518fb922170c5de21e",
+    "cases/charge-empty-sum/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/charge-empty-sum/evidence/stdout.txt": "d728d7629ec17bc661b60d7d3c2efd8f6541aca5a2ff097e0d5c911b4dc7374f",
+    "cases/charge-empty-sum/expected.json": "a3eec62fbe614cce021162b3f0e3c354dc6652c491706769d01add25fb8015cf",
+    "cases/charge-empty-sum/input.xml": "f92a1145aa394472c27f1758e0838d9ed243877cd636f5ddd93c2da117f5aef9",
+    "cases/large-double-binary/evidence/process.json": "61b7ee6996f9d97c2394cea1226ffb26b32a4aea149370cdddbdc13457239848",
+    "cases/large-double-binary/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/large-double-binary/evidence/stdout.txt": "25c6734dd14d7bb9044dada22a2f99ac0223d830aaa22c535cd16dc2e3a79529",
+    "cases/large-double-binary/expected.json": "00e8e24b3ba746a5496056a7d0e476cc9177e55643bb2ec23836950efa9cdd71",
+    "cases/large-double-binary/input.xml": "51cef6029878384b80fa1b9416ec26348e04d958438766c1659b4898d41928cd",
+    "cases/large-double-display/evidence/process.json": "3dd1ae0b5b1bee3e57c3982d27ae5722717cca22f932cc753fe2fcb452330073",
+    "cases/large-double-display/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/large-double-display/evidence/stdout.txt": "429cf081ed352454faf26a8137e58c4a3a93f517860fe9ec963acfc095db9fbd",
+    "cases/large-double-display/expected.json": "805ad67455603e5f7c91c4f8d0ffea5f99f0ce83f09222928d2d5fc75250e209",
+    "cases/large-double-display/input.xml": "de7f015f2ff1c7a5371754975a8fb5a3decf4642f6b2d44b44567eb32933e300",
+    "cases/negative-half-binary/evidence/process.json": "0c9d0880e1483ef29cf574c1f98596cc7d650827cdb6a9f87f15138096a3b6ef",
+    "cases/negative-half-binary/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/negative-half-binary/evidence/stdout.txt": "ab9121e8b043d6d0d83e77c9c59a6c01025a73167461e0aebb6101c73ee51804",
+    "cases/negative-half-binary/expected.json": "2fc43805c6f0f68ff0d0c84d2ea54c97840da89c488594c09b952989b105143a",
+    "cases/negative-half-binary/input.xml": "451858414aa2efed13aa74a232e433a72f792277a8a9c902ef044553b024a322",
+    "cases/negative-half-display/evidence/process.json": "9bab0941dfcfd289916dbb402558e248a9a7a30d9c0552b8822ff0996368e6d9",
+    "cases/negative-half-display/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/negative-half-display/evidence/stdout.txt": "20f5fe7ace9756be3e8cf6354aab87c92937944aa7ddc8bc3103c0e7fe2a29be",
+    "cases/negative-half-display/expected.json": "9fd71792c921805a623df4476b6a9d61f3932e065e8343a735b7a0017819e25d",
+    "cases/negative-half-display/input.xml": "a9f8e7f9837fc77bd7daf71f768b19e6293dfadc5b5b8d7039e8895ce7ec2a22",
+    "cases/positive-half-binary/evidence/process.json": "6b711763757b4ea3d6e9f89ec8d33fa5cacd6786cb583618f2298047916dd5ce",
+    "cases/positive-half-binary/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/positive-half-binary/evidence/stdout.txt": "0d91d2b3a674272279119274f7203234136d6c27bba4e3ceabd2b6706607d105",
+    "cases/positive-half-binary/expected.json": "b864b63e2a809407672ab49c52e10516985dcc43b03f9645f52d3a75bc0a2d13",
+    "cases/positive-half-binary/input.xml": "7061b18f47297028c3ad267e24d362cde526acab65587e55a54852844a7fd9cf",
+    "cases/positive-half-display/evidence/process.json": "22e6bb1c4c08fa3a9034475a22cf7e5bdfb232288bf609f13b41155b961cd85b",
+    "cases/positive-half-display/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/positive-half-display/evidence/stdout.txt": "3406b152c0c2f305f6413ecf6ffe555085b64a2fc76af3acf6e40ef5d4826eaf",
+    "cases/positive-half-display/expected.json": "f1e7921d152fe3440653eefa5ff8e2a2926fbed5cbaef18a128cd392d39adfb2",
+    "cases/positive-half-display/input.xml": "1f516123cd36e8f84de190f4b06f49b50ad005e65bd9f4b5aaf40d745cb46472",
+    "cases/two-sixty-seven-binary/evidence/process.json": "da7907cb989bc22b1d5b7597b0b681011ef3a44726fd6994591f7ac6e134c6a3",
+    "cases/two-sixty-seven-binary/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/two-sixty-seven-binary/evidence/stdout.txt": "f61acfefd7e7d2db275dc6f8f4107df16169dd5e72dfe225e0d38be959038873",
+    "cases/two-sixty-seven-binary/expected.json": "b864b63e2a809407672ab49c52e10516985dcc43b03f9645f52d3a75bc0a2d13",
+    "cases/two-sixty-seven-binary/input.xml": "85c016db8fa7575a25b956da6f3283a473aac1adfae2c6316ef077be279bb18d",
+    "cases/two-sixty-seven-display/evidence/process.json": "083284615b1958df60306a893d7b8a5b0c7d794e70819c1d11cb792c67348e81",
+    "cases/two-sixty-seven-display/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/two-sixty-seven-display/evidence/stdout.txt": "0d69736d0776f58663ca41e4033964ebb1f09096481d1b741143129ce54d3ce4",
+    "cases/two-sixty-seven-display/expected.json": "f1e7921d152fe3440653eefa5ff8e2a2926fbed5cbaef18a128cd392d39adfb2",
+    "cases/two-sixty-seven-display/input.xml": "e50db7f47bd92eaab1fe437b1c4d01b0fbf0637f1b88df03ac4180e41f7f9b8b"
+  },
+  "expectation_mismatches": []
+}

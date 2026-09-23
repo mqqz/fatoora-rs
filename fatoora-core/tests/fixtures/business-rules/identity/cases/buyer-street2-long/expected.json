@@ -1,0 +1,37 @@
+{
+  "layers": {
+    "xsd": "passed",
+    "en": "passed",
+    "ksa": "passed",
+    "qr": "not_run",
+    "signature": "not_run",
+    "pih": "passed",
+    "global": "passed"
+  },
+  "findings": [
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-F-06-C11",
+      "message": "[BR-KSA-F-06-C11] - Field character limits for the Buyer Address - Additional street field (BT-51) have not been met. The maximum limit is 127 characters."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-19",
+      "message": "[BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-69",
+      "message": "[BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-15",
+      "message": "[BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has \"01\" as first 2 digits)) must contain the supply date (KSA-5)."
+    }
+  ]
+}

@@ -1,0 +1,2080 @@
+{
+  "schema_version": 1,
+  "sdk_version": "238-R3.4.8",
+  "sites": {
+    "cen:001:BR-52": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:002:BR-31": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:003:BR-32": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:004:BR-DEC-01": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:005:BR-DEC-02": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:006:BR-36": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:007:BR-37": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:008:BR-DEC-06": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:009:BR-DEC-05": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:010:BR-43": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:011:BR-DEC-27": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:012:BR-DEC-28": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:013:BR-13": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:014:BR-14": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:015:BR-15": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:016:BR-CO-10": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "cen:017:BR-CO-11": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/totals.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/totals_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:018:BR-CO-12": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/totals.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/totals_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:019:BR-CO-12": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/totals.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/totals_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:020:BR-CO-13": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/totals.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/totals_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:021:BR-CO-13": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/totals.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/totals_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:022:BR-CO-16": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/totals.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/totals_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:023:BR-DEC-09": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "cen:024:BR-DEC-10": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "cen:025:BR-DEC-11": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "cen:026:BR-DEC-12": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "cen:027:BR-DEC-14": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "cen:028:BR-DEC-16": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "cen:029:BR-DEC-17": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "cen:030:BR-DEC-18": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "cen:031:BR-02": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:032:BR-KSA-F-06-C1": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:033:BR-KSA-F-06-C2": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:034:BR-03": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:035:BR-04": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:036:BR-05": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:037:BR-06": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:038:BR-KSA-F-06-C10": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:039:BR-KSA-F-06-C8": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:040:BR-08": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:041:BR-KSA-F-06-C27": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:042:BR-16": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:043:BR-53": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:044:BR-KSA-F-06-C17": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:045:BR-KSA-F-06-C30": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:046:BR-KSA-F-06-C31": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:047:BR-KSA-F-06-C20": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:048:BR-CO-15": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "cen:049:BR-CO-18": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:050:BR-E-01": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:051:BR-O-01": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:052:BR-S-01": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:053:BR-Z-07": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:054:BR-E-07": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:055:BR-Z-01": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:056:BR-KSA-F-06-C18": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:057:BR-KSA-F-06-C19": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:058:BR-KSA-F-C-01": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:059:BR-21": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:060:BR-22": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:061:BR-24": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:062:BR-25": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "cen:063:BR-26": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:064:BR-CO-04": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:065:BR-DEC-23": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:066:BR-41": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:067:BR-DEC-24": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "cen:068:BR-DEC-25": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "cen:069:BR-54": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:070:BR-49": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:071:BR-55": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:072:BR-09": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:073:BR-CO-14": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "cen:074:BR-45": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:075:BR-46": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:076:BR-47": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:077:BR-48": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:078:BR-CO-17": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:079:BR-DEC-19": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:080:BR-DEC-20": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/structural.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/structural_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:081:BR-E-08": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:082:BR-E-09": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:083:BR-E-06": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:084:BR-E-05": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:085:BR-O-08": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:086:BR-O-09": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:087:BR-S-08": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:088:BR-S-09": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:089:BR-S-10": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:090:BR-S-06": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:091:BR-S-07": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:092:BR-Z-08": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:093:BR-Z-09": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:094:BR-Z-06": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:095:BR-Z-05": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:096:BR-DEC-13": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "cen:097:BR-DEC-15": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "cen:098:BR-CL-01": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/code_lists.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/code_list_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:099:BR-CL-03": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/code_lists.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/code_list_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:100:BR-CL-04": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/code_lists.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/code_list_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:101:BR-CL-05": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/code_lists.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/code_list_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:102:BR-CL-14": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/code_lists.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/code_list_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:103:BR-CL-16": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/code_lists.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/code_list_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:104:BR-CL-18": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/code_lists.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/code_list_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "cen:105:BR-S-05": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/vat.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/vat_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:001:BR-KSA-F-06-C3": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:002:BR-KSA-98": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_dates.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_date_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:003:BR-KSA-F-06-C5": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:004:BR-KSA-03": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:005:BR-KSA-27": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:006:BR-CL-KSA-14": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:007:BR-KSA-33": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:008:BR-KSA-92": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:009:BR-KSA-34": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:010:BR-CUSTOM-VALIDATION-01": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:011:BR-KSA-39": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:012:BR-KSA-08": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:013:BR-KSA-61": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:014:BR-KSA-68": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:015:BR-KSA-CL-06": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:016:BR-KSA-70": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_dates.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_date_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:017:BR-KSA-80": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:018:BR-KSA-79": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:019:BR-KSA-79": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:020:BR-KSA-74": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:021:BR-KSA-82": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:022:BR-KSA-82": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:023:BR-KSA-73": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:024:BR-KSA-73": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:025:BR-KSA-75": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:026:BR-KSA-79": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:027:BR-KSA-79": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:028:BR-KSA-DEC-06": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:029:BR-KSA-76": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:030:BR-KSA-77": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:031:BR-KSA-78": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:032:BR-KSA-49": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:033:BR-KSA-04": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_dates.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_date_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:034:BR-KSA-05": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_fields.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_field_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:035:BR-KSA-06": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_fields.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_field_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:036:BR-KSA-F-06-C40": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_fields.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_field_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:037:BR-KSA-F-08": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:038:BR-KSA-F-09": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:039:BR-KSA-F-12": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:040:BR-KSA-F-13": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:041:BR-KSA-14": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:042:BR-KSA-F-07": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:043:BR-KSA-F-10": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:044:BR-KSA-F-11": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:045:BR-KSA-F-06-C4": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:046:BR-KSA-09": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:047:BR-KSA-F-06-C11": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:048:BR-KSA-F-06-C7": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:049:BR-KSA-F-06-C6": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:050:BR-KSA-66": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:051:BR-KSA-26": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:052:BR-KSA-28": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:053:BR-KSA-29": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:054:BR-KSA-30": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:055:BR-KSA-35": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:056:BR-KSA-36": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_dates.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_date_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:057:BR-KSA-37": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:058:BR-KSA-40": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:059:BR-KSA-42": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_common.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_common_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:060:BR-KSA-51": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_arithmetic.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_arithmetic_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:061:BR-KSA-18": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:062:BR-KSA-F-06-C16": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:063:BR-KSA-63": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:064:BR-KSA-F-06-C28": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:065:BR-KSA-F-06-C29": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:066:BR-KSA-F-06-C9": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:067:BR-KSA-67": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:068:BR-KSA-72": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:069:BR-KSA-52": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:070:BR-KSA-F-06-C23": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:071:BR-KSA-F-06-C25": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:072:BR-KSA-F-06-C32": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:073:BR-KSA-F-06-C12": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:074:BR-KSA-53": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:075:BR-KSA-F-06-C14": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:076:BR-KSA-F-06-C24": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:077:BR-KSA-F-06-C26": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:078:BR-KSA-16": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:079:BR-KSA-10": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:080:BR-KSA-F-06-C15": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:081:BR-KSA-15": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:082:BR-KSA-17": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:083:BR-KSA-17": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:084:BR-KSA-F-06-C13": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:085:BR-KSA-56": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:086:BR-KSA-F-06-C22": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:087:BR-KSA-56": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:088:BR-KSA-25": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:089:BR-KSA-31": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:090:BR-KSA-60": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:091:BR-KSA-71": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:092:BR-KSA-07": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:093:BR-KSA-99": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:094:BR-KSA-44": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:095:BR-KSA-DEC-01": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:096:BR-KSA-19": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:097:BR-KSA-21": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:098:BR-KSA-F-06-C33": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:099:BR-KSA-20": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:100:BR-KSA-22": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:101:BR-KSA-F-06-C34": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:102:BR-KSA-F-06-C35": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:103:BR-KSA-11": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:104:BR-KSA-12": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:105:BR-KSA-13": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:106:BR-KSA-F-06-C36": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:107:BR-KSA-81": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:108:BR-KSA-DEC-02": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:109:BR-KSA-DEC-03": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:110:BR-KSA-DEC-04": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:111:BR-KSA-CL-01": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_currency.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_currency_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:112:BR-KSA-CL-02": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_currency.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_currency_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:113:BR-KSA-CL-03": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:114:BR-KSA-83": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:115:BR-KSA-CL-04": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:116:BR-KSA-24": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:117:BR-KSA-23": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:118:BR-KSA-69": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:119:BR-KSA-84": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:120:BR-KSA-84": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:121:BR-KSA-84": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:122:BR-KSA-84": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:123:BR-KSA-93": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:124:BR-KSA-94": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:125:BR-KSA-95": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:126:BR-KSA-96": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:127:BR-KSA-CL-07": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:128:BR-KSA-F-06-C39": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:129:BR-KSA-F-01": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_dates.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_date_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:130:BR-KSA-F-05": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_dates.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_date_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:131:BR-KSA-F-02": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_currency.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_currency_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:132:BR-KSA-F-04": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_currency.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_currency_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:133:BR-KSA-EN16931-01": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_fields.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_field_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:134:BR-KSA-EN16931-08": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_fields.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_field_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:135:BR-KSA-97": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_arithmetic.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_arithmetic_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:136:BR-KSA-EN16931-02": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "ksa:137:BR-KSA-EN16931-09": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/rules.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/numeric_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/xml_tests.rs"
+      ]
+    },
+    "ksa:138:BR-KSA-EN16931-03": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_arithmetic.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_arithmetic_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:139:BR-KSA-EN16931-05": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_fields.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_field_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:140:BR-KSA-EN16931-04": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_fields.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_field_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:141:BR-KSA-EN16931-06": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_fields.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_field_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:142:BR-KSA-EN16931-11": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_arithmetic.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_arithmetic_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:143:BR-KSA-F-06-C21": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_fields.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_field_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:144:BR-KSA-EN16931-12": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_fields.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_field_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:145:BR-KSA-EN16931-07": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_adjustments.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_adjustment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:146:BR-KSA-85": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:147:BR-KSA-F-06-C37": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:148:BR-KSA-F-06-C38": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/identity.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/identity_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:149:BR-KSA-87": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_currency.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_currency_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:150:BR-KSA-88": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_currency.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_currency_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:151:BR-KSA-89": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_currency.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_currency_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    },
+    "ksa:152:BR-KSA-90": {
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_currency.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_currency_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
+    }
+  }
+}

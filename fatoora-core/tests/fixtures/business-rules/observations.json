@@ -1,0 +1,2382 @@
+{
+  "schema_version": 1,
+  "sdk_version": "238-R3.4.8",
+  "corpus_manifest_sha256": "872d251be12e3f3388d1afd57a566be6721d19bafc61b39442dad65902c74411",
+  "cases": {
+    "export-self-billed": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-69",
+              "message": "[BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-15",
+              "message": "[BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has \"01\" as first 2 digits)) must contain the supply date (KSA-5)."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/export-self-billed/evidence/validate/stdout.txt": "8e0d58c70f3f15382b599ce6d1eefca91778dd599be1160b15d928f8da813184",
+          "cases/export-self-billed/evidence/validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/export-self-billed/evidence/validate/process.json": "c2ce3bc0986f4f672509358790fc36d5601186eb6cd9f6e918e77a671e98c46a"
+        }
+      },
+      "signed-validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-69",
+              "message": "[BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-15",
+              "message": "[BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has \"01\" as first 2 digits)) must contain the supply date (KSA-5)."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/export-self-billed/evidence/signed-validate/stdout.txt": "8f4e76b5b3b398d52758ed4e24d13e51f25e693e8f8afa2495f8c31a4f069297",
+          "cases/export-self-billed/evidence/signed-validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/export-self-billed/evidence/signed-validate/process.json": "9e9a4ce9743c0cf075fdcede50863d9c0a870f97a3f8a52d2822c5dfa6d3080b"
+        }
+      }
+    },
+    "foreign-currency": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "failed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "error",
+              "code": "BR-KSA-EN16931-02",
+              "message": "[BR-KSA-EN16931-02]-VAT accounting currency code (BT-6) must be \"SAR\"."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-97",
+              "message": "[BR-KSA-97]-If the Document Currency Code (BT-5) is different from \"SAR\", then the value in \"Invoice total VAT amount (BT-110)\" cannot be the same as the value in \"Invoice total VAT amount in accounting currency (BT-111)\"."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-15",
+              "message": "[BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has \"01\" as first 2 digits)) must contain the supply date (KSA-5)."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/foreign-currency/evidence/validate/stdout.txt": "890fb544a03997b7ac2cdea856327bcceec3f089ccb2a39d8051422065f2a62c",
+          "cases/foreign-currency/evidence/validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/foreign-currency/evidence/validate/process.json": "191c4830afe48d3a373538a3c31b35195e13646bdd58f89affe4d70a9f7dea10"
+        }
+      },
+      "signed-validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "failed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "error",
+              "code": "BR-KSA-EN16931-02",
+              "message": "[BR-KSA-EN16931-02]-VAT accounting currency code (BT-6) must be \"SAR\"."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-97",
+              "message": "[BR-KSA-97]-If the Document Currency Code (BT-5) is different from \"SAR\", then the value in \"Invoice total VAT amount (BT-110)\" cannot be the same as the value in \"Invoice total VAT amount in accounting currency (BT-111)\"."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-15",
+              "message": "[BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has \"01\" as first 2 digits)) must contain the supply date (KSA-5)."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/foreign-currency/evidence/signed-validate/stdout.txt": "e1cb3a6db551413a5c4591e5bab8fe3be1a29b6ecce6bec48f9309be0e60e5c7",
+          "cases/foreign-currency/evidence/signed-validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/foreign-currency/evidence/signed-validate/process.json": "a8e8b470a25b673c22b88f3cceb87339ff934760229e9bd2c713ac72e5dbcca8"
+        }
+      }
+    },
+    "mixed-vat": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-23",
+              "message": "[BR-KSA-23]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Exempt from VAT' shall have a VAT exemption reason code (BT-121)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-69",
+              "message": "[BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/mixed-vat/evidence/validate/stdout.txt": "db334132e8002219174dd032a4ab8d814701a005e02c8addb437faf79962d569",
+          "cases/mixed-vat/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/mixed-vat/evidence/validate/process.json": "fc56218464c95b73806ba41cb806a1c8fed2880f6f6273c90721ea5a7bd205f5"
+        }
+      },
+      "signed-validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "passed",
+            "signature": "passed",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-23",
+              "message": "[BR-KSA-23]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Exempt from VAT' shall have a VAT exemption reason code (BT-121)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-69",
+              "message": "[BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121)."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/mixed-vat/evidence/signed-validate/stdout.txt": "74b1fd3f411c9a101096c765a894b0130e2df3e6241e9dc4a6f62025c3e23c74",
+          "cases/mixed-vat/evidence/signed-validate/stderr.txt": "7fabba706354fe49a546d6a3c7c2b10b781b6c1f5447a41dda0dcbe8e1bf5a55",
+          "cases/mixed-vat/evidence/signed-validate/process.json": "e2c83c055cf772b59ac6703a1bd6fad4568f8855204b97751cfae7c027360541"
+        }
+      }
+    },
+    "out-of-scope": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-24",
+              "message": "[BR-KSA-24]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Not subject to VAT' shall have a VAT exception reason code (BT-121)"
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-15",
+              "message": "[BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has \"01\" as first 2 digits)) must contain the supply date (KSA-5)."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/out-of-scope/evidence/validate/stdout.txt": "114dfae2002d1a67a58cf08e09bf780b3fb5cc41f405d260a0cfb3eccf198f54",
+          "cases/out-of-scope/evidence/validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/out-of-scope/evidence/validate/process.json": "8a01363c055436b7c69462bb3480137b452ea763c420e67b6d8c518e2de525e5"
+        }
+      },
+      "signed-validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-24",
+              "message": "[BR-KSA-24]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Not subject to VAT' shall have a VAT exception reason code (BT-121)"
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-15",
+              "message": "[BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has \"01\" as first 2 digits)) must contain the supply date (KSA-5)."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/out-of-scope/evidence/signed-validate/stdout.txt": "2d1caaa1f8477a4e21acfa1f39a4585553c4c5fc9f869ec81525defaca4547e9",
+          "cases/out-of-scope/evidence/signed-validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/out-of-scope/evidence/signed-validate/process.json": "d48de965425188025765dd5051c28e804f9594d5bcbed2b5f6fe2454f9cee8ce"
+        }
+      }
+    },
+    "prepayment": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-19",
+              "message": "[BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105)."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/prepayment/evidence/validate/stdout.txt": "5e9575e66f2eed77c19bc06c4c1004c409d2c696957459992b01c89daeaddf0c",
+          "cases/prepayment/evidence/validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/prepayment/evidence/validate/process.json": "5d48b3f0786f85e24c4f83a6ad7abc48a737fa021a863dd70db1c2c87721fb19"
+        }
+      },
+      "signed-validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-19",
+              "message": "[BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105)."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/prepayment/evidence/signed-validate/stdout.txt": "567cd19797436aa38630bb6ee61456b9107d92fbd5ac1bb7a2cf68be2b657c89",
+          "cases/prepayment/evidence/signed-validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/prepayment/evidence/signed-validate/process.json": "cba9d944beb060986bc842629a981e0acdaf1f2d5a9bcb304d26d1fe4eb8be19"
+        }
+      }
+    },
+    "simplified-credit": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/simplified-credit/evidence/validate/stdout.txt": "dcf830177af7133f4ba0ea5ae0b8fb47992dcf8e4e120d34997a2e0b4707ae83",
+          "cases/simplified-credit/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/simplified-credit/evidence/validate/process.json": "47c19df365497f3a0c62db7652fe428e190f543c0ff7fe9f711daf2c9531632b"
+        }
+      },
+      "signed-validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "passed",
+            "signature": "passed",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/simplified-credit/evidence/signed-validate/stdout.txt": "f0e20f5aa56f41bd0d736c253bbf766b0a60bfcb81ae0505aaa34a6d762b992d",
+          "cases/simplified-credit/evidence/signed-validate/stderr.txt": "7fabba706354fe49a546d6a3c7c2b10b781b6c1f5447a41dda0dcbe8e1bf5a55",
+          "cases/simplified-credit/evidence/signed-validate/process.json": "060189bab1a9c7ec539c79eba4bbcc5071e9db8f20632c25d7f3f9bc1b5c0e1a"
+        }
+      }
+    },
+    "simplified-debit": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-19",
+              "message": "[BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/simplified-debit/evidence/validate/stdout.txt": "6206e3c431a95840bc85bc39e2d04642370a6855c6825a4b15734ed8022c28d4",
+          "cases/simplified-debit/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/simplified-debit/evidence/validate/process.json": "3e67fffaffa983220ffd8251cfd0fbca275e0cae21bfc5568b2b14f2edc5a569"
+        }
+      },
+      "signed-validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "passed",
+            "signature": "passed",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-19",
+              "message": "[BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/simplified-debit/evidence/signed-validate/stdout.txt": "f8be696e1abe978641c71ee74708cbe613343548c41ef55fe7065d6db112238e",
+          "cases/simplified-debit/evidence/signed-validate/stderr.txt": "7fabba706354fe49a546d6a3c7c2b10b781b6c1f5447a41dda0dcbe8e1bf5a55",
+          "cases/simplified-debit/evidence/signed-validate/process.json": "0e51ef6a04f9fc6604cc7d3d0430063f0a65831148c620aa52856f073dddacd4"
+        }
+      }
+    },
+    "simplified-invoice": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/simplified-invoice/evidence/validate/stdout.txt": "134770bf7c8836752b91350c3729396aec93302e741159b4d4c5a4cf92e9d679",
+          "cases/simplified-invoice/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/simplified-invoice/evidence/validate/process.json": "99fad84ab6dcec46b7d11c590d1f64719ea5b5189a4f891c16055f20027f2eb8"
+        }
+      },
+      "signed-validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "passed",
+            "signature": "passed",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/simplified-invoice/evidence/signed-validate/stdout.txt": "5ca595de4ce36a14e8cd7eaefec274632225e8bcf91dc89c08a875a5d8a8d8b9",
+          "cases/simplified-invoice/evidence/signed-validate/stderr.txt": "7fabba706354fe49a546d6a3c7c2b10b781b6c1f5447a41dda0dcbe8e1bf5a55",
+          "cases/simplified-invoice/evidence/signed-validate/process.json": "7aeb8c244b622ce85996324aa71ada47a41448553a9ecd72977fca9bcd18ca51"
+        }
+      }
+    },
+    "standard-credit": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": []
+        },
+        "evidence": {
+          "cases/standard-credit/evidence/validate/stdout.txt": "32555fbe6396c10b51decef0b5f06886024a41bda9e0d8a2a4382d86d539549f",
+          "cases/standard-credit/evidence/validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/standard-credit/evidence/validate/process.json": "2514a9d32e0a5805c935e3d6ac4a58b11160220d1104c130156cf4b1ba2a8068"
+        }
+      },
+      "signed-validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": []
+        },
+        "evidence": {
+          "cases/standard-credit/evidence/signed-validate/stdout.txt": "1bafb121d3e12d0f377ce353b169e956121361d9690bf7229748f0457563fc14",
+          "cases/standard-credit/evidence/signed-validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/standard-credit/evidence/signed-validate/process.json": "0195510938ac8f2376e6682196beafa3c77ced2f5298c6d6f6de74564bc286ef"
+        }
+      }
+    },
+    "standard-debit": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-19",
+              "message": "[BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105)."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/standard-debit/evidence/validate/stdout.txt": "3cdf905af0ba18ac4a6037d5d59380b1eca4ae7d06e88cb193192b54714ee180",
+          "cases/standard-debit/evidence/validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/standard-debit/evidence/validate/process.json": "87ca9682f2cffb1d438fa479ee72bb4eb8d2404dfc1ff05bb975455f6a4f90ef"
+        }
+      },
+      "signed-validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-19",
+              "message": "[BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105)."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/standard-debit/evidence/signed-validate/stdout.txt": "f1446c205c2802b0c77739f0a37e2ae925cb0255cbaff8a08be08ded1c5fcc0d",
+          "cases/standard-debit/evidence/signed-validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/standard-debit/evidence/signed-validate/process.json": "720ab9ee75ded0470a7bc175fce259645cdc712e734eb6d55a86dd27968cb682"
+        }
+      }
+    },
+    "standard-invoice": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-19",
+              "message": "[BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-69",
+              "message": "[BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-15",
+              "message": "[BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has \"01\" as first 2 digits)) must contain the supply date (KSA-5)."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/standard-invoice/evidence/validate/stdout.txt": "f9fb4f33e6328355d62a45cbd138580299a50ce76f5b416040d4985a99e6025f",
+          "cases/standard-invoice/evidence/validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/standard-invoice/evidence/validate/process.json": "9a2bdf95d251bac414f9cd5e7efd7243e79678f736b2fffbe0896b29f0e88ba5"
+        }
+      },
+      "signed-validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-19",
+              "message": "[BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-69",
+              "message": "[BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-15",
+              "message": "[BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has \"01\" as first 2 digits)) must contain the supply date (KSA-5)."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/standard-invoice/evidence/signed-validate/stdout.txt": "2cbfc259991418df65d8a2b8e9abe0e4ecea818f353bd59d37607cf8a0ac6fdf",
+          "cases/standard-invoice/evidence/signed-validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/standard-invoice/evidence/signed-validate/process.json": "c6f3c3c7324231f97d31a50d0ce47f1d8716056210bf87a8925a5118a4e2dd22"
+        }
+      }
+    },
+    "comments": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/comments/evidence/validate/stdout.txt": "738ba87bf201167f5cdfef280146af89a86ba0aae4125edf21fe28928eb06d30",
+          "cases/comments/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/comments/evidence/validate/process.json": "82115b105b2f283d1070e1f9da8312f6205d80a18055499a293677c35cf8691d"
+        }
+      }
+    },
+    "processing-instruction": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/processing-instruction/evidence/validate/stdout.txt": "3878f22c9d430a75a4f2739f201a3560343d843e6a713e48264c222243819ab6",
+          "cases/processing-instruction/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/processing-instruction/evidence/validate/process.json": "0e1803f79112c9121570ab1e0ffad7c79c1a5a2761feb2637be76ca4ab84d124"
+        }
+      }
+    },
+    "arabic": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/arabic/evidence/validate/stdout.txt": "79061dde64ff8a716207afda69d5fa301ce6ab51508c9ca67e9ac887c3a68f99",
+          "cases/arabic/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/arabic/evidence/validate/process.json": "231ddf2d1ff478de93f9f2a81cfcc212743a3485a85170550ed596ee7da5a97b"
+        }
+      }
+    },
+    "text-whitespace": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/text-whitespace/evidence/validate/stdout.txt": "0e582031afc5aa2b4e12babd1a1e123a1eaadc87ca4e9af62463c4a22dd28e33",
+          "cases/text-whitespace/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/text-whitespace/evidence/validate/process.json": "05d9669cec37399ff2368e37969bc654f33bf749b90e055f3c86ff723428ba15"
+        }
+      }
+    },
+    "character-reference": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/character-reference/evidence/validate/stdout.txt": "e45cdca4579273457af0b9c1ec6e5e5ef5a8f4223e98dd5669d9924d6f6dc3b0",
+          "cases/character-reference/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/character-reference/evidence/validate/process.json": "22490e706eeb35e7f48edebe3cbb6acdd80d31cf9fb4b726d32857b36a1af417"
+        }
+      }
+    },
+    "cdata": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/cdata/evidence/validate/stdout.txt": "9ce2a4347ffe7984c242bea0f5e372f78c1b1fba13e2316d0527c7ea87bd68f3",
+          "cases/cdata/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/cdata/evidence/validate/process.json": "f23a68f8f2d1d5d20f990b3e85569239cdbdee977c5663e49b10568499287739"
+        }
+      }
+    },
+    "unused-namespace": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/unused-namespace/evidence/validate/stdout.txt": "43a2accfce4b896eb12db2d15bd2c1c89f2742db1cbea91b1c81fd7b7e5ab1d7",
+          "cases/unused-namespace/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/unused-namespace/evidence/validate/process.json": "423949d24008537c49fdf503704f0cb316674a1140cda73313137252e33b6a6f"
+        }
+      }
+    },
+    "included-amount": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "failed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "en",
+              "severity": "error",
+              "code": "BR-CO-15",
+              "message": "[BR-CO-15]-Invoice total amount with VAT (BT-112) = Invoice total amount without VAT (BT-109) + Invoice total VAT amount (BT-110)."
+            },
+            {
+              "source": "en",
+              "severity": "warning",
+              "code": "BR-CO-16",
+              "message": "[BR-CO-16]-Amount due for payment (BT-115) = Invoice total amount with VAT (BT-112) -Pre-Paid amount (BT-113) + Rounding amount (BT-114)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/included-amount/evidence/validate/stdout.txt": "8314ae70a5895f56a6adc03bf424758812adf0264dd493d4f90fb5364641483f",
+          "cases/included-amount/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/included-amount/evidence/validate/process.json": "ccd3bd0c99c608373e73ad777b76b4c183080883ddaddd8ebfc98ec00579beff"
+        }
+      }
+    },
+    "missing-id": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "failed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "xsd",
+              "severity": "error",
+              "code": "SAXParseException",
+              "message": "Schema validation failed; XML does not comply with UBL 2.1 standards in line with ZATCA specifications. ERROR: org.xml.sax.SAXParseException; lineNumber: 4; columnNumber: 13; cvc-complex-type.2.4.a: Invalid content was found starting with element '{\"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":UUID}'. One of '{\"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":ProfileExecutionID, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":ID}' is expected."
+            },
+            {
+              "source": "en",
+              "severity": "warning",
+              "code": "BR-02",
+              "message": "[BR-02]-An Invoice shall have an Invoice number (BT-1)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/missing-id/evidence/validate/stdout.txt": "aa847900da6fa51b5a1473c615dae97898882be4a1e6aa39c558fbcf687a77eb",
+          "cases/missing-id/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/missing-id/evidence/validate/process.json": "d2b9ad571a325e0cd0715a06ab9a625eb765cefb0cf60dce7c2a51f2610f858f"
+        }
+      }
+    },
+    "invalid-datatype": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "failed",
+            "en": "passed",
+            "ksa": "failed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "xsd",
+              "severity": "error",
+              "code": "SAXParseException",
+              "message": "Schema validation failed; XML does not comply with UBL 2.1 standards in line with ZATCA specifications. ERROR: org.xml.sax.SAXParseException; lineNumber: 6; columnNumber: 44; cvc-datatype-valid.1.2.1: 'not-a-date' is not a valid value for 'date'."
+            },
+            {
+              "source": "ksa",
+              "severity": "error",
+              "code": "SaxonApiException",
+              "message": "Invalid dateTime value \"not-a-dateT12:30:00\" (Non-numeric year component)"
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/invalid-datatype/evidence/validate/stdout.txt": "a091a176f6c4beec2bb9e4b931b74443fc840354c67936f558b3dfc29f5484fd",
+          "cases/invalid-datatype/evidence/validate/stderr.txt": "f4a555cbe7e938d11941afcaf2e5d09ad1455fb818e02332a7afb4860fb0edd5",
+          "cases/invalid-datatype/evidence/validate/process.json": "e4f39c430104f6cee7ec676fbcb8afe7a14c8b6bdbb07bdc5e572415e41da59e"
+        }
+      }
+    },
+    "wrong-order": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "failed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "xsd",
+              "severity": "error",
+              "code": "SAXParseException",
+              "message": "Schema validation failed; XML does not comply with UBL 2.1 standards in line with ZATCA specifications. ERROR: org.xml.sax.SAXParseException; lineNumber: 4; columnNumber: 18; cvc-complex-type.2.4.a: Invalid content was found starting with element '{\"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":ProfileID}'. One of '{\"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":CopyIndicator, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":UUID, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":IssueDate}' is expected."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/wrong-order/evidence/validate/stdout.txt": "6c3ae765237760ecd34046cb457c9ffac3e13e531fa592a84f2201a04e3677c2",
+          "cases/wrong-order/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/wrong-order/evidence/validate/process.json": "6dec2d89dc9f56273cae725e5c1dc4dbbf4d0ba0f793b5d015f20185679748cb"
+        }
+      }
+    },
+    "wrong-namespace": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "failed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "xsd",
+              "severity": "error",
+              "code": "SAXParseException",
+              "message": "Schema validation failed; XML does not comply with UBL 2.1 standards in line with ZATCA specifications. ERROR: org.xml.sax.SAXParseException; lineNumber: 2; columnNumber: 279; cvc-elt.1.a: Cannot find the declaration of element 'Invoice'."
+            },
+            {
+              "source": "en",
+              "severity": "warning",
+              "code": "BR-CO-13",
+              "message": "[BR-CO-13]-Invoice total amount without VAT (BT-109) = Σ Invoice line net amount (BT-131) - Sum of allowances on document level (BT-107) + Sum of charges on document level (BT-108)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/wrong-namespace/evidence/validate/stdout.txt": "cb9bd5e67764de3706201c2856fa8b09c4035c446086a6b9777caf4657651889",
+          "cases/wrong-namespace/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/wrong-namespace/evidence/validate/process.json": "aea9a90f9dafc500028a6bc72dcb5e9b40f32e5cccc0f24fa13fa7cf6beee001"
+        }
+      }
+    },
+    "malformed": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "not_run",
+            "parse": "failed",
+            "global": "not_run"
+          },
+          "findings": []
+        },
+        "evidence": {
+          "cases/malformed/evidence/validate/stdout.txt": "e528468643ae122e10a6d11080dc7188e9ccf5e8af1892bd012b670bcf676dd7",
+          "cases/malformed/evidence/validate/stderr.txt": "4c2dff9177580c7d07a2516eef1019f0d32e43532cf0ed081ec123da30407c15",
+          "cases/malformed/evidence/validate/process.json": "6471a3fc047b99e482a056b7d884bcad38a9630dd0591bf09a9c6472aee70785"
+        }
+      }
+    },
+    "excluded-extension": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/excluded-extension/evidence/validate/stdout.txt": "bdc78ae3317ac658104c2eb0fd98e2ea1273c1efdf0860089c021ae46fb19a64",
+          "cases/excluded-extension/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/excluded-extension/evidence/validate/process.json": "4ffda61a23e5e8fe8739c17f6d6cbe8273cd2204f4964546e005a00ae423f6cf"
+        }
+      }
+    },
+    "excluded-signature": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/excluded-signature/evidence/validate/stdout.txt": "b5ee0797c7e6cbbb1a438bf7d78a35c3c72ca5ee4385bcddba80347663178100",
+          "cases/excluded-signature/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/excluded-signature/evidence/validate/process.json": "7c2f07a8a34a6fe201aed9b922c6241df3774ac8f47ee17fe64cf4dfcfa06694"
+        }
+      }
+    },
+    "excluded-qr": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "failed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "error",
+              "code": "BR-KSA-30",
+              "message": "[BR-KSA-30]-The document cryptographic stamp (KSA-15) must contain the exact \"urn:oasis:names:specification:ubl:dsig:enveloped:xades\" value for signature method."
+            },
+            {
+              "source": "ksa",
+              "severity": "error",
+              "code": "BR-KSA-28",
+              "message": "[BR-KSA-28]-If the cryptographic stamp (KSA-15) exists in the invoice, this cryptographic stamp (KSA-15) must contain the exact \"urn:oasis:names:specification:ubl:signature:1\" value for signature information ID."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-29",
+              "message": "[BR-KSA-29]-If the cryptographic stamp (KSA-15) exists in the invoice, this cryptographic stamp (KSA-15) must contain the exact \"urn:oasis:names:specification:ubl:signature:Invoice\" value for referenced signature ID and signature ID."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/excluded-qr/evidence/validate/stdout.txt": "75d6ae431f613f534598551732aba201fa2f6756178dabb995c1232cc38b9ae7",
+          "cases/excluded-qr/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/excluded-qr/evidence/validate/process.json": "5b92002bf182d0bdaf25bbdc14e16efdc3755b0a43e93982bfa58330708d81c4"
+        }
+      }
+    },
+    "crlf": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/crlf/evidence/validate/stdout.txt": "abd3c7a7b94b2a82bc4fd609ba4e83fbf0c03e406ec28c7b4bf0f944480f6312",
+          "cases/crlf/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/crlf/evidence/validate/process.json": "31f5ec9b1763c6785fb5cae2fa34cc8907ece3e537f76da476fb938c8b2b1ec4"
+        }
+      }
+    },
+    "alternate-prefix": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/alternate-prefix/evidence/validate/stdout.txt": "306c66e716e4b928c585c48516bac2c187f29792ae9611e61d9bfb50c84a7d77",
+          "cases/alternate-prefix/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/alternate-prefix/evidence/validate/process.json": "1603bfa7db8065cd5d00aa2f6a170ece11e6d93dd84deb8a5f804651cda34526"
+        }
+      }
+    },
+    "explicit-default-namespace": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/explicit-default-namespace/evidence/validate/stdout.txt": "b38cf961ef5f590bbda5a741db3f8fe0a8526a83eec9075f743c92650ae3cf4e",
+          "cases/explicit-default-namespace/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/explicit-default-namespace/evidence/validate/process.json": "fb9e785704fe28e74dad04706027e5c3680dfd401a4e7eeaf5a1dbfaf4382b1a"
+        }
+      }
+    },
+    "namespace-order": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/namespace-order/evidence/validate/stdout.txt": "9e3cad65ba00455090d4541d53a2bccd1cece2e1818c05544d62445cedc89254",
+          "cases/namespace-order/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/namespace-order/evidence/validate/process.json": "51a24e7c52564f1728f5aedd5aeec02cf4b4d33ef37728a4ecebdff7473cb4a1"
+        }
+      }
+    },
+    "attribute-order-a": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/attribute-order-a/evidence/validate/stdout.txt": "83cec0590205f243b881d3b5ce0a437128e4c403531df477bec697e123c84965",
+          "cases/attribute-order-a/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/attribute-order-a/evidence/validate/process.json": "ceb0491062d09238e53f7ae90b590322f94fa61f07c0c84affa9df245fb13bd2"
+        }
+      }
+    },
+    "attribute-order-b": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/attribute-order-b/evidence/validate/stdout.txt": "df91392600978db1a99d638a7abf042e204cef3b2bfa4166d785d5b534d50712",
+          "cases/attribute-order-b/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/attribute-order-b/evidence/validate/process.json": "6e543919b985d2c564bb893260d0c71989e3be024ce3cc8ea66cb34882352990"
+        }
+      }
+    },
+    "empty-element-a": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "en",
+              "severity": "warning",
+              "code": "BR-02",
+              "message": "[BR-02]-An Invoice shall have an Invoice number (BT-1)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/empty-element-a/evidence/validate/stdout.txt": "6753985c076282dad04d768130e090c7f4c4866ebe0c12e7fec89d89fa8af9f7",
+          "cases/empty-element-a/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/empty-element-a/evidence/validate/process.json": "01bad121e8af2f95cd81cfe7ed5ddeffe2dcc13d253e3750f15cf332a7ff4c35"
+        }
+      }
+    },
+    "empty-element-b": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "failed",
+            "signature": "failed",
+            "pih": "passed",
+            "global": "failed"
+          },
+          "findings": [
+            {
+              "source": "en",
+              "severity": "warning",
+              "code": "BR-02",
+              "message": "[BR-02]-An Invoice shall have an Invoice number (BT-1)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-60",
+              "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            },
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-27",
+              "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+            },
+            {
+              "source": "qr",
+              "severity": "error",
+              "code": "QRCODE_INVALID",
+              "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "NullPointerException",
+              "message": "null"
+            },
+            {
+              "source": "signature",
+              "severity": "error",
+              "code": "certificate",
+              "message": "wrong invoiceCertificate  "
+            }
+          ]
+        },
+        "evidence": {
+          "cases/empty-element-b/evidence/validate/stdout.txt": "9ad79303382cedb39d3f79adaef0ad59318c2bcb5c9d95e46abc1c8a2a69f551",
+          "cases/empty-element-b/evidence/validate/stderr.txt": "9c4b03330e3e62dc42fdf5373ff55f7813c0660e58579786f72e5364fbd227f3",
+          "cases/empty-element-b/evidence/validate/process.json": "c7cd510d2400d6e27f90d8560b32790b4710f013299a408c2c6914b0502f0e93"
+        }
+      }
+    },
+    "payable-rounding": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": []
+        },
+        "evidence": {
+          "cases/payable-rounding/evidence/validate/stdout.txt": "79363ee364116431d0a878571911c34579b2451f58a23c927a37a198eb0b4162",
+          "cases/payable-rounding/evidence/validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/payable-rounding/evidence/validate/process.json": "e08c06e887c2f103564ded1a6bd0212bc23f2c062d4662849a672b88191c2460"
+        }
+      },
+      "signed-validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": []
+        },
+        "evidence": {
+          "cases/payable-rounding/evidence/signed-validate/stdout.txt": "95cdacae02f2ab0795093b4421d10457af386abebc5b8d8beb6de404f6f47502",
+          "cases/payable-rounding/evidence/signed-validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/payable-rounding/evidence/signed-validate/process.json": "a3ccefa60d7057d2746327f620bc7705ff8ce2b843c124fbef5cbbd3552e2641"
+        }
+      }
+    },
+    "exempt": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": []
+        },
+        "evidence": {
+          "cases/exempt/evidence/validate/stdout.txt": "51634a652e6f8048379dce5a3370c9a55469b020b3f5a3af89c57900f768325a",
+          "cases/exempt/evidence/validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/exempt/evidence/validate/process.json": "ac5564a8d13a9e95a9192fd8c3b2765465cc98b0e6430fd3a3d8f72c7ca9c15f"
+        }
+      },
+      "signed-validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": []
+        },
+        "evidence": {
+          "cases/exempt/evidence/signed-validate/stdout.txt": "49f0d9a47965265816a70c066c5e5e1e5f5aa9b192e047e7a164d4df2b936c2a",
+          "cases/exempt/evidence/signed-validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/exempt/evidence/signed-validate/process.json": "b22e11bc43bf44fe2737f920edd6b9fac2972ab2b79dbccc038a1eed246f7606"
+        }
+      }
+    },
+    "zero-rated": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "passed",
+            "signature": "passed",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/zero-rated/evidence/validate/stdout.txt": "e7ff0cf784baaa1e4101fea489cf4e79030fdfbea7cb5faec85d61e9df344278",
+          "cases/zero-rated/evidence/validate/stderr.txt": "7fabba706354fe49a546d6a3c7c2b10b781b6c1f5447a41dda0dcbe8e1bf5a55",
+          "cases/zero-rated/evidence/validate/process.json": "820d26b50abbfad6337507fc017ba24e7b43b5b100414b7158bd873942c247ce"
+        }
+      },
+      "signed-validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "passed",
+            "signature": "passed",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": [
+            {
+              "source": "ksa",
+              "severity": "warning",
+              "code": "BR-KSA-98",
+              "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+            }
+          ]
+        },
+        "evidence": {
+          "cases/zero-rated/evidence/signed-validate/stdout.txt": "4f732f602716432ce9bbcd6b60198e6cdfff121b88ef57fca8ccdd907d8bd240",
+          "cases/zero-rated/evidence/signed-validate/stderr.txt": "7fabba706354fe49a546d6a3c7c2b10b781b6c1f5447a41dda0dcbe8e1bf5a55",
+          "cases/zero-rated/evidence/signed-validate/process.json": "df5a1bcadbcdc1113df0a6c0b0acbc77ca1cda28a6a4ecabd86853a057af1bd9"
+        }
+      }
+    },
+    "document-charge": {
+      "validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": []
+        },
+        "evidence": {
+          "cases/document-charge/evidence/validate/stdout.txt": "a8ee8b012ceb81ee1bc2102698fa5fcb48f6fe5dee3b6762c1fc9d17d1f5860e",
+          "cases/document-charge/evidence/validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/document-charge/evidence/validate/process.json": "8aded09aca6cf53d64f3ddd847153a7df0995ed2d43571aa25739d6856969cd9"
+        }
+      },
+      "signed-validate": {
+        "report": {
+          "layers": {
+            "xsd": "passed",
+            "en": "passed",
+            "ksa": "passed",
+            "qr": "not_run",
+            "signature": "not_run",
+            "pih": "passed",
+            "global": "passed"
+          },
+          "findings": []
+        },
+        "evidence": {
+          "cases/document-charge/evidence/signed-validate/stdout.txt": "8f70f8255051e4feb1bb65a081764c9ed954cf68c62d7eef1289f498dabc16cd",
+          "cases/document-charge/evidence/signed-validate/stderr.txt": "0359ae00edcff9150f169c7584a00bf33f7e423288697d478d94d59dd6b41a6a",
+          "cases/document-charge/evidence/signed-validate/process.json": "50acff441334d3f517a51e6f0b8e4ed3126a758b06336221359fe28775df3c9e"
+        }
+      }
+    }
+  }
+}

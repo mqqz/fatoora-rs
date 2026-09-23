@@ -33,6 +33,14 @@ class build_py(_build_py):
             package_dir / "fatoora_ffi.h",
         )
 
+        rule_notices = package_dir / "licenses" / "zatca"
+        rule_notices.mkdir(parents=True, exist_ok=True)
+        for name in ("LICENSE-LGPL-3.0.txt", "LICENSE-GPL-3.0.txt", "NOTICE.md"):
+            shutil.copy2(
+                repo_root / "fatoora-core/tests/fixtures/business-rules" / name,
+                rule_notices / name,
+            )
+
         # Retain the notices supplied with libraries that wheel repair bundles.
         if os.name == "nt":
             vcpkg_root = Path(os.environ.get("VCPKG_INSTALLATION_ROOT", "C:/vcpkg"))

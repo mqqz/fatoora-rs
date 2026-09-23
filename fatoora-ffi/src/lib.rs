@@ -1506,6 +1506,73 @@ pub unsafe extern "C" fn fatoora_validate_xml_invoice_from_str(
     })
 }
 
+/// Validate raw XML with the local ZATCA profile and return an owned JSON report.
+///
+/// `options_json` may be null for defaults, or an object with optional
+/// `evaluated_at` (RFC3339) and `previous_invoice_hash` fields, at most 4 KiB.
+/// Rejections and incomplete coverage are successful calls: inspect `is_valid`, `is_complete`,
+/// `has_errors`, and stages. Execution errors retain a partial report in error
+/// details. Release the returned string with `fatoora_string_free`.
+///
+/// # Safety
+/// `config` must be live. String pointers must be valid NUL-terminated UTF-8;
+/// `xml` must not be null. Inputs are borrowed only for this call.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn fatoora_validate_zatca_invoice_from_str(
+    config: *mut FfiConfig,
+    xml: *const c_char,
+    options_json: *const c_char,
+) -> FfiResult<FfiString> {
+    crate::error::boundary(|| {
+        let config = match borrow_config(config) {
+            Ok(value) => value,
+            Err(error) => return FfiResult::err(error),
+        };
+        if xml.is_null() {
+            return FfiResult::err(ffi_error_invalid_input("xml is null"));
+        }
+        let xml = match unsafe { CStr::from_ptr(xml) }.to_str() {
+            Ok(value) => value,
+            Err(_) => return FfiResult::err(ffi_error_invalid_input("xml is not valid utf-8")),
+        };
+        let options = if options_json.is_null() {
+            fatoora_core::invoice::validation::ZatcaValidationOptions::default()
+        } else {
+            let value = unsafe { CStr::from_ptr(options_json) };
+            if value.to_bytes().len() > 4 * 1024 {
+                return FfiResult::err(ffi_error_invalid_input("options_json exceeds 4 KiB"));
+            }
+            let value = match value.to_str() {
+                Ok(value) => value,
+                Err(_) => {
+                    return FfiResult::err(ffi_error_invalid_input(
+                        "options_json is not valid utf-8",
+                    ));
+                }
+            };
+            match serde_json::from_str(value) {
+                Ok(options) => options,
+                Err(error) => {
+                    return FfiResult::err(ffi_error_invalid_input(format!(
+                        "Invalid validation options: {error}"
+                    )));
+                }
+            }
+        };
+        match fatoora_core::invoice::validation::validate_zatca_invoice_from_str(
+            xml, config, &options,
+        ) {
+            Ok(report) => match serde_json::to_string(&report) {
+                Ok(json) => ffi_string_from_owned(json),
+                Err(error) => FfiResult::err(ffi_error_internal(format!(
+                    "Could not serialize validation report: {error}"
+                ))),
+            },
+            Err(error) => FfiResult::err(crate::error::ffi_error_from_core(error.into())),
+        }
+    })
+}
+
 #[unsafe(no_mangle)]
 /// # Safety
 /// Caller must ensure all pointers are valid, properly aligned, and follow ownership requirements.

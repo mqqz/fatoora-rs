@@ -1,0 +1,19 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-23 15:53:52,979 [INFO] ValidationProcessorImpl - [XSD] validation result : PASSED
+2026-09-23 15:53:53,359 [INFO] ValidationProcessorImpl - [EN] validation result : PASSED
+2026-09-23 15:53:53,504 [INFO] ValidationProcessorImpl - [KSA] validation result : PASSED
+2026-09-23 15:53:53,504 [ERROR] ValidationProcessorImpl - ksa validation warnings : 
+2026-09-23 15:53:53,504 [WARN] ValidationProcessorImpl - CODE : BR-KSA-98, MESSAGE : [BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice.
+2026-09-23 15:53:53,700 [INFO] ValidationProcessorImpl - [QR] validation result : FAILED
+2026-09-23 15:53:53,700 [ERROR] ValidationProcessorImpl - qr validation errors : 
+2026-09-23 15:53:53,700 [ERROR] ValidationProcessorImpl - CODE : digital signature, MESSAGE : invoice signature value in the invoice doesn't match the invoice signature value in tag 7 of the QR code or invoice signature value missing in invoice  
+2026-09-23 15:53:53,749 [INFO] ValidationProcessorImpl - [SIGNATURE] validation result : PASSED
+2026-09-23 15:53:53,751 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-23 15:53:53,751 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = FAILED 

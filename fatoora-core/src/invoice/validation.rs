@@ -1,17 +1,31 @@
-//! XML schema validation and shared validation reports.
+//! XML schema validation and complete local ZATCA validation reports.
 //!
 //! XSD checks do not run builder field checks, business rules, or signature
 //! verification. Parsing a signed invoice does not verify its signature.
+mod integrity;
+mod integrity_xml;
+#[cfg(test)]
+mod integrity_xml_tests;
 mod report;
+mod schemas;
+mod zatca;
+#[cfg(test)]
+mod zatca_tests;
+pub use zatca::validate_zatca_invoice_from_str;
+mod zatca_report;
+pub use zatca_report::{
+    ZatcaFailureKind, ZatcaFinding, ZatcaRuleSource, ZatcaStage, ZatcaStageReport,
+    ZatcaStageStatus, ZatcaValidationError, ZatcaValidationOptions, ZatcaValidationReport,
+};
+mod business_rules;
 use crate::config::Config;
 use libxml::{
     parser::{Parser, ParserOptions},
-    schemas::{SchemaParserContext, SchemaValidationContext},
+    schemas::SchemaValidationContext,
 };
 pub use report::{
     Severity, ValidationFinding, ValidationLayer, ValidationLocation, ValidationReport,
 };
-use std::path::PathBuf;
 use thiserror::Error;
 
 pub type ValidationResult = Result<(), XmlValidationError>;
@@ -42,30 +56,10 @@ impl XmlValidationError {
     }
 }
 
-fn bundled_xsd_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd")
-}
-
 fn build_validation_context(
     _config: &Config,
 ) -> Result<SchemaValidationContext, XmlValidationError> {
-    let xsd_path_buf = bundled_xsd_path();
-    let xsd_path = xsd_path_buf
-        .to_str()
-        .ok_or_else(|| XmlValidationError::InvalidXsdPath {
-            path: xsd_path_buf.display().to_string(),
-        })?;
-
-    let mut parser_ctx = SchemaParserContext::from_file(xsd_path);
-    SchemaValidationContext::from_parser(&mut parser_ctx).map_err(|errors| {
-        XmlValidationError::SchemaParse {
-            errors: errors
-                .into_iter()
-                .map(crate::Diagnostic::from_xml)
-                .collect(),
-        }
-    })
+    schemas::build_validation_context()
 }
 
 /// Validate an XML invoice string against the UBL schema only.

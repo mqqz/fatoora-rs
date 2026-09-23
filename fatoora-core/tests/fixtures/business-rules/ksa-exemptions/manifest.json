@@ -1,0 +1,504 @@
+{
+  "schema_version": 1,
+  "sdk_version": "238-R3.4.8",
+  "jar_sha256": "48abeb828d453ef6fafba792fddbbb2701da5c7018c24bde918853e80ff5d530",
+  "sources": {
+    "cen": "378a7a4d697aa96e05edb4649ab4536b33546b8e288453324a5668c3e15735b0",
+    "ksa": "3312e1938829b8972dacf19a3d933deeb97cb71c7e982c56a434b76cc0e5f0c4"
+  },
+  "source_corpus_sha256": "872d251be12e3f3388d1afd57a566be6721d19bafc61b39442dad65902c74411",
+  "family": "ksa-exemptions",
+  "family_tool_sha256": "0e997d37e3b47947174218a134c764676281753a4ea4298f928e65e32b71728c",
+  "capture_tool_sha256": "99e0abddd7eb77511a1bd58775b2af0aa1ab733dd1bd76a5d5494801c0c22948",
+  "sdk_tool_sha256": "cfbec9fe7abe7a75bdaf288297998d88be224b1055eac318c9accb545e29b454",
+  "java_version": "openjdk version \"11.0.25\" 2024-10-15\nOpenJDK Runtime Environment (build 11.0.25+5-void-r3)\nOpenJDK 64-Bit Server VM (build 11.0.25+5-void-r3, mixed mode)\n",
+  "timezone": "UTC (TZ=UTC; JAVA_TOOL_OPTIONS=-Duser.timezone=UTC)",
+  "cases": [
+    {
+      "id": "document-code-Z-VATEX-SA-ROYALDECREE-VATEX-SA-ROYALDECREE",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-CL-04",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:37:02.138665+00:00",
+      "finished_at": "2026-09-23T14:37:03.137637+00:00",
+      "duration_seconds": 0.999748183065094
+    },
+    {
+      "id": "document-code-Z-VATEX-SA-ROYALDECREE-BAD",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-CL-04",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:37:03.138515+00:00",
+      "finished_at": "2026-09-23T14:37:04.166137+00:00",
+      "duration_seconds": 1.027889663935639
+    },
+    {
+      "id": "document-code-Z-VATEX-SA-32(bis)-VATEX-SA-32(bis)",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-CL-04",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:37:04.166483+00:00",
+      "finished_at": "2026-09-23T14:37:05.166799+00:00",
+      "duration_seconds": 1.000568636925891
+    },
+    {
+      "id": "document-code-Z-VATEX-SA-32(bis)-BAD",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-CL-04",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:37:05.167127+00:00",
+      "finished_at": "2026-09-23T14:37:06.130158+00:00",
+      "duration_seconds": 0.9633001129841432
+    },
+    {
+      "id": "document-code-E-VATEX-SA-29-7-VATEX-SA-29-7",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-CL-04",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:37:06.130491+00:00",
+      "finished_at": "2026-09-23T14:37:07.098667+00:00",
+      "duration_seconds": 0.9684767300495878
+    },
+    {
+      "id": "document-code-E-VATEX-SA-29-7-BAD",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-CL-04",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:37:07.099041+00:00",
+      "finished_at": "2026-09-23T14:37:08.025160+00:00",
+      "duration_seconds": 0.9263826169772074
+    },
+    {
+      "id": "document-code-O-VATEX-SA-OOS-VATEX-SA-OOS",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-CL-04",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:37:08.025489+00:00",
+      "finished_at": "2026-09-23T14:37:08.990541+00:00",
+      "duration_seconds": 0.9653756510233507
+    },
+    {
+      "id": "document-code-O-VATEX-SA-OOS-BAD",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-CL-04",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:37:08.990939+00:00",
+      "finished_at": "2026-09-23T14:37:09.948150+00:00",
+      "duration_seconds": 0.9574844399467111
+    },
+    {
+      "id": "document-reason-0",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-83",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:37:09.948490+00:00",
+      "finished_at": "2026-09-23T14:37:10.905962+00:00",
+      "duration_seconds": 0.9577994080027565
+    },
+    {
+      "id": "document-reason-1",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-83",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:37:10.906357+00:00",
+      "finished_at": "2026-09-23T14:37:11.910712+00:00",
+      "duration_seconds": 1.0046755119692534
+    },
+    {
+      "id": "standard-rate-15",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-84",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:37:11.911118+00:00",
+      "finished_at": "2026-09-23T14:37:12.860177+00:00",
+      "duration_seconds": 0.9492839919403195
+    },
+    {
+      "id": "standard-rate-15.99",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-84",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:37:12.860465+00:00",
+      "finished_at": "2026-09-23T14:37:13.830560+00:00",
+      "duration_seconds": 0.9703284880379215
+    },
+    {
+      "id": "standard-rate-5",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-84",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:37:13.830868+00:00",
+      "finished_at": "2026-09-23T14:37:14.784670+00:00",
+      "duration_seconds": 0.9539963320130482
+    },
+    {
+      "id": "standard-rate-5.99",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-84",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:37:14.784928+00:00",
+      "finished_at": "2026-09-23T14:37:15.751369+00:00",
+      "duration_seconds": 0.9666529520181939
+    },
+    {
+      "id": "standard-rate-16",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-84",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:37:15.751647+00:00",
+      "finished_at": "2026-09-23T14:37:16.666048+00:00",
+      "duration_seconds": 0.9146248820470646
+    },
+    {
+      "id": "attachment-mime-text-plain",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-CL-03",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:37:16.666335+00:00",
+      "finished_at": "2026-09-23T14:37:17.616947+00:00",
+      "duration_seconds": 0.9508199120173231
+    },
+    {
+      "id": "attachment-mime-image-png",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-CL-03",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:37:17.617219+00:00",
+      "finished_at": "2026-09-23T14:37:18.566970+00:00",
+      "duration_seconds": 0.9500277270562947
+    },
+    {
+      "id": "attachment-mime-text-html",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-CL-03",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:37:18.567322+00:00",
+      "finished_at": "2026-09-23T14:37:19.514694+00:00",
+      "duration_seconds": 0.9475987120531499
+    },
+    {
+      "id": "prepayment-code-VATEX-SA-32",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-CL-07",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:37:19.514990+00:00",
+      "finished_at": "2026-09-23T14:37:20.475835+00:00",
+      "duration_seconds": 0.9610451069893315
+    },
+    {
+      "id": "prepayment-code-VATEX-SA-ROYALDECREE",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-CL-07",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:37:20.476106+00:00",
+      "finished_at": "2026-09-23T14:37:21.448237+00:00",
+      "duration_seconds": 0.9723458959488198
+    },
+    {
+      "id": "prepayment-code-BAD",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-CL-07",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:37:21.448520+00:00",
+      "finished_at": "2026-09-23T14:37:22.396270+00:00",
+      "duration_seconds": 0.9479569100076333
+    },
+    {
+      "id": "prepayment-code-None",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-CL-07",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:37:22.396539+00:00",
+      "finished_at": "2026-09-23T14:37:23.362714+00:00",
+      "duration_seconds": 0.9663837329717353
+    },
+    {
+      "id": "prepayment-reason-0",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-96",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:37:23.362986+00:00",
+      "finished_at": "2026-09-23T14:37:24.309107+00:00",
+      "duration_seconds": 0.9463418510276824
+    },
+    {
+      "id": "prepayment-reason-1",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-96",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:37:24.309397+00:00",
+      "finished_at": "2026-09-23T14:37:25.271101+00:00",
+      "duration_seconds": 0.9619494720827788
+    }
+  ],
+  "artifacts": {
+    "capture-tools/business_rule_cases.py": "0e997d37e3b47947174218a134c764676281753a4ea4298f928e65e32b71728c",
+    "capture-tools/business_rules.py": "99e0abddd7eb77511a1bd58775b2af0aa1ab733dd1bd76a5d5494801c0c22948",
+    "capture-tools/sdk_parity.py": "cfbec9fe7abe7a75bdaf288297998d88be224b1055eac318c9accb545e29b454",
+    "cases/attachment-mime-image-png/evidence/process.json": "bc79fb5e083cc25c06a16049bf0c34ef63a3b6c2aa229a6297d93e8b3f9c4fa5",
+    "cases/attachment-mime-image-png/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/attachment-mime-image-png/evidence/stdout.txt": "f0f7f4aac1b00b0dc258a057ebad8f63e0f7ed0a47051130fed80362ae25b7f0",
+    "cases/attachment-mime-image-png/expected.json": "d8b495d09018ec69979169d73c41ce79338e2f6c50d2b186b9fc53a92b3f7181",
+    "cases/attachment-mime-image-png/input.xml": "2af597083ca08224b58459c77ffdbeb38ec61d6ca8c058e9c48d05af5264ac34",
+    "cases/attachment-mime-text-html/evidence/process.json": "f812e82d37f75f0c6f1f3ec1a8648c862cb80b271e5a0d06d9dc9d577ff52414",
+    "cases/attachment-mime-text-html/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/attachment-mime-text-html/evidence/stdout.txt": "64a3630a780ce28bcf21f7dd3447fea46d9c1be5892cbc3c04869a9b90c5cd66",
+    "cases/attachment-mime-text-html/expected.json": "02cc3d7bea6ca0320e8cde275a9eefbecf4bae026143e17cf920b277254945dd",
+    "cases/attachment-mime-text-html/input.xml": "4c2ec4ccd7353269c161bda417b8156e78aff60be21f1723d8f03f22656a95d7",
+    "cases/attachment-mime-text-plain/evidence/process.json": "6b02acf27b8304df0f6c24771254369316017e751ff357db98ac27e25b54fe02",
+    "cases/attachment-mime-text-plain/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/attachment-mime-text-plain/evidence/stdout.txt": "db28df0a4a3a9748d103d9baa64c51d2ef272e6fd62696e731dd700f7d99f97f",
+    "cases/attachment-mime-text-plain/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/attachment-mime-text-plain/input.xml": "b551e88882cb34f772dbee3041614c9d3998a1c3ee7b79d92d1f84fcc2fdb1be",
+    "cases/document-code-E-VATEX-SA-29-7-BAD/evidence/process.json": "cfed76922d9f45f2fc53467168262dfcf46978e96c184d48cb4a924d1304e3c4",
+    "cases/document-code-E-VATEX-SA-29-7-BAD/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-code-E-VATEX-SA-29-7-BAD/evidence/stdout.txt": "78ea53ccf110ce019d8f0bd70bc9b167f7b36cbc3272e11f877bab0b42bb06a4",
+    "cases/document-code-E-VATEX-SA-29-7-BAD/expected.json": "6ac115ce96e60a51ee18858a82d99cbb9c021fc9291b23bba7dbb2fda12bd3f5",
+    "cases/document-code-E-VATEX-SA-29-7-BAD/input.xml": "dfe87b6b1a788001c991dc81464b93bb9af326a6708c6ff27da4a669aa280d59",
+    "cases/document-code-E-VATEX-SA-29-7-VATEX-SA-29-7/evidence/process.json": "c418a5b3e2313e8b1d079fadc018228f67caf6f7fd49a17741d5f654fdbc54f8",
+    "cases/document-code-E-VATEX-SA-29-7-VATEX-SA-29-7/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-code-E-VATEX-SA-29-7-VATEX-SA-29-7/evidence/stdout.txt": "3d4b15c3639b09f5cc3845fb3e53bfe79acfe5cb73d95eabbedf73abe8342861",
+    "cases/document-code-E-VATEX-SA-29-7-VATEX-SA-29-7/expected.json": "712e3659ce40b1cd511144686ea76b39ab006a04cd066485a62555d2d6d7acb4",
+    "cases/document-code-E-VATEX-SA-29-7-VATEX-SA-29-7/input.xml": "2a530e1cf2350406e033d6e51e13f8a43347ea15b7c8a4c4ba4584f85e4673d8",
+    "cases/document-code-O-VATEX-SA-OOS-BAD/evidence/process.json": "0df8c3c7977c3af0e5e0c1b6d13c57ddfcae90d0965cd9b87320737179705065",
+    "cases/document-code-O-VATEX-SA-OOS-BAD/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-code-O-VATEX-SA-OOS-BAD/evidence/stdout.txt": "815026543fd03a270600be0a715caaa5f8ca500bde8f715a3b27d0d0ef9bd50b",
+    "cases/document-code-O-VATEX-SA-OOS-BAD/expected.json": "7b8bf180c3e8afadf9a74ff0ba366d43fb397331e56e88944b9f92ec694216b7",
+    "cases/document-code-O-VATEX-SA-OOS-BAD/input.xml": "afb58d4058de703442340e2efc6b0bd3633ed416f2d8f62385d7053151f71cbf",
+    "cases/document-code-O-VATEX-SA-OOS-VATEX-SA-OOS/evidence/process.json": "142d7df8e199d74953c6eff76edc703183ce6372b14622433d4894dc0525d95f",
+    "cases/document-code-O-VATEX-SA-OOS-VATEX-SA-OOS/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-code-O-VATEX-SA-OOS-VATEX-SA-OOS/evidence/stdout.txt": "c2dcfb7c70479f732be8cd03ab7acd6d92e6d5a9e4b17802cebcbae9b9aaa8ad",
+    "cases/document-code-O-VATEX-SA-OOS-VATEX-SA-OOS/expected.json": "d25244eff73a1553a104b412e37911d135edfc6a5ffca0b9afa76fd6311e8305",
+    "cases/document-code-O-VATEX-SA-OOS-VATEX-SA-OOS/input.xml": "28cecfa8b2bbfdc84f31eec2829905cbb84873eb8b53f5dadbfef63ce3d3bc67",
+    "cases/document-code-Z-VATEX-SA-32(bis)-BAD/evidence/process.json": "6d81c09bf3d189734960b557dea8ca56747baefe613f2d78347ce8248b8022e0",
+    "cases/document-code-Z-VATEX-SA-32(bis)-BAD/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-code-Z-VATEX-SA-32(bis)-BAD/evidence/stdout.txt": "d6d32a4c6b527c8432fa93f1f116cc2c978c7a14e89ea8fe06eba63eab1c8802",
+    "cases/document-code-Z-VATEX-SA-32(bis)-BAD/expected.json": "b05ac785b6189dbda4f9dcd4991dd316126f11aa55a6632d9e1da1c339d0d526",
+    "cases/document-code-Z-VATEX-SA-32(bis)-BAD/input.xml": "0dbe09d0ec4561fa175ebe85aef9bcd6397296481e3f3baec2f02fb58451f000",
+    "cases/document-code-Z-VATEX-SA-32(bis)-VATEX-SA-32(bis)/evidence/process.json": "09c01f8db0ac795c1de35d1391a5a6eafdbcbbcf16efbd961540700dbf20ec48",
+    "cases/document-code-Z-VATEX-SA-32(bis)-VATEX-SA-32(bis)/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-code-Z-VATEX-SA-32(bis)-VATEX-SA-32(bis)/evidence/stdout.txt": "6ec7ad591508c444319bfb23266adfb4c5301196d94e0fe547d0016a7652a483",
+    "cases/document-code-Z-VATEX-SA-32(bis)-VATEX-SA-32(bis)/expected.json": "ea70234b55c5f5c233f188401cd28ed161497209568b64551e0ef9553284162e",
+    "cases/document-code-Z-VATEX-SA-32(bis)-VATEX-SA-32(bis)/input.xml": "62d2460b25fca3d55687997dc06e1294408737ef2990e7dd580f77d7c0b77d3c",
+    "cases/document-code-Z-VATEX-SA-ROYALDECREE-BAD/evidence/process.json": "780cd50901f26c6595636a681468ca258c62c84509a096e14a7d7326e4776607",
+    "cases/document-code-Z-VATEX-SA-ROYALDECREE-BAD/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-code-Z-VATEX-SA-ROYALDECREE-BAD/evidence/stdout.txt": "23f10c970610a6ff532c4bcb643057d151475d49378336e9ce06e5b1d7550544",
+    "cases/document-code-Z-VATEX-SA-ROYALDECREE-BAD/expected.json": "b05ac785b6189dbda4f9dcd4991dd316126f11aa55a6632d9e1da1c339d0d526",
+    "cases/document-code-Z-VATEX-SA-ROYALDECREE-BAD/input.xml": "0dbe09d0ec4561fa175ebe85aef9bcd6397296481e3f3baec2f02fb58451f000",
+    "cases/document-code-Z-VATEX-SA-ROYALDECREE-VATEX-SA-ROYALDECREE/evidence/process.json": "edc5d7678047f6a3f77917bed614efb1b740d643a9e9204fcc61b336cd1be7c9",
+    "cases/document-code-Z-VATEX-SA-ROYALDECREE-VATEX-SA-ROYALDECREE/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-code-Z-VATEX-SA-ROYALDECREE-VATEX-SA-ROYALDECREE/evidence/stdout.txt": "942f9e70a6985b864de806faa1f2245a740e449347b4e2e887e3f02024547648",
+    "cases/document-code-Z-VATEX-SA-ROYALDECREE-VATEX-SA-ROYALDECREE/expected.json": "ea70234b55c5f5c233f188401cd28ed161497209568b64551e0ef9553284162e",
+    "cases/document-code-Z-VATEX-SA-ROYALDECREE-VATEX-SA-ROYALDECREE/input.xml": "fd3ff5eadc21a54c377bc4b07f1670fe90c4cae2f138c294bd4e1f4c28818cb4",
+    "cases/document-reason-0/evidence/process.json": "8d2f0fa34fe63f6c7becdd2bf618d68fb639a9e66880f38934476ab49ff329df",
+    "cases/document-reason-0/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-reason-0/evidence/stdout.txt": "68cfec962fabd5a3c49fac736cb022d012acab54aa7e9c9c1151abc5921a66d4",
+    "cases/document-reason-0/expected.json": "712e3659ce40b1cd511144686ea76b39ab006a04cd066485a62555d2d6d7acb4",
+    "cases/document-reason-0/input.xml": "64629cb89522917b7c6eb72f4cd59419ca9d60ce6f0fdc9f0e2377f5c051c5bd",
+    "cases/document-reason-1/evidence/process.json": "91b775d3add205e816442d45490c307cbdd732e89f451f852dff896a5d66ce7e",
+    "cases/document-reason-1/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/document-reason-1/evidence/stdout.txt": "6a6b45f128c82f79f4d7e88280c114644deba794dc7836658fd5c53460138ab1",
+    "cases/document-reason-1/expected.json": "f633e983a880f0cab9bf2a5d6a0729ee9802ac302b933e0ef9661fcdd61c7b4b",
+    "cases/document-reason-1/input.xml": "a61557c6ee8beeeeb18741bea14057cc0c241013491c221eb15cfe39cb612c93",
+    "cases/prepayment-code-BAD/evidence/process.json": "389f9d95e419a0e53dcd1a9baff7d9c156d62015188136bf76ae3543597bf55e",
+    "cases/prepayment-code-BAD/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/prepayment-code-BAD/evidence/stdout.txt": "d2fdf55522f18a9d058081633f0de0f0b2c615bd6ffe47efaacb28432d3dfed3",
+    "cases/prepayment-code-BAD/expected.json": "19767d85f5eeb17ad5a106f318cd8cffe856d5b724449aa52d120257e8aaf617",
+    "cases/prepayment-code-BAD/input.xml": "b2761957268226f550839f592ffaf9eafe1c825ec25f7479aa5998cd806383cb",
+    "cases/prepayment-code-None/evidence/process.json": "a27856e61dae072a6e2358d1cbca38c4ea7881f9be01de186acafd9e2e9ca602",
+    "cases/prepayment-code-None/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/prepayment-code-None/evidence/stdout.txt": "f70d206b360020675d1878aa6ba5a25634f08b597058cf6a086a0fa5b9e26b63",
+    "cases/prepayment-code-None/expected.json": "a09729c5d02cf81a8180166175b10c7a24cb71a719b04433444d60f33efb6bf4",
+    "cases/prepayment-code-None/input.xml": "402151409255dd1546d45f3254d9694d69bfc227d63543679f4c1b8b42633be4",
+    "cases/prepayment-code-VATEX-SA-32/evidence/process.json": "87ac174198dda74a98fe01894f0e240dc9ce001c267c8921b1614c57d7e79c51",
+    "cases/prepayment-code-VATEX-SA-32/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/prepayment-code-VATEX-SA-32/evidence/stdout.txt": "10b50da878f1ce672b57917ec730f65c76aa983de37a77b207b455e986fe81f3",
+    "cases/prepayment-code-VATEX-SA-32/expected.json": "4ccf4aaab53bbb0b1c5c767076046bf340b8988a48168c952da6f2a8ec8267d7",
+    "cases/prepayment-code-VATEX-SA-32/input.xml": "7bdcf6910386a7bc8b419b15cb1cc12fde6534cfe573319d86b3a9fed7fb14fc",
+    "cases/prepayment-code-VATEX-SA-ROYALDECREE/evidence/process.json": "cab4aa88d8bade0c1cfa016c812efa135ec7f997140efd0edefa9e339b2d602b",
+    "cases/prepayment-code-VATEX-SA-ROYALDECREE/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/prepayment-code-VATEX-SA-ROYALDECREE/evidence/stdout.txt": "962b70ecb2a758c3c5652b3e0e9e0cb2c73ab7b5cac9c4d8cd00f6e65a2669e5",
+    "cases/prepayment-code-VATEX-SA-ROYALDECREE/expected.json": "19767d85f5eeb17ad5a106f318cd8cffe856d5b724449aa52d120257e8aaf617",
+    "cases/prepayment-code-VATEX-SA-ROYALDECREE/input.xml": "dfa1f0239e8be1147d058156ff0455ec70009b2015d1a313ad2410d63df1a3bf",
+    "cases/prepayment-reason-0/evidence/process.json": "1125c9d97efb972fba36fe626e0053a62e3c49585cbf0a2125d01303cd818db9",
+    "cases/prepayment-reason-0/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/prepayment-reason-0/evidence/stdout.txt": "d48c6123a8b1be5b1917b292618d8ea1b798f226178483512906ce1b292903f7",
+    "cases/prepayment-reason-0/expected.json": "4ccf4aaab53bbb0b1c5c767076046bf340b8988a48168c952da6f2a8ec8267d7",
+    "cases/prepayment-reason-0/input.xml": "7bdcf6910386a7bc8b419b15cb1cc12fde6534cfe573319d86b3a9fed7fb14fc",
+    "cases/prepayment-reason-1/evidence/process.json": "55eaa0eda38742f6fb0ccb000e27e999c9855858326b6d9af0556bcd94018748",
+    "cases/prepayment-reason-1/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/prepayment-reason-1/evidence/stdout.txt": "53cdbedf1d2291870478f7dbb33bd8e3effdd7a2b44e2820fa71aafce15318e5",
+    "cases/prepayment-reason-1/expected.json": "a033edfd06e683ab8ffb58b37f66bf7a7d76d404884e6369c4538d01f7ea47a6",
+    "cases/prepayment-reason-1/input.xml": "9f466381f68b48818740ed6186bbbf1f8a7b2535778410babe492aadae4c63ed",
+    "cases/standard-rate-15/evidence/process.json": "ab0c5b56f5e55892514c57721f3c0d21151be5dafbccc1f445e5efdd850b5b64",
+    "cases/standard-rate-15/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/standard-rate-15/evidence/stdout.txt": "a58ed621be895edd714a9de1de2df111edb118b3eda9d0814d0a295b20582ffb",
+    "cases/standard-rate-15/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/standard-rate-15/input.xml": "b551e88882cb34f772dbee3041614c9d3998a1c3ee7b79d92d1f84fcc2fdb1be",
+    "cases/standard-rate-15.99/evidence/process.json": "6533d98f1e4afddfd52e3d2137d0c798a9898a373772399d478448d0f36ae5ef",
+    "cases/standard-rate-15.99/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/standard-rate-15.99/evidence/stdout.txt": "906f87d55423343fb3dcce2caa9a1e0e9fbd7d10345801c5bfc11596ab1c9899",
+    "cases/standard-rate-15.99/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/standard-rate-15.99/input.xml": "93a6c3db99212a582bdeffb918309ad47e39f6bcff9ff7ddef821ee7b5b21547",
+    "cases/standard-rate-16/evidence/process.json": "40345894a2c16de2c90f8e45a42d98206da231d065bc88e4ae32d7c004106e6a",
+    "cases/standard-rate-16/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/standard-rate-16/evidence/stdout.txt": "58225585b2ced577905336c96a7c6a2d814895d0e5ae7af7f8a213850346c0fb",
+    "cases/standard-rate-16/expected.json": "b501c93b2a8c14c05807be0957aab2d1e9f48184d7fc0a6aa19e239ba0275e54",
+    "cases/standard-rate-16/input.xml": "881f1a456de2c201d096a665d185fa079e149d8dd6d1b6a443d4da651a6fff90",
+    "cases/standard-rate-5/evidence/process.json": "fe00a24aab1f5601afbfb1f8f4d5cc756a628152a6991474e9178da8af9fdcf0",
+    "cases/standard-rate-5/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/standard-rate-5/evidence/stdout.txt": "6b8e7943f141e293e9e241867996b464197c9cb43125c4b35061158e09b4339e",
+    "cases/standard-rate-5/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/standard-rate-5/input.xml": "9fcd5270b9f6c4957ddd4e35088625d9afbe0ff0e3dad48777911890733d5ce3",
+    "cases/standard-rate-5.99/evidence/process.json": "68ff2e922597564de41864aa9136ebcbec414a935388047a581572068876d8a1",
+    "cases/standard-rate-5.99/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/standard-rate-5.99/evidence/stdout.txt": "b796368d2e0556113e2085eebe685cae8d9edda2bebcac16350202cde27f10ee",
+    "cases/standard-rate-5.99/expected.json": "b501c93b2a8c14c05807be0957aab2d1e9f48184d7fc0a6aa19e239ba0275e54",
+    "cases/standard-rate-5.99/input.xml": "04908c429dda5c7eea577fbbfd90fa3019b4446658b9d9587ef2456f512b7624"
+  },
+  "expectation_mismatches": []
+}
