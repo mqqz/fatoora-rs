@@ -1,0 +1,43 @@
+{
+  "layers": {
+    "xsd": "failed",
+    "en": "passed",
+    "ksa": "failed",
+    "qr": "failed",
+    "signature": "failed",
+    "pih": "passed",
+    "global": "failed"
+  },
+  "findings": [
+    {
+      "source": "xsd",
+      "severity": "error",
+      "code": "SAXParseException",
+      "message": "Schema validation failed; XML does not comply with UBL 2.1 standards in line with ZATCA specifications. ERROR: org.xml.sax.SAXParseException; lineNumber: 5; columnNumber: 45; cvc-datatype-valid.1.2.1: '-0001-02-29' is not a valid value for 'date'."
+    },
+    {
+      "source": "ksa",
+      "severity": "error",
+      "code": "SaxonApiException",
+      "message": "Invalid dateTime value \"-0001-02-29T09:00:00\" (Non-existent date)"
+    },
+    {
+      "source": "qr",
+      "severity": "error",
+      "code": "QRCODE_INVALID",
+      "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+    },
+    {
+      "source": "signature",
+      "severity": "error",
+      "code": "NullPointerException",
+      "message": "null"
+    },
+    {
+      "source": "signature",
+      "severity": "error",
+      "code": "certificate",
+      "message": "wrong invoiceCertificate  "
+    }
+  ]
+}
