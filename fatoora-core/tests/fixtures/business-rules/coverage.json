@@ -987,79 +987,124 @@
       ]
     },
     "ksa:017:BR-KSA-80": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:018:BR-KSA-79": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:019:BR-KSA-79": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:020:BR-KSA-74": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:021:BR-KSA-82": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:022:BR-KSA-82": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:023:BR-KSA-73": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:024:BR-KSA-73": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:025:BR-KSA-75": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:026:BR-KSA-79": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:027:BR-KSA-79": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:028:BR-KSA-DEC-06": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:029:BR-KSA-76": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:030:BR-KSA-77": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:031:BR-KSA-78": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_prepayment_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:032:BR-KSA-49": {
       "status": "implemented",

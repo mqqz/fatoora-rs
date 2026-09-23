@@ -12,6 +12,7 @@ mod ksa_currency;
 mod ksa_dates;
 mod ksa_exemptions;
 mod ksa_fields;
+mod ksa_prepayment;
 mod metadata;
 mod patterns;
 mod rules;
@@ -319,3 +320,6 @@ mod ksa_currency_tests;
 
 #[cfg(test)]
 mod ksa_date_tests;
+
+#[cfg(test)]
+mod ksa_prepayment_tests;

@@ -248,7 +248,7 @@ fn rule_metadata_matches_the_pinned_source_assertion_sites() {
             .trim()
     );
     let catalog: Value = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(metadata::RULES.len(), 238);
+    assert_eq!(metadata::RULES.len(), 253);
     let coverage: Value = serde_json::from_str(
         &std::fs::read_to_string(fixture_root().join("coverage.json")).unwrap(),
     )
@@ -712,4 +712,9 @@ fn frozen_sdk_date_mutations_match_implemented_rules() {
 #[test]
 fn frozen_sdk_date_cast_mutations_match_implemented_rules() {
     assert_frozen_corpus("ksa-date-casts", 10);
+}
+
+#[test]
+fn frozen_sdk_prepayment_mutations_match_implemented_rules() {
+    assert_frozen_corpus("ksa-prepayment", 28);
 }
