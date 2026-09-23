@@ -205,6 +205,7 @@ FfiResult_FfiString fatoora_validation_message_text(FfiValidationMessage* messag
 FfiResult_FfiString fatoora_validation_message_status(FfiValidationMessage* message);
 
 FfiResult_bool fatoora_validate_xml_invoice_from_str(FfiConfig* cfg, const char* xml);
+FfiResult_FfiString fatoora_validate_zatca_invoice_from_str(FfiConfig* cfg, const char* xml, const char* options_json);
 
 FfiResult_FfiInvoiceBuilder fatoora_invoice_builder_new(
     int invoice_type_kind,
