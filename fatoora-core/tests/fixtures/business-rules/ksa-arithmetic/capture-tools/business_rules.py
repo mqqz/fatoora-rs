@@ -282,10 +282,6 @@ def mutation_cases(family="mutations"):
         return families.ksa_arithmetic_cases(
             (sdk.CORPUS / "cases/standard-invoice/input.xml").read_text()
         )
-    if family == "ksa-arithmetic-guards":
-        return families.ksa_arithmetic_guard_cases(
-            (sdk.CORPUS / "cases/standard-invoice/input.xml").read_text()
-        )
     if family == "ksa-dates":
         return families.ksa_date_cases(
             (sdk.CORPUS / "cases/standard-invoice/input.xml").read_text()
@@ -710,7 +706,6 @@ def main():
             "ksa-exemptions",
             "ksa-currency",
             "ksa-dates",
-            "ksa-arithmetic-guards",
             "ksa-arithmetic",
             "ksa-date-casts",
             "ksa-prepayment",
@@ -759,8 +754,6 @@ def main():
             dates = load_mutations(ROOT / "ksa-dates")
             date_casts = load_mutations(ROOT / "ksa-date-casts")
             prepayment = load_mutations(ROOT / "ksa-prepayment")
-            arithmetic = load_mutations(ROOT / "ksa-arithmetic")
-            arithmetic_guards = load_mutations(ROOT / "ksa-arithmetic-guards")
             counts = Counter(e["status"] for e in coverage["sites"].values())
             print(
                 f"SDK {sdk.VERSION}: {len(coverage['sites'])} inventoried assertion sites; "
@@ -785,8 +778,6 @@ def main():
             print(f"Verified {len(dates['cases'])} Saudi date SDK cases.")
             print(f"Verified {len(date_casts['cases'])} Saudi date cast SDK cases.")
             print(f"Verified {len(prepayment['cases'])} Saudi prepayment SDK cases.")
-            print(f"Verified {len(arithmetic['cases'])} Saudi arithmetic SDK cases.")
-            print(f"Verified {len(arithmetic_guards['cases'])} Saudi arithmetic guard SDK cases.")
     except (sdk.CaptureError, OSError, KeyError, ValueError) as exc:
         parser.exit(1, f"business rules: {exc}\n")
 

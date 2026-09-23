@@ -1,0 +1,23 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-23 15:21:31,954 [ERROR] XsdValidator - Schema validation failed due to SAXParseException
+2026-09-23 15:21:31,957 [INFO] ValidationProcessorImpl - [XSD] validation result : FAILED
+2026-09-23 15:21:31,957 [ERROR] ValidationProcessorImpl - xsd validation errors : 
+2026-09-23 15:21:31,957 [ERROR] ValidationProcessorImpl - CODE : SAXParseException, MESSAGE : Schema validation failed; XML does not comply with UBL 2.1 standards in line with ZATCA specifications. ERROR: org.xml.sax.SAXParseException; lineNumber: 156; columnNumber: 40; cvc-complex-type.2.4.a: Invalid content was found starting with element '{"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":BaseQuantity}'. One of '{"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":PriceAmount}' is expected.
+2026-09-23 15:21:32,338 [INFO] ValidationProcessorImpl - [EN] validation result : FAILED
+2026-09-23 15:21:32,338 [ERROR] ValidationProcessorImpl - en validation errors : 
+2026-09-23 15:21:32,338 [ERROR] ValidationProcessorImpl - CODE : BR-26, MESSAGE : [BR-26]-Each Invoice line (BG-25) shall contain the Item net price (BT-146).
+2026-09-23 15:21:32,477 [INFO] ValidationProcessorImpl - [KSA] validation result : PASSED
+2026-09-23 15:21:32,477 [ERROR] ValidationProcessorImpl - ksa validation warnings : 
+2026-09-23 15:21:32,477 [WARN] ValidationProcessorImpl - CODE : BR-KSA-19, MESSAGE : [BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105).
+2026-09-23 15:21:32,477 [WARN] ValidationProcessorImpl - CODE : BR-KSA-EN16931-11, MESSAGE : [BR-KSA-EN16931-11]-Invoice line net amount (BT-131) must equal (Invoiced quantity (BT-129) * (Item net price (BT-146) / item price base quantity (BT-149))-) + Sum of invoice line charge amount (BT-141) - Sum of invoice line allowance amount (BT-136).
+2026-09-23 15:21:32,477 [WARN] ValidationProcessorImpl - CODE : BR-KSA-69, MESSAGE : [BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121).
+2026-09-23 15:21:32,478 [WARN] ValidationProcessorImpl - CODE : BR-KSA-15, MESSAGE : [BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has "01" as first 2 digits)) must contain the supply date (KSA-5).
+2026-09-23 15:21:32,493 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-23 15:21:32,493 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = FAILED 

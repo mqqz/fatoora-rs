@@ -1,0 +1,22 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-23 15:21:34,898 [ERROR] XsdValidator - Schema validation failed due to SAXParseException
+2026-09-23 15:21:34,900 [INFO] ValidationProcessorImpl - [XSD] validation result : FAILED
+2026-09-23 15:21:34,900 [ERROR] ValidationProcessorImpl - xsd validation errors : 
+2026-09-23 15:21:34,900 [ERROR] ValidationProcessorImpl - CODE : SAXParseException, MESSAGE : Schema validation failed; XML does not comply with UBL 2.1 standards in line with ZATCA specifications. ERROR: org.xml.sax.SAXParseException; lineNumber: 141; columnNumber: 145; cvc-complex-type.2.4.a: Invalid content was found starting with element '{"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":Amount}'. One of '{"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":BaseAmount, "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":AccountingCostCode, "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":AccountingCost, "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":PerUnitAmount, "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2":TaxCategory, "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2":TaxTotal, "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2":PaymentMeans}' is expected.
+2026-09-23 15:21:35,260 [ERROR] SchematronValidator - Error Happen : A sequence of more than one item is not allowed as the first argument of fn:substring-after() ("1", "2") 
+2026-09-23 15:21:35,260 [INFO] ValidationProcessorImpl - [EN] validation result : FAILED
+2026-09-23 15:21:35,260 [ERROR] ValidationProcessorImpl - en validation errors : 
+2026-09-23 15:21:35,260 [ERROR] ValidationProcessorImpl - CODE : SaxonApiException, MESSAGE : A sequence of more than one item is not allowed as the first argument of fn:substring-after() ("1", "2") 
+2026-09-23 15:21:35,387 [ERROR] SchematronValidator - Error Happen : A sequence of more than one item is not allowed as the value in 'cast as' expression (<ns1:Amount>, <ns1:Amount>) 
+2026-09-23 15:21:35,387 [INFO] ValidationProcessorImpl - [KSA] validation result : FAILED
+2026-09-23 15:21:35,387 [ERROR] ValidationProcessorImpl - ksa validation errors : 
+2026-09-23 15:21:35,387 [ERROR] ValidationProcessorImpl - CODE : SaxonApiException, MESSAGE : A sequence of more than one item is not allowed as the value in 'cast as' expression (<ns1:Amount>, <ns1:Amount>) 
+2026-09-23 15:21:35,402 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-23 15:21:35,402 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = FAILED 
