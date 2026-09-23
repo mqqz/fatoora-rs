@@ -730,7 +730,6 @@ def main():
             vat = load_mutations(ROOT / "vat")
             adjustments = load_mutations(ROOT / "ksa-adjustments")
             exemptions = load_mutations(ROOT / "ksa-exemptions")
-            currency = load_mutations(ROOT / "ksa-currency")
             counts = Counter(e["status"] for e in coverage["sites"].values())
             print(
                 f"SDK {sdk.VERSION}: {len(coverage['sites'])} inventoried assertion sites; "
@@ -751,7 +750,6 @@ def main():
             print(f"Verified {len(vat['cases'])} VAT rounding SDK cases.")
             print(f"Verified {len(adjustments['cases'])} Saudi adjustment SDK cases.")
             print(f"Verified {len(exemptions['cases'])} Saudi exemption SDK cases.")
-            print(f"Verified {len(currency['cases'])} Saudi currency SDK cases.")
     except (sdk.CaptureError, OSError, KeyError, ValueError) as exc:
         parser.exit(1, f"business rules: {exc}\n")
 

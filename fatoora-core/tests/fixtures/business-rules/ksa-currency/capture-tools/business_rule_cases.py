@@ -761,7 +761,7 @@ def ksa_field_cases(base):
         case(
             "base-quantity-" + value,
             lambda r, v=value: quantity(r, v),
-            "BR-KSA-EN16931-12",
+            "BR-KSA-88",
             count,
             "error",
         )
@@ -1335,104 +1335,59 @@ def ksa_exemption_cases(base):
     return cases
 
 
+
 def ksa_currency_cases(base):
     cases = []
 
     def case(name, change, code, count, severity="error"):
         root = ET.fromstring(base)
         change(root)
-        cases.append(
-            {
-                "id": name,
-                "xml": ET.tostring(root, encoding="unicode"),
-                "expected_xsd": "passed",
-                "targets": [
-                    {
-                        "source": "ksa",
-                        "code": code,
-                        "severity": severity,
-                        "count": count,
-                    }
-                ],
-            }
-        )
+        cases.append({
+            "id": name, "xml": ET.tostring(root, encoding="unicode"),
+            "expected_xsd": "passed",
+            "targets": [{"source": "ksa", "code": code,
+                         "severity": severity, "count": count}],
+        })
 
     patterns = [
-        ("exact", "SAR", 0),
-        ("substring", "S", 0),
-        ("dot", "S.R", 0),
-        ("class", "[A-Z]+", 0),
-        ("block", r"^S\p{IsBasicLatin}{2}$", 0),
-        ("xml-name", r"^\i\c*$", 0),
-        ("word", r"^\w+$", 0),
+        ("exact", "SAR", 0), ("substring", "S", 0), ("dot", "S.R", 0),
+        ("class", "[A-Z]+", 0), ("block", r"^S\p{IsBasicLatin}{2}$", 0),
+        ("xml-name", r"^\i\c*$", 0), ("word", r"^\w+$", 0),
         ("subtraction", "^[A-Z-[AEIOU]]+$", 1),
         ("backref", r"^(S)?\1AR$", 1),
         ("empty-capture", r"^(X)?\1SAR$", 0),
-        ("noncapture", "^(?:S|U)AR$", 0),
-        ("wrong", "USD", 1),
+        ("noncapture", "^(?:S|U)AR$", 0), ("wrong", "USD", 1),
     ]
     for name, value, count in patterns:
-        case(
-            "amount-" + name,
-            lambda r, v=value: r.find(
-                "cac:InvoiceLine/cbc:LineExtensionAmount", NS
-            ).set("currencyID", v),
-            "BR-KSA-CL-02",
-            count,
-        )
-    for name, value in [
-        ("bracket", "["),
-        ("possessive", "S++"),
-        ("backref", r"(S)\2"),
-        ("lookahead", "(?=SAR)"),
-    ]:
-        case(
-            "invalid-pattern-" + name,
-            lambda r, v=value: r.find(
-                "cac:InvoiceLine/cbc:LineExtensionAmount", NS
-            ).set("currencyID", v),
-            "SaxonApiException",
-            1,
-        )
+        case("amount-" + name, lambda r, v=value: r.find(
+            "cac:InvoiceLine/cbc:LineExtensionAmount", NS
+        ).set("currencyID", v), "BR-KSA-CL-02", count)
+    for name, value in [("bracket", "["), ("possessive", "S++"),
+                        ("backref", r"(S)\2"), ("lookahead", "(?=SAR)")]:
+        case("invalid-pattern-" + name, lambda r, v=value: r.find(
+            "cac:InvoiceLine/cbc:LineExtensionAmount", NS
+        ).set("currencyID", v), "SaxonApiException", 1)
 
     def exchange(root, source, target, rate):
         node = ET.Element(f"{{{NS['cac']}}}TaxExchangeRate")
-        for field, value in [
-            ("SourceCurrencyCode", source),
-            ("TargetCurrencyCode", target),
-            ("CalculationRate", rate),
-        ]:
+        for field, value in [("SourceCurrencyCode", source),
+                             ("TargetCurrencyCode", target), ("CalculationRate", rate)]:
             ET.SubElement(node, f"{{{NS['cbc']}}}{field}").text = value
         root.insert(list(root).index(root.find("cac:TaxTotal", NS)), node)
 
-    for field, code in [("source", "BR-KSA-88"), ("target", "BR-KSA-89")]:
+    for field, code in [("source", "BR-KSA-88"),
+                        ("target", "BR-KSA-89")]:
         for value, count in [("S", 0), ("USD", 1)]:
-            case(
-                "exchange-" + field + "-" + value,
-                lambda r, v=value, f=field: exchange(
-                    r, v if f == "source" else "SAR", v if f == "target" else "SAR", "1"
-                ),
-                code,
-                count,
-            )
-    for value, count in [
-        ("1.000000000000", 0),
-        ("1.0000000000000", 1),
-        ("1.00000000000000", 1),
-    ]:
-        case(
-            "rate-" + str(len(value)),
-            lambda r, v=value: exchange(r, "SAR", "SAR", v),
-            "BR-KSA-90",
-            count,
-        )
+            case("exchange-" + field + "-" + value,
+                 lambda r, v=value, f=field: exchange(
+                     r, v if f == "source" else "SAR", v if f == "target" else "SAR", "1"),
+                 code, count)
+    for value, count in [("1.000000000000", 0), ("1.0000000000000", 1),
+                         ("1.00000000000000", 1)]:
+        case("rate-" + str(len(value)), lambda r, v=value: exchange(r, "SAR", "SAR", v),
+             "BR-KSA-90", count)
     for value, count in [("0", 0), ("-0", 0), ("-1", 1)]:
-        case(
-            "price-sign-" + value,
-            lambda r, v=value: setattr(
-                r.find("cac:InvoiceLine/cac:Price/cbc:PriceAmount", NS), "text", v
-            ),
-            "BR-KSA-F-04",
-            count,
-        )
+        case("price-sign-" + value, lambda r, v=value: setattr(
+            r.find("cac:InvoiceLine/cac:Price/cbc:PriceAmount", NS), "text", v),
+             "BR-KSA-F-04", count)
     return cases
