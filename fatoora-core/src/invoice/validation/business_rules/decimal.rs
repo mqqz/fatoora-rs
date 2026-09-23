@@ -269,3 +269,31 @@ pub(super) fn round_double(value: f64) -> f64 {
         floor + 1.0
     }
 }
+
+/// Equality of format-number(..., '#.00') results without allocating their text.
+/// A missing numeric operand formats as NaN; unlike numeric NaN, those strings
+/// compare equal. The picture retains the minus sign when rounding to zero.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(super) enum FormattedNumber {
+    Finite(ExactDecimal, bool),
+    NaN,
+    Infinity(bool),
+}
+impl FormattedNumber {
+    pub fn from_decimal(value: &ExactDecimal) -> Self {
+        let rounded = value.round_half_even(2);
+        let negative_zero = value < &ExactDecimal::zero() && rounded == ExactDecimal::zero();
+        Self::Finite(rounded, negative_zero)
+    }
+    pub fn from_double(value: f64, digits: usize) -> Result<Self, FailureKind> {
+        if value.is_nan() {
+            return Ok(Self::NaN);
+        }
+        if value.is_infinite() {
+            return Ok(Self::Infinity(value.is_sign_negative()));
+        }
+        let rounded = ExactDecimal::parse(&value.to_string(), digits)?.round_half_even(2);
+        let negative_zero = value.is_sign_negative() && rounded == ExactDecimal::zero();
+        Ok(Self::Finite(rounded, negative_zero))
+    }
+}

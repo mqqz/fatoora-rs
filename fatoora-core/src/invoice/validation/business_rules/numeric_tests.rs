@@ -316,3 +316,32 @@ fn decimal_to_double_rounds_once_without_intermediate_overflow() {
         0.0
     );
 }
+
+#[test]
+fn formatted_numbers_keep_half_even_binary_conversion_and_negative_zero() {
+    use super::decimal::FormattedNumber as F;
+    for (input, expected) in [
+        (1.005, "1.00"),
+        (2.675, "2.68"),
+        (-1.005, "-1.00"),
+        (0.0, "0.00"),
+    ] {
+        assert_eq!(
+            F::from_double(input, 4096).unwrap(),
+            F::from_decimal(&ExactDecimal::parse(expected, 4096).unwrap())
+        );
+    }
+    assert_ne!(
+        F::from_double(-0.0, 4096).unwrap(),
+        F::from_double(0.0, 4096).unwrap()
+    );
+    assert_eq!(
+        F::from_double(-0.001, 4096).unwrap(),
+        F::from_double(-0.0, 4096).unwrap()
+    );
+    assert_eq!(F::from_double(f64::NAN, 4096).unwrap(), F::NaN);
+    assert_ne!(
+        F::from_double(f64::INFINITY, 4096).unwrap(),
+        F::from_double(f64::NEG_INFINITY, 4096).unwrap()
+    );
+}
