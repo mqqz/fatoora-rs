@@ -143,6 +143,65 @@ def parse_validation(output, exit_code):
     return results
 
 
+def parse_validation_report(output, exit_code):
+    """Preserve SDK-observable findings without inferring XML locations or coverage.
+
+    The SDK logs warning section headings at ERROR level. Section headings,
+    rather than the logger level, identify a finding's severity. Duplicate
+    findings are intentionally retained in their observed order.
+    """
+    layers = parse_validation(output, exit_code)
+    findings = []
+    section = None
+    continuing = False
+    for line in output.splitlines():
+        prefix = re.match(
+            r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}[,.]\d+ "
+            r"\[[A-Z]+\] [\w.$]+ - (.*)$",
+            line,
+        )
+        payload = prefix[1] if prefix else line
+        header = re.fullmatch(
+            r"\s*(\w+) validation (errors|warnings)\s*:\s*", payload, re.IGNORECASE
+        )
+        if header:
+            source = header[1].lower()
+            if source not in layers or source == "global":
+                raise CaptureError(f"Unknown SDK finding source: {source}")
+            section = (source, "error" if header[2].lower() == "errors" else "warning")
+            continuing = False
+        elif re.match(r"\s*CODE\s*:", payload):
+            finding = re.fullmatch(
+                r"\s*CODE\s*:\s*([^,\s]+)\s*, MESSAGE\s*:\s*(.*)", payload
+            )
+            if not section or not finding:
+                raise CaptureError("Malformed or unattributed SDK finding")
+            source, severity = section
+            if layers[source] == "not_run" or (
+                severity == "error" and layers[source] == "passed"
+            ):
+                raise CaptureError(f"Finding contradicts SDK {source} outcome")
+            findings.append(
+                {
+                    "source": source,
+                    "severity": severity,
+                    "code": finding[1],
+                    "message": finding[2],
+                }
+            )
+            continuing = True
+        elif prefix or re.search(
+            r"validation result|GLOBAL VALIDATION RESULT", payload, re.IGNORECASE
+        ):
+            section = None
+            continuing = False
+        elif continuing and payload.strip():
+            findings[-1]["message"] += "\n" + payload
+        elif not payload.strip():
+            continuing = False
+    return {"layers": layers, "findings": findings}
+
+
 @contextmanager
 def isolated_sdk(root):
     with tempfile.TemporaryDirectory(prefix="fatoora sdk parity ") as directory:
