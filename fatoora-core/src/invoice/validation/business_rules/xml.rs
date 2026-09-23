@@ -2,7 +2,7 @@
 use super::{FailureKind, Limits};
 use libxml::{
     parser::{Parser, ParserOptions},
-    tree::Node,
+    tree::{Node, NodeType},
 };
 use quick_xml::{events::Event, name::ResolveResult, reader::NsReader};
 use std::collections::{HashMap, HashSet};
@@ -26,6 +26,8 @@ pub(super) struct Element {
     pub namespace: String,
     pub name: String,
     pub text: String,
+    /// XDM child::text() values, excluding descendant element text.
+    pub direct_text: Vec<String>,
     pub parent: Option<NodeId>,
     pub children: Vec<NodeId>,
     pub location: String,
@@ -81,6 +83,23 @@ impl XmlView {
             xpath_literal(&namespace)
         );
         let text = node.get_content();
+        // XML CDATA boundaries do not create XDM text-node boundaries. Other
+        // child node kinds do, and zero-length text nodes are omitted.
+        let mut direct_text = Vec::new();
+        let mut text_run = String::new();
+        for child in node.get_child_nodes() {
+            if matches!(
+                child.get_type(),
+                Some(NodeType::TextNode | NodeType::CDataSectionNode)
+            ) {
+                text_run.push_str(&child.get_content());
+            } else if !text_run.is_empty() {
+                direct_text.push(std::mem::take(&mut text_run));
+            }
+        }
+        if !text_run.is_empty() {
+            direct_text.push(text_run);
+        }
         let attributes: HashMap<_, _> = node
             .get_properties_ns()
             .into_iter()
@@ -95,6 +114,7 @@ impl XmlView {
             + namespace.len()
             + location.len()
             + text.len()
+            + direct_text.iter().map(String::len).sum::<usize>()
             + attributes
                 .iter()
                 .map(|((ns, name), value)| ns.len() + name.len() + value.len())
@@ -110,6 +130,7 @@ impl XmlView {
             namespace,
             name,
             text,
+            direct_text,
             parent,
             children: Vec::new(),
             location: location.clone(),
@@ -134,6 +155,9 @@ impl XmlView {
 
     pub fn node(&self, id: NodeId) -> &Element {
         &self.nodes[id]
+    }
+    pub fn elements(&self) -> impl Iterator<Item = (NodeId, &Element)> {
+        self.nodes.iter().enumerate()
     }
     pub fn all(&self, namespace: &str, name: &str) -> Vec<NodeId> {
         (0..self.nodes.len())

@@ -132,3 +132,71 @@ fn locations_resolve_to_original_nodes_with_namespace_aliases_and_quotes() {
     .unwrap();
     assert_eq!(view.node(0).text, "عربي 💰\u{a0}");
 }
+
+#[test]
+fn direct_text_retains_xdm_text_boundaries_and_coalesces_cdata() {
+    for (input, expected) in [
+        ("<r>10</r>", vec!["10"]),
+        ("<r>1<!-- separator -->0</r>", vec!["1", "0"]),
+        ("<r>1<?separator value?>0</r>", vec!["1", "0"]),
+        ("<r>1<empty/>0</r>", vec!["1", "0"]),
+        ("<r>1<![CDATA[0]]>2<![CDATA[3]]></r>", vec!["1023"]),
+        ("<r><![CDATA[1]]><![CDATA[0]]></r>", vec!["10"]),
+        ("<r>1&#48;&amp;<![CDATA[2]]></r>", vec!["10&2"]),
+        ("<r><![CDATA[]]>0<![CDATA[]]></r>", vec!["0"]),
+        ("<r/>", vec![]),
+        ("<r></r>", vec![]),
+        ("<r><![CDATA[]]></r>", vec![]),
+        ("<r><!-- comment --><?empty?><child/></r>", vec![]),
+        ("<r> <![CDATA[\t]]></r>", vec![" \t"]),
+    ] {
+        let view = XmlView::parse(input, &Limits::default()).unwrap();
+        assert_eq!(view.node(0).direct_text, expected, "{input}");
+    }
+    let view = XmlView::parse("<r>1<!-- separator -->0</r>", &Limits::default()).unwrap();
+    assert_ne!(view.node(0).text, "0");
+    assert!(view.node(0).direct_text.iter().any(|text| text == "0"));
+}
+
+#[test]
+fn direct_text_excludes_descendants_without_changing_element_string_values() {
+    let view = XmlView::parse(
+        "<r>A<child>B<inner>C</inner>D</child>E<!-- boundary -->F</r>",
+        &Limits::default(),
+    )
+    .unwrap();
+    let child = view.children(0, "", "child")[0];
+    let inner = view.children(child, "", "inner")[0];
+    assert_eq!(view.node(0).direct_text, ["A", "E", "F"]);
+    assert_eq!(view.node(child).direct_text, ["B", "D"]);
+    assert_eq!(view.node(inner).direct_text, ["C"]);
+    assert_eq!(view.node(0).text, "ABCDEF");
+    assert_eq!(view.node(child).text, "BCD");
+    assert_eq!(view.node(inner).text, "C");
+}
+
+#[test]
+fn direct_text_counts_utf8_bytes_toward_retained_limit() {
+    let input = "<r>ع<!-- split -->💰</r>";
+    let view = XmlView::parse(input, &Limits::default()).unwrap();
+    let root = view.node(0);
+    let previous_bytes =
+        root.name.len() + root.namespace.len() + root.location.len() + root.text.len();
+    let retained_bytes = previous_bytes + "ع".len() + "💰".len();
+    for limit in [previous_bytes, retained_bytes - 1] {
+        let limits = Limits {
+            retained_bytes: limit,
+            ..Limits::default()
+        };
+        assert!(matches!(
+            XmlView::parse(input, &limits),
+            Err(FailureKind::Limit("XML retained bytes"))
+        ));
+    }
+    let limits = Limits {
+        retained_bytes,
+        ..Limits::default()
+    };
+    let view = XmlView::parse(input, &limits).unwrap();
+    assert_eq!(view.node(0).direct_text, ["ع", "💰"]);
+}
