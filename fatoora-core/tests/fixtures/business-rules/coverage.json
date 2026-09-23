@@ -1279,14 +1279,20 @@
       "tests": []
     },
     "ksa:061:BR-KSA-18": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:062:BR-KSA-F-06-C16": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:063:BR-KSA-63": {
       "status": "implemented",
@@ -1683,84 +1689,132 @@
       "tests": []
     },
     "ksa:113:BR-KSA-CL-03": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:114:BR-KSA-83": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:115:BR-KSA-CL-04": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:116:BR-KSA-24": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:117:BR-KSA-23": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:118:BR-KSA-69": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:119:BR-KSA-84": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:120:BR-KSA-84": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:121:BR-KSA-84": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:122:BR-KSA-84": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:123:BR-KSA-93": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:124:BR-KSA-94": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:125:BR-KSA-95": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:126:BR-KSA-96": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:127:BR-KSA-CL-07": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:128:BR-KSA-F-06-C39": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_exemptions.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_exemption_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:129:BR-KSA-F-01": {
       "status": "pending",

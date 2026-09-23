@@ -19,6 +19,7 @@ pub(super) enum Check {
     KsaCommon(super::ksa_common::KsaCommonCheck),
     Vat(super::vat::VatCheck),
     KsaAdjustment(super::ksa_adjustments::KsaAdjustmentCheck),
+    KsaExemption(super::ksa_exemptions::KsaExemptionCheck),
     LineSum,
     TotalScale(&'static str),
     InclusiveTotal,
@@ -53,9 +54,9 @@ impl<'a> Facts<'a> {
         }
     }
 
-    pub fn contexts(&self, check: Check) -> Vec<NodeId> {
+    pub fn contexts(&self, check: Check) -> Result<Vec<NodeId>, FailureKind> {
         let xml = self.xml;
-        match check {
+        Ok(match check {
             Check::Identity(check) => check.contexts(xml),
             Check::KsaField(check) => check.contexts(xml),
             Check::Totals(check) => check.contexts(xml),
@@ -65,6 +66,7 @@ impl<'a> Facts<'a> {
             Check::KsaCommon(check) => check.contexts(xml),
             Check::Vat(check) => check.contexts(xml),
             Check::KsaAdjustment(check) => check.contexts(xml),
+            Check::KsaExemption(check) => check.contexts(xml)?,
             Check::LineSum | Check::TotalScale(_) => xml.all(CAC, "LegalMonetaryTotal"),
             Check::InclusiveTotal => vec![0],
             Check::ItemName => {
@@ -107,7 +109,7 @@ impl<'a> Facts<'a> {
                     .collect()
             }
             Check::TaxCurrency | Check::BareTaxTotal => self.tax_currencies.clone(),
-        }
+        })
     }
 
     fn decimal(&self, nodes: &[NodeId]) -> Result<Option<ExactDecimal>, FailureKind> {
@@ -156,6 +158,7 @@ impl<'a> Facts<'a> {
             Check::KsaCommon(check) => check.passes(xml, node),
             Check::Vat(check) => check.passes(xml, node, self.digits),
             Check::KsaAdjustment(check) => check.passes(xml, node, self.digits),
+            Check::KsaExemption(check) => check.passes(xml, node, self.digits),
             Check::LineSum => {
                 let amount = self.amount(node, "LineExtensionAmount")?;
                 let sum = self

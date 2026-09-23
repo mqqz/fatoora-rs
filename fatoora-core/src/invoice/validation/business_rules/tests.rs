@@ -1,7 +1,7 @@
 use super::*;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
-use std::{collections::BTreeMap, path::Path};
+use std::path::Path;
 
 // Primitive contracts use deliberately incomplete XML and isolate the original
 // slice. Corpus comparisons below always run every implemented rule.
@@ -248,7 +248,7 @@ fn rule_metadata_matches_the_pinned_source_assertion_sites() {
             .trim()
     );
     let catalog: Value = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(metadata::RULES.len(), 206);
+    assert_eq!(metadata::RULES.len(), 224);
     let coverage: Value = serde_json::from_str(
         &std::fs::read_to_string(fixture_root().join("coverage.json")).unwrap(),
     )
@@ -331,6 +331,11 @@ fn frozen_sdk_adjustment_mutations_match_implemented_rules() {
     assert_frozen_corpus("ksa-adjustments", 21);
 }
 
+#[test]
+fn frozen_sdk_exemption_mutations_match_implemented_rules() {
+    assert_frozen_corpus("ksa-exemptions", 24);
+}
+
 fn assert_frozen_corpus(family: &str, expected_cases: usize) {
     let corpus = fixture_root().join(family);
     let manifest: Value =
@@ -365,26 +370,27 @@ fn assert_frozen_corpus(family: &str, expected_cases: usize) {
             .collect();
         let report =
             super::evaluate_slice(&input, &context()).unwrap_or_else(|e| panic!("{id}: {e:?}"));
-        let mut observed = BTreeMap::new();
-        let mut wanted = BTreeMap::new();
+        // The SDK CLI coalesces repeated findings with identical metadata.
+        // Compare its observable projection; independent occurrence regressions
+        // below retain the source's loops, sites and node locations.
+        let mut observed = std::collections::BTreeSet::new();
+        let mut wanted = std::collections::BTreeSet::new();
         for source in &report.stages {
             if unavailable_sources.contains(source.source.sdk_name()) {
                 assert!(!report.is_complete());
                 continue;
             }
             for f in &source.findings {
-                *observed
-                    .entry((
-                        source.source.sdk_name().to_owned(),
-                        f.code.to_owned(),
-                        serde_json::to_value(f.severity)
-                            .unwrap()
-                            .as_str()
-                            .unwrap()
-                            .to_owned(),
-                        xml::normalize_space(f.message),
-                    ))
-                    .or_insert(0usize) += 1;
+                observed.insert((
+                    source.source.sdk_name().to_owned(),
+                    f.code.to_owned(),
+                    serde_json::to_value(f.severity)
+                        .unwrap()
+                        .as_str()
+                        .unwrap()
+                        .to_owned(),
+                    xml::normalize_space(f.message),
+                ));
             }
         }
         for f in expected["findings"].as_array().unwrap() {
@@ -392,21 +398,12 @@ fn assert_frozen_corpus(family: &str, expected_cases: usize) {
                 .iter()
                 .any(|r| r.source.sdk_name() == f["source"] && r.code == f["code"])
             {
-                let count = if id == "repeated-empty-item-name"
-                    && (f["code"] == "BR-25" || f["code"] == "BR-KSA-F-06-C19")
-                {
-                    2
-                } else {
-                    1
-                };
-                *wanted
-                    .entry((
-                        f["source"].as_str().unwrap().to_owned(),
-                        f["code"].as_str().unwrap().to_owned(),
-                        f["severity"].as_str().unwrap().to_owned(),
-                        xml::normalize_space(f["message"].as_str().unwrap()),
-                    ))
-                    .or_insert(0usize) += count;
+                wanted.insert((
+                    f["source"].as_str().unwrap().to_owned(),
+                    f["code"].as_str().unwrap().to_owned(),
+                    f["severity"].as_str().unwrap().to_owned(),
+                    xml::normalize_space(f["message"].as_str().unwrap()),
+                ));
             }
         }
         assert_eq!(observed, wanted, "{id}");
@@ -623,4 +620,67 @@ fn all_six_document_variants_match_the_frozen_observations_for_the_subset() {
         observed.sort();
         assert_eq!(observed, wanted, "{case}");
     }
+}
+
+#[test]
+fn native_occurrences_preserve_details_coalesced_by_the_sdk_cli() {
+    for (family, id, code, count) in [
+        ("mutations", "repeated-empty-item-name", "BR-25", 2),
+        (
+            "mutations",
+            "repeated-empty-item-name",
+            "BR-KSA-F-06-C19",
+            2,
+        ),
+        ("vat", "round-1.005-0.99", "BR-KSA-84", 4),
+        ("ksa-adjustments", "tax-percent-100.00", "BR-KSA-84", 5),
+        ("ksa-fields", "subtotal-total-repeated", "BR-KSA-69", 2),
+    ] {
+        let directory = fixture_root().join(family).join("cases").join(id);
+        let input = std::fs::read_to_string(directory.join("input.xml")).unwrap();
+        let expected: Value = serde_json::from_str(
+            &std::fs::read_to_string(directory.join("expected.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            expected["findings"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter(|f| f["code"] == code)
+                .count(),
+            1
+        );
+        let report = super::evaluate_slice(&input, &context()).unwrap();
+        let findings = report
+            .stages
+            .iter()
+            .flat_map(|s| &s.findings)
+            .filter(|f| f.code == code)
+            .collect::<Vec<_>>();
+        assert_eq!(findings.len(), count, "{id}: {code}");
+        assert!(
+            findings
+                .iter()
+                .all(|f| !f.site.is_empty() && !f.location.is_empty())
+        );
+    }
+}
+
+#[test]
+fn context_selection_failures_preserve_stage_and_site_without_a_false_location() {
+    let input = invoice(
+        "<cac:TaxTotal><cac:TaxSubtotal><cac:TaxCategory><cbc:ID>S</cbc:ID><cbc:ID>S</cbc:ID></cac:TaxCategory></cac:TaxSubtotal></cac:TaxTotal>",
+    );
+    let failure =
+        evaluate_matching(&input, &context(), |r| r.site == "ksa:119:BR-KSA-84").unwrap_err();
+    assert_eq!(failure.kind, FailureKind::Cardinality);
+    assert_eq!(failure.failed_source, Some(Source::Ksa));
+    assert_eq!(failure.site, Some("ksa:119:BR-KSA-84"));
+    assert_eq!(failure.location, None);
+    assert_eq!(
+        failure.report.stages[1].status,
+        StageStatus::EvaluationFailed
+    );
+    assert!(failure.report.stages[1].evaluated_sites.is_empty());
 }

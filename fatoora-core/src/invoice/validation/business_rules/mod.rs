@@ -8,6 +8,7 @@ mod identity;
 mod ksa_adjustments;
 mod ksa_buyer;
 mod ksa_common;
+mod ksa_exemptions;
 mod ksa_fields;
 mod metadata;
 mod rules;
@@ -207,7 +208,20 @@ fn evaluate_matching(
             .iter()
             .filter(|r| r.source == source && include(r))
         {
-            for node in facts.contexts(rule.check) {
+            let nodes = match facts.contexts(rule.check) {
+                Ok(nodes) => nodes,
+                Err(kind) => {
+                    report.stages[index].status = StageStatus::EvaluationFailed;
+                    return Err(Box::new(EvaluationFailure {
+                        report,
+                        failed_source: Some(source),
+                        site: Some(rule.site),
+                        location: None,
+                        kind,
+                    }));
+                }
+            };
+            for node in nodes {
                 let bytes = view.node(node).location.len() + rule.message.len();
                 let result = facts.passes(rule.check, node).and_then(|passed| {
                     if !passed && finding_count >= context.limits.findings {
@@ -285,3 +299,6 @@ mod vat_tests;
 
 #[cfg(test)]
 mod ksa_adjustment_tests;
+
+#[cfg(test)]
+mod ksa_exemption_tests;
