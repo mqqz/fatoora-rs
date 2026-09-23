@@ -153,12 +153,14 @@ GPL v3 text accompany those materials. Imported rules and messages retain their
 upstream terms. Extraction and capture scripts are repository-authored. No SDK
 JAR or executable is included.
 
-`rules.rs`, `identity.rs`, `structural.rs`, `code_lists.rs` and `totals.rs` in
-`fatoora-core/src/invoice/validation/business_rules/` translate selected predicates from those pinned SDK stylesheets into Rust. Its `metadata.rs` retains
+The rule-family modules in
+`fatoora-core/src/invoice/validation/business_rules/` translate all 257 assertion
+sites from those pinned SDK stylesheets into Rust. Its `metadata.rs` retains
 the corresponding rule identifiers and messages. The source-site mapping and
 tests are recorded in the corpus coverage ledger. The imported predicates and
 messages retain the upstream terms described above; the general XML, numeric,
-and reporting infrastructure is project-authored.
+and reporting infrastructure is project-authored. Python wheels include the SDK
+rule notices and LGPL/GPL texts under `fatoora/licenses/zatca/`.
 
 ## Templates
 

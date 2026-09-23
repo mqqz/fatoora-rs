@@ -28,5 +28,6 @@ recorded in its manifest. Source attribution for the original corpus remains in
 the root `THIRD_PARTY_NOTICES.md`. Capture scripts under `mutations/capture-tools/`
 are project-authored tooling snapshots. No SDK JAR or executable is included.
 
-The catalog and coverage ledger are development evidence. They do not establish
-that native business-rule validation has been implemented.
+All rule families and the `integrity/` corpus retain the source attribution above.
+The coverage ledger maps all 257 assertion sites to native predicates and tests;
+integrity manifests retain SDK results alongside declared local policy differences.
