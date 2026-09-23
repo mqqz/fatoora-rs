@@ -474,11 +474,16 @@ class _Invoice(_Owned):
         return self._data("line_items_len")
 
     def line_item(self, index: int) -> InvoiceLineItem:
-        item = self._data("line_item", index)
+        return self._line_item_value(self._data("line_item", index))
+
+    @staticmethod
+    def _line_item_value(item) -> InvoiceLineItem:
         return InvoiceLineItem(description=(_call(item.description)), unit_code=(_call(item.unit_code)), quantity=Decimal(_call(item.quantity)), unit_price=Decimal(_call(item.unit_price)), total_amount=Decimal(_call(item.total_amount)), vat_rate=Decimal(_call(item.vat_rate)), vat_amount=Decimal(_call(item.vat_amount)), vat_category=VatCategory(_call(item.vat_category)))
 
     def line_items(self) -> list[InvoiceLineItem]:
-        return [self.line_item(i) for i in range(self.line_item_count())]
+        data = self._invoke("data")
+        return [self._line_item_value(_call(data.line_item, i))
+                for i in range(_call(data.line_items_len))]
 
     def totals(self) -> InvoiceTotals:
         totals = self._invoke("totals")

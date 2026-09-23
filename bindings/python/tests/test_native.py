@@ -85,3 +85,27 @@ def test_float_bool_and_none_are_rejected(value):
         line(b, value)
     assert line(b).build().to_xml()
 
+
+@pytest.mark.parametrize("count", [1, 64])
+def test_line_items_uses_one_snapshot_and_preserves_values(monkeypatch, count):
+    b = builder()
+    for index in range(count):
+        b.add_line_item(description=f"Item {index}", quantity=1, unit_code="PCE",
+                        unit_price=str(index + 1), vat_rate=15,
+                        vat_category=VatCategory.STANDARD)
+    invoice = b.build()
+    expected = [invoice.line_item(i) for i in range(count)]
+    invoke = invoice._invoke
+    snapshots = 0
+
+    def counted_invoke(name, *args):
+        nonlocal snapshots
+        if name == "data":
+            snapshots += 1
+        return invoke(name, *args)
+
+    monkeypatch.setattr(invoice, "_invoke", counted_invoke)
+    items = invoice.line_items()
+    invoice.close()
+    assert items == expected
+    assert snapshots == 1, "collection must clone the invoice only once"
