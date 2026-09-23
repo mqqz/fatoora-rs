@@ -1,10 +1,10 @@
 # Business-rule validation development
 
 [Issue #1](https://github.com/mqqz/fatoora-rs/issues/1) is being implemented against
-the two rule profiles in ZATCA SDK `238-R3.4.8`. The current implementation provides
-the rule catalog, coverage ledger, SDK finding parser, and targeted reference
-fixtures. **Native rule evaluation is still pending.** Public invoice validation
-continues to check XSD only.
+the two rule profiles in ZATCA SDK `238-R3.4.8`. An internal Rust evaluator covers
+18 of the 257 inventoried assertion sites, with source metadata and offline SDK
+comparisons. **The full profile remains incomplete.** Public invoice validation
+continues to check XSD only; the native subset has no public entry point.
 
 ## Check the evidence offline
 
@@ -24,7 +24,7 @@ The fixtures in `fatoora-core/tests/fixtures/business-rules/` contain:
   ordered executable template trees, global declarations, and assertion metadata.
   Extraction preserves zero-assertion templates because they can suppress a later
   rule. The trees preserve the source instructions for review.
-- `coverage.json`: one entry per assertion site. All 257 sites initially remain
+- `coverage.json`: one entry per assertion site, with 18 implemented and 239
   pending. An implemented entry needs implementation and test paths. An
   unreachable entry needs evidence. File paths alone do not establish semantic
   coverage; reviewers must check branch and boundary tests.
@@ -107,3 +107,37 @@ After review, replace `mutations/` with the candidate and run the offline checks
 For source-catalog changes, compare the inventory candidate as well; never reset
 an existing coverage ledger to the generated all-pending ledger. Keep imported
 source attribution and license notices with generated materials.
+
+## Test the internal native subset
+
+```sh
+cargo test -p fatoora-core --locked --offline --lib business_rules
+```
+
+The module in `fatoora-core/src/invoice/validation/business_rules/` evaluates
+`BR-CO-10`, `BR-CO-14`, `BR-CO-15`, `BR-25`, the selected total and allowance
+decimal limits, and `BR-KSA-EN16931-02`/`09`. Tests compare this subset against all
+24 mutation captures and the signed fixtures for all six document variants.
+Additional tests cover locations, duplicate operands, template suppression,
+overlapping patterns, and evaluation failures. The Rust metadata test requires
+the implemented-site set to match the coverage ledger exactly.
+
+The evaluator reads the original XML without importing it into the invoice
+model. It retains namespace identity, repeated elements and numeric text, rejects
+DTDs, and bounds input size, depth, nodes, retained data and findings. Locations
+are XPath expressions using namespace URIs and sibling positions.
+
+Its private `ExactDecimal` uses arbitrary-precision integers within a configured
+digit budget. It accepts XML decimal syntax and implements XPath midpoint
+rounding toward positive infinity. The existing invoice `Decimal` retains its
+96-bit coefficient, scale limit and invoice rounding contract. Lexical precision
+checks use XML text directly. Explicit double conversion and rounding have
+separate primitive tests; the selected arithmetic predicates use decimals.
+
+Reports identify the pinned profile, caller-supplied evaluation instant and
+offset, source, completed assertion sites, findings and source status. Successful
+runs are marked `evaluated_subset` and cannot claim complete validation. An
+execution error retains earlier findings, marks its source `evaluation_failed`,
+and leaves subsequent sources `not_run`. Findings have deterministic source,
+assertion-site and document order. XSD and cryptographic checks are outside this
+internal entry point.
