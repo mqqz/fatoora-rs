@@ -217,11 +217,18 @@ CODE : BR-01, MESSAGE : second, MESSAGE : remains part of text
         self.assertEqual(report["findings"][0]["severity"], "warning")
         self.assertEqual(report["findings"][0]["message"], "first line\n   second line")
 
+    def test_integrity_codes_can_contain_spaces(self):
+        log = "[XSD] validation result : PASSED\n[QR] validation result : FAILED\nqr validation errors :\nCODE : digital signature, MESSAGE : mismatch\n"
+        report = sdk.parse_validation_report(log, 0)
+        self.assertEqual(report["findings"][0]["code"], "digital signature")
+        self.assertEqual(report["findings"][0]["source"], "qr")
+
     def test_unattributed_malformed_or_contradictory_findings_fail_capture(self):
         prefix = "[XSD] validation result : PASSED\n"
         for body in [
             "CODE : BR-01, MESSAGE : invalid",
             "ksa validation warnings :\nCODE : broken",
+            "[QR] validation result : FAILED\nqr validation errors :\nCODE : , MESSAGE : invalid",
             "ksa validation errors :\nCODE : BR-01, MESSAGE : invalid",
             "[KSA] validation result : PASSED\nksa validation errors :\nCODE : BR-01, MESSAGE : invalid",
             "[KSA] validation result : PASSED\nunknown validation warnings :\nCODE : BR-01, MESSAGE : invalid",

@@ -1,0 +1,25 @@
+{
+  "layers": {
+    "xsd": "passed",
+    "en": "passed",
+    "ksa": "passed",
+    "qr": "failed",
+    "signature": "passed",
+    "pih": "passed",
+    "global": "failed"
+  },
+  "findings": [
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-98",
+      "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+    },
+    {
+      "source": "qr",
+      "severity": "error",
+      "code": "digital signature",
+      "message": "invoice signature value in the invoice doesn't match the invoice signature value in tag 7 of the QR code or invoice signature value missing in invoice  "
+    }
+  ]
+}
