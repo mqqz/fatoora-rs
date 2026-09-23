@@ -1,7 +1,5 @@
-//! Internal, explicitly incomplete evaluation of pinned SDK assertion sites.
-//!
-//! This is not the public ZATCA validator. No successful subset run claims that
-//! either full business-rule profile, XSD, or cryptographic validation completed.
+//! Native evaluation of both complete, pinned SDK business-rule profiles.
+//! XSD and cryptographic checks belong to the enclosing validation pipeline.
 mod code_lists;
 mod decimal;
 mod identity;
@@ -85,6 +83,7 @@ impl Source {
 pub(super) enum StageStatus {
     NotRun,
     EvaluatedSubset,
+    Completed,
     EvaluationFailed,
 }
 
@@ -108,13 +107,13 @@ pub(super) struct StageReport {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(super) struct SliceReport {
+pub(super) struct BusinessRuleReport {
     pub profile: &'static str,
     pub evaluated_at: DateTime<FixedOffset>,
     pub stages: Vec<StageReport>,
 }
 
-impl SliceReport {
+impl BusinessRuleReport {
     fn new(context: &EvaluationContext) -> Self {
         Self {
             profile: "zatca-sdk-238-R3.4.8",
@@ -131,7 +130,11 @@ impl SliceReport {
         }
     }
     pub fn is_complete(&self) -> bool {
-        false
+        self.stages.len() == 2
+            && self
+                .stages
+                .iter()
+                .all(|s| s.status == StageStatus::Completed)
     }
     pub fn has_errors(&self) -> bool {
         self.stages
@@ -168,18 +171,23 @@ pub(super) enum FailureKind {
 #[derive(Debug, thiserror::Error)]
 #[error("business-rule evaluation failed: {kind}")]
 pub(super) struct EvaluationFailure {
-    pub report: SliceReport,
+    pub report: BusinessRuleReport,
     pub failed_source: Option<Source>,
     pub site: Option<&'static str>,
     pub location: Option<String>,
     pub kind: FailureKind,
 }
 
+/// Bound and strictly parse untrusted XML before schema or integrity work.
+pub(super) fn check_input(input: &str) -> Result<(), FailureKind> {
+    xml::XmlView::parse(input, &Limits::default()).map(|_| ())
+}
+
 /// Evaluate the implemented sites only. Order is source, assertion site, document.
-pub(super) fn evaluate_slice(
+pub(super) fn evaluate(
     input: &str,
     context: &EvaluationContext,
-) -> Result<SliceReport, Box<EvaluationFailure>> {
+) -> Result<BusinessRuleReport, Box<EvaluationFailure>> {
     evaluate_matching(input, context, |_| true)
 }
 
@@ -187,8 +195,8 @@ fn evaluate_matching(
     input: &str,
     context: &EvaluationContext,
     include: impl Fn(&metadata::Rule) -> bool,
-) -> Result<SliceReport, Box<EvaluationFailure>> {
-    let mut report = SliceReport::new(context);
+) -> Result<BusinessRuleReport, Box<EvaluationFailure>> {
+    let mut report = BusinessRuleReport::new(context);
     let view = match xml::XmlView::parse(input, &context.limits) {
         Ok(view) => view,
         Err(kind) => {
@@ -273,7 +281,16 @@ fn evaluate_matching(
             }
             report.stages[index].evaluated_sites.push(rule.site);
         }
-        report.stages[index].status = StageStatus::EvaluatedSubset;
+        report.stages[index].status = if report.stages[index].evaluated_sites.len()
+            == metadata::RULES
+                .iter()
+                .filter(|r| r.source == source)
+                .count()
+        {
+            StageStatus::Completed
+        } else {
+            StageStatus::EvaluatedSubset
+        };
     }
     Ok(report)
 }

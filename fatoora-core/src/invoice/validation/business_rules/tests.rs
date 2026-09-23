@@ -8,7 +8,7 @@ use std::path::Path;
 fn evaluate_slice(
     input: &str,
     context: &EvaluationContext,
-) -> Result<SliceReport, Box<EvaluationFailure>> {
+) -> Result<BusinessRuleReport, Box<EvaluationFailure>> {
     evaluate_matching(input, context, |r| {
         matches!(
             r.check,
@@ -41,11 +41,11 @@ fn invoice(body: &str) -> String {
     )
 }
 
-fn run(body: &str) -> SliceReport {
+fn run(body: &str) -> BusinessRuleReport {
     evaluate_slice(&invoice(body), &context()).unwrap()
 }
 
-fn findings<'a>(report: &'a SliceReport, id: &str) -> Vec<&'a RuleFinding> {
+fn findings<'a>(report: &'a BusinessRuleReport, id: &str) -> Vec<&'a RuleFinding> {
     report
         .stages
         .iter()
@@ -368,7 +368,7 @@ fn assert_frozen_corpus(family: &str, expected_cases: usize) {
             .filter(|f| f["code"] == "SaxonApiException")
             .map(|f| f["source"].as_str().unwrap())
             .collect();
-        let report = match super::evaluate_slice(&input, &context()) {
+        let report = match super::evaluate(&input, &context()) {
             Ok(report) => {
                 assert!(
                     unavailable_sources.is_empty(),
@@ -427,7 +427,7 @@ fn assert_frozen_corpus(family: &str, expected_cases: usize) {
             }
         }
         assert_eq!(observed, wanted, "{id}");
-        assert!(!report.is_complete());
+        assert_eq!(report.is_complete(), unavailable_sources.is_empty());
     }
 }
 
@@ -602,7 +602,7 @@ fn all_six_document_variants_match_the_frozen_observations_for_the_subset() {
         let input =
             std::fs::read_to_string(original.join("cases").join(case).join("sdk-signed.xml"))
                 .unwrap();
-        let report = super::evaluate_slice(&input, &context()).unwrap();
+        let report = super::evaluate(&input, &context()).unwrap();
         let expected = &observations["cases"][case]["signed-validate"]["report"]["findings"];
         let mut wanted = Vec::new();
         for finding in expected.as_array().unwrap() {
@@ -671,7 +671,7 @@ fn native_occurrences_preserve_details_coalesced_by_the_sdk_cli() {
                 .count(),
             1
         );
-        let report = super::evaluate_slice(&input, &context()).unwrap();
+        let report = super::evaluate(&input, &context()).unwrap();
         let findings = report
             .stages
             .iter()
