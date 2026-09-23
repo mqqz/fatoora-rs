@@ -1,4 +1,3 @@
-from ._lib import FfiLibrary
 from .api import (
     Address,
     Config,
@@ -33,6 +32,7 @@ from .api import (
     parse_signed_invoice_xml,
     parse_signed_invoice_xml_file,
     validate_xml_invoice_from_str,
+    invoice_hash_base64_from_xml_str,
 )
 from .errors import (
     ApiError,
@@ -58,7 +58,6 @@ __all__ = [
     "Csr",
     "CsrProperties",
     "Environment",
-    "FfiLibrary",
     "FinalizedInvoice",
     "InvoiceBuilder",
     "InvoiceFlag",
@@ -85,6 +84,7 @@ __all__ = [
     "parse_signed_invoice_xml",
     "parse_signed_invoice_xml_file",
     "validate_xml_invoice_from_str",
+    "invoice_hash_base64_from_xml_str",
     "FatooraError",
     "FfiError",
     "FfiErrorKind",

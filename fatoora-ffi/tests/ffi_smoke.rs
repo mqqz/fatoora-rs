@@ -1,459 +1,160 @@
-use std::ffi::CString;
-use std::path::Path;
+use diplomat_runtime::DiplomatWrite;
+use fatoora_ffi::common::ffi::BindingError;
+use fatoora_ffi::crypto::ffi::{Config, Csr, CsrProperties, Signer, SigningKey};
+use fatoora_ffi::invoice::ffi::{FinalizedInvoice, SignedInvoice, Xml};
 
-use fatoora_ffi::*;
+const INVOICE: &[u8] =
+    include_bytes!("../../fatoora-core/tests/fixtures/invoices/sample-simplified-invoice.xml");
+const CERT: &[u8] =
+    include_bytes!("../../fatoora-core/tests/fixtures/sdk-parity/credentials/certificate.der");
+const KEY: &[u8] =
+    include_bytes!("../../fatoora-core/tests/fixtures/sdk-parity/credentials/private-key.der");
 
-fn cstr(value: &str) -> CString {
-    CString::new(value).expect("CString")
+fn ok<T>(result: Result<T, Box<BindingError>>) -> T {
+    result.unwrap_or_else(|e| {
+        panic!(
+            "binding error {}: {}",
+            e.code(),
+            written(|out| e.message(out))
+        )
+    })
 }
 
 #[test]
-fn config_validate_and_free() {
-    unsafe {
-        let config = fatoora_config_new(FfiEnvironment::NonProduction);
-        assert!(!config.is_null());
-
-        let xml = cstr("<Invoice></Invoice>");
-        let result = fatoora_validate_xml_invoice_from_str(config, xml.as_ptr());
-        assert!(!result.ok);
-        if !result.error.is_null() {
-            fatoora_error_free(result.error);
-        }
-
-        fatoora_config_free(config);
-    }
+fn signing_consumes_finalized_and_preserves_signed_xml_exactly() {
+    let signer = ok(Signer::from_der(CERT, KEY));
+    let mut invoice = ok(FinalizedInvoice::from_xml(INVOICE));
+    let data_before = ok(invoice.data());
+    let unsigned_hash = written(|out| ok(invoice.hash_base64(out)));
+    let mut signed = ok(signer.sign(&mut invoice));
+    assert!(invoice.data().is_err());
+    assert!(invoice.totals().is_err());
+    assert!(signer.sign(&mut invoice).is_err());
+    assert_eq!(written(|out| ok(data_before.id(out))), "SME00010");
+    let xml = written(|out| ok(signed.xml(out)));
+    assert_eq!(written(|out| ok(signed.hash_base64(out))), unsigned_hash);
+    assert!(!written(|out| ok(signed.signature(out))).is_empty());
+    assert!(!written(|out| ok(signed.qr_code(out))).is_empty());
+    let parsed = ok(SignedInvoice::from_xml(xml.as_bytes()));
+    assert_eq!(written(|out| ok(parsed.xml(out))), xml);
+    assert_eq!(written(|out| ok(signed.into_xml(out))), xml);
+    assert!(signed.data().is_err());
+    written(|out| assert!(signed.xml(out).is_err()));
+    written(|out| assert!(signed.into_xml(out).is_err()));
 }
 
 #[test]
-fn invoice_builder_roundtrip() {
-    unsafe {
-        let builder_result = fatoora_invoice_builder_new(
-            FfiInvoiceTypeKind::Tax,
-            FfiInvoiceSubType::Simplified,
-            std::ptr::null(),
-            std::ptr::null(),
-            std::ptr::null(),
-            std::ptr::null(),
-        );
-        assert!(builder_result.ok, "builder error");
-        let mut builder = builder_result.value;
-        assert!(fatoora_invoice_builder_set_id(&mut builder, cstr("INV-1").as_ptr()).ok);
-        assert!(
-            fatoora_invoice_builder_set_uuid(
-                &mut builder,
-                cstr("123e4567-e89b-12d3-a456-426614174000").as_ptr()
-            )
-            .ok
-        );
-        assert!(
-            fatoora_invoice_builder_set_issue_datetime(
-                &mut builder,
-                cstr("2024-01-01T12:30:00Z").as_ptr()
-            )
-            .ok
-        );
-        assert!(fatoora_invoice_builder_set_currency(&mut builder, cstr("SAR").as_ptr()).ok);
-        assert!(fatoora_invoice_builder_set_previous_hash(&mut builder, cstr("hash").as_ptr()).ok);
-        assert!(fatoora_invoice_builder_set_invoice_counter(&mut builder, 1).ok);
-        assert!(
-            fatoora_invoice_builder_set_payment_means_code(&mut builder, cstr("10").as_ptr()).ok
-        );
-        assert!(
-            fatoora_invoice_builder_set_vat_category(&mut builder, FfiVatCategory::Standard).ok
-        );
-        assert!(
-            fatoora_invoice_builder_set_seller(
-                &mut builder,
-                cstr("Acme Inc").as_ptr(),
-                cstr("SAU").as_ptr(),
-                cstr("Riyadh").as_ptr(),
-                cstr("King Fahd").as_ptr(),
-                cstr("").as_ptr(),
-                cstr("1234").as_ptr(),
-                std::ptr::null(),
-                cstr("12222").as_ptr(),
-                std::ptr::null(),
-                cstr("399999999900003").as_ptr(),
-                std::ptr::null(),
-                std::ptr::null(),
-            )
-            .ok
-        );
-
-        let flags_result = fatoora_invoice_builder_flags(&mut builder, 0b00001);
-        assert!(flags_result.ok);
-        let flags_result = fatoora_invoice_builder_flags(&mut builder, 0b00100);
-        assert!(flags_result.ok);
-        let flags_result = fatoora_invoice_builder_flags(&mut builder, 0b00001);
-        assert!(flags_result.ok);
-
-        let buyer_result = fatoora_invoice_builder_set_buyer(
-            &mut builder,
-            cstr("Buyer Inc").as_ptr(),
-            cstr("SAU").as_ptr(),
-            cstr("Riyadh").as_ptr(),
-            cstr("Takhassusi").as_ptr(),
-            std::ptr::null(),
-            cstr("555").as_ptr(),
-            std::ptr::null(),
-            cstr("12222").as_ptr(),
-            std::ptr::null(),
-            cstr("399999999900003").as_ptr(),
-            std::ptr::null(),
-            std::ptr::null(),
-        );
-        assert!(buyer_result.ok);
-
-        let note_result = fatoora_invoice_builder_set_note(
-            &mut builder,
-            cstr("en").as_ptr(),
-            cstr("Test note").as_ptr(),
-        );
-        assert!(note_result.ok);
-
-        let allowance_result = fatoora_invoice_builder_set_allowance(
-            &mut builder,
-            cstr("Discount").as_ptr(),
-            cstr("5.0").as_ptr(),
-        );
-        assert!(allowance_result.ok);
-
-        let add_result = fatoora_invoice_builder_add_line_item(
-            &mut builder,
-            cstr("Item").as_ptr(),
-            cstr("1.0").as_ptr(),
-            cstr("PCE").as_ptr(),
-            cstr("100.0").as_ptr(),
-            cstr("15.0").as_ptr(),
-            FfiVatCategory::Standard,
-        );
-        assert!(add_result.ok, "add line item failed");
-
-        let invoice_result = fatoora_invoice_builder_build(&mut builder);
-        assert!(invoice_result.ok, "build failed");
-        let mut invoice = invoice_result.value;
-
-        let xml_result = fatoora_invoice_to_xml(&mut invoice);
-        assert!(xml_result.ok, "xml failed");
-        let xml = std::ffi::CStr::from_ptr(xml_result.value.ptr)
-            .to_string_lossy()
-            .to_string();
-        assert!(xml.contains("<Invoice"));
-        fatoora_string_free(xml_result.value);
-
-        let count = fatoora_invoice_line_item_count(&mut invoice);
-        assert!(count.ok);
-        assert_eq!(count.value, 1);
-
-        let totals = fatoora_invoice_totals_tax_inclusive(&mut invoice);
-        assert!(totals.ok);
-        assert_eq!(
-            std::ffi::CStr::from_ptr(totals.value.ptr).to_str().unwrap(),
-            "109.25"
-        );
-        fatoora_string_free(totals.value);
-
-        let flags = fatoora_invoice_flags(&mut invoice);
-        assert!(flags.ok);
-
-        fatoora_invoice_free(&mut invoice);
-        fatoora_invoice_builder_free(&mut builder);
-    }
-}
-
-#[test]
-fn parse_finalized_invoice_xml() {
-    unsafe {
-        let builder_result = fatoora_invoice_builder_new(
-            FfiInvoiceTypeKind::Tax,
-            FfiInvoiceSubType::Simplified,
-            std::ptr::null(),
-            std::ptr::null(),
-            std::ptr::null(),
-            std::ptr::null(),
-        );
-        assert!(builder_result.ok);
-        let mut builder = builder_result.value;
-        assert!(fatoora_invoice_builder_set_id(&mut builder, cstr("INV-2").as_ptr()).ok);
-        assert!(
-            fatoora_invoice_builder_set_uuid(
-                &mut builder,
-                cstr("123e4567-e89b-12d3-a456-426614174001").as_ptr()
-            )
-            .ok
-        );
-        assert!(
-            fatoora_invoice_builder_set_issue_datetime(
-                &mut builder,
-                cstr("2024-01-01T12:30:00Z").as_ptr()
-            )
-            .ok
-        );
-        assert!(fatoora_invoice_builder_set_currency(&mut builder, cstr("SAR").as_ptr()).ok);
-        assert!(fatoora_invoice_builder_set_previous_hash(&mut builder, cstr("hash").as_ptr()).ok);
-        assert!(fatoora_invoice_builder_set_invoice_counter(&mut builder, 2).ok);
-        assert!(
-            fatoora_invoice_builder_set_payment_means_code(&mut builder, cstr("10").as_ptr()).ok
-        );
-        assert!(
-            fatoora_invoice_builder_set_vat_category(&mut builder, FfiVatCategory::Standard).ok
-        );
-        assert!(
-            fatoora_invoice_builder_set_seller(
-                &mut builder,
-                cstr("Acme Inc").as_ptr(),
-                cstr("SAU").as_ptr(),
-                cstr("Riyadh").as_ptr(),
-                cstr("King Fahd").as_ptr(),
-                std::ptr::null(),
-                cstr("1234").as_ptr(),
-                std::ptr::null(),
-                cstr("12222").as_ptr(),
-                std::ptr::null(),
-                cstr("399999999900003").as_ptr(),
-                std::ptr::null(),
-                std::ptr::null(),
-            )
-            .ok
-        );
-
-        let add_result = fatoora_invoice_builder_add_line_item(
-            &mut builder,
-            cstr("Item").as_ptr(),
-            cstr("1.0").as_ptr(),
-            cstr("PCE").as_ptr(),
-            cstr("100.0").as_ptr(),
-            cstr("15.0").as_ptr(),
-            FfiVatCategory::Standard,
-        );
-        assert!(add_result.ok);
-
-        let invoice_result = fatoora_invoice_builder_build(&mut builder);
-        assert!(invoice_result.ok);
-        let mut invoice = invoice_result.value;
-
-        let xml_result = fatoora_invoice_to_xml(&mut invoice);
-        assert!(xml_result.ok);
-        let xml = std::ffi::CStr::from_ptr(xml_result.value.ptr)
-            .to_string_lossy()
-            .to_string();
-        fatoora_string_free(xml_result.value);
-        fatoora_invoice_free(&mut invoice);
-
-        let parsed_result = fatoora_parse_finalized_invoice_xml(cstr(&xml).as_ptr());
-        assert!(parsed_result.ok);
-        let mut parsed = parsed_result.value;
-
-        let count = fatoora_invoice_line_item_count(&mut parsed);
-        assert!(count.ok);
-        assert_eq!(count.value, 1);
-
-        fatoora_invoice_free(&mut parsed);
-        fatoora_invoice_builder_free(&mut builder);
-    }
-}
-
-#[test]
-fn credit_note_requires_reference_and_reason() {
-    unsafe {
-        let result = fatoora_invoice_builder_new(
-            FfiInvoiceTypeKind::CreditNote,
-            FfiInvoiceSubType::Simplified,
-            std::ptr::null(),
-            std::ptr::null(),
-            std::ptr::null(),
-            std::ptr::null(),
-        );
-        assert!(!result.ok);
-        if !result.error.is_null() {
-            fatoora_error_free(result.error);
+fn failed_signing_also_consumes_finalized_invoice() {
+    // X.509 BIT STRING permits unused bits; invoice signing requires a byte-aligned
+    // certificate signature. Change just that field to exercise a real signing error.
+    fn tlv(bytes: &[u8], offset: usize) -> (usize, usize) {
+        let first = bytes[offset + 1];
+        if first < 128 {
+            (offset + 2, usize::from(first))
+        } else {
+            let count = usize::from(first & 127);
+            let length = bytes[offset + 2..offset + 2 + count]
+                .iter()
+                .fold(0usize, |n, byte| (n << 8) | usize::from(*byte));
+            (offset + 2 + count, length)
         }
     }
+    let mut cert = CERT.to_vec();
+    let (sequence, _) = tlv(&cert, 0);
+    let (tbs, tbs_len) = tlv(&cert, sequence);
+    let (algorithm, algorithm_len) = tlv(&cert, tbs + tbs_len);
+    let signature_tag = algorithm + algorithm_len;
+    assert_eq!(cert[signature_tag], 3);
+    let (signature, signature_len) = tlv(&cert, signature_tag);
+    assert_eq!(cert[signature], 0);
+    cert[signature] = 1;
+    cert[signature + signature_len - 1] &= 0xfe;
+    let signer = ok(Signer::from_der(&cert, KEY));
+    let mut invoice = ok(FinalizedInvoice::from_xml(INVOICE));
+    let error = signer
+        .sign(&mut invoice)
+        .err()
+        .expect("unaligned signature must fail");
+    assert!(written(|out| error.message(out)).contains("not byte-aligned"));
+    assert!(invoice.data().is_err());
+    written(|out| assert!(invoice.xml(out).is_err()));
+    assert_eq!(signer.sign(&mut invoice).err().unwrap().code(), 1);
 }
 
 #[test]
-fn credit_note_roundtrip() {
-    unsafe {
-        let result = fatoora_invoice_builder_new(
-            FfiInvoiceTypeKind::CreditNote,
-            FfiInvoiceSubType::Simplified,
-            cstr("INV-0").as_ptr(),
-            cstr("123e4567-e89b-12d3-a456-426614174000").as_ptr(),
-            cstr("2023-11-13").as_ptr(),
-            cstr("Correction").as_ptr(),
-        );
-        assert!(result.ok);
-        let mut builder = result.value;
-        assert!(fatoora_invoice_builder_set_id(&mut builder, cstr("INV-4").as_ptr()).ok);
-        assert!(
-            fatoora_invoice_builder_set_uuid(
-                &mut builder,
-                cstr("123e4567-e89b-12d3-a456-426614174003").as_ptr()
-            )
-            .ok
-        );
-        assert!(
-            fatoora_invoice_builder_set_issue_datetime(
-                &mut builder,
-                cstr("2024-01-01T12:30:00Z").as_ptr()
-            )
-            .ok
-        );
-        assert!(fatoora_invoice_builder_set_currency(&mut builder, cstr("SAR").as_ptr()).ok);
-        assert!(fatoora_invoice_builder_set_previous_hash(&mut builder, cstr("hash").as_ptr()).ok);
-        assert!(fatoora_invoice_builder_set_invoice_counter(&mut builder, 4).ok);
-        assert!(
-            fatoora_invoice_builder_set_payment_means_code(&mut builder, cstr("10").as_ptr()).ok
-        );
-        assert!(
-            fatoora_invoice_builder_set_vat_category(&mut builder, FfiVatCategory::Standard).ok
-        );
-        assert!(
-            fatoora_invoice_builder_set_seller(
-                &mut builder,
-                cstr("Acme Inc").as_ptr(),
-                cstr("SAU").as_ptr(),
-                cstr("Riyadh").as_ptr(),
-                cstr("King Fahd").as_ptr(),
-                std::ptr::null(),
-                cstr("1234").as_ptr(),
-                std::ptr::null(),
-                cstr("12222").as_ptr(),
-                std::ptr::null(),
-                cstr("399999999900003").as_ptr(),
-                std::ptr::null(),
-                std::ptr::null(),
-            )
-            .ok
-        );
-
-        let add_result = fatoora_invoice_builder_add_line_item(
-            &mut builder,
-            cstr("Item").as_ptr(),
-            cstr("1.0").as_ptr(),
-            cstr("PCE").as_ptr(),
-            cstr("100.0").as_ptr(),
-            cstr("15.0").as_ptr(),
-            FfiVatCategory::Standard,
-        );
-        assert!(add_result.ok);
-
-        let invoice_result = fatoora_invoice_builder_build(&mut builder);
-        assert!(invoice_result.ok);
-        let mut invoice = invoice_result.value;
-
-        let xml_result = fatoora_invoice_to_xml(&mut invoice);
-        assert!(xml_result.ok);
-        fatoora_string_free(xml_result.value);
-
-        fatoora_invoice_free(&mut invoice);
-        fatoora_invoice_builder_free(&mut builder);
-    }
+fn imported_signed_xml_retains_whitespace_and_declaration() {
+    // The fixed fixture is an independent document, not serialized by these bindings.
+    let source = std::str::from_utf8(INVOICE).unwrap();
+    let mut invoice = ok(SignedInvoice::from_xml(INVOICE));
+    assert_eq!(written(|out| ok(invoice.xml(out))), source);
+    assert_eq!(written(|out| ok(invoice.into_xml(out))), source);
 }
 
 #[test]
-fn invalid_utf8_returns_error() {
-    unsafe {
-        let invalid = [0xff, 0x00];
-        let ptr = invalid.as_ptr() as *const std::os::raw::c_char;
-        let result = fatoora_csr_properties_from_str(ptr);
-        assert!(!result.ok);
-        if !result.error.is_null() {
-            fatoora_error_free(result.error);
-        }
-    }
-}
-
-#[test]
-fn null_handles_return_error() {
-    unsafe {
-        let add_result = fatoora_invoice_builder_add_line_item(
-            std::ptr::null_mut(),
-            cstr("Item").as_ptr(),
-            cstr("1.0").as_ptr(),
-            cstr("PCE").as_ptr(),
-            cstr("100.0").as_ptr(),
-            cstr("15.0").as_ptr(),
-            FfiVatCategory::Standard,
-        );
-        assert!(!add_result.ok);
-        if !add_result.error.is_null() {
-            fatoora_error_free(add_result.error);
-        }
-
-        let validate_result =
-            fatoora_validate_xml_invoice_from_str(std::ptr::null_mut(), cstr("<x/>").as_ptr());
-        assert!(!validate_result.ok);
-        if !validate_result.error.is_null() {
-            fatoora_error_free(validate_result.error);
-        }
-    }
-}
-
-#[test]
-fn config_new_returns_handle() {
-    unsafe {
-        let config = fatoora_config_new(FfiEnvironment::NonProduction);
-        assert!(!config.is_null());
-        fatoora_config_free(config);
-    }
-}
-
-#[test]
-fn signer_errors_on_invalid_inputs() {
-    unsafe {
-        let bad_cert = cstr("not a cert");
-        let bad_key = cstr("not a key");
-        let result = fatoora_signer_from_pem(bad_cert.as_ptr(), bad_key.as_ptr());
-        assert!(!result.ok);
-        if !result.error.is_null() {
-            fatoora_error_free(result.error);
-        }
-
-        let result = fatoora_signer_from_der(std::ptr::null(), 0, std::ptr::null(), 0);
-        assert!(!result.ok);
-        if !result.error.is_null() {
-            fatoora_error_free(result.error);
-        }
-    }
-}
-
-#[test]
-fn signing_key_from_der_null_errors() {
-    unsafe {
-        let result = fatoora_signing_key_from_der(std::ptr::null(), 0);
-        assert!(!result.ok);
-        if !result.error.is_null() {
-            fatoora_error_free(result.error);
-        }
-    }
-}
-
-#[test]
-fn parse_finalized_invoice_from_file() {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+fn file_parsing_and_validation_errors_remain_structured() {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../fatoora-core/tests/fixtures/invoices/sample-simplified-invoice.xml");
-    unsafe {
-        let result = fatoora_parse_finalized_invoice_xml_file(
-            cstr(path.to_string_lossy().as_ref()).as_ptr(),
-        );
-        assert!(result.ok);
-        if result.ok {
-            let mut invoice = result.value;
-            fatoora_invoice_free(&mut invoice);
-        } else if !result.error.is_null() {
-            fatoora_error_free(result.error);
-        }
-    }
+    let invoice = ok(FinalizedInvoice::from_file(
+        path.to_str().unwrap().as_bytes(),
+    ));
+    assert_eq!(written(|out| ok(ok(invoice.data()).id(out))), "SME00010");
+    assert!(FinalizedInvoice::from_file(b"/no/such/invoice.xml").is_err());
+    assert!(FinalizedInvoice::from_file(b"bad\0path").is_err());
+    assert!(SignedInvoice::from_xml(b"<nope/>").is_err());
+    assert!(FinalizedInvoice::from_xml(&[0xff]).is_err());
+    assert!(FinalizedInvoice::from_xml(b"<Invoice/>\0").is_err());
+    let config = ok(Config::new(0));
+    let error = Xml::validate(&config, b"<Invoice/>").err().unwrap();
+    let details: serde_json::Value =
+        serde_json::from_str(&written(|out| error.details_json(out))).unwrap();
+    assert!(details["type"].is_string());
+    assert!(Xml::validate(&config, &[0xff]).is_err());
+    written(|out| assert!(Xml::hash(b"<bad\0", out).is_err()));
 }
 
 #[test]
-fn parse_signed_invoice_xml_invalid() {
-    unsafe {
-        let result = fatoora_parse_signed_invoice_xml(cstr("<nope/>").as_ptr());
-        assert!(!result.ok);
-        if !result.error.is_null() {
-            fatoora_error_free(result.error);
+fn csr_build_preserves_subject_key_and_owned_extensions() {
+    let props = ok(CsrProperties::from_properties_str(include_bytes!(
+        "../../fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties"
+    )));
+    let key = ok(SigningKey::from_der(KEY));
+    let csr = ok(props.build(&key, 0));
+    assert!(props.build(&key, 255).is_err());
+    let der = ok(csr.to_der());
+    let parsed = ok(Csr::from_der(der.as_slice()));
+    assert_eq!(ok(parsed.to_der()).as_slice(), der.as_slice());
+    let subject = written(|out| ok(parsed.subject_string(out)));
+    assert!(subject.contains("C=SA"));
+    let extensions = ok(parsed.extension_values_der());
+    assert!(!extensions.is_empty());
+    let first = ok(extensions.get(0));
+    assert!(extensions.get(extensions.len()).is_err());
+    drop(extensions);
+    drop(parsed);
+    drop(csr);
+    assert!(!first.as_slice().is_empty());
+}
+
+#[test]
+fn signer_certificate_der_is_exact_and_xml_errors_are_fallible() {
+    let signer = ok(Signer::from_der(CERT, KEY));
+    assert_eq!(ok(signer.certificate_der()).as_slice(), CERT);
+    written(|out| assert!(signer.sign_xml(b"<broken", out).is_err()));
+    written(|out| assert!(signer.sign_xml(b"<Invoice/>\0", out).is_err()));
+}
+
+fn written(f: impl FnOnce(&mut DiplomatWrite)) -> String {
+    struct Writer(*mut DiplomatWrite);
+    impl Drop for Writer {
+        fn drop(&mut self) {
+            unsafe {
+                diplomat_runtime::diplomat_buffer_write_destroy(self.0);
+            }
         }
+    }
+    let out = Writer(diplomat_runtime::diplomat_buffer_write_create(0));
+    unsafe {
+        f(&mut *out.0);
+        std::str::from_utf8((*out.0).as_bytes()).unwrap().to_owned()
     }
 }

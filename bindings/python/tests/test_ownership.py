@@ -21,25 +21,33 @@ def test_signed_xml_copy_and_consuming_access():
     signed.close()
 
 
-def test_bundled_declarations_support_xml_ownership(monkeypatch):
-    import fatoora._lib as module
+def test_generated_signed_invoice_consumption_keeps_copy_and_owned_data():
+    from fatoora import _native
 
-    monkeypatch.setattr(module, "_find_header", lambda: None)
-    bindings = module.FfiLibrary()
-    ffi, lib = bindings.ffi, bindings.lib
     path = Path(__file__).resolve().parents[3] / "fatoora-core/tests/fixtures/invoices/sample-simplified-invoice.xml"
-    xml = path.read_bytes()
-    parsed = lib.fatoora_parse_signed_invoice_xml(xml)
-    assert parsed.ok
-    handle = ffi.new("FfiSignedInvoice *", parsed.value)
-    copied = lib.fatoora_signed_invoice_to_xml(handle)
-    assert copied.ok and handle.ptr
-    owned = lib.fatoora_signed_invoice_into_xml(handle)
-    assert owned.ok and not handle.ptr
-    try:
-        assert ffi.string(copied.value.ptr) == xml
-        assert ffi.string(owned.value.ptr) == xml
-    finally:
-        lib.fatoora_string_free(copied.value)
-        lib.fatoora_string_free(owned.value)
-        lib.fatoora_signed_invoice_free(handle)
+    xml = path.read_text()
+    signed = _native.SignedInvoice.from_xml(xml)
+    copied = signed.xml()
+    data = signed.data()
+    invoice_id = data.id()
+    assert signed.into_xml() == xml
+    assert copied == xml
+    assert data.id() == invoice_id
+    for method in (signed.xml, signed.into_xml, signed.data):
+        with pytest.raises(Exception) as caught:
+            method()
+        error = caught.value.args[0]
+        assert isinstance(error, _native.BindingError)
+        assert error.code() == 1
+    del signed
+    assert data.id() == invoice_id
+
+
+def test_closed_facade_is_idempotent_and_rejects_use():
+    path = Path(__file__).resolve().parents[3] / "fatoora-core/tests/fixtures/invoices/sample-simplified-invoice.xml"
+    signed = parse_signed_invoice_xml(path.read_text())
+    signed.close()
+    signed.close()
+    with pytest.raises(FfiError) as caught:
+        signed.into_xml()
+    assert caught.value.code == 1

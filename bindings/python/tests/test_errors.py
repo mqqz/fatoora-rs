@@ -26,28 +26,6 @@ def test_unknown_codes_and_details_remain_available():
     assert str(error) == "future message"
 
 
-def test_bundled_declarations_use_opaque_errors(monkeypatch):
-    import json
-    import fatoora._lib as module
-
-    monkeypatch.setattr(module, "_find_header", lambda: None)
-    bindings = module.FfiLibrary()
-    ffi, lib = bindings.ffi, bindings.lib
-    with pytest.raises(ValueError):
-        ffi.sizeof("FfiError")
-    result = lib.fatoora_csr_properties_from_str(b"csr.common.name=example")
-    assert not result.ok
-    try:
-        assert lib.fatoora_error_code(result.error) == 1
-        value = lib.fatoora_error_details_json(result.error)
-        try:
-            details = json.loads(ffi.string(value.ptr).decode("utf-8"))
-        finally:
-            lib.fatoora_string_free(value)
-        assert details["type"] == "missing_property"
-        assert details["key"]
-    finally:
-        lib.fatoora_error_free(result.error)
 
 
 def test_invalid_key_uses_shared_input_classification():
@@ -84,24 +62,15 @@ def test_imported_invoice_validation_keeps_structured_issues():
     assert caught.value.details["issues"][0]["line_item_index"] == 0
 
 
-@pytest.mark.parametrize("use_header", [False, True])
-def test_native_integer_widths_and_error_handle_layout(monkeypatch, use_header):
-    import ctypes
-    from cffi import FFI
-    import fatoora._lib as module
 
-    if not use_header:
-        monkeypatch.setattr(module, "_find_header", lambda: None)
-    else:
-        assert module._find_header() is not None
-    bindings = module.FfiLibrary()
-    ffi = bindings.ffi
-    native = FFI()
-    for name, expected_size in [("size_t", ctypes.sizeof(ctypes.c_size_t)),
-                                ("uintptr_t", ctypes.sizeof(ctypes.c_void_p)),
-                                ("int32_t", 4)]:
-        assert ffi.sizeof(name) == expected_size
-        # Compare against CFFI's native typedef, not a platform-specific alias.
-        assert ffi.typeof(name) == native.typeof(name)
-    with pytest.raises(ValueError):
-        ffi.sizeof("FfiError")
+def test_generated_error_is_owned_and_preserves_missing_property():
+    import gc
+    from fatoora import CsrProperties
+    from fatoora.errors import InvalidInputError
+    with pytest.raises(InvalidInputError) as caught:
+        CsrProperties.from_properties_str("csr.common.name=example")
+    details = caught.value.details
+    del caught
+    gc.collect()
+    assert details["type"] == "missing_property"
+    assert details["key"]

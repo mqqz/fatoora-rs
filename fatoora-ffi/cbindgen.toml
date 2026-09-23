@@ -1,9 +1,0 @@
-language = "C"
-cpp_compat = true
-include_guard = "FATOORA_FFI_H"
-
-[enum]
-prefix_with_name = true
-
-[export]
-include = ["FfiInvoiceFlag", "FfiErrorKind"]

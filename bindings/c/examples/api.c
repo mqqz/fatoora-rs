@@ -1,123 +1,84 @@
-const char *EXAMPLE_BST =
-    "TUlJRDNqQ0NBNFNnQXdJQkFnSVRFUUFBT0FQRjkwQWpzL3hjWHdBQkFBQTRBekFLQmdncWhrak"
-    "9QUVFEQWpCaU1SVXdFd1lLQ1pJbWlaUHlMR1FCR1JZRmJHOWpZV3d4RXpBUkJnb0praWFKay9J"
-    "c1pBRVpGZ05uYjNZeEZ6QVZCZ29Ka2lhSmsvSXNaQUVaRmdkbGVIUm5ZWHAwTVJzd0dRWURWUV"
-    "FERXhKUVVscEZTVTVXVDBsRFJWTkRRVFF0UTBFd0hoY05NalF3TVRFeE1Ea3hPVE13V2hjTk1q"
-    "a3dNVEE1TURreE9UTXdXakIxTVFzd0NRWURWUVFHRXdKVFFURW1NQ1FHQTFVRUNoTWRUV0Y0YV"
-    "cxMWJTQlRjR1ZsWkNCVVpXTm9JRk4xY0hCc2VTQk1WRVF4RmpBVUJnTlZCQXNURFZKcGVXRmth"
-    "Q0JDY21GdVkyZ3hKakFrQmdOVkJBTVRIVlJUVkMwNE9EWTBNekV4TkRVdE16azVPVGs1T1RrNU"
-    "9UQXdNREF6TUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVvV0NLYTBTYTlGSUVyVE92"
-    "MHVBa0MxVklLWHhVOW5QcHgydmxmNHloTWVqeThjMDJYSmJsRHE3dFB5ZG84bXEwYWhPTW1Obz"
-    "hnd25pN1h0MUtUOVVlS09DQWdjd2dnSURNSUd0QmdOVkhSRUVnYVV3Z2FLa2daOHdnWnd4T3pB"
-    "NUJnTlZCQVFNTWpFdFZGTlVmREl0VkZOVWZETXRaV1F5TW1ZeFpEZ3RaVFpoTWkweE1URTRMVG"
-    "xpTlRndFpEbGhPR1l4TVdVME5EVm1NUjh3SFFZS0NaSW1pWlB5TEdRQkFRd1BNems1T1RrNU9U"
-    "azVPVEF3TURBek1RMHdDd1lEVlFRTURBUXhNVEF3TVJFd0R3WURWUVFhREFoU1VsSkVNamt5T1"
-    "RFYU1CZ0dBMVVFRHd3UlUzVndjR3g1SUdGamRHbDJhWFJwWlhNd0hRWURWUjBPQkJZRUZFWCtZ"
-    "dm1tdG5Zb0RmOUJHYktvN29jVEtZSzFNQjhHQTFVZEl3UVlNQmFBRkp2S3FxTHRtcXdza0lGel"
-    "Z2cFAyUHhUKzlObk1Ic0dDQ3NHQVFVRkJ3RUJCRzh3YlRCckJnZ3JCZ0VGQlFjd0FvWmZhSFIw"
-    "Y0RvdkwyRnBZVFF1ZW1GMFkyRXVaMjkyTG5OaEwwTmxjblJGYm5KdmJHd3ZVRkphUlVsdWRtOX"
-    "BZMlZUUTBFMExtVjRkR2RoZW5RdVoyOTJMbXh2WTJGc1gxQlNXa1ZKVGxaUFNVTkZVME5CTkMx"
-    "RFFTZ3hLUzVqY25Rd0RnWURWUjBQQVFIL0JBUURBZ2VBTUR3R0NTc0dBUVFCZ2pjVkJ3UXZNQz"
-    "BHSlNzR0FRUUJnamNWQ0lHR3FCMkUwUHNTaHUyZEpJZk8reG5Ud0ZWbWgvcWxaWVhaaEQ0Q0FX"
-    "UUNBUkl3SFFZRFZSMGxCQll3RkFZSUt3WUJCUVVIQXdNR0NDc0dBUVVGQndNQ01DY0dDU3NHQV"
-    "FRQmdqY1ZDZ1FhTUJnd0NnWUlLd1lCQlFVSEF3TXdDZ1lJS3dZQkJRVUhBd0l3Q2dZSUtvWkl6"
-    "ajBFQXdJRFNBQXdSUUloQUxFL2ljaG1uV1hDVUtVYmNhM3ljaThvcXdhTHZGZEhWalFydmVJOX"
-    "VxQWJBaUE5aEM0TThqZ01CQURQU3ptZDJ1aVBKQTZnS1IzTEUwM1U3NWVxYkMvclhBPT0=";
-
-const char *EXAMPLE_SECRET = "CkYsEXfV8c1gFHAtFWoZv73pGMvh/Qyo4LzKM2h/8Hg=";
-
 /* --8<-- [start:example] */
-#include "fatoora.h"
+#include "BindingError.h"
+#include "Config.h"
+#include "CsidProduction.h"
+#include "SignedInvoice.h"
+#include "ValidationResponse.h"
+#include "ZatcaClient.h"
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef FATOORA_DOC_SIGNED_XML
-#define FATOORA_DOC_SIGNED_XML "path/to/signed_invoice.xml"
-#endif
-
-static char *read_file(const char *path);
-
-static void require_ok(bool ok, struct FfiError *error) {
-  if (ok) return;
-  struct FfiString details = fatoora_error_details_json(error);
-  fprintf(stderr, "%s\n", details.ptr ? details.ptr : "API operation failed");
-  fatoora_string_free(details);
-  fatoora_error_free(error);
-  exit(EXIT_FAILURE);
+static DiplomatStringView s(const char *value) {
+  return (DiplomatStringView){value, strlen(value)};
 }
 
-int main(void) {
-  // parse the signed XML invoice into a struct
-  const char *signed_xml_path = FATOORA_DOC_SIGNED_XML;
-  char *xml_cstr = read_file(signed_xml_path);
-  struct FfiResult_FfiSignedInvoice signed_invoice =
-      fatoora_parse_signed_invoice_xml(xml_cstr);
-  require_ok(signed_invoice.ok, signed_invoice.error);
+static void report_error(BindingError *error) {
+  DiplomatWrite *output = diplomat_buffer_write_create(0);
+  fatoora_BindingError_details_json(error, output);
+  fwrite(diplomat_buffer_write_get_bytes(output), 1,
+         diplomat_buffer_write_len(output), stderr);
+  fputc('\n', stderr);
+  diplomat_buffer_write_destroy(output);
+  fatoora_BindingError_destroy(error);
+}
 
-  struct FfiConfig *config = fatoora_config_new(FfiEnvironment_NonProduction);
-  struct FfiResult_FfiZatcaClient client = fatoora_zatca_client_new(config);
-  require_ok(client.ok, client.error);
+int main(int argc, char **argv) {
+  if (argc != 4) {
+    fprintf(argc == 1 ? stdout : stderr,
+            "Usage: %s signed-invoice.xml token secret\n"
+            "Submits a simplified invoice to the non-production gateway.\n",
+            argv[0]);
+    return argc == 1 ? EXIT_SUCCESS : EXIT_FAILURE;
+  }
 
-  struct FfiResult_FfiCsidProduction pcsid = fatoora_csid_production_new(
-      FfiEnvironment_NonProduction, NULL, EXAMPLE_BST, EXAMPLE_SECRET);
-  require_ok(pcsid.ok, pcsid.error);
+  int status = EXIT_FAILURE;
+  Config *config = NULL;
+  SignedInvoice *invoice = NULL;
+  CsidProduction *credentials = NULL;
+  ZatcaClient *client = NULL;
+  ValidationResponse *response = NULL;
 
-  // response handle provides getters for results
-  FfiResult_FfiValidationResponse resp =
-      fatoora_zatca_report_simplified_invoice(
-          &client.value, &signed_invoice.value, &pcsid.value, true, "en");
-  require_ok(resp.ok, resp.error);
-  FfiResult_bool accepted = fatoora_validation_response_ensure_accepted(&resp.value);
-  require_ok(accepted.ok, accepted.error);
+  fatoora_SignedInvoice_from_file_result parsed =
+      fatoora_SignedInvoice_from_file(s(argv[1]));
+  if (!parsed.is_ok) { report_error(parsed.err); goto cleanup; }
+  invoice = parsed.ok;
 
-  FfiResult_FfiString reporting_status =
-      fatoora_validation_response_reporting_status(&resp.value);
-  require_ok(reporting_status.ok, reporting_status.error);
+  /* Environment 0 is the ZATCA integration sandbox. */
+  fatoora_Config_new_result configured = fatoora_Config_new(0);
+  if (!configured.is_ok) { report_error(configured.err); goto cleanup; }
+  config = configured.ok;
+  fatoora_ZatcaClient_create_result created = fatoora_ZatcaClient_create(config);
+  if (!created.is_ok) { report_error(created.err); goto cleanup; }
+  client = created.ok;
 
-  assert(!strcmp(reporting_status.value.ptr, "REPORTED"));
-  fatoora_string_free(reporting_status.value);
+  OptionStringView no_request_id = {.is_ok = false};
+  fatoora_CsidProduction_create_result authenticated =
+      fatoora_CsidProduction_create(0, no_request_id, s(argv[2]), s(argv[3]));
+  if (!authenticated.is_ok) { report_error(authenticated.err); goto cleanup; }
+  credentials = authenticated.ok;
 
-  // don't forget to free all the resources you allocated!
-  free(xml_cstr);
-  fatoora_signed_invoice_free(&signed_invoice.value);
-  fatoora_csid_production_free(&pcsid.value);
-  fatoora_validation_response_free(&resp.value);
-  fatoora_zatca_client_free(&client.value);
-  fatoora_config_free(config);
+  OptionStringView language = {.ok = s("en"), .is_ok = true};
+  fatoora_ZatcaClient_report_simplified_invoice_result reported =
+      fatoora_ZatcaClient_report_simplified_invoice(
+          client, invoice, credentials, false, language);
+  if (!reported.is_ok) { report_error(reported.err); goto cleanup; }
+  response = reported.ok;
 
-  return 0;
+  /* A decoded HTTP response does not by itself establish acceptance. */
+  fatoora_ValidationResponse_ensure_accepted_result accepted =
+      fatoora_ValidationResponse_ensure_accepted(response);
+  if (!accepted.is_ok) { report_error(accepted.err); goto cleanup; }
+  puts("Invoice reporting accepted.");
+  status = EXIT_SUCCESS;
+
+cleanup:
+  if (response) fatoora_ValidationResponse_destroy(response);
+  if (client) fatoora_ZatcaClient_destroy(client);
+  if (credentials) fatoora_CsidProduction_destroy(credentials);
+  if (invoice) fatoora_SignedInvoice_destroy(invoice);
+  if (config) fatoora_Config_destroy(config);
+  return status;
 }
 /* --8<-- [end:example] */
-
-static char *read_file(const char *path) {
-  FILE *fp = fopen(path, "rb");
-  if (!fp) {
-    return NULL;
-  }
-  if (fseek(fp, 0, SEEK_END) != 0) {
-    fclose(fp);
-    return NULL;
-  }
-  long size = ftell(fp);
-  if (size < 0) {
-    fclose(fp);
-    return NULL;
-  }
-  rewind(fp);
-  char *buffer = malloc((size_t)size + 1);
-  if (!buffer) {
-    fclose(fp);
-    return NULL;
-  }
-  if (fread(buffer, 1, (size_t)size, fp) != (size_t)size) {
-    fclose(fp);
-    free(buffer);
-    return NULL;
-  }
-  buffer[size] = '\0';
-  fclose(fp);
-  return buffer;
-}

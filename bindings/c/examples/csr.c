@@ -1,35 +1,68 @@
 /* --8<-- [start:example] */
-#include "fatoora.h"
+#include "BindingError.h"
+#include "Csr.h"
+#include "CsrProperties.h"
+#include "SigningKey.h"
 
-#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #ifndef FATOORA_DOC_CSR_PROPS
 #define FATOORA_DOC_CSR_PROPS "path/to/csr.properties"
 #endif
 
+static DiplomatStringView s(const char *value) {
+  return (DiplomatStringView){value, strlen(value)};
+}
+
+static void report_error(BindingError *error) {
+  DiplomatWrite *output = diplomat_buffer_write_create(0);
+  fatoora_BindingError_details_json(error, output);
+  fwrite(diplomat_buffer_write_get_bytes(output), 1,
+         diplomat_buffer_write_len(output), stderr);
+  fputc('\n', stderr);
+  diplomat_buffer_write_destroy(output);
+  fatoora_BindingError_destroy(error);
+}
+
 int main(void) {
-  const char *csr_props_path = FATOORA_DOC_CSR_PROPS;
-  struct FfiResult_FfiCsrProperties props =
-      fatoora_csr_properties_parse_csr_config_file(csr_props_path);
+  int status = EXIT_FAILURE;
+  CsrProperties *properties = NULL;
+  SigningKey *key = NULL;
+  Csr *csr = NULL;
+  DiplomatWrite *pem = NULL;
 
-  struct FfiResult_FfiSigningKey key = fatoora_signing_key_generate();
+  fatoora_CsrProperties_parse_csr_config_file_result parsed =
+      fatoora_CsrProperties_parse_csr_config_file(s(FATOORA_DOC_CSR_PROPS));
+  if (!parsed.is_ok) { report_error(parsed.err); goto cleanup; }
+  properties = parsed.ok;
 
-  struct FfiResult_FfiCsr csr =
-      fatoora_csr_build(&props.value, &key.value, FfiEnvironment_NonProduction);
+  fatoora_SigningKey_generate_result generated = fatoora_SigningKey_generate();
+  if (!generated.is_ok) { report_error(generated.err); goto cleanup; }
+  key = generated.ok;
 
-  struct FfiResult_FfiString csr_b64 = fatoora_csr_to_base64(&csr.value);
-  struct FfiResult_FfiString key_pem = fatoora_signing_key_to_pem(&key.value);
+  /* Environment 0 selects the non-production CSR template. */
+  fatoora_CsrProperties_build_result built =
+      fatoora_CsrProperties_build(properties, key, 0);
+  if (!built.is_ok) { report_error(built.err); goto cleanup; }
+  csr = built.ok;
 
-  assert(csr_b64.value.ptr && strstr(csr_b64.value.ptr, "MIIC"));
-  assert(key_pem.value.ptr && strstr(key_pem.value.ptr, "BEGIN PRIVATE KEY"));
+  pem = diplomat_buffer_write_create(0);
+  fatoora_Csr_to_pem_result encoded = fatoora_Csr_to_pem(csr, pem);
+  if (!encoded.is_ok) { report_error(encoded.err); goto cleanup; }
+  size_t length = diplomat_buffer_write_len(pem);
+  if (fwrite(diplomat_buffer_write_get_bytes(pem), 1, length, stdout) != length) {
+    fputs("Failed to write CSR PEM.\n", stderr);
+    goto cleanup;
+  }
+  status = EXIT_SUCCESS;
 
-  /* Don't forget to free all the resources you allocated! */
-  fatoora_string_free(csr_b64.value);
-  fatoora_string_free(key_pem.value);
-  fatoora_csr_free(&csr.value);
-  fatoora_signing_key_free(&key.value);
-  fatoora_csr_properties_free(&props.value);
-  return 0;
+cleanup:
+  if (pem) diplomat_buffer_write_destroy(pem);
+  if (csr) fatoora_Csr_destroy(csr);
+  if (key) fatoora_SigningKey_destroy(key);
+  if (properties) fatoora_CsrProperties_destroy(properties);
+  return status;
 }
 /* --8<-- [end:example] */
