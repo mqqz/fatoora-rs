@@ -42,6 +42,7 @@ nav:
   - Development:
       - Overview: development/index.md
       - SDK Compatibility: development/sdk-parity.md
+      - Business-rule Development: development/business-rules.md
       - Releases: development/releases.md
       - API Audit: development/api-audit.md
       - FFI Workflow: development/ffi-workflow.md
