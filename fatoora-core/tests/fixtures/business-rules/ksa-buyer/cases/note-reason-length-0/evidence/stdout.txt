@@ -1,0 +1,18 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-23 13:04:31,056 [INFO] ValidationProcessorImpl - [XSD] validation result : PASSED
+2026-09-23 13:04:31,439 [INFO] ValidationProcessorImpl - [EN] validation result : PASSED
+2026-09-23 13:04:31,576 [INFO] ValidationProcessorImpl - [KSA] validation result : PASSED
+2026-09-23 13:04:31,576 [ERROR] ValidationProcessorImpl - ksa validation warnings : 
+2026-09-23 13:04:31,576 [WARN] ValidationProcessorImpl - CODE : BR-KSA-19, MESSAGE : [BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105).
+2026-09-23 13:04:31,576 [WARN] ValidationProcessorImpl - CODE : BR-KSA-F-06-C13, MESSAGE : [BR-KSA-F-06-C13] - Field character limits for Reasons for issuance of credit / debit note field (KSA-10) have not been met. The minimum limit is 1 character and the maximum limit is 1000 characters .
+2026-09-23 13:04:31,576 [WARN] ValidationProcessorImpl - CODE : BR-KSA-56, MESSAGE : [BR-KSA-56]-For credit notes ((BT-3) has the value of 381) and debit notes ((BT-3) has the value of 383), the billing reference ID (BT-25) is mandatory.
+2026-09-23 13:04:31,576 [WARN] ValidationProcessorImpl - CODE : BR-KSA-69, MESSAGE : [BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121).
+2026-09-23 13:04:31,593 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-23 13:04:31,593 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = PASSED 
