@@ -248,7 +248,7 @@ fn rule_metadata_matches_the_pinned_source_assertion_sites() {
             .trim()
     );
     let catalog: Value = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(metadata::RULES.len(), 114);
+    assert_eq!(metadata::RULES.len(), 145);
     let coverage: Value = serde_json::from_str(
         &std::fs::read_to_string(fixture_root().join("coverage.json")).unwrap(),
     )
@@ -311,6 +311,11 @@ fn frozen_sdk_ksa_field_mutations_match_implemented_rules() {
     assert_frozen_corpus("ksa-fields", 22);
 }
 
+#[test]
+fn frozen_sdk_buyer_mutations_match_implemented_rules() {
+    assert_frozen_corpus("ksa-buyer", 34);
+}
+
 fn assert_frozen_corpus(family: &str, expected_cases: usize) {
     let corpus = fixture_root().join(family);
     let manifest: Value =
@@ -333,11 +338,25 @@ fn assert_frozen_corpus(family: &str, expected_cases: usize) {
             &std::fs::read_to_string(directory.join("expected.json")).unwrap(),
         )
         .unwrap();
+        // SDK transform failures discard the source's findings. They are not
+        // evidence of a successful run with zero rule violations. Until this
+        // internal slice is complete, compare only observable source results.
+        let unavailable_sources: std::collections::BTreeSet<_> = expected["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|f| f["code"] == "SaxonApiException")
+            .map(|f| f["source"].as_str().unwrap())
+            .collect();
         let report =
             super::evaluate_slice(&input, &context()).unwrap_or_else(|e| panic!("{id}: {e:?}"));
         let mut observed = BTreeMap::new();
         let mut wanted = BTreeMap::new();
         for source in &report.stages {
+            if unavailable_sources.contains(source.source.sdk_name()) {
+                assert!(!report.is_complete());
+                continue;
+            }
             for f in &source.findings {
                 *observed
                     .entry((

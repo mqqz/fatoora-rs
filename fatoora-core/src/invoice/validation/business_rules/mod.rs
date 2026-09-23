@@ -5,6 +5,7 @@
 mod code_lists;
 mod decimal;
 mod identity;
+mod ksa_buyer;
 mod ksa_fields;
 mod metadata;
 mod rules;
@@ -269,3 +270,6 @@ mod totals_tests;
 
 #[cfg(test)]
 mod ksa_field_tests;
+
+#[cfg(test)]
+mod ksa_buyer_tests;

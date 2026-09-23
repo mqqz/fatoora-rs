@@ -1157,159 +1157,252 @@
       "tests": []
     },
     "ksa:063:BR-KSA-63": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:064:BR-KSA-F-06-C28": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:065:BR-KSA-F-06-C29": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:066:BR-KSA-F-06-C9": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:067:BR-KSA-67": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:068:BR-KSA-72": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:069:BR-KSA-52": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:070:BR-KSA-F-06-C23": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:071:BR-KSA-F-06-C25": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:072:BR-KSA-F-06-C32": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:073:BR-KSA-F-06-C12": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:074:BR-KSA-53": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:075:BR-KSA-F-06-C14": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:076:BR-KSA-F-06-C24": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:077:BR-KSA-F-06-C26": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:078:BR-KSA-16": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:079:BR-KSA-10": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:080:BR-KSA-F-06-C15": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:081:BR-KSA-15": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:082:BR-KSA-17": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:083:BR-KSA-17": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:084:BR-KSA-F-06-C13": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:085:BR-KSA-56": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:086:BR-KSA-F-06-C22": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:087:BR-KSA-56": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:088:BR-KSA-25": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:089:BR-KSA-31": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:090:BR-KSA-60": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:091:BR-KSA-71": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:092:BR-KSA-07": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:093:BR-KSA-99": {
-      "status": "pending",
-      "implementation": null,
-      "tests": []
+      "status": "implemented",
+      "implementation": "fatoora-core/src/invoice/validation/business_rules/ksa_buyer.rs",
+      "tests": [
+        "fatoora-core/src/invoice/validation/business_rules/ksa_buyer_tests.rs",
+        "fatoora-core/src/invoice/validation/business_rules/tests.rs"
+      ]
     },
     "ksa:094:BR-KSA-44": {
       "status": "implemented",
