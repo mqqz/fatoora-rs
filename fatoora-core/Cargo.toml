@@ -55,6 +55,7 @@ num-traits = "0.2.19"
 regex = "1.12.2"
 fancy-regex = "0.16.2"
 unicode-blocks = "0.1.9"
+tempfile = "3.23.0"
 
 [dev-dependencies]
 ron = "0.8.1"

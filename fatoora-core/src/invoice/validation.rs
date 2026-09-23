@@ -3,18 +3,18 @@
 //! XSD checks do not run builder field checks, business rules, or signature
 //! verification. Parsing a signed invoice does not verify its signature.
 mod report;
+mod schemas;
 // The native subset remains internal until the full profile can be exposed.
 #[allow(dead_code)]
 mod business_rules;
 use crate::config::Config;
 use libxml::{
     parser::{Parser, ParserOptions},
-    schemas::{SchemaParserContext, SchemaValidationContext},
+    schemas::SchemaValidationContext,
 };
 pub use report::{
     Severity, ValidationFinding, ValidationLayer, ValidationLocation, ValidationReport,
 };
-use std::path::PathBuf;
 use thiserror::Error;
 
 pub type ValidationResult = Result<(), XmlValidationError>;
@@ -45,30 +45,10 @@ impl XmlValidationError {
     }
 }
 
-fn bundled_xsd_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd")
-}
-
 fn build_validation_context(
     _config: &Config,
 ) -> Result<SchemaValidationContext, XmlValidationError> {
-    let xsd_path_buf = bundled_xsd_path();
-    let xsd_path = xsd_path_buf
-        .to_str()
-        .ok_or_else(|| XmlValidationError::InvalidXsdPath {
-            path: xsd_path_buf.display().to_string(),
-        })?;
-
-    let mut parser_ctx = SchemaParserContext::from_file(xsd_path);
-    SchemaValidationContext::from_parser(&mut parser_ctx).map_err(|errors| {
-        XmlValidationError::SchemaParse {
-            errors: errors
-                .into_iter()
-                .map(crate::Diagnostic::from_xml)
-                .collect(),
-        }
-    })
+    schemas::build_validation_context()
 }
 
 /// Validate an XML invoice string against the UBL schema only.
