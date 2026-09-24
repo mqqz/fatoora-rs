@@ -292,14 +292,25 @@ pub struct CsrProperties {
     industry_business_category: String,
 }
 
+// Encode values as hex escapes before embedding them in a DN. Delimiters and
+// backslashes supplied by callers must remain attribute data, including in SANs.
+fn dn_value(value: &str) -> String {
+    use std::fmt::Write;
+    let mut escaped = String::with_capacity(value.len() * 3);
+    for byte in value.bytes() {
+        write!(escaped, "\\{byte:02x}").expect("writing to String");
+    }
+    escaped
+}
+
 impl CsrProperties {
     fn generate_subject(&self) -> Result<name::Name, CsrError> {
         name::Name::from_str(&format!(
             "CN={},O={},OU={},C={}",
-            self.common_name,
-            self.organization_name,
-            self.organization_unit_name,
-            self.country_name
+            dn_value(&self.common_name),
+            dn_value(&self.organization_name),
+            dn_value(&self.organization_unit_name),
+            dn_value(&self.country_name)
         ))
         .map_err(|e| CsrError::InvalidSubject {
             message: e.to_string(),
@@ -316,11 +327,11 @@ impl CsrProperties {
     fn generate_san_extension(&self) -> Result<SubjectAltName, CsrError> {
         let name = name::Name::from_str(&format!(
             "businessCategory={},registeredAddress={},title={},uid={},sn={}",
-            self.industry_business_category,
-            self.location_address,
-            self.invoice_type,
-            self.organization_identifier,
-            self.serial_number
+            dn_value(&self.industry_business_category),
+            dn_value(&self.location_address),
+            dn_value(&self.invoice_type),
+            dn_value(&self.organization_identifier),
+            dn_value(&self.serial_number)
         ))
         .map_err(|e| CsrError::InvalidSan {
             message: e.to_string(),

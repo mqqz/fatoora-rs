@@ -86,3 +86,145 @@ fn test_generate_csr() {
         "Subject must contain CN with 'TST-' prefix (got {subject_str})"
     );
 }
+
+#[test]
+fn config_file_errors_keep_the_source_path_and_line() {
+    use fatoora_core::{Error, ErrorKind};
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("device.properties");
+    for (contents, kind, expected_type) in [
+        (None, ErrorKind::Io, "io"),
+        (
+            Some("csr.common.name=device\n"),
+            ErrorKind::InvalidInput,
+            "missing_property",
+        ),
+        (
+            Some("# first line\ncsr.common.name=\\uZZZZ\n"),
+            ErrorKind::Parse,
+            "properties_parse",
+        ),
+    ] {
+        if let Some(contents) = contents {
+            std::fs::write(&path, contents.as_bytes()).unwrap();
+        }
+        let error: Error = CsrProperties::parse_csr_config_file(&path)
+            .unwrap_err()
+            .into();
+        assert_eq!(error.kind(), kind);
+        let details: serde_json::Value = serde_json::from_str(&error.details_json()).unwrap();
+        assert_eq!(details["type"], expected_type);
+        assert_eq!(details["path"], path.to_str().unwrap());
+        if expected_type == "properties_parse" {
+            assert_eq!(details["diagnostics"][0]["line"], 2);
+        }
+        if expected_type == "missing_property" {
+            assert_eq!(details["key"], "csr.serial.number");
+        }
+    }
+}
+
+#[test]
+fn invalid_csr_fields_are_rejected_before_key_use() {
+    let source = include_str!("fixtures/csr-configs/csr-config-example-EN.properties");
+    for (key, value) in [
+        ("csr.common.name", ""),
+        ("csr.common.name", "device!"),
+        ("csr.country.name", "SAU"),
+        ("csr.invoice.type", "100"),
+        ("csr.invoice.type", "1020"),
+    ] {
+        let properties = source
+            .lines()
+            .map(|line| {
+                if line.starts_with(&format!("{key}=")) {
+                    format!("{key}={value}")
+                } else {
+                    line.to_owned()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        let error: fatoora_core::Error = CsrProperties::from_properties_str(&properties)
+            .unwrap_err()
+            .into();
+        assert_eq!(error.kind(), fatoora_core::ErrorKind::Validation);
+        let details: serde_json::Value = serde_json::from_str(&error.details_json()).unwrap();
+        assert_eq!(details["type"], "csr_validation");
+    }
+}
+
+#[test]
+fn csr_names_preserve_literal_delimiters_in_subject_and_san() {
+    use x509_cert::{
+        der::Decode,
+        ext::{
+            Extensions,
+            pkix::{SubjectAltName, name::GeneralName},
+        },
+        request::CertReq,
+    };
+    let key = SigningKey::from_der(include_bytes!(
+        "fixtures/sdk-parity/credentials/private-key.der"
+    ))
+    .unwrap();
+    for value in [
+        "device,CN=injected",
+        "device+CN=injected",
+        "branch;OU=other",
+        r"device\name",
+        " شركة الرياض ",
+    ] {
+        let properties = CsrProperties::new(
+            value.into(),
+            "1-TST|2-TST|3-123".into(),
+            "399999999900003".into(),
+            "Branch".into(),
+            "Company".into(),
+            "SA".into(),
+            "1100".into(),
+            value.into(),
+            "Supply".into(),
+        )
+        .unwrap();
+        let csr = properties
+            .build(&key, EnvironmentType::NonProduction)
+            .unwrap();
+        let parsed = CertReq::from_der(&csr.to_der().unwrap()).unwrap();
+        let subject = &parsed.info.subject;
+        assert_eq!(
+            subject.iter().count(),
+            4,
+            "subject attributes changed for {value:?}"
+        );
+        let cn: Vec<_> = subject
+            .iter()
+            .filter(|attr| attr.oid.to_string() == "2.5.4.3")
+            .collect();
+        assert_eq!(cn.len(), 1);
+        assert_eq!(cn[0].value.value(), value.as_bytes());
+        let extensions = csr
+            .extension_values_der()
+            .into_iter()
+            .flat_map(|der| Extensions::from_der(&der).unwrap())
+            .collect::<Vec<_>>();
+        let san = extensions
+            .iter()
+            .find(|ext| ext.extn_id.to_string() == "2.5.29.17")
+            .unwrap();
+        let names = SubjectAltName::from_der(san.extn_value.as_bytes()).unwrap();
+        let GeneralName::DirectoryName(name) = &names.0[0] else {
+            panic!("expected directory SAN")
+        };
+        assert_eq!(
+            name.iter().count(),
+            5,
+            "SAN attributes changed for {value:?}"
+        );
+        let address = name
+            .iter()
+            .find(|attr| attr.oid.to_string() == "2.5.4.26")
+            .unwrap();
+        assert_eq!(address.value.value(), value.as_bytes());
+    }
+}
