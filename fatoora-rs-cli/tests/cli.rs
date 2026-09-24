@@ -766,3 +766,183 @@ fn file_output_errors_do_not_print_success_or_private_keys() {
     assert!(String::from_utf8_lossy(&result.stderr).contains("failed to write request"));
     std::fs::remove_dir(directory).unwrap();
 }
+
+#[test]
+fn qr_field_limit_counts_utf8_bytes_and_keeps_the_boundary_value() {
+    let original = std::fs::read_to_string(signed_invoice_fixture()).unwrap();
+    let seller = parse_signed_invoice_xml(&original)
+        .unwrap()
+        .data()
+        .seller()
+        .name()
+        .to_owned();
+    let unsigned = strip_qr_reference(&original);
+    let path = unique_temp_path("qr-byte-boundary");
+    for (name, accepted) in [
+        (format!("{}a", "ش".repeat(127)), true),
+        ("ش".repeat(128), false),
+    ] {
+        let xml = unsigned.replace(&seller, &name);
+        assert_ne!(xml, unsigned);
+        std::fs::write(&path, xml).unwrap();
+        let output = Command::new(cli_exe())
+            .args(["qr", "--invoice"])
+            .arg(&path)
+            .output()
+            .unwrap();
+        if accepted {
+            assert!(
+                output.status.success(),
+                "{}",
+                String::from_utf8_lossy(&output.stderr)
+            );
+            let fields = decode_tlv(std::str::from_utf8(&output.stdout).unwrap());
+            assert_eq!(fields.len(), 5);
+            assert_eq!(fields[0], (1, name.as_bytes().to_vec()));
+            assert_eq!(fields[0].1.len(), 255);
+        } else {
+            assert_eq!(output.status.code(), Some(1));
+            assert!(output.stdout.is_empty());
+            assert!(
+                String::from_utf8_lossy(&output.stderr)
+                    .contains("TLV field 1 exceeds 255 bytes (len=256)")
+            );
+        }
+    }
+    std::fs::remove_file(path).unwrap();
+}
+
+#[test]
+fn validation_invalid_utf8_and_missing_files_return_execution_errors() {
+    let path = unique_temp_path("invalid-utf8-validation");
+    std::fs::write(&path, b"<Invoice>\xff</Invoice>").unwrap();
+    for missing in [false, true] {
+        if missing {
+            std::fs::remove_file(&path).unwrap();
+        }
+        for profile in ["xsd", "zatca"] {
+            let output = Command::new(cli_exe())
+                .args([
+                    "validate",
+                    "--profile",
+                    profile,
+                    "--format=json",
+                    "--invoice",
+                ])
+                .arg(&path)
+                .output()
+                .unwrap();
+            let error = validation_json(&output, 3);
+            assert_eq!(error["kind"], "io");
+            assert!(error.get("report").is_none());
+            assert!(
+                error["message"]
+                    .as_str()
+                    .unwrap()
+                    .contains(path.to_str().unwrap())
+            );
+        }
+    }
+}
+
+#[test]
+fn zatca_text_failure_distinguishes_execution_from_rejection() {
+    let path = unique_temp_path("text-execution-failure");
+    std::fs::write(&path, "<Invoice").unwrap();
+    let output = Command::new(cli_exe())
+        .args(["validate", "--profile=zatca", "--invoice"])
+        .arg(&path)
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(3));
+    let text = String::from_utf8(output.stdout).unwrap();
+    assert!(text.contains("Validation: execution_failed"));
+    assert!(text.contains("xsd: not_run"));
+    assert!(!output.stderr.is_empty());
+    std::fs::remove_file(&path).unwrap();
+    let missing = Command::new(cli_exe())
+        .args(["validate", "--profile=zatca", "--invoice"])
+        .arg(&path)
+        .output()
+        .unwrap();
+    assert_eq!(missing.status.code(), Some(3));
+    assert!(missing.stdout.is_empty());
+    assert!(String::from_utf8_lossy(&missing.stderr).contains("failed to read invoice"));
+}
+
+#[test]
+fn csr_stdout_contains_only_the_request_when_the_key_has_a_file() {
+    use fatoora_core::{
+        config::EnvironmentType,
+        csr::{CsrProperties, SigningKey},
+    };
+    let properties =
+        CsrProperties::from_properties_str(&std::fs::read_to_string(csr_config_fixture()).unwrap())
+            .unwrap();
+    let key_path = unique_temp_path("csr-key-only");
+    for pem in [false, true] {
+        let mut command = Command::new(cli_exe());
+        command
+            .args(["csr", "--csr-config"])
+            .arg(csr_config_fixture())
+            .arg("--private-key")
+            .arg(&key_path);
+        if pem {
+            command.arg("--pem");
+        }
+        let output = command.output().unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let key_text = std::fs::read_to_string(&key_path).unwrap();
+        let key = if pem {
+            SigningKey::from_pem(&key_text).unwrap()
+        } else {
+            SigningKey::from_der(&Base64::decode_vec(key_text.trim()).unwrap()).unwrap()
+        };
+        // Compare against the core contract to check the CLI's encoding and
+        // output routing. Core tests independently verify CSR signatures.
+        let expected = properties
+            .build(&key, EnvironmentType::NonProduction)
+            .unwrap();
+        let expected = if pem {
+            expected.to_pem().unwrap()
+        } else {
+            expected.to_base64().unwrap()
+        };
+        assert_eq!(
+            std::str::from_utf8(&output.stdout).unwrap().trim(),
+            expected.trim()
+        );
+        assert!(!String::from_utf8_lossy(&output.stdout).contains(key_text.trim()));
+    }
+    std::fs::remove_file(key_path).unwrap();
+}
+
+#[test]
+fn qr_rejects_aggregate_overflow_even_when_each_field_fits() {
+    let original = std::fs::read_to_string(signed_invoice_fixture()).unwrap();
+    let parsed = parse_signed_invoice_xml(&original).unwrap();
+    let unsigned = strip_qr_reference(&original);
+    let xml = unsigned
+        .replace(parsed.data().seller().name(), &"A".repeat(255))
+        .replace(
+            parsed.data().seller().vat_id().unwrap().as_str(),
+            &"3".repeat(255),
+        );
+    let path = unique_temp_path("qr-aggregate-limit");
+    std::fs::write(&path, xml).unwrap();
+    let output = Command::new(cli_exe())
+        .args(["qr", "--invoice"])
+        .arg(&path)
+        .output()
+        .unwrap();
+    std::fs::remove_file(path).unwrap();
+    assert_eq!(output.status.code(), Some(1));
+    assert!(output.stdout.is_empty());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("QR code payload exceeds 700 characters")
+    );
+}
