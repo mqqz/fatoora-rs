@@ -493,7 +493,8 @@ class _Invoice(_Owned):
         return self._data("flags_raw")
 
     def flags(self) -> set[InvoiceFlag]:
-        return {flag for flag in InvoiceFlag if self.flags_raw() & flag.value}
+        bits = self.flags_raw()
+        return {flag for flag in InvoiceFlag if bits & flag.value}
 
     def is_third_party(self) -> bool:
         return InvoiceFlag.THIRD_PARTY in self.flags()

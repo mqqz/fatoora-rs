@@ -109,3 +109,26 @@ def test_line_items_uses_one_snapshot_and_preserves_values(monkeypatch, count):
     invoice.close()
     assert items == expected
     assert snapshots == 1, "collection must clone the invoice only once"
+
+
+@pytest.mark.parametrize("method,expected", [
+    ("flags", {1, 4}),
+    ("is_export", True),
+    ("is_nominal", False),
+])
+def test_flag_queries_use_one_invoice_snapshot(monkeypatch, method, expected):
+    b = builder()
+    b.flags(1 | 4)
+    invoice = line(b).build()
+    invoke = invoice._invoke
+    snapshots = 0
+
+    def counted_invoke(name, *args):
+        nonlocal snapshots
+        if name == "data":
+            snapshots += 1
+        return invoke(name, *args)
+
+    monkeypatch.setattr(invoice, "_invoke", counted_invoke)
+    assert getattr(invoice, method)() == expected
+    assert snapshots == 1, "flag queries must clone the invoice only once"
