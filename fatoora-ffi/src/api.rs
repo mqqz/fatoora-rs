@@ -478,4 +478,97 @@ mod tests {
         assert_eq!(response.reporting_status().err().unwrap().code(), 1);
         assert!(response.cleared_invoice_xml().ok().unwrap().is_none());
     }
+
+    #[test]
+    fn message_shapes_preserve_order_fields_and_owned_values() {
+        let message = serde_json::json!({
+            "type":"WARNING", "code":"BR-KSA-07", "category":"KSA",
+            "message":"ملاحظة", "status":"WARNING"
+        });
+        for info in [
+            serde_json::Value::Null,
+            serde_json::json!([]),
+            message.clone(),
+            serde_json::json!([message, {"code":"SECOND"}]),
+        ] {
+            let expected_len = match &info {
+                serde_json::Value::Null => 0,
+                serde_json::Value::Array(v) => v.len(),
+                _ => 1,
+            };
+            let response = ValidationResponse(serde_json::from_value(serde_json::json!({
+                "validationResults":{"status":"ERROR", "infoMessages":info, "errorMessages":[message]}
+            })).unwrap());
+            let results = response.validation_results().ok().unwrap();
+            drop(response);
+            assert_eq!(results.status().ok().unwrap().unwrap().0, "ERROR");
+            assert_eq!(results.info_len(), expected_len);
+            assert_eq!(results.error_len(), 1);
+            assert_eq!(results.info_message(expected_len).err().unwrap().code(), 1);
+            assert_eq!(results.info_message(usize::MAX).err().unwrap().code(), 1);
+            if expected_len > 0 {
+                assert_eq!(
+                    results
+                        .info_message(0)
+                        .ok()
+                        .unwrap()
+                        .code()
+                        .ok()
+                        .unwrap()
+                        .unwrap()
+                        .0,
+                    "BR-KSA-07"
+                );
+            }
+            if expected_len == 2 {
+                assert_eq!(
+                    results
+                        .info_message(1)
+                        .ok()
+                        .unwrap()
+                        .code()
+                        .ok()
+                        .unwrap()
+                        .unwrap()
+                        .0,
+                    "SECOND"
+                );
+            }
+            let error = results.error_message(0).ok().unwrap();
+            drop(results);
+            assert_eq!(error.message_type().ok().unwrap().unwrap().0, "WARNING");
+            assert_eq!(error.code().ok().unwrap().unwrap().0, "BR-KSA-07");
+            assert_eq!(error.category().ok().unwrap().unwrap().0, "KSA");
+            assert_eq!(error.message().ok().unwrap().unwrap().0, "ملاحظة");
+            assert_eq!(error.status().ok().unwrap().unwrap().0, "WARNING");
+        }
+    }
+
+    #[test]
+    fn clearance_payload_and_statuses_preserve_absent_and_empty_values() {
+        use base64ct::{Base64, Encoding};
+        let xml = "<?xml version=\"1.0\"?>\n<Invoice>  العربية  </Invoice>\n";
+        let encoded = Base64::encode_string(xml.as_bytes());
+        let response = ValidationResponse(
+            serde_json::from_value(serde_json::json!({
+                "validationResults":{}, "clearanceStatus":"CLEARED", "clearedInvoice":encoded,
+                "qrSellertStatus":"", "qrBuyertStatus":"PASS"
+            }))
+            .unwrap(),
+        );
+        let decoded = response.cleared_invoice_xml().ok().unwrap().unwrap();
+        assert_eq!(
+            response.cleared_invoice_base64().ok().unwrap().unwrap().0,
+            encoded
+        );
+        assert_eq!(
+            response.clearance_status().ok().unwrap().unwrap().0,
+            "CLEARED"
+        );
+        assert!(response.reporting_status().ok().unwrap().is_none());
+        assert_eq!(response.qr_seller_status().ok().unwrap().unwrap().0, "");
+        assert_eq!(response.qr_buyer_status().ok().unwrap().unwrap().0, "PASS");
+        drop(response);
+        assert_eq!(decoded.0, xml);
+    }
 }
