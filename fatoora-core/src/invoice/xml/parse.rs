@@ -4,8 +4,8 @@ use crate::invoice::sign::SignedProperties;
 use crate::invoice::xml::constants::{CAC_NS, CBC_NS, DS_NS, INVOICE_NS, XADES_NS};
 use crate::invoice::{
     Address, CountryCode, CurrencyCode, FinalizedInvoice, InvoiceBuilder, InvoiceDate,
-    InvoiceSubType, InvoiceTimestamp, InvoiceType, LineItem, OriginalInvoiceRef, OtherId, Party,
-    SellerRole, SignedInvoice, VatCategory,
+    InvoiceFlags, InvoiceSubType, InvoiceTimestamp, InvoiceType, LineItem, OriginalInvoiceRef,
+    OtherId, Party, SellerRole, SignedInvoice, VatCategory,
 };
 use base64ct::{Base64, Encoding};
 use chrono::{NaiveDateTime, NaiveTime};
@@ -207,7 +207,13 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
         .invoice_counter(invoice_counter)
         .seller(seller)
         .payment_means_code(payment_means_code)
-        .vat_category(vat_category);
+        .vat_category(vat_category)
+        .flags(InvoiceFlags::from_bits_truncate(
+            invoice_type_name.as_bytes()[2..]
+                .iter()
+                .enumerate()
+                .fold(0, |bits, (index, digit)| bits | ((digit - b'0') << index)),
+        ));
     for item in line_items {
         builder = builder.line_item(item);
     }
@@ -502,6 +508,16 @@ fn parse_invoice_type(
     original_ref: Option<OriginalInvoiceRef>,
     reason: String,
 ) -> Result<InvoiceType, ParseError> {
+    if name_code.len() != 7
+        || !name_code.as_bytes()[2..]
+            .iter()
+            .all(|digit| matches!(digit, b'0' | b'1'))
+    {
+        return Err(ParseError::InvalidValue {
+            field: "InvoiceTypeCode@name",
+            value: name_code.to_string(),
+        });
+    }
     let reason = if reason.trim().is_empty() {
         "Adjustment".to_string()
     } else {

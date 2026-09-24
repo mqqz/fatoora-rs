@@ -1,0 +1,18 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-24 19:31:43,195 [INFO] ValidationProcessorImpl - [XSD] validation result : PASSED
+2026-09-24 19:31:43,858 [INFO] ValidationProcessorImpl - [EN] validation result : PASSED
+2026-09-24 19:31:44,249 [INFO] ValidationProcessorImpl - [KSA] validation result : FAILED
+2026-09-24 19:31:44,251 [ERROR] ValidationProcessorImpl - ksa validation errors : 
+2026-09-24 19:31:44,251 [ERROR] ValidationProcessorImpl - CODE : BR-KSA-07, MESSAGE : [BR-KSA-07]-Self billing is not allowed (KSA-2, position 7 cannot be "1") for export invoices (KSA-2, position 5 = 1).
+2026-09-24 19:31:44,251 [ERROR] ValidationProcessorImpl - ksa validation warnings : 
+2026-09-24 19:31:44,251 [WARN] ValidationProcessorImpl - CODE : BR-KSA-69, MESSAGE : [BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121).
+2026-09-24 19:31:44,251 [WARN] ValidationProcessorImpl - CODE : BR-KSA-15, MESSAGE : [BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has "01" as first 2 digits)) must contain the supply date (KSA-5).
+2026-09-24 19:31:44,298 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-24 19:31:44,298 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = FAILED 

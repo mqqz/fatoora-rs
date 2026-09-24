@@ -74,3 +74,16 @@ Copy reviewed candidate files into `fatoora-core/tests/fixtures/sdk-parity/`, ru
 ## Compatibility fixes exposed by the corpus
 
 The suite exposed UTF-8 corruption in Arabic CSR properties, incorrect CSR template ASN.1 encoding and name ordering, acceptance of nonbinary CSR capability flags, an added QR timestamp suffix, and a SignedProperties digest mismatch when re-signing existing formatted XML. The associated changes affect generated artifacts across bindings; no public function signatures changed. The UTF-8 fix makes the already-transitive `encoding_rs` dependency explicit so the existing property parser can use its supported UTF-8 mode.
+
+### Invoice flag regression evidence
+
+The original `cases/` corpus remains frozen. Correcting XML serialization to
+preserve invoice flags changed five typed-builder inputs; their SDK captures
+live in `typed-cases/`, selected by the manifest's `typed_overrides` map. The
+manifest records the capture metadata and hashes each artifact, including the
+capture tools.
+
+The SDK rejects the corrected `standard-invoice` and `export-self-billed`
+inputs with BR-KSA-07 because both export and self-billing are set. Their old
+XML omitted those flags. Tests preserve these rejections as expected outcomes;
+the other three refreshed cases retain their previous validation outcomes.

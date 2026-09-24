@@ -253,31 +253,29 @@ impl<'a> InvoiceTotals<'a> {
     }
 }
 
-struct InvoiceTypeView<'a>(&'a InvoiceType);
+struct InvoiceTypeView<'a>(&'a InvoiceType, super::InvoiceFlags);
 
 impl<'a> Serialize for InvoiceTypeView<'a> {
     fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        let (attribute_code, body_code) = match self.0 {
-            InvoiceType::Tax(st) => match st {
-                super::InvoiceSubType::Simplified => ("0200000", "388"),
-                super::InvoiceSubType::Standard => ("0100000", "388"),
-            },
-            InvoiceType::Prepayment(st) => match st {
-                super::InvoiceSubType::Simplified => ("0200000", "386"),
-                super::InvoiceSubType::Standard => ("0100000", "386"),
-            },
-            InvoiceType::CreditNote(st, _, _) => match st {
-                super::InvoiceSubType::Simplified => ("0200000", "381"),
-                super::InvoiceSubType::Standard => ("0100000", "381"),
-            },
-            InvoiceType::DebitNote(st, _, _) => match st {
-                super::InvoiceSubType::Simplified => ("0200000", "383"),
-                super::InvoiceSubType::Standard => ("0100000", "383"),
-            },
+        let body_code = match self.0 {
+            InvoiceType::Tax(_) => "388",
+            InvoiceType::Prepayment(_) => "386",
+            InvoiceType::CreditNote(..) => "381",
+            InvoiceType::DebitNote(..) => "383",
         };
+        let mut attribute_code = if self.0.is_simplified() { "02" } else { "01" }.to_owned();
+        for flag in [
+            super::InvoiceFlags::THIRD_PARTY,
+            super::InvoiceFlags::NOMINAL,
+            super::InvoiceFlags::EXPORT,
+            super::InvoiceFlags::SUMMARY,
+            super::InvoiceFlags::SELF_BILLED,
+        ] {
+            attribute_code.push(if self.1.contains(flag) { '1' } else { '0' });
+        }
 
         let mut st = s.serialize_struct("cbc:InvoiceTypeCode", 2)?;
         st.serialize_field("@name", &attribute_code)?;
@@ -1097,7 +1095,10 @@ impl<'a, T: InvoiceView + ?Sized> Serialize for InvoiceXml<'a, T> {
         root.serialize_field("cbc:IssueTime", data.issue_datetime.time_str())?;
 
         // ---- invoice type ----
-        root.serialize_field("cbc:InvoiceTypeCode", &InvoiceTypeView(&data.invoice_type))?;
+        root.serialize_field(
+            "cbc:InvoiceTypeCode",
+            &InvoiceTypeView(&data.invoice_type, data.flags),
+        )?;
         if let Some(note) = data.note.as_ref() {
             root.serialize_field("cbc:Note", &NoteXml(note))?;
         }

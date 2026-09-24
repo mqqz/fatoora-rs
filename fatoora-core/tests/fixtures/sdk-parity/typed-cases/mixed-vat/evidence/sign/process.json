@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "java",
+    "-Djdk.sunec.disableNative=false",
+    "-jar",
+    "/tmp/fatoora sdk parity 4xkuuqqx/sdk/Apps/zatca-einvoicing-sdk-238-R3.4.8.jar",
+    "--globalVersion",
+    "238-R3.4.8",
+    "-sign",
+    "-invoice",
+    "/tmp/fatoora-flag-sdk/cases/mixed-vat/input.xml",
+    "-signedInvoice",
+    "/tmp/fatoora-flag-sdk/cases/mixed-vat/sdk-signed.xml"
+  ],
+  "cwd": "/tmp/fatoora sdk parity 4xkuuqqx/sdk/Apps",
+  "exit_code": 0
+}

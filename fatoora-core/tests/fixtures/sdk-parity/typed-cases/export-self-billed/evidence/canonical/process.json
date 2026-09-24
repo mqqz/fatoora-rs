@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "java",
+    "-cp",
+    "/tmp/fatoora sdk parity 4xkuuqqx/sdk:/tmp/fatoora sdk parity 4xkuuqqx/sdk/Apps/zatca-einvoicing-sdk-238-R3.4.8.jar",
+    "CanonicalBytes",
+    "/tmp/fatoora-flag-sdk/cases/export-self-billed/input.xml",
+    "/tmp/fatoora-flag-sdk/cases/export-self-billed/canonical.xml"
+  ],
+  "cwd": "/tmp/fatoora sdk parity 4xkuuqqx/sdk",
+  "exit_code": 0
+}

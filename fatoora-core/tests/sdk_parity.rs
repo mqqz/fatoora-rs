@@ -341,8 +341,14 @@ fn typed_serialization_and_signing_match_frozen_inputs() {
     let certificate = fs::read(root().join("credentials/certificate.der")).unwrap();
     let key = fs::read(root().join("credentials/private-key.der")).unwrap();
     let signer = InvoiceSigner::from_der(&certificate, &key).unwrap();
+    let inventory = manifest();
     for (id, invoice) in common::parity_invoices() {
-        let dir = root().join("cases").join(id);
+        // The original corpus predates transaction-flag serialization. Keep it
+        // as historical SDK evidence; typed builders use the refreshed capture.
+        let dir = inventory["typed_overrides"][id]
+            .as_str()
+            .map(|path| root().join(path))
+            .unwrap_or_else(|| root().join("cases").join(id));
         assert_eq!(
             invoice.to_xml().unwrap(),
             fs::read_to_string(dir.join("input.xml")).unwrap(),
@@ -495,5 +501,45 @@ fn excluded_subtree_content_does_not_change_hash() {
             invoice_hash_base64_from_xml_str(&changed).unwrap(),
             expected["hash"].as_str().unwrap()
         );
+    }
+}
+
+#[test]
+fn serialized_export_self_billing_is_rejected_like_the_sdk() {
+    use fatoora_core::invoice::validation::{
+        ZatcaStage, ZatcaStageStatus, ZatcaValidationOptions, validate_zatca_invoice_from_str,
+    };
+    let options = ZatcaValidationOptions {
+        evaluated_at: Some("2026-09-24T12:00:00Z".parse().unwrap()),
+        ..Default::default()
+    };
+    for (id, invoice) in common::parity_invoices() {
+        if !matches!(id, "standard-invoice" | "export-self-billed") {
+            continue;
+        }
+        let evidence = fs::read_to_string(
+            root().join(format!("typed-cases/{id}/evidence/validate/stdout.txt")),
+        )
+        .unwrap();
+        assert!(evidence.contains("CODE : BR-KSA-07,"));
+        let report = validate_zatca_invoice_from_str(
+            &invoice.to_xml().unwrap(),
+            &Config::default(),
+            &options,
+        )
+        .unwrap();
+        let ksa = report
+            .stages
+            .iter()
+            .find(|stage| stage.stage == ZatcaStage::Ksa)
+            .unwrap();
+        assert_eq!(ksa.status, ZatcaStageStatus::Completed);
+        assert!(
+            ksa.findings
+                .iter()
+                .any(|item| item.finding.code == "BR-KSA-07"),
+            "{id}: {ksa:?}"
+        );
+        assert!(!report.is_valid());
     }
 }

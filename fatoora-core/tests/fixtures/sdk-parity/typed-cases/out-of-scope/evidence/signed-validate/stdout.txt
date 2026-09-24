@@ -1,0 +1,16 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-24 19:31:52,667 [INFO] ValidationProcessorImpl - [XSD] validation result : PASSED
+2026-09-24 19:31:53,167 [INFO] ValidationProcessorImpl - [EN] validation result : PASSED
+2026-09-24 19:31:53,355 [INFO] ValidationProcessorImpl - [KSA] validation result : PASSED
+2026-09-24 19:31:53,355 [ERROR] ValidationProcessorImpl - ksa validation warnings : 
+2026-09-24 19:31:53,355 [WARN] ValidationProcessorImpl - CODE : BR-KSA-24, MESSAGE : [BR-KSA-24]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Not subject to VAT' shall have a VAT exception reason code (BT-121)
+2026-09-24 19:31:53,355 [WARN] ValidationProcessorImpl - CODE : BR-KSA-15, MESSAGE : [BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has "01" as first 2 digits)) must contain the supply date (KSA-5).
+2026-09-24 19:31:53,376 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-24 19:31:53,376 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = PASSED 

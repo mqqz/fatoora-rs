@@ -859,9 +859,10 @@ def verify(root, output, corpus):
 
         def check(name):
             case_id = name.removesuffix("-typed")
-            expected = json.loads(
-                (corpus / "cases" / case_id / "expected.json").read_text()
-            )["signed_validation"]
+            directory = corpus / "cases" / case_id
+            if name.endswith("-typed") and case_id in m.get("typed_overrides", {}):
+                directory = corpus / m["typed_overrides"][case_id]
+            expected = json.loads((directory / "expected.json").read_text())["signed_validation"]
             rec, raw = invoke(
                 scratch,
                 env,
