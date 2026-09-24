@@ -78,14 +78,33 @@ pip install fatoora-rs
 <details>
 <summary>C/C++</summary>
   
-Download the precompiled shared library and headers for your platform on the repo's [releases](https://github.com/mqqz/fatoora-rs/releases) (`fatoora-ffi-*`).
+Download the `fatoora-ffi-*` archive for your platform from
+[releases](https://github.com/mqqz/fatoora-rs/releases) and extract it. The shared
+library is at the archive root. C headers are in `include/diplomat-c`; C++ headers
+are in `include/diplomat-cpp` and expose types in namespace `fatoora`.
 
-Alternatively, if you'd like to build from source. Clone the repo and run:
-```
-cargo build -p fatoora-ffi --release
+For example, on Linux, compile your application from the extracted directory:
+
+```sh
+cc -std=c11 -Iinclude/diplomat-c app.c -L. -lfatoora_ffi -Wl,-rpath,'$ORIGIN' -o app
+c++ -std=c++17 -Iinclude/diplomat-cpp app.cpp -L. -lfatoora_ffi -Wl,-rpath,'$ORIGIN' -o app-cpp
 ```
 
-The compiled library will be in `target/release/` for your platform (e.g. `libfatoora_ffi.so`, `libfatoora_ffi.dylib`, or `fatoora_ffi.dll`) and the headers will be (re)generated and written to `fatoora-ffi/include/`
+Include `Config.h` in C or `fatoora/Config.hpp` in C++. Keep the shared library
+beside these executables. On Windows, link the supplied import library and keep
+the DLLs from the archive beside your executable.
+
+To build the library from a source checkout:
+
+```sh
+cargo build -p fatoora-ffi --release --locked
+```
+
+The library is written to `target/release/`. The generated headers are checked in
+under `bindings/c` and `bindings/cpp`; use those include paths and
+`-Ltarget/release` when compiling against a source build. Cargo does not regenerate
+headers. After changing bridge declarations, follow the
+[Diplomat generation workflow](https://github.com/mqqz/fatoora-rs/blob/main/docs/development/diplomat.md#generate-and-verify).
 </details>
 
 <details>
