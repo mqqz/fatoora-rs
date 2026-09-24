@@ -291,3 +291,38 @@ fn pem_signer_rejects_invalid_key_after_accepting_certificate() {
     assert_eq!(error.kind(), fatoora_core::ErrorKind::InvalidInput);
     assert!(error.to_string().contains("Private key parse error"));
 }
+
+#[test]
+fn signing_qr_overflow_preserves_error_details_and_signer_reusability() {
+    use fatoora_core::invoice::QrCodeError;
+    let (signer, _) = build_test_signer();
+    let xml = common::dummy_finalized_invoice().to_xml().unwrap();
+    // Arabic characters occupy two UTF-8 bytes: this is 256 bytes, not 128.
+    let oversized = xml.replace("Acme Inc", &"ش".repeat(128));
+    assert_ne!(oversized, xml);
+    let error = signer.sign_xml(&oversized).unwrap_err();
+    assert!(matches!(
+        error,
+        SigningError::Qr(QrCodeError::ValueTooLong { tag: 1, len: 256 })
+    ));
+    assert_eq!(error.kind(), fatoora_core::ErrorKind::InvalidInput);
+    let signed = signer.sign_xml(&xml).unwrap();
+    let parsed = fatoora_core::invoice::xml::parse::parse_signed_invoice_xml(&signed).unwrap();
+    assert_eq!(
+        parsed.hash_base64().unwrap(),
+        common::dummy_finalized_invoice().hash_base64().unwrap()
+    );
+}
+
+#[test]
+fn hashing_rejects_relative_namespace_uris() {
+    use fatoora_core::invoice::sign::invoice_hash_base64_from_xml_str;
+    // Well-formed XML can still be impossible to canonicalize. Returning a hash
+    // of an empty or partial canonicalization would sign different content.
+    let error = invoice_hash_base64_from_xml_str(
+        "<Invoice xmlns=\"relative\"><Amount>100</Amount></Invoice>",
+    )
+    .unwrap_err();
+    assert!(matches!(error, SigningError::Xml(_)));
+    assert_eq!(error.kind(), fatoora_core::ErrorKind::Xml);
+}
