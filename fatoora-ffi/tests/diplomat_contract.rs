@@ -307,3 +307,49 @@ fn credit_and_debit_notes_keep_original_reference_after_parent_drop() {
         }
     }
 }
+
+#[test]
+fn prepayment_handoff_preserves_transaction_identity_and_amounts() {
+    for subtype in [0, 1] {
+        let mut b = configured(ok(InvoiceBuilder::new(1, subtype, None, None, None, None)));
+        ok(b.flags(0b00101));
+        ok(b.set_invoice_counter(u64::MAX));
+        ok(b.invoice_level_discount(b"10"));
+        ok(b.allowance_reason(b"Loyalty"));
+        ok(b.invoice_level_charge(b"5"));
+        ok(b.add_line_item(b"Service", b"2", b"HUR", b"50", b"15", 1));
+        let invoice = ok(b.build());
+        let xml = written(|out| ok(invoice.xml(out)));
+        let parsed = ok(FinalizedInvoice::from_xml(xml.as_bytes()));
+        let data = ok(parsed.data());
+        let line = ok(data.line_item(0));
+        let address = ok(ok(data.seller()).address());
+        let expected_hash = written(|out| ok(invoice.hash_base64(out)));
+        assert_eq!(
+            written(|out| ok(fatoora_ffi::invoice::ffi::Xml::hash(xml.as_bytes(), out))),
+            expected_hash
+        );
+        drop(invoice);
+        drop(parsed);
+        assert_eq!(data.invoice_type_kind(), 1);
+        assert_eq!(data.invoice_sub_type(), subtype);
+        assert_eq!(data.flags_raw(), 0b00101);
+        assert_eq!(data.invoice_counter(), u64::MAX);
+        assert_eq!(
+            written(|out| ok(data.uuid(out))),
+            "8e6000cf-1a98-4174-b3e7-b5d5954bc10d"
+        );
+        assert_eq!(written(|out| ok(data.previous_invoice_hash(out))), "hash");
+        assert_eq!(written(|out| ok(data.payment_means_code(out))), "10");
+        assert_eq!(written(|out| ok(data.invoice_level_discount(out))), "10");
+        assert_eq!(written(|out| ok(data.invoice_level_charge(out))), "5");
+        assert_eq!(written(|out| ok(line.unit_code(out))), "HUR");
+        assert_eq!(written(|out| ok(line.total_amount(out))), "100");
+        assert_eq!(written(|out| ok(line.vat_rate(out))), "15");
+        assert_eq!(written(|out| ok(line.vat_amount(out))), "15");
+        assert_eq!(written(|out| ok(address.street(out))), "King Fahd");
+        assert_eq!(written(|out| ok(address.building_number(out))), "1234");
+        assert_eq!(written(|out| ok(address.postal_code(out))), "12222");
+        assert_eq!(written(|out| ok(address.country_code(out))), "SAU");
+    }
+}

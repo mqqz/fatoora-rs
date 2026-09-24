@@ -158,3 +158,206 @@ fn written(f: impl FnOnce(&mut DiplomatWrite)) -> String {
         std::str::from_utf8((*out.0).as_bytes()).unwrap().to_owned()
     }
 }
+
+#[test]
+fn pem_signing_and_exports_preserve_certificate_key_and_signature() {
+    use base64ct::{Base64, Encoding};
+    use k256::{
+        ecdsa::{Signature, VerifyingKey, signature::Verifier},
+        pkcs8::DecodePublicKey,
+    };
+    use x509_cert::{
+        Certificate,
+        der::{Decode, Encode, EncodePem, pem::LineEnding},
+    };
+    let certificate = Certificate::from_der(CERT).unwrap();
+    let cert_pem = certificate.to_pem(LineEnding::LF).unwrap();
+    let key = ok(SigningKey::from_der(KEY));
+    let key_pem = written(|out| ok(key.to_pem(out)));
+    let restored_key = ok(SigningKey::from_pem(key_pem.as_bytes()));
+    assert_eq!(ok(restored_key.to_der()).as_slice(), KEY);
+    let signer = ok(Signer::from_pem(cert_pem.as_bytes(), key_pem.as_bytes()));
+    drop(restored_key);
+    drop(key);
+    assert_eq!(written(|out| ok(signer.certificate_pem(out))), cert_pem);
+    let xml = written(|out| ok(signer.sign_xml(INVOICE, out)));
+    let signed = ok(SignedInvoice::from_xml(xml.as_bytes()));
+    let public_key = Base64::decode_vec(&written(|out| ok(signed.public_key(out)))).unwrap();
+    assert_eq!(
+        public_key,
+        certificate
+            .tbs_certificate()
+            .subject_public_key_info()
+            .to_der()
+            .unwrap()
+    );
+    let verifying = VerifyingKey::from_public_key_der(&public_key).unwrap();
+    let signature = Signature::from_der(
+        &Base64::decode_vec(&written(|out| ok(signed.signature(out)))).unwrap(),
+    )
+    .unwrap();
+    let hash = Base64::decode_vec(&written(|out| ok(signed.invoice_hash(out)))).unwrap();
+    verifying.verify(&hash, &signature).unwrap();
+    let mut tampered = hash;
+    tampered[0] ^= 1;
+    assert!(verifying.verify(&tampered, &signature).is_err());
+    assert_eq!(
+        Base64::decode_vec(&written(|out| ok(signed.to_xml_base64(out)))).unwrap(),
+        xml.as_bytes()
+    );
+    assert_eq!(
+        written(|out| ok(signed.issuer(out))),
+        "CN=PRZEINVOICESCA4-CA, DC=extgazt, DC=gov, DC=local"
+    );
+    assert_eq!(
+        written(|out| ok(signed.signing_time(out))),
+        "2025-07-22T15:51:28"
+    );
+    let cert_signature = ok(signed.zatca_key_signature()).unwrap();
+    assert_eq!(
+        Base64::decode_vec(&written(|out| ok(cert_signature.value(out)))).unwrap(),
+        certificate.signature().as_bytes().unwrap()
+    );
+}
+
+#[test]
+fn csr_binding_encodings_preserve_proof_of_possession_and_environment() {
+    use base64ct::{Base64, Encoding};
+    use k256::ecdsa::{Signature, VerifyingKey, signature::Verifier};
+    use x509_cert::{
+        der::{Decode, DecodePem, Encode},
+        request::CertReq,
+    };
+    let props = ok(CsrProperties::new(
+        b"Device",
+        b"1-TST|2-TST|3-123",
+        b"399999999900003",
+        b"Branch",
+        b"Company",
+        b"SA",
+        b"1100",
+        b"Riyadh",
+        b"Supply",
+    ));
+    let key = ok(SigningKey::from_der(KEY));
+    for (env, template) in [
+        (0, "TSTZATCA-Code-Signing"),
+        (1, "PREZATCA-Code-Signing"),
+        (2, "ZATCA-Code-Signing"),
+    ] {
+        let csr = ok(props.build(&key, env));
+        let der = ok(csr.to_der());
+        let pem = written(|out| ok(csr.to_pem(out)));
+        assert_eq!(
+            CertReq::from_pem(&pem).unwrap().to_der().unwrap(),
+            der.as_slice()
+        );
+        assert_eq!(
+            Base64::decode_vec(&written(|out| ok(csr.to_base64(out)))).unwrap(),
+            der.as_slice()
+        );
+        assert_eq!(
+            Base64::decode_vec(&written(|out| ok(csr.to_pem_base64(out)))).unwrap(),
+            pem.as_bytes()
+        );
+        let parsed = CertReq::from_der(der.as_slice()).unwrap();
+        assert_eq!(
+            std::str::from_utf8(
+                parsed
+                    .info
+                    .subject
+                    .iter()
+                    .find(|attr| attr.oid.to_string() == "2.5.4.3")
+                    .unwrap()
+                    .value
+                    .value()
+            )
+            .unwrap(),
+            "Device"
+        );
+        let verifying = VerifyingKey::from_sec1_bytes(
+            parsed
+                .info
+                .public_key
+                .subject_public_key
+                .as_bytes()
+                .unwrap(),
+        )
+        .unwrap();
+        let signature = Signature::from_der(parsed.signature.as_bytes().unwrap()).unwrap();
+        verifying
+            .verify(&parsed.info.to_der().unwrap(), &signature)
+            .unwrap();
+        let extensions = ok(csr.extension_values_der());
+        let mut templates = Vec::new();
+        for i in 0..extensions.len() {
+            let bytes = ok(extensions.get(i));
+            for ext in x509_cert::ext::Extensions::from_der(bytes.as_slice()).unwrap() {
+                if ext.extn_id.to_string() == "1.3.6.1.4.1.311.20.2" {
+                    templates.push(
+                        x509_cert::der::asn1::Utf8StringRef::from_der(ext.extn_value.as_bytes())
+                            .unwrap()
+                            .as_str()
+                            .to_owned(),
+                    );
+                }
+            }
+        }
+        assert_eq!(templates, [template]);
+    }
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties");
+    let from_file = ok(CsrProperties::parse_csr_config_file(
+        path.to_str().unwrap().as_bytes(),
+    ));
+    let csr = ok(from_file.build(&key, 0));
+    let parsed = CertReq::from_der(ok(csr.to_der()).as_slice()).unwrap();
+    assert_eq!(
+        std::str::from_utf8(
+            parsed
+                .info
+                .subject
+                .iter()
+                .find(|attr| attr.oid.to_string() == "2.5.4.3")
+                .unwrap()
+                .value
+                .value()
+        )
+        .unwrap(),
+        "TST-886431145-399999999900003"
+    );
+}
+
+#[test]
+fn signed_file_metadata_and_totals_remain_owned_after_consumption() {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../fatoora-core/tests/fixtures/invoices/sample-simplified-invoice.xml");
+    let mut signed = ok(SignedInvoice::from_file(path.to_str().unwrap().as_bytes()));
+    let totals = ok(signed.totals());
+    assert_eq!(
+        written(|out| ok(signed.serial(out))),
+        "379112742831380471835263969587287663520528387"
+    );
+    assert_eq!(
+        written(|out| ok(signed.cert_hash(out))),
+        "ZDMwMmI0MTE1NzVjOTU2NTk4YzVlODhhYmI0ODU2NDUyNTU2YTVhYjhhMDFmN2FjYjk1YTA2OWQ0NjY2MjQ4NQ=="
+    );
+    assert_eq!(
+        written(|out| ok(signed.signed_props_hash(out))),
+        "ZmMwY2ZhNDljNzNjZDA5NmY4NDM4MmY1ZmY1YTA0NjY3MzY4NzMxOGJhYmZmNWU1OGYzZWJlODI3ZDgyZGVkZA=="
+    );
+    assert_eq!(written(|out| ok(ok(signed.data()).id(out))), "SME00010");
+    written(|out| ok(signed.into_xml(out)));
+    assert!(signed.totals().is_err());
+    drop(signed);
+    assert_eq!(written(|out| ok(totals.prepaid_amount(out))), "0");
+    assert_eq!(written(|out| ok(totals.payable_rounding_amount(out))), "0");
+    assert_eq!(written(|out| ok(totals.payable_amount(out))), "231.15");
+    assert_eq!(
+        SignedInvoice::from_file(b"/missing/invoice.xml")
+            .err()
+            .unwrap()
+            .code(),
+        6
+    );
+}
