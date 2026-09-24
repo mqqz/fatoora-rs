@@ -326,3 +326,102 @@ fn imported_category_tax_mismatch_is_rejected() {
     );
     assert!(parse_finalized_invoice_xml(&changed).is_err());
 }
+
+#[test]
+fn adjustments_require_one_unambiguous_vat_group() {
+    use fatoora_core::invoice::{InvoiceError, InvoiceField, ValidationKind};
+    // Both lines are standard VAT, but the document discount has no rate selector.
+    let error = invoice_builder_for_adjustments()
+        .line_item(line(d("100"), d("1"), d("15")))
+        .line_item(line(d("100"), d("1"), d("5")))
+        .invoice_level_discount(d("10"))
+        .build()
+        .unwrap_err();
+    let InvoiceError::Validation(validation) = error else {
+        panic!("expected ambiguous VAT group")
+    };
+    assert!(
+        validation
+            .issues()
+            .iter()
+            .any(|issue| issue.field() == InvoiceField::VatCategory
+                && issue.kind() == ValidationKind::Mismatch)
+    );
+    // A category absent from the invoice must not fall back to its first group.
+    let error = invoice_builder_for_adjustments()
+        .vat_category(VatCategory::Zero)
+        .line_item(line(d("100"), d("1"), d("15")))
+        .invoice_level_charge(d("10"))
+        .build()
+        .unwrap_err();
+    let InvoiceError::Validation(validation) = error else {
+        panic!("expected missing VAT group")
+    };
+    assert_eq!(validation.issues()[0].field(), InvoiceField::VatCategory);
+}
+
+fn invoice_builder_for_adjustments() -> fatoora_core::invoice::InvoiceBuilder {
+    use fatoora_core::invoice::{InvoiceBuilder, InvoiceSubType, InvoiceType};
+    InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified))
+        .id("INV-ADJUSTMENT")
+        .uuid("adjustment-uuid")
+        .issue_datetime("2024-01-01T12:30:00Z")
+        .currency("SAR")
+        .previous_invoice_hash("hash")
+        .invoice_counter(1)
+        .seller(common::dummy_finalized_invoice().data().seller().clone())
+        .payment_means_code("10")
+        .vat_category(VatCategory::Standard)
+}
+
+#[test]
+fn discount_cannot_make_its_tax_group_negative() {
+    let at_limit = invoice_builder_for_adjustments()
+        .line_item(line(d("100"), d("1"), d("15")))
+        .invoice_level_discount(d("100"))
+        .build()
+        .unwrap();
+    assert_eq!(at_limit.totals().taxable_amount(), d("0"));
+    assert_eq!(at_limit.totals().payable_amount(), d("0"));
+    let error: fatoora_core::Error = invoice_builder_for_adjustments()
+        .line_item(line(d("100"), d("1"), d("15")))
+        .invoice_level_discount(d("100.01"))
+        .build()
+        .unwrap_err()
+        .into();
+    let details: serde_json::Value = serde_json::from_str(&error.details_json()).unwrap();
+    assert_eq!(details["issues"][0]["field"], "invoice_level_discount");
+    assert_eq!(details["issues"][0]["kind"], "out_of_range");
+}
+
+#[test]
+fn supplied_line_total_is_checked_before_accepting_computed_vat() {
+    let valid = LineItem::from_totals(
+        "Item",
+        d("3"),
+        "PCE",
+        d("0.3333"),
+        d("1"),
+        d("15"),
+        VatCategory::Standard,
+    )
+    .unwrap();
+    assert_eq!(valid.unit_price(), d("0.3333"));
+    assert_eq!(valid.total_amount(), d("1"));
+    assert_eq!(valid.vat_amount(), d("0.15"));
+    let error: fatoora_core::Error = LineItem::from_totals(
+        "Item",
+        d("3"),
+        "PCE",
+        d("0.3333"),
+        d("1.01"),
+        d("15"),
+        VatCategory::Standard,
+    )
+    .unwrap_err()
+    .into();
+    let details: serde_json::Value = serde_json::from_str(&error.details_json()).unwrap();
+    assert_eq!(details["issues"][0]["field"], "line_item_total_amount");
+    assert_eq!(details["issues"][0]["supplied"], "1.01");
+    assert_eq!(details["issues"][0]["expected"], "1");
+}

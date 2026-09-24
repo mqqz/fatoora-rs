@@ -123,3 +123,133 @@ fn unreadable_file_keeps_io_classification_and_path() {
     assert_eq!(details["type"], "io");
     assert_eq!(details["path"], path.to_string_lossy().as_ref());
 }
+
+#[test]
+fn incomplete_builder_reports_every_missing_field_to_bindings() {
+    use fatoora_core::invoice::validation::{
+        ValidationLayer, ValidationLocation, ValidationReport,
+    };
+    use fatoora_core::invoice::{InvoiceBuilder, InvoiceSubType, InvoiceType};
+    let original = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified))
+        .build()
+        .unwrap_err();
+    let InvoiceError::Validation(validation) = &original else {
+        panic!("expected field checks")
+    };
+    let report = ValidationReport::from(validation);
+    assert_eq!(report.layers_checked, [ValidationLayer::FieldChecks]);
+    assert!(report.has_errors());
+    let expected = [
+        "id",
+        "uuid",
+        "issue_datetime",
+        "currency",
+        "previous_invoice_hash",
+        "invoice_counter",
+        "seller",
+        "payment_means_code",
+        "vat_category",
+        "line_items",
+    ];
+    let locations: Vec<_> = report
+        .issues
+        .iter()
+        .map(|finding| {
+            assert_eq!(finding.code, "FIELD_REQUIRED");
+            let Some(ValidationLocation::Field(field)) = &finding.location else {
+                panic!("missing field location")
+            };
+            field.as_str()
+        })
+        .collect();
+    assert_eq!(locations, expected);
+    let error: Error = original.into();
+    assert_eq!(error.kind(), ErrorKind::Validation);
+    let details: Value = serde_json::from_str(&error.details_json()).unwrap();
+    let issues = details["issues"].as_array().unwrap();
+    assert_eq!(issues.len(), expected.len());
+    for (issue, field) in issues.iter().zip(expected) {
+        // The established error JSON uses issue_date_time; reports use the model path.
+        assert_eq!(
+            issue["field"],
+            if field == "issue_datetime" {
+                "issue_date_time"
+            } else {
+                field
+            }
+        );
+        assert_eq!(issue["kind"], "missing");
+        assert!(issue["line_item_index"].is_null());
+    }
+}
+
+#[test]
+fn invalid_imported_line_reports_zero_based_locations_and_numeric_ranges() {
+    use fatoora_core::invoice::validation::{ValidationLocation, ValidationReport};
+    use fatoora_core::invoice::{InvoiceBuilder, InvoiceSubType, InvoiceType};
+    let good = LineItem::new(
+        "good",
+        decimal("1"),
+        "PCE",
+        decimal("100"),
+        decimal("15"),
+        VatCategory::Standard,
+    )
+    .unwrap();
+    let bad: LineItem = serde_json::from_value(json!({
+        "description":"", "quantity":"-1", "unit_code":"", "unit_price":"-1",
+        "total_amount":"-1", "vat_rate":"101", "vat_amount":"-0.15", "vat_category":"Standard"
+    }))
+    .unwrap();
+    let original = InvoiceBuilder::new(InvoiceType::Tax(InvoiceSubType::Simplified))
+        .issue_datetime("not-a-date")
+        .currency("invalid")
+        .invoice_level_discount(decimal("-1"))
+        .invoice_level_charge(decimal("0.001"))
+        .line_item(good)
+        .line_item(bad)
+        .build()
+        .unwrap_err();
+    let InvoiceError::Validation(validation) = &original else {
+        panic!("expected field checks")
+    };
+    let report = ValidationReport::from(validation);
+    for (field, code) in [
+        ("line_items[1].description", "FIELD_EMPTY"),
+        ("line_items[1].unit_code", "FIELD_EMPTY"),
+        ("line_items[1].quantity", "FIELD_OUT_OF_RANGE"),
+        ("line_items[1].unit_price", "FIELD_OUT_OF_RANGE"),
+        ("line_items[1].total_amount", "FIELD_OUT_OF_RANGE"),
+        ("line_items[1].vat_rate", "FIELD_OUT_OF_RANGE"),
+        ("line_items[1].vat_amount", "FIELD_OUT_OF_RANGE"),
+        ("invoice_level_discount", "FIELD_OUT_OF_RANGE"),
+        ("invoice_level_charge", "FIELD_OUT_OF_RANGE"),
+        ("issue_datetime", "FIELD_INVALID_FORMAT"),
+        ("currency", "FIELD_INVALID_FORMAT"),
+    ] {
+        assert!(
+            report.issues.iter().any(|finding| finding.code == code
+                && finding.location == Some(ValidationLocation::Field(field.into()))),
+            "{field}"
+        );
+    }
+    let error: Error = original.into();
+    let details: Value = serde_json::from_str(&error.details_json()).unwrap();
+    let issues = details["issues"].as_array().unwrap();
+    for field in [
+        "line_item_description",
+        "line_item_unit_code",
+        "line_item_quantity",
+        "line_item_unit_price",
+        "line_item_total_amount",
+        "line_item_vat_rate",
+        "line_item_vat_amount",
+    ] {
+        assert!(
+            issues
+                .iter()
+                .any(|issue| issue["field"] == field && issue["line_item_index"] == 1)
+        );
+    }
+    assert!(issues.iter().all(|issue| issue["line_item_index"] != 0));
+}

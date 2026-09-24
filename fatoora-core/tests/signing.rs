@@ -250,3 +250,44 @@ fn into_xml_preserves_newly_signed_output() {
     assert_eq!(owned, expected);
     assert_eq!(owned.as_ptr(), ptr);
 }
+
+#[test]
+fn malformed_signing_timestamps_fail_without_poisoning_the_signer() {
+    let (signer, _) = build_test_signer();
+    let unsigned = common::dummy_finalized_invoice().to_xml().unwrap();
+    for (from, to, label) in [
+        ("2024-01-01", "2024-02-30", "issue date"),
+        ("12:30:00", "25:30:00", "issue time"),
+    ] {
+        assert!(unsigned.contains(from));
+        let error = signer
+            .sign_xml(&unsigned.replacen(from, to, 1))
+            .unwrap_err();
+        assert_eq!(error.kind(), fatoora_core::ErrorKind::InvalidInput);
+        assert!(error.to_string().contains(label));
+        let details: serde_json::Value =
+            serde_json::from_str(&fatoora_core::Error::from(error).details_json()).unwrap();
+        assert_eq!(details["type"], "signing_input");
+    }
+    let signed = signer.sign_xml(&unsigned).unwrap();
+    let malformed = signed.replace(
+        "<xades:SigningTime>2024-01-01T12:30:00</xades:SigningTime>",
+        "<xades:SigningTime>invalid</xades:SigningTime>",
+    );
+    assert_ne!(signed, malformed);
+    let error = signer.sign_xml(&malformed).unwrap_err();
+    assert_eq!(error.kind(), fatoora_core::ErrorKind::InvalidInput);
+    // Explicit invalid signing time must not silently fall back to issue time.
+    assert!(error.to_string().contains("Invalid signing time"));
+    assert!(signer.sign_xml(&unsigned).is_ok());
+}
+
+#[test]
+fn pem_signer_rejects_invalid_key_after_accepting_certificate() {
+    let (_, _, cert_der) = build_test_signing_material();
+    let error = InvoiceSigner::from_pem(&pem_wrap("CERTIFICATE", &cert_der), "invalid key")
+        .err()
+        .unwrap();
+    assert_eq!(error.kind(), fatoora_core::ErrorKind::InvalidInput);
+    assert!(error.to_string().contains("Private key parse error"));
+}

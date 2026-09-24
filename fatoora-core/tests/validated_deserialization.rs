@@ -1,7 +1,33 @@
 use fatoora_core::invoice::{CountryCode, CurrencyCode, InvoiceDate, InvoiceTimestamp, VatId};
 use serde::{Serialize, de::DeserializeOwned};
 
-fn check<T: DeserializeOwned + Serialize>(invalid: &[&str], input: &str, normalized: &str) {
+fn check<T>(invalid: &[&str], input: &str, normalized: &str)
+where
+    T: DeserializeOwned
+        + Serialize
+        + AsRef<str>
+        + std::str::FromStr
+        + for<'a> TryFrom<&'a str>
+        + TryFrom<String>,
+{
+    for value in invalid {
+        assert!(value.parse::<T>().is_err(), "FromStr accepted {value}");
+        assert!(
+            T::try_from(*value).is_err(),
+            "TryFrom<&str> accepted {value}"
+        );
+        assert!(
+            T::try_from(value.to_string()).is_err(),
+            "TryFrom<String> accepted {value}"
+        );
+    }
+    for value in [
+        input.parse::<T>().ok().unwrap(),
+        T::try_from(input).ok().unwrap(),
+        T::try_from(input.to_owned()).ok().unwrap(),
+    ] {
+        assert_eq!(value.as_ref(), normalized);
+    }
     let name = std::any::type_name::<T>().rsplit("::").next().unwrap();
     for value in invalid {
         let json = serde_json::to_string(value).unwrap();
