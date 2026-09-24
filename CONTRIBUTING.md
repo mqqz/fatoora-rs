@@ -72,10 +72,13 @@ All crates inherit the Clippy lint policy from the root `Cargo.toml`. CI checks
 formatting and runs Clippy with warnings treated as errors.
 
 ## Tests
-Run the full test suite with:
+Run the workspace suite without live ZATCA calls with:
 ```bash
-cargo test
+SKIP_ZATCA_LIVE_API=1 cargo test --workspace --locked --all-features -- --skip doc_example_api
 ```
+
+Local HTTP contract tests still require permission to bind loopback listeners.
+`doc_example_api` is excluded separately because it makes a live request.
 
 Python bindings tests:
 ```bash
@@ -83,7 +86,22 @@ uv pip install -e bindings/python[dev]
 uv run --python .venv/bin/python pytest bindings/python/tests
 ```
 
-Note: live API tests run by default. Set `SKIP_ZATCA_LIVE_API=1` to disable them locally or in CI.
+Use the test layer that owns the contract:
+
+- Core tests cover business rules, arithmetic, parsing, and cryptographic behavior,
+  using pinned fixtures and independently calculated expected values.
+- Rust FFI contract tests cover argument forwarding, error details, optional values,
+  and ownership after failed operations or parent destruction. HTTP tests use a
+  loopback gateway and check request bytes as well as response semantics.
+- C/C++ contracts exercise the generated ABI (`python3 scripts/check_native_bindings.py`).
+  Python tests cover wrapper behavior, closed handles, and GIL/argument locking.
+
+Rust coverage does not include the separate Python or C/C++ test runs. Keep
+binding regressions in Rust when they concern the shared adapter, and add language
+contracts for behavior specific to that language. Prioritize failure recovery,
+exact boundaries, and independent expected results over getter-only coverage.
+The FFI HTTP test supplies its gateway URL through a child process environment so
+parallel tests cannot redirect one another's requests.
 
 ## Benchmarks
 Benchmark data lives in `bench/`. The CLI benchmark results are tracked in `bench/cli/results`.
