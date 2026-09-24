@@ -665,3 +665,104 @@ fn zatca_cli_bounds_file_reads_and_preserves_capacity_reports() {
         std::fs::remove_file(path).unwrap();
     }
 }
+
+#[test]
+fn sign_pem_stdout_preserves_invoice_hash_and_rejects_mixed_formats() {
+    let corpus =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../fatoora-core/tests/fixtures/sdk-parity");
+    let cert_der = std::fs::read(corpus.join("credentials/certificate.der")).unwrap();
+    let key_der = std::fs::read(corpus.join("credentials/private-key.der")).unwrap();
+    let signer = fatoora_core::invoice::sign::InvoiceSigner::from_der(&cert_der, &key_der).unwrap();
+    let key = fatoora_core::csr::SigningKey::from_der(&key_der).unwrap();
+    let directory = unique_temp_path("pem-sign");
+    std::fs::create_dir(&directory).unwrap();
+    let cert_path = directory.join("cert.pem");
+    let key_path = directory.join("key.pem");
+    std::fs::write(&cert_path, signer.certificate_pem().unwrap()).unwrap();
+    std::fs::write(&key_path, key.to_pem().unwrap()).unwrap();
+    let input = corpus.join("cases/simplified-invoice/input.xml");
+    let run = |cert_format: &str, key_format: &str| {
+        Command::new(cli_exe())
+            .arg("sign")
+            .arg("--invoice")
+            .arg(&input)
+            .arg("--cert")
+            .arg(&cert_path)
+            .arg("--key")
+            .arg(&key_path)
+            .args(["--cert-format", cert_format, "--key-format", key_format])
+            .output()
+            .unwrap()
+    };
+    let result = run("pem", "pem");
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let xml = String::from_utf8(result.stdout).unwrap();
+    let signed = parse_signed_invoice_xml(&xml).unwrap();
+    let expected: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(corpus.join("cases/simplified-invoice/expected.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(signed.invoice_hash(), expected["hash"].as_str().unwrap());
+    assert_eq!(signed.hash_base64().unwrap(), signed.invoice_hash());
+    for (cert, key) in [("pem", "der"), ("der", "pem")] {
+        let result = run(cert, key);
+        assert!(!result.status.success());
+        assert!(result.stdout.is_empty());
+        assert!(String::from_utf8_lossy(&result.stderr).contains("mixed PEM/DER formats"));
+    }
+    std::fs::remove_dir_all(directory).unwrap();
+}
+
+#[test]
+fn missing_invoice_files_fail_without_success_output() {
+    let missing = unique_temp_path("missing-invoice");
+    for command in ["sign", "qr", "qr-read", "generate-hash", "invoice-request"] {
+        let mut process = Command::new(cli_exe());
+        process.arg(command).arg("--invoice").arg(&missing);
+        if command == "sign" {
+            process.args(["--cert", "unused", "--key", "unused"]);
+        }
+        let result = process.output().unwrap();
+        assert!(!result.status.success(), "{command}");
+        assert!(result.stdout.is_empty(), "{command}");
+        let error = String::from_utf8_lossy(&result.stderr);
+        assert!(error.contains("failed to read invoice file"), "{error}");
+        assert!(error.contains(missing.to_str().unwrap()), "{error}");
+    }
+}
+
+#[test]
+fn file_output_errors_do_not_print_success_or_private_keys() {
+    // Writing over a directory fails regardless of user permissions.
+    let directory = unique_temp_path("unwritable-output");
+    std::fs::create_dir(&directory).unwrap();
+    let result = Command::new(cli_exe())
+        .arg("csr")
+        .arg("--csr-config")
+        .arg(csr_config_fixture())
+        .arg("--generated-csr")
+        .arg(&directory)
+        .output()
+        .unwrap();
+    assert!(!result.status.success());
+    assert!(result.stdout.is_empty());
+    let error = String::from_utf8_lossy(&result.stderr);
+    assert!(error.contains("failed to write CSR"));
+    assert!(!error.contains("PRIVATE KEY"));
+    let result = Command::new(cli_exe())
+        .arg("invoice-request")
+        .arg("--invoice")
+        .arg(signed_invoice_fixture())
+        .arg("--api-request")
+        .arg(&directory)
+        .output()
+        .unwrap();
+    assert!(!result.status.success());
+    assert!(result.stdout.is_empty());
+    assert!(String::from_utf8_lossy(&result.stderr).contains("failed to write request"));
+    std::fs::remove_dir(directory).unwrap();
+}
