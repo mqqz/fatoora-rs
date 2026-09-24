@@ -4,6 +4,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 from setuptools import Distribution, setup
@@ -36,18 +37,20 @@ class build_py(_build_py):
             subprocess.check_call(["install_name_tool", "-id", f"@rpath/{lib_name}", str(native_library)])
 
         native_source = Path(__file__).resolve().parent / "native"
-        native_build = Path(self.build_lib).resolve().parent / "native"
-        subprocess.check_call([
-            "cmake", "-S", str(native_source), "-B", str(native_build),
-            "-DCMAKE_BUILD_TYPE=Release", f"-DPython_EXECUTABLE={sys.executable}",
-            f"-DFATOORA_LIBRARY={native_library}",
-            f"-DFATOORA_IMPLIB={target_dir.resolve() / 'fatoora_ffi.dll.lib'}",
-        ])
-        subprocess.check_call(["cmake", "--build", str(native_build), "--config", "Release", "--parallel", "2"])
-        subprocess.check_call([
-            "cmake", "--install", str(native_build), "--config", "Release",
-            "--prefix", str(Path(self.build_lib).resolve()),
-        ])
+        # CMake caches interpreter headers and build-environment package paths.
+        # Each wheel must configure against its own Python ABI and dependencies.
+        with tempfile.TemporaryDirectory(prefix="fatoora-native-") as native_build:
+            subprocess.check_call([
+                "cmake", "-S", str(native_source), "-B", native_build,
+                "-DCMAKE_BUILD_TYPE=Release", f"-DPython_EXECUTABLE={sys.executable}",
+                f"-DFATOORA_LIBRARY={native_library}",
+                f"-DFATOORA_IMPLIB={target_dir.resolve() / 'fatoora_ffi.dll.lib'}",
+            ])
+            subprocess.check_call(["cmake", "--build", native_build, "--config", "Release", "--parallel", "2"])
+            subprocess.check_call([
+                "cmake", "--install", native_build, "--config", "Release",
+                "--prefix", str(Path(self.build_lib).resolve()),
+            ])
 
         rule_notices = package_dir / "licenses" / "zatca"
         rule_notices.mkdir(parents=True, exist_ok=True)
