@@ -125,6 +125,8 @@ pub enum Error {
     #[error("{0}")]
     XmlValidation(#[from] invoice::validation::XmlValidationError),
     #[error("{0}")]
+    ZatcaValidation(#[from] invoice::validation::ZatcaValidationError),
+    #[error("{0}")]
     Api(#[from] api::ZatcaError),
 }
 
@@ -141,7 +143,56 @@ impl Error {
             Self::Xml(err) => err.kind(),
             Self::Parse(err) => err.kind(),
             Self::XmlValidation(err) => err.kind(),
+            Self::ZatcaValidation(err) => err.kind(),
             Self::Api(err) => err.kind(),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Error, ErrorKind};
+    use crate::invoice::validation::{
+        ZatcaFailureKind, ZatcaValidationError, ZatcaValidationReport,
+    };
+    use std::error::Error as StdError;
+
+    #[test]
+    fn zatca_execution_errors_keep_their_category_and_typed_source() {
+        for (kind, expected) in [
+            (ZatcaFailureKind::InvalidXml, ErrorKind::Xml),
+            (ZatcaFailureKind::UnsupportedXml, ErrorKind::InvalidInput),
+            (ZatcaFailureKind::CapacityExceeded, ErrorKind::InvalidInput),
+            (ZatcaFailureKind::InvalidContext, ErrorKind::InvalidInput),
+            (ZatcaFailureKind::RuleEvaluation, ErrorKind::Validation),
+            (ZatcaFailureKind::Schema, ErrorKind::Parse),
+            (ZatcaFailureKind::Integrity, ErrorKind::Crypto),
+        ] {
+            let failure = ZatcaValidationError {
+                kind,
+                stage: None,
+                assertion_site: None,
+                location: None,
+                message: "validation execution stopped".to_owned(),
+                report: Box::new(ZatcaValidationReport {
+                    schema_version: 1,
+                    profile: "zatca-sdk-238-R3.4.8".to_owned(),
+                    evaluated_at: chrono::DateTime::parse_from_rfc3339("2026-09-23T12:00:00+03:00")
+                        .unwrap(),
+                    stages: Vec::new(),
+                }),
+            };
+            let error = Error::from(failure);
+            assert_eq!(error.kind(), expected);
+            assert_eq!(error.to_string(), "validation execution stopped");
+            let source = error
+                .source()
+                .unwrap()
+                .downcast_ref::<ZatcaValidationError>()
+                .expect("root error must preserve the typed validation failure");
+            assert_eq!(source.kind, kind);
+            assert!(!source.report.is_complete());
+            assert!(matches!(error, Error::ZatcaValidation(_)));
         }
     }
 }

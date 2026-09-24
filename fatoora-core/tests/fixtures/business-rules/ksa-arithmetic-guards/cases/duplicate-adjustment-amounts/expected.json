@@ -1,0 +1,31 @@
+{
+  "layers": {
+    "xsd": "failed",
+    "en": "failed",
+    "ksa": "failed",
+    "qr": "not_run",
+    "signature": "not_run",
+    "pih": "passed",
+    "global": "failed"
+  },
+  "findings": [
+    {
+      "source": "xsd",
+      "severity": "error",
+      "code": "SAXParseException",
+      "message": "Schema validation failed; XML does not comply with UBL 2.1 standards in line with ZATCA specifications. ERROR: org.xml.sax.SAXParseException; lineNumber: 141; columnNumber: 145; cvc-complex-type.2.4.a: Invalid content was found starting with element '{\"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":Amount}'. One of '{\"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":BaseAmount, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":AccountingCostCode, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":AccountingCost, \"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\":PerUnitAmount, \"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\":TaxCategory, \"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\":TaxTotal, \"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\":PaymentMeans}' is expected."
+    },
+    {
+      "source": "en",
+      "severity": "error",
+      "code": "SaxonApiException",
+      "message": "A sequence of more than one item is not allowed as the first argument of fn:substring-after() (\"1\", \"2\") "
+    },
+    {
+      "source": "ksa",
+      "severity": "error",
+      "code": "SaxonApiException",
+      "message": "A sequence of more than one item is not allowed as the value in 'cast as' expression (<ns1:Amount>, <ns1:Amount>) "
+    }
+  ]
+}

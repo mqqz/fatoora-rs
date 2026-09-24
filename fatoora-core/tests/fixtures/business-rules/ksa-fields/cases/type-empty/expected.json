@@ -1,0 +1,37 @@
+{
+  "layers": {
+    "xsd": "passed",
+    "en": "failed",
+    "ksa": "passed",
+    "qr": "not_run",
+    "signature": "not_run",
+    "pih": "passed",
+    "global": "failed"
+  },
+  "findings": [
+    {
+      "source": "en",
+      "severity": "error",
+      "code": "BR-CL-01",
+      "message": "[BR-CL-01]-The document type code MUST be coded by the invoice and credit note related code lists of UNTDID 1001."
+    },
+    {
+      "source": "en",
+      "severity": "error",
+      "code": "BR-04",
+      "message": "[BR-04]-An Invoice shall have an Invoice type code (BT-3)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-19",
+      "message": "[BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-69",
+      "message": "[BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121)."
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "layers": {
+    "xsd": "passed",
+    "en": "failed",
+    "ksa": "failed",
+    "qr": "not_run",
+    "signature": "not_run",
+    "pih": "passed",
+    "global": "failed"
+  },
+  "findings": [
+    {
+      "source": "en",
+      "severity": "error",
+      "code": "BR-CL-03",
+      "message": "[BR-CL-03]-currencyID MUST be coded using ISO code list 4217 alpha-3"
+    },
+    {
+      "source": "ksa",
+      "severity": "error",
+      "code": "SaxonApiException",
+      "message": "Syntax error at char 1 in regular expression: No expression before quantifier"
+    }
+  ]
+}

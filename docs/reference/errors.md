@@ -2,7 +2,8 @@
 
 Rust operations return errors for their module: `InvoiceError`, `CsrError`,
 `SigningError`, `QrCodeError`, `InvoiceXmlError`, `ParseError`,
-`XmlValidationError`, `ZatcaError`, `DecimalError`, and `EnvironmentParseError`.
+`XmlValidationError`, `ZatcaValidationError`, `ZatcaError`, `DecimalError`, and
+`EnvironmentParseError`.
 Each has a `kind()` method for shared classification.
 
 Convert a module error into `fatoora_core::Error` when combining operations.
@@ -33,8 +34,9 @@ fn inspect(error: &Error) {
 
 ## Shared classification
 
-These codes are stable across Rust, C, and Python. New categories may be added;
-consumers must retain unknown numeric codes and provide a generic fallback.
+Rust and C use the following stable categories. Python maps each category to an
+exception class. Consumers must retain unknown numeric codes and provide a
+generic fallback when categories are added.
 
 | Code | Rust / C category | Python exception |
 | --- | --- | --- |
@@ -138,6 +140,7 @@ amounts are null.
 | --- | --- |
 | `invoice_validation` | `issues`: field, kind, item index, supplied and expected amounts |
 | `schema_parse`, `schema_validation` | `diagnostics`: message, optional file, line, column, severity |
+| `zatca_validation_execution` | `kind`, optional `stage`, `assertion_site`, `location`, `diagnostics`, and partial `report` |
 | `xml_serialize`, `signing_xml`, `signing_input` | `diagnostics` |
 | `api_response` | `http_status`: actual HTTP status; `body`: response text; `response`: complete parsed JSON or null |
 | `api_response_decode` | `http_status`, `body`, `message` for a malformed 2xx response |
@@ -173,6 +176,53 @@ UTF-8 lossily when their native encoding cannot be represented. Nested signing
 and invoice-import failures retain their underlying validation, serialization,
 decimal, or QR details.
 
+### Local ZATCA execution failures
+
+`validate_zatca_invoice_from_str` returns a report for rejection or incomplete
+coverage. Check `report.is_valid()` in Rust or the JSON `is_valid` field before
+accepting an invoice. `is_complete` describes stage coverage, and `has_errors`
+includes findings obtained before a stage failed. Warnings allow validity once
+all required stages complete. These derived fields are recomputed from stages
+when a report is deserialized.
+
+Execution failures return `ZatcaValidationError`. Converting it into
+`fatoora_core::Error` preserves its typed source and partial report. The binding
+details object has type `zatca_validation_execution` and these fields:
+
+| Field | Meaning |
+| --- | --- |
+| `kind` | Execution failure kind from the table below |
+| `stage` | `xsd`, `cen`, `ksa`, `signature`, `qr`, `previous_invoice_hash`, or null |
+| `assertion_site` | Source assertion key, such as `ksa:112:BR-KSA-CL-02`, or null |
+| `location` | Shared validation location, including namespace-independent XPath, or null |
+| `diagnostics` | One diagnostic containing the execution failure's message |
+| `report` | Full report up to the failure, with stage statuses and earlier findings |
+
+| Execution `kind` | Shared classification |
+| --- | --- |
+| `invalid_xml` | `Xml` (4) |
+| `unsupported_xml` | `InvalidInput` (1) |
+| `capacity_exceeded` | `InvalidInput` (1) |
+| `invalid_context` | `InvalidInput` (1) |
+| `rule_evaluation` | `Validation` (2) |
+| `schema` | `Parse` (3) |
+| `integrity` | `Crypto` (5) |
+
+The `rule_evaluation` classification describes interrupted execution. Ordinary
+business-rule violations remain findings in a successfully returned report.
+For C, `FfiResult_FfiString.ok` therefore describes whether a report was returned;
+it does not replace `is_valid`. Python raises the mapped exception for execution
+failures and exposes the partial report at `error.details["report"]`.
+
+Invalid binding arguments or malformed options JSON can fail before the pipeline
+starts and have no report. Callers must allow that absence. The CLI's ZATCA JSON
+mode serializes `ZatcaValidationError` directly: its message is in `message`,
+with the same failure metadata and partial `report`. C/Python error details use
+the `diagnostics` representation described above.
+
+See [Local ZATCA validation](../development/business-rules.md) for stage
+applicability, required predecessor context and the pinned profile's limits.
+
 ## Python
 
 All binding exceptions inherit from `FfiError` and `FatooraError`. Exceptions
@@ -202,9 +252,9 @@ Replace `signer.certificate()` with `signer.certificate_der()` or
 on failure. Python retains its certificate export methods; C uses
 `fatoora_Signer_certificate_der` and `fatoora_Signer_certificate_pem`.
 
-`InvoiceFlags` now wraps its bitflags implementation privately. Its constants,
-bit operations, JSON representation, and iteration remain available through
-crate-owned types. Code that used the `bitflags::Flags` trait or named bitflags
+`InvoiceFlags` now wraps its bitflags implementation privately. Its constants
+and bit operations remain available through crate-owned types. JSON representation
+and iteration are preserved. Code that used the `bitflags::Flags` trait or named bitflags
 iterator types must use the `InvoiceFlags` methods and owned iterators instead.
 
 The generated C ABI is a breaking replacement. Recompile against matching

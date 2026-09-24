@@ -1,0 +1,444 @@
+{
+  "schema_version": 1,
+  "sdk_version": "238-R3.4.8",
+  "jar_sha256": "48abeb828d453ef6fafba792fddbbb2701da5c7018c24bde918853e80ff5d530",
+  "sources": {
+    "cen": "378a7a4d697aa96e05edb4649ab4536b33546b8e288453324a5668c3e15735b0",
+    "ksa": "3312e1938829b8972dacf19a3d933deeb97cb71c7e982c56a434b76cc0e5f0c4"
+  },
+  "source_corpus_sha256": "872d251be12e3f3388d1afd57a566be6721d19bafc61b39442dad65902c74411",
+  "family": "ksa-adjustments",
+  "family_tool_sha256": "5d7249527b895d9a063f96b322ed092ce89a780d48eb7b3321dbf717a3bc9985",
+  "capture_tool_sha256": "2f57e958d346aac824827b7b589ba05115a6c844d8b70c1b55c18faf2130ca0b",
+  "sdk_tool_sha256": "cfbec9fe7abe7a75bdaf288297998d88be224b1055eac318c9accb545e29b454",
+  "java_version": "openjdk version \"11.0.25\" 2024-10-15\nOpenJDK Runtime Environment (build 11.0.25+5-void-r3)\nOpenJDK 64-Bit Server VM (build 11.0.25+5-void-r3, mixed mode)\n",
+  "timezone": "UTC (TZ=UTC; JAVA_TOOL_OPTIONS=-Duser.timezone=UTC)",
+  "cases": [
+    {
+      "id": "BR-KSA-19-0",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-19",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:30:29.392860+00:00",
+      "finished_at": "2026-09-23T14:30:30.409052+00:00",
+      "duration_seconds": 1.0169466430088505
+    },
+    {
+      "id": "BR-KSA-19-1",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-19",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:30:30.409971+00:00",
+      "finished_at": "2026-09-23T14:30:31.402393+00:00",
+      "duration_seconds": 0.9926123269833624
+    },
+    {
+      "id": "BR-KSA-21-0",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-21",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:30:31.402648+00:00",
+      "finished_at": "2026-09-23T14:30:32.360506+00:00",
+      "duration_seconds": 0.9580850059865043
+    },
+    {
+      "id": "BR-KSA-21-1",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-21",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:30:32.360806+00:00",
+      "finished_at": "2026-09-23T14:30:33.338638+00:00",
+      "duration_seconds": 0.978084439993836
+    },
+    {
+      "id": "BR-KSA-20-0",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-20",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:30:33.338973+00:00",
+      "finished_at": "2026-09-23T14:30:34.303724+00:00",
+      "duration_seconds": 0.9649460630025715
+    },
+    {
+      "id": "BR-KSA-20-1",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-20",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:30:34.303984+00:00",
+      "finished_at": "2026-09-23T14:30:35.265197+00:00",
+      "duration_seconds": 0.9614199360366911
+    },
+    {
+      "id": "BR-KSA-22-0",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-22",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:30:35.265474+00:00",
+      "finished_at": "2026-09-23T14:30:36.246342+00:00",
+      "duration_seconds": 0.9810695810010657
+    },
+    {
+      "id": "BR-KSA-22-1",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-22",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:30:36.246606+00:00",
+      "finished_at": "2026-09-23T14:30:37.232502+00:00",
+      "duration_seconds": 0.9861024189740419
+    },
+    {
+      "id": "allowance-percent-0",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-DEC-01",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:30:37.232771+00:00",
+      "finished_at": "2026-09-23T14:30:38.178920+00:00",
+      "duration_seconds": 0.9464009699877352
+    },
+    {
+      "id": "allowance-percent-100.00",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-DEC-01",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:30:38.179247+00:00",
+      "finished_at": "2026-09-23T14:30:39.157625+00:00",
+      "duration_seconds": 0.9785763759864494
+    },
+    {
+      "id": "allowance-percent-100.01",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-DEC-01",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:30:39.157888+00:00",
+      "finished_at": "2026-09-23T14:30:40.138482+00:00",
+      "duration_seconds": 0.9808186419541016
+    },
+    {
+      "id": "allowance-percent-0.000",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-DEC-01",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:30:40.138777+00:00",
+      "finished_at": "2026-09-23T14:30:41.129792+00:00",
+      "duration_seconds": 0.9912306669866666
+    },
+    {
+      "id": "allowance-percent--1",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-DEC-01",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:30:41.130087+00:00",
+      "finished_at": "2026-09-23T14:30:42.133122+00:00",
+      "duration_seconds": 1.003300409996882
+    },
+    {
+      "id": "tax-percent-15",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-DEC-02",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:30:42.133461+00:00",
+      "finished_at": "2026-09-23T14:30:43.146460+00:00",
+      "duration_seconds": 1.0131917869439349
+    },
+    {
+      "id": "tax-percent-100.00",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-DEC-02",
+          "severity": "error",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:30:43.146731+00:00",
+      "finished_at": "2026-09-23T14:30:44.137917+00:00",
+      "duration_seconds": 0.9914409049088135
+    },
+    {
+      "id": "tax-percent-100.01",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-DEC-02",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:30:44.138238+00:00",
+      "finished_at": "2026-09-23T14:30:45.123627+00:00",
+      "duration_seconds": 0.9856194520834833
+    },
+    {
+      "id": "tax-percent-15.000",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-DEC-02",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:30:45.123930+00:00",
+      "finished_at": "2026-09-23T14:30:46.104334+00:00",
+      "duration_seconds": 0.9806499730329961
+    },
+    {
+      "id": "line-TaxAmount-0",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-DEC-03",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:30:46.104669+00:00",
+      "finished_at": "2026-09-23T14:30:47.099941+00:00",
+      "duration_seconds": 0.9954796389210969
+    },
+    {
+      "id": "line-TaxAmount-1",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-DEC-03",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:30:47.100214+00:00",
+      "finished_at": "2026-09-23T14:30:48.093421+00:00",
+      "duration_seconds": 0.9934163430007175
+    },
+    {
+      "id": "line-RoundingAmount-0",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-DEC-04",
+          "severity": "warning",
+          "count": 0
+        }
+      ],
+      "started_at": "2026-09-23T14:30:48.093694+00:00",
+      "finished_at": "2026-09-23T14:30:49.084697+00:00",
+      "duration_seconds": 0.9912581560201943
+    },
+    {
+      "id": "line-RoundingAmount-1",
+      "expected_xsd": "passed",
+      "targets": [
+        {
+          "source": "ksa",
+          "code": "BR-KSA-DEC-04",
+          "severity": "warning",
+          "count": 1
+        }
+      ],
+      "started_at": "2026-09-23T14:30:49.085028+00:00",
+      "finished_at": "2026-09-23T14:30:50.047469+00:00",
+      "duration_seconds": 0.9626587979728356
+    }
+  ],
+  "artifacts": {
+    "capture-tools/business_rule_cases.py": "5d7249527b895d9a063f96b322ed092ce89a780d48eb7b3321dbf717a3bc9985",
+    "capture-tools/business_rules.py": "2f57e958d346aac824827b7b589ba05115a6c844d8b70c1b55c18faf2130ca0b",
+    "capture-tools/sdk_parity.py": "cfbec9fe7abe7a75bdaf288297998d88be224b1055eac318c9accb545e29b454",
+    "cases/BR-KSA-19-0/evidence/process.json": "2783f8308cbcc0e09787449f822bddee8ebf3199d8c273375ca32ccc66daf917",
+    "cases/BR-KSA-19-0/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/BR-KSA-19-0/evidence/stdout.txt": "eb06017afe7e126b3aaada439551398593aff6d5bd45361765e47abdee2726fc",
+    "cases/BR-KSA-19-0/expected.json": "62003f1a9ba54d29d435d5bc09e7d0d682cd5db83423715cd785e19716325da8",
+    "cases/BR-KSA-19-0/input.xml": "a97802c00a48dc19a8b1ce10f0b2dcd9f5f012daf56a7d0a1d0337a53c3d69fe",
+    "cases/BR-KSA-19-1/evidence/process.json": "3953aef831013ea35cdc1dda720b26f989aec9d11f88659707a6a158b6dfc584",
+    "cases/BR-KSA-19-1/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/BR-KSA-19-1/evidence/stdout.txt": "9bb0514193bcae2da809b32a2b4727ff7a11620235acb158d86b2a434d6ef72c",
+    "cases/BR-KSA-19-1/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/BR-KSA-19-1/input.xml": "2327c0c4c9ccd97628bc55fa7219ae2f1d64ef4870a3a386e2a4747466eab6c8",
+    "cases/BR-KSA-20-0/evidence/process.json": "e7023adf9a3f63804a73c172ebefe28f911ef0e9c3d2614b449f35a98377c0ed",
+    "cases/BR-KSA-20-0/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/BR-KSA-20-0/evidence/stdout.txt": "445561a1b9562a3868dfca2da86720dd4cb209c11c5089efa8b49215c9f59ab5",
+    "cases/BR-KSA-20-0/expected.json": "ac338c82c4a99d45b3b57cac3a290984ae316df763f0dff11fcaca517fd7c48d",
+    "cases/BR-KSA-20-0/input.xml": "4d160cb388b4d8f9c4c90c7ecc213da1f8d90dc41baba2f90393422c0f90caa8",
+    "cases/BR-KSA-20-1/evidence/process.json": "72b4a0afa4e4bc539054ebda9ed616ac1bac6f09aac4ccbd410ac2adc921f1f6",
+    "cases/BR-KSA-20-1/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/BR-KSA-20-1/evidence/stdout.txt": "294650581f0e97c61f5ad8347002d466d59257d7e14d2eb019ecc9b727c00636",
+    "cases/BR-KSA-20-1/expected.json": "a2ffb4b732e7f5975107036d8486181ed9244462ca453812fbef8205f8bb26b0",
+    "cases/BR-KSA-20-1/input.xml": "0d89722ccb0a7bf602c21518b0be0de7fdd2ff6252493e666afeb40132c5b9fb",
+    "cases/BR-KSA-21-0/evidence/process.json": "8b0410dfc9a1167472ef3e8443c28fa3866e4a75f536b30afe89ed95e82cc643",
+    "cases/BR-KSA-21-0/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/BR-KSA-21-0/evidence/stdout.txt": "c94067ef7b75ebab109d5da14473385d3e1629b2851cf2cc54bf4e6f3259dcde",
+    "cases/BR-KSA-21-0/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/BR-KSA-21-0/input.xml": "de554ecee80499ac26bf75174f3d6c9fc9f201373d8a4179337a8ed2a3dd5e3c",
+    "cases/BR-KSA-21-1/evidence/process.json": "5fe0b003da18fee9fa2c57fbe7e75261bcc2a9b6e5ce48c11ce0a028e5c0f84d",
+    "cases/BR-KSA-21-1/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/BR-KSA-21-1/evidence/stdout.txt": "7bdf0f6180691b7c9fb95ba62d5924dd8928a1b5d5c556812354001f89872ed8",
+    "cases/BR-KSA-21-1/expected.json": "f80613adab159dec799f0655895e0a9abb4f059a6a6ded74c12c655c7d4fb5c0",
+    "cases/BR-KSA-21-1/input.xml": "02f8f4953f0825105cd573665a98b05391d3608ab5daca2d7aef465f3d7b6b5c",
+    "cases/BR-KSA-22-0/evidence/process.json": "2366068d68b30bb0268309450e65dbbd650277801f3b1082a8be76b6f82ff746",
+    "cases/BR-KSA-22-0/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/BR-KSA-22-0/evidence/stdout.txt": "7cb0144bfd3d2841cc6e308ba262fb426d42d11a322c5586c8f80b0c7a008ede",
+    "cases/BR-KSA-22-0/expected.json": "30d31c47e397abf9481c51aa18e0b59e57033faf8cc657b1549e1d279d6cc8a9",
+    "cases/BR-KSA-22-0/input.xml": "c860c9897be549f337116d51347d512c6edcc180a41fa8012f2f6327cdb56185",
+    "cases/BR-KSA-22-1/evidence/process.json": "b442a1d6bc2e0354c36879eb38dd4d6b77fa5b57faa5f283dfb0bcd04cf3a08b",
+    "cases/BR-KSA-22-1/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/BR-KSA-22-1/evidence/stdout.txt": "5c2ab1c72b06b9b8d1f172185d2643140cf6c18dd844aa2b282e6aeef207e656",
+    "cases/BR-KSA-22-1/expected.json": "a2ffb4b732e7f5975107036d8486181ed9244462ca453812fbef8205f8bb26b0",
+    "cases/BR-KSA-22-1/input.xml": "9f5791b41cf6837ae3e68eb1761adaae48094b6f3eb194dd56149658e56baacf",
+    "cases/allowance-percent--1/evidence/process.json": "8a0cd4eed188593ec5f85070395ab00c581c5181e3debe6fca8bae862e7d60ab",
+    "cases/allowance-percent--1/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/allowance-percent--1/evidence/stdout.txt": "3f758821953fa6eb0e0b1f6e5efcd513d6189d368562cdc3ffd355efcffe1915",
+    "cases/allowance-percent--1/expected.json": "37734094964a0d366b143241250fadd46ee4021eb754ca96f5692019f8a7dab2",
+    "cases/allowance-percent--1/input.xml": "72f94e7dd1130eabc83369564f0ff82f056fd47397544be136ebbef251b6be1f",
+    "cases/allowance-percent-0/evidence/process.json": "fbabe9bb4974cdc58b5f7fbbf264ad3f9e53afc53be003e90aee3f2d6541259f",
+    "cases/allowance-percent-0/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/allowance-percent-0/evidence/stdout.txt": "13668d806ae658a62858ae5163c158f01efd2df561e5a701872500aaf09675a5",
+    "cases/allowance-percent-0/expected.json": "d0f2dd72ae5a3e5776375daf92ae071bbdd3d0a5b22a557d8cbe22d0d932d53b",
+    "cases/allowance-percent-0/input.xml": "7aadb78e0e0866b96399bd48ef0043eb725f8c78eaaafd6cc810d4230fa0e4a7",
+    "cases/allowance-percent-0.000/evidence/process.json": "545e76e1265ed17102265755215506d9c895b88f5d085801aac28823de36752e",
+    "cases/allowance-percent-0.000/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/allowance-percent-0.000/evidence/stdout.txt": "59d67cfa97642616eb0968608b7eddf96219b88580d0c4023e40915797d2de60",
+    "cases/allowance-percent-0.000/expected.json": "37734094964a0d366b143241250fadd46ee4021eb754ca96f5692019f8a7dab2",
+    "cases/allowance-percent-0.000/input.xml": "ef74fdfbb8af05ff6550fe2072d387012bb4974b6f840ad9e7e9c29b75b2fb4a",
+    "cases/allowance-percent-100.00/evidence/process.json": "815258649cc8d8437d53a98d37ac204d570201d51afde057d6562cc7f44bb584",
+    "cases/allowance-percent-100.00/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/allowance-percent-100.00/evidence/stdout.txt": "6e7dc271928b19d6746b2148f7c706f59bf17c1cfc1f92ba81e23351425c8a84",
+    "cases/allowance-percent-100.00/expected.json": "d0f2dd72ae5a3e5776375daf92ae071bbdd3d0a5b22a557d8cbe22d0d932d53b",
+    "cases/allowance-percent-100.00/input.xml": "431965938f1ebd074b50804d07be0b89aea73c19155af4b842fb85744006643f",
+    "cases/allowance-percent-100.01/evidence/process.json": "e6a3b1d48359005d5a6b3296d2da7f910d17b731d9a87a270175ccd90a0e4b9b",
+    "cases/allowance-percent-100.01/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/allowance-percent-100.01/evidence/stdout.txt": "181aad9edc181e15877928cf805f0560c6c6d85c6412da48a75237b30e147248",
+    "cases/allowance-percent-100.01/expected.json": "37734094964a0d366b143241250fadd46ee4021eb754ca96f5692019f8a7dab2",
+    "cases/allowance-percent-100.01/input.xml": "63741b607b1433aa8b68013cdf2d70d79313da29a09970b0239042a55675fbe1",
+    "cases/line-RoundingAmount-0/evidence/process.json": "4e5619ed38fe3a1e6c0aa2766fb9a9db8e276f6e6830f71f6fd86a405ffd3f91",
+    "cases/line-RoundingAmount-0/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/line-RoundingAmount-0/evidence/stdout.txt": "1ea9d83ebb229c533eeed1250744eb31a6cf0fd97513f716c86f9d2b5713b761",
+    "cases/line-RoundingAmount-0/expected.json": "4ae8c075647536e725651c8a3410f6dabbdaae3d7d01538c1f717eccac435a44",
+    "cases/line-RoundingAmount-0/input.xml": "f9d645c19e9e1023bb943eed9d2165091062d5087a980833cef3179f5ed6003c",
+    "cases/line-RoundingAmount-1/evidence/process.json": "676bf39d8d2af6375c92a07e53feaefde6a31ecc1477517dda1b5d51636e49b9",
+    "cases/line-RoundingAmount-1/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/line-RoundingAmount-1/evidence/stdout.txt": "c828bb7e957122731dfcd2f516b060b8c3c49d9eb93427b6d32ff51203e81137",
+    "cases/line-RoundingAmount-1/expected.json": "95bee956dfa9e74a64ac908e34f23198c47d1b35e853ee3e2c6e6cfb5cfdcd43",
+    "cases/line-RoundingAmount-1/input.xml": "086a96f981f3fb532f73e59abafafcf1d28f4ff12ddf3b1a81f2fb77b18d1ab1",
+    "cases/line-TaxAmount-0/evidence/process.json": "9d18d3b831d8a481b2c892157f72c6d3dbf874b5fecbf61487ce8e02f986c011",
+    "cases/line-TaxAmount-0/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/line-TaxAmount-0/evidence/stdout.txt": "08bb23d723b57d7df9fd7f2c3e830e18a413247231be40e202fcfeea94675254",
+    "cases/line-TaxAmount-0/expected.json": "4ae8c075647536e725651c8a3410f6dabbdaae3d7d01538c1f717eccac435a44",
+    "cases/line-TaxAmount-0/input.xml": "ff2bbbc4e8a95e297eafadcf56070e84356c6209c60bce7d07719b04b63ee564",
+    "cases/line-TaxAmount-1/evidence/process.json": "db94cede4aa2237919dbcc9cfea765cec5c58dc2e18c70e3caafd11d8633dad1",
+    "cases/line-TaxAmount-1/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/line-TaxAmount-1/evidence/stdout.txt": "1ce805cdda4839c125d7ee6313873b2ae07bdc7d2d48139c5df5151a153ff057",
+    "cases/line-TaxAmount-1/expected.json": "c4edadc3fdf1e271691390cde1d4203af1e9dc165f469f4d659af9c7d10ade5c",
+    "cases/line-TaxAmount-1/input.xml": "fe388985ae6fff7120554694b5dcffaac54d0cdee385fc7fb943f1bd1bb9a43e",
+    "cases/tax-percent-100.00/evidence/process.json": "b53d189a4b917f3d71b1f62261e3d82a097abe8f6a4a407fa1af21f9d7456323",
+    "cases/tax-percent-100.00/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/tax-percent-100.00/evidence/stdout.txt": "7bd396da8c5dcd43c6bfb07cf5d6feb9891111832b490cc2e841d7efd6d3358a",
+    "cases/tax-percent-100.00/expected.json": "b501c93b2a8c14c05807be0957aab2d1e9f48184d7fc0a6aa19e239ba0275e54",
+    "cases/tax-percent-100.00/input.xml": "05947b827b98ced9014e8222c45a47b4055a9a7944d771c4d207e0c103d132f3",
+    "cases/tax-percent-100.01/evidence/process.json": "bbaa82854bd170bb237da6115cd112995de00f5fc54a643fb7c9c046c42cfb4f",
+    "cases/tax-percent-100.01/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/tax-percent-100.01/evidence/stdout.txt": "646928f107fe781c41c71f606b727e82ffa856b3a499f4461f17b6946745f59f",
+    "cases/tax-percent-100.01/expected.json": "d354ab222817df030d00992aae1ffd48bae0cf313cabb0d4277cf0296ad4fc00",
+    "cases/tax-percent-100.01/input.xml": "a051cbc0601e639bac0480ba388acc778057e2ea2733ea315a62826ee3a0e090",
+    "cases/tax-percent-15/evidence/process.json": "e8e644dd2317a4653c5d98a9c9b23473e980724b0f00670fde4bbc8005c50626",
+    "cases/tax-percent-15/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/tax-percent-15/evidence/stdout.txt": "fa3180f1cd42ac5ba9acbc102f71173f60970fe8438b5f3ed8f615ae1f94c2c8",
+    "cases/tax-percent-15/expected.json": "c58e875f572697bed7bfa5402517264e4cdc8d8da85b522830f1dfe43ca6d26f",
+    "cases/tax-percent-15/input.xml": "b551e88882cb34f772dbee3041614c9d3998a1c3ee7b79d92d1f84fcc2fdb1be",
+    "cases/tax-percent-15.000/evidence/process.json": "5d136646a44003e6fae733c97938e553975931a6d947f1f6419021b18623230f",
+    "cases/tax-percent-15.000/evidence/stderr.txt": "c75c2bd75aaf6bc00e05146070515fd6774ac441e73027488bcb206146059b12",
+    "cases/tax-percent-15.000/evidence/stdout.txt": "04ce053841e92f6e0992cc95baf8c4b8aed0c01cd00cdc192bb6073fe104d63e",
+    "cases/tax-percent-15.000/expected.json": "7e78815cc8306e28f3e2f361b36a203deeadb66da46c86ea0fb1b55fe825d1e0",
+    "cases/tax-percent-15.000/input.xml": "16a1bc185d8abfbac84d4c9b2e6dd8645d5bf7418500aa18f17365957a45ebb0"
+  },
+  "expectation_mismatches": []
+}

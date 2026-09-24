@@ -1,0 +1,42 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.timezone=UTC
+Type error at char 35 in expression in xsl:if/@test on line 363 column 91 of CEN-EN16931-UBL.xsl:
+  XPTY0004  A sequence of more than one item is not allowed as the first argument of
+  fn:substring-after() ("1", "2") 
+  In template rule with match="//cac:InvoiceLine/cac:AllowanceCharge[cbc:ChargeIndicator = true()]" on line 334 of CEN-EN16931-UBL.xsl
+     invoked by xsl:apply-templates at file:/tmp/fatoora%20sdk%20parity%20d1ztgxhl/sdk/Data/Rules/Schematrons/CEN-EN16931-UBL.xsl#105
+  In template rule with match="*" on line 103 of CEN-EN16931-UBL.xsl
+     invoked by xsl:next-match at file:/tmp/fatoora%20sdk%20parity%20d1ztgxhl/sdk/Data/Rules/Schematrons/CEN-EN16931-UBL.xsl#961
+  In template rule with match="cac:InvoiceLine " on line 850 of CEN-EN16931-UBL.xsl
+     invoked by xsl:apply-templates at file:/tmp/fatoora%20sdk%20parity%20d1ztgxhl/sdk/Data/Rules/Schematrons/CEN-EN16931-UBL.xsl#105
+  In template rule with match="*" on line 103 of CEN-EN16931-UBL.xsl
+     invoked by xsl:next-match at file:/tmp/fatoora%20sdk%20parity%20d1ztgxhl/sdk/Data/Rules/Schematrons/CEN-EN16931-UBL.xsl#844
+  In template rule with match="/ubl:Invoice " on line 605 of CEN-EN16931-UBL.xsl
+     invoked by built-in template rule (text-only)
+  In template rule with match="/" on line 44 of CEN-EN16931-UBL.xsl
+     invoked by xsl:apply-templates at file:/tmp/fatoora%20sdk%20parity%20d1ztgxhl/sdk/Data/Rules/Schematrons/CEN-EN16931-UBL.xsl#148
+at template d7e42 on line 107 of CEN-EN16931-UBL.xsl:
+     invoked by xsl:call-template at file:/tmp/fatoora%20sdk%20parity%20d1ztgxhl/sdk/Data/Rules/Schematrons/CEN-EN16931-UBL.xsl#80
+  In template rule with match="/" on line 44 of CEN-EN16931-UBL.xsl
+Type error at char 336 in expression in xsl:if/@test on line 3175 column 2627 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl:
+  XPTY0004  A sequence of more than one item is not allowed as the value in 'cast as'
+  expression (<ns1:Amount>, <ns1:Amount>) 
+     invoked by xsl:next-match at file:/tmp/fatoora%20sdk%20parity%20d1ztgxhl/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#2779
+  In template rule with match="cac:* " on line 2764 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:next-match at file:/tmp/fatoora%20sdk%20parity%20d1ztgxhl/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#2408
+  In template rule with match="cac:InvoiceLine" on line 2372 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:next-match at file:/tmp/fatoora%20sdk%20parity%20d1ztgxhl/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#603
+  In template rule with match="/ubl:Invoice[not(cac:LegalMonetaryTotal/cbc:PrepaidAmount > 0)]/cac:InvoiceLine" on line 554 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:apply-templates at file:/tmp/fatoora%20sdk%20parity%20d1ztgxhl/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#106
+  In template rule with match="*" on line 104 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:next-match at file:/tmp/fatoora%20sdk%20parity%20d1ztgxhl/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#2971
+  In template rule with match="/ubl:Invoice" on line 2923 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:next-match at file:/tmp/fatoora%20sdk%20parity%20d1ztgxhl/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#2329
+  In template rule with match="/ubl:Invoice" on line 2172 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:next-match at file:/tmp/fatoora%20sdk%20parity%20d1ztgxhl/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#522
+  In template rule with match="/ubl:Invoice " on line 311 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by built-in template rule (text-only)
+  In template rule with match="/" on line 41 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:apply-templates at file:/tmp/fatoora%20sdk%20parity%20d1ztgxhl/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#309
+at template d7e29 on line 108 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl:
+     invoked by xsl:call-template at file:/tmp/fatoora%20sdk%20parity%20d1ztgxhl/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#77
+  In template rule with match="/" on line 41 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl

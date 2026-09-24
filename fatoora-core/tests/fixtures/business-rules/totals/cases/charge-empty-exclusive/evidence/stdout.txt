@@ -1,0 +1,23 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-23 12:45:28,675 [ERROR] XsdValidator - Schema validation failed due to SAXParseException
+2026-09-23 12:45:28,680 [INFO] ValidationProcessorImpl - [XSD] validation result : FAILED
+2026-09-23 12:45:28,680 [ERROR] ValidationProcessorImpl - xsd validation errors : 
+2026-09-23 12:45:28,680 [ERROR] ValidationProcessorImpl - CODE : SAXParseException, MESSAGE : Schema validation failed; XML does not comply with UBL 2.1 standards in line with ZATCA specifications. ERROR: org.xml.sax.SAXParseException; lineNumber: 132; columnNumber: 70; cvc-datatype-valid.1.2.1: '' is not a valid value for 'decimal'.
+2026-09-23 12:45:29,057 [INFO] ValidationProcessorImpl - [EN] validation result : FAILED
+2026-09-23 12:45:29,057 [ERROR] ValidationProcessorImpl - en validation errors : 
+2026-09-23 12:45:29,057 [ERROR] ValidationProcessorImpl - CODE : BR-CO-12, MESSAGE : [BR-CO-12]-Sum of charges on document level (BT-108) = Σ Document level charge amount (BT-99).
+2026-09-23 12:45:29,057 [ERROR] ValidationProcessorImpl - en validation warnings : 
+2026-09-23 12:45:29,057 [WARN] ValidationProcessorImpl - CODE : BR-CO-13, MESSAGE : [BR-CO-13]-Invoice total amount without VAT (BT-109) = Σ Invoice line net amount (BT-131) - Sum of allowances on document level (BT-107) + Sum of charges on document level (BT-108).
+2026-09-23 12:45:29,213 [ERROR] SchematronValidator - Error Happen : Cannot convert string " " to double
+2026-09-23 12:45:29,213 [INFO] ValidationProcessorImpl - [KSA] validation result : FAILED
+2026-09-23 12:45:29,213 [ERROR] ValidationProcessorImpl - ksa validation errors : 
+2026-09-23 12:45:29,213 [ERROR] ValidationProcessorImpl - CODE : SaxonApiException, MESSAGE : Cannot convert string " " to double
+2026-09-23 12:45:29,230 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-23 12:45:29,230 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = FAILED 

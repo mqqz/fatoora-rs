@@ -1,0 +1,33 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-23 15:06:35,679 [ERROR] XsdValidator - Schema validation failed due to SAXParseException
+2026-09-23 15:06:35,681 [INFO] ValidationProcessorImpl - [XSD] validation result : FAILED
+2026-09-23 15:06:35,681 [ERROR] ValidationProcessorImpl - xsd validation errors : 
+2026-09-23 15:06:35,682 [ERROR] ValidationProcessorImpl - CODE : SAXParseException, MESSAGE : Schema validation failed; XML does not comply with UBL 2.1 standards in line with ZATCA specifications. ERROR: org.xml.sax.SAXParseException; lineNumber: 5; columnNumber: 59; cvc-complex-type.2.4.a: Invalid content was found starting with element '{"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":IssueDate}'. One of '{"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":IssueTime, "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":DueDate, "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":InvoiceTypeCode, "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":Note, "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":TaxPointDate, "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":DocumentCurrencyCode, "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":TaxCurrencyCode, "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":PricingCurrencyCode, "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":PaymentCurrencyCode, "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":PaymentAlternativeCurrencyCode, "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":AccountingCostCode, "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":AccountingCost, "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":LineCountNumeric, "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2":BuyerReference, "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2":InvoicePeriod, "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2":OrderReference, "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2":BillingReference, "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2":DespatchDocumentReference, "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2":ReceiptDocumentReference, "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2":StatementDocumentReference, "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2":OriginatorDocumentReference, "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2":ContractDocumentReference, "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2":AdditionalDocumentReference, "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2":ProjectReference, "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2":Signature, "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2":AccountingSupplierParty}' is expected.
+2026-09-23 15:06:36,033 [INFO] ValidationProcessorImpl - [EN] validation result : PASSED
+2026-09-23 15:06:36,164 [INFO] ValidationProcessorImpl - [KSA] validation result : FAILED
+2026-09-23 15:06:36,164 [ERROR] ValidationProcessorImpl - ksa validation errors : 
+2026-09-23 15:06:36,164 [ERROR] ValidationProcessorImpl - CODE : BR-KSA-70, MESSAGE : [BR-KSA-70]-The invoice must contain Invoice Issue Time (KSA-25). This value should be in the format: hh:mm:ss for time expressed in local time (eg 19:20:30) or hh:mm:ssZ for time expressed in UTC (eg 19:20:30Z)."The invoice must contain Invoice Issue Time (KSA-25). This value should be in the format: hh:mm:ss for time expressed in local time (eg 19:20:30) or hh:mm:ssZ for time expressed in UTC (eg 19:20:30Z).
+2026-09-23 15:06:36,165 [ERROR] ValidationProcessorImpl - ksa validation warnings : 
+2026-09-23 15:06:36,165 [WARN] ValidationProcessorImpl - CODE : BR-KSA-19, MESSAGE : [BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105).
+2026-09-23 15:06:36,165 [WARN] ValidationProcessorImpl - CODE : BR-KSA-60, MESSAGE : [BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02).
+2026-09-23 15:06:36,165 [WARN] ValidationProcessorImpl - CODE : BR-KSA-69, MESSAGE : [BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121).
+2026-09-23 15:06:36,165 [WARN] ValidationProcessorImpl - CODE : BR-KSA-27, MESSAGE : [BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary.
+2026-09-23 15:06:36,184 [ERROR] QrGenerationService - failed to generate qr [unable to get issue time from invoice]
+2026-09-23 15:06:36,184 [INFO] ValidationProcessorImpl - [QR] validation result : FAILED
+2026-09-23 15:06:36,184 [ERROR] ValidationProcessorImpl - qr validation errors : 
+2026-09-23 15:06:36,185 [ERROR] ValidationProcessorImpl - CODE : QRCODE_INVALID, MESSAGE : Invalid QR code format, Please follow the ZATCA QR code specifications
+2026-09-23 15:06:36,193 [ERROR] SignatureValidator - java.security.cert.CertificateException: Could not parse certificate: java.io.IOException: Empty input
+2026-09-23 15:06:36,334 [ERROR] SignatureValidator - Error : null
+2026-09-23 15:06:36,334 [INFO] ValidationProcessorImpl - [SIGNATURE] validation result : FAILED
+2026-09-23 15:06:36,334 [ERROR] ValidationProcessorImpl - signature validation errors : 
+2026-09-23 15:06:36,334 [ERROR] ValidationProcessorImpl - CODE : NullPointerException, MESSAGE : null
+2026-09-23 15:06:36,334 [ERROR] ValidationProcessorImpl - CODE : certificate, MESSAGE : wrong invoiceCertificate  
+2026-09-23 15:06:36,336 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-23 15:06:36,336 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = FAILED 

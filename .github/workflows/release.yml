@@ -100,11 +100,12 @@ jobs:
       - name: Package CLI (unix)
         if: runner.os != 'Windows'
         run: |
-          mkdir -p dist
-          cp target/${{ matrix.target }}/release/fatoora-rs-cli dist/fatoora-rs-cli-${{ matrix.target }}
-          if [ "${{ runner.os }}" = "Linux" ]; then
-            cp LICENSE-MIT LICENSE-APACHE THIRD_PARTY_NOTICES.md dist/
-          fi
+          pkg=fatoora-rs-cli-${{ matrix.target }}
+          mkdir -p dist package/$pkg/licenses/zatca
+          cp target/${{ matrix.target }}/release/fatoora-rs-cli package/$pkg/
+          cp LICENSE-MIT LICENSE-APACHE THIRD_PARTY_NOTICES.md package/$pkg/
+          cp fatoora-core/tests/fixtures/business-rules/{LICENSE-LGPL-3.0.txt,LICENSE-GPL-3.0.txt,NOTICE.md} package/$pkg/licenses/zatca/
+          tar -czf dist/${pkg}.tar.gz -C package/$pkg .
 
       - name: Package CLI (windows)
         if: runner.os == 'Windows'
@@ -117,9 +118,14 @@ jobs:
           Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/*.dll" "package/$pkg/"
           Copy-Item LICENSE-MIT, LICENSE-APACHE, THIRD_PARTY_NOTICES.md "package/$pkg/"
           Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/share" "package/$pkg/licenses" -Recurse
+          New-Item -ItemType Directory -Force -Path "package/$pkg/licenses/zatca" | Out-Null
+          Copy-Item fatoora-core/tests/fixtures/business-rules/LICENSE-LGPL-3.0.txt, fatoora-core/tests/fixtures/business-rules/LICENSE-GPL-3.0.txt, fatoora-core/tests/fixtures/business-rules/NOTICE.md "package/$pkg/licenses/zatca/"
           & "./package/$pkg/fatoora-rs-cli.exe" --version
           if ($LASTEXITCODE -ne 0) { throw "Packaged CLI failed to start" }
           Compress-Archive -Path "package/$pkg/*" -DestinationPath "dist/$pkg.zip"
+
+      - name: Verify packaged rule notices
+        run: python scripts/check_native_packages.py dist
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -215,11 +221,12 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           pkg=fatoora-ffi-${{ matrix.target }}
-          mkdir -p dist package/$pkg/include
+          mkdir -p dist package/$pkg/include package/$pkg/licenses/zatca
           cp target/${{ matrix.target }}/release/libfatoora_ffi.${{ matrix.lib_ext }} package/$pkg/
           cp -R bindings/c package/$pkg/include/diplomat-c
           cp -R bindings/cpp package/$pkg/include/diplomat-cpp
           cp LICENSE-MIT LICENSE-APACHE THIRD_PARTY_NOTICES.md package/$pkg/
+          cp fatoora-core/tests/fixtures/business-rules/{LICENSE-LGPL-3.0.txt,LICENSE-GPL-3.0.txt,NOTICE.md} package/$pkg/licenses/zatca/
           cp README.md package/$pkg/README.md
           tar -czf dist/${pkg}.tar.gz -C package/$pkg .
 
@@ -242,9 +249,14 @@ jobs:
           Copy-Item "README.md" "package\\$pkg\\README.md"
           Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/*.dll" "package/$pkg/"
           Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/share" "package/$pkg/licenses" -Recurse
+          New-Item -ItemType Directory -Force -Path "package/$pkg/licenses/zatca" | Out-Null
+          Copy-Item fatoora-core/tests/fixtures/business-rules/LICENSE-LGPL-3.0.txt, fatoora-core/tests/fixtures/business-rules/LICENSE-GPL-3.0.txt, fatoora-core/tests/fixtures/business-rules/NOTICE.md "package/$pkg/licenses/zatca/"
           python -c "import ctypes; lib = ctypes.CDLL(r'package/$pkg/fatoora_ffi.dll'); assert lib.fatoora_Config_new"
           if ($LASTEXITCODE -ne 0) { throw "Packaged FFI failed to load" }
           Compress-Archive -Path "package/$pkg/*" -DestinationPath "dist/$pkg.zip"
+
+      - name: Verify packaged rule notices
+        run: python scripts/check_native_packages.py dist
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

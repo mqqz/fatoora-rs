@@ -1,2 +1,3 @@
 # SDK evidence includes deliberate CRLF cases and byte-exact hash inputs.
 fatoora-core/tests/fixtures/sdk-parity/** -text
+fatoora-core/tests/fixtures/business-rules/** -text

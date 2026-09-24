@@ -45,7 +45,7 @@ Checkout the [homepage](https://rs.fatoority.com), also the Rust API at [docs.rs
 Everything done by the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloadSDK) 
 - 📩 [CSR Generation](https://rs.fatoority.com/guides/csr/)
 - ✍️ [Invoice Signing](https://rs.fatoority.com/guides/invoice-signing/) (All invoice types)
-- ✅ [Validation](https://rs.fatoority.com/guides/validation/) (UBL only for now)
+- ✅ [Validation](https://rs.fatoority.com/guides/validation/) (UBL and local ZATCA rules)
 - 🧾 [QR Generation](https://rs.fatoority.com/guides/qr/)
 - 📨 [API Requests](https://rs.fatoority.com/guides/api/)
 
@@ -161,17 +161,34 @@ fatoora-rs-cli sign --invoice invoice.xml --cert cert.pem --key key.pem --signed
 Rust
 ```rust
 use fatoora_core::config::Config;
-use fatoora_core::invoice::validation::validate_xml_invoice_from_str;
+use fatoora_core::invoice::validation::{
+    validate_zatca_invoice_from_str, ZatcaValidationOptions,
+};
 
 let config = Config::new(fatoora_core::config::EnvironmentType::NonProduction);
 let xml = std::fs::read_to_string("invoice.xml")?;
-validate_xml_invoice_from_str(&xml, &config)?;
+let options = ZatcaValidationOptions {
+    previous_invoice_hash: Some(previous_hash_from_history),
+    ..Default::default()
+};
+let report = validate_zatca_invoice_from_str(&xml, &config, &options)?;
+if !report.is_valid() {
+    // Inspect stages and findings; missing predecessor context is incomplete.
+}
 ```
 
 CLI
 ```bash
-fatoora-rs-cli validate --invoice invoice.xml --xsd-path assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd
+fatoora-rs-cli validate --invoice invoice.xml --profile zatca --format json \
+  --previous-invoice-hash "$PREVIOUS_INVOICE_HASH"
 ```
+
+The local profile implements all 257 business-rule assertions from SDK
+`238-R3.4.8`, plus applicable signature, QR and predecessor checks. It preserves
+warnings and partial reports. Standard invoices skip signature/QR checks under
+this SDK profile. Local validation does not establish issuer trust or remote
+acceptance. Existing `validate_xml_invoice_from_str` and the default CLI profile
+continue to check XSD only.
 </details>
 
 <details>
@@ -243,7 +260,6 @@ Contributions are always welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
 
 ## 🪧 Roadmap
 - Increase test coverage to 100% (Inshallah)
-- Add the full validation suite (not only UBL schema)
 - Expand bindings to other languages (subject to demand)
 - PDF invoice generation
 

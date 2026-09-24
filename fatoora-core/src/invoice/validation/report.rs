@@ -21,8 +21,7 @@ impl ValidationReport {
     }
 }
 
-/// Independent validation layers. Business rules and signature verification are
-/// reserved for future validators; current APIs never claim those layers ran.
+/// Independent validation layers. Each API reports only checks it completed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
 #[serde(rename_all = "snake_case")]
@@ -31,6 +30,8 @@ pub enum ValidationLayer {
     Xsd,
     BusinessRules,
     Signature,
+    Qr,
+    PreviousInvoiceHash,
 }
 
 /// A stable code and location for a human-readable finding.
@@ -59,6 +60,8 @@ pub enum Severity {
 pub enum ValidationLocation {
     /// Model field path, with zero-based indices (e.g. `line_items[0].quantity`).
     Field(String),
+    /// Namespace-independent XPath selecting the original XML context.
+    XPath(String),
     /// One-based XML source coordinates, when supplied by the backend.
     Xml { line: u32, column: Option<u32> },
 }

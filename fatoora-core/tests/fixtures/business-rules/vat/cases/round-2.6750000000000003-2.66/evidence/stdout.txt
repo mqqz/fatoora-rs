@@ -1,0 +1,28 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-23 13:10:21,737 [INFO] ValidationProcessorImpl - [XSD] validation result : PASSED
+2026-09-23 13:10:22,112 [INFO] ValidationProcessorImpl - [EN] validation result : FAILED
+2026-09-23 13:10:22,113 [ERROR] ValidationProcessorImpl - en validation errors : 
+2026-09-23 13:10:22,113 [ERROR] ValidationProcessorImpl - CODE : BR-CO-15, MESSAGE : [BR-CO-15]-Invoice total amount with VAT (BT-112) = Invoice total amount without VAT (BT-109) + Invoice total VAT amount (BT-110).
+2026-09-23 13:10:22,113 [ERROR] ValidationProcessorImpl - CODE : BR-CO-14, MESSAGE : [BR-CO-14]-Invoice total VAT amount (BT-110) = Σ VAT category tax amount (BT-117).
+2026-09-23 13:10:22,113 [ERROR] ValidationProcessorImpl - en validation warnings : 
+2026-09-23 13:10:22,113 [WARN] ValidationProcessorImpl - CODE : BR-CO-17, MESSAGE : [BR-CO-17]-VAT category tax amount (BT-117) = VAT category taxable amount (BT-116) x (VAT category rate (BT-119) / 100), rounded to two decimals.
+2026-09-23 13:10:22,113 [WARN] ValidationProcessorImpl - CODE : BR-DEC-19, MESSAGE : [BR-DEC-19]-The allowed maximum number of decimals for the VAT category taxable amount (BT-116) is 2.
+2026-09-23 13:10:22,113 [WARN] ValidationProcessorImpl - CODE : BR-S-08, MESSAGE : [BR-S-08]-In a VAT breakdown (BG-23) where the VAT category code (BT-118) is " Standard rated" the VAT category taxable amount (BT-116) shall equal the sum of Invoice line net amounts (BT-131) minus the sum of Document level allowance amounts (BT-92) plus the sum of Document level charge amounts (BT-99) where the VAT category codes (BT-151, BT-95, BT-102) are "Standard Rate".
+2026-09-23 13:10:22,113 [WARN] ValidationProcessorImpl - CODE : BR-CO-10, MESSAGE : [BR-CO-10]-Sum of Invoice line net amount (BT-106) = Σ Invoice line net amount (BT-131).
+2026-09-23 13:10:22,113 [WARN] ValidationProcessorImpl - CODE : BR-S-09, MESSAGE : [BR-S-09]-The VAT category tax amount (BT-117) in a VAT breakdown (BG-23) where VAT category code (BT-118) is "Standard rated" shall equal the VAT category taxable amount (BT-116) multiplied by the VAT category rate (BT-119) / 100), rounded to two decimals.
+2026-09-23 13:10:22,113 [WARN] ValidationProcessorImpl - CODE : BR-CO-13, MESSAGE : [BR-CO-13]-Invoice total amount without VAT (BT-109) = Σ Invoice line net amount (BT-131) - Sum of allowances on document level (BT-107) + Sum of charges on document level (BT-108).
+2026-09-23 13:10:22,259 [INFO] ValidationProcessorImpl - [KSA] validation result : FAILED
+2026-09-23 13:10:22,259 [ERROR] ValidationProcessorImpl - ksa validation errors : 
+2026-09-23 13:10:22,259 [ERROR] ValidationProcessorImpl - CODE : BR-KSA-84, MESSAGE : The Document level allowance VAT rate (BT-96), Document level Charge VAT rate (BT-103), VAT category rate(BT-119), Invoiced item VAT rate (BT-152), Prepayment VAT rate(KSA-34) must be limited to one of the following values (5 or 15) when the relevant Document level allowance VAT category code (BT-95), Document level Charge VAT category code(BT-102), VAT category code(BT-118), Invoiced item VAT category code(BT-151), Prepayment VAT Category Code (KSA-33) is "S"- "Standard rated". In other words, for Standard Rate VAT Category the rate can either be 15% or 5%.
+2026-09-23 13:10:22,260 [ERROR] ValidationProcessorImpl - ksa validation warnings : 
+2026-09-23 13:10:22,260 [WARN] ValidationProcessorImpl - CODE : BR-KSA-19, MESSAGE : [BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105).
+2026-09-23 13:10:22,260 [WARN] ValidationProcessorImpl - CODE : BR-KSA-15, MESSAGE : [BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has "01" as first 2 digits)) must contain the supply date (KSA-5).
+2026-09-23 13:10:22,277 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-23 13:10:22,277 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = FAILED 

@@ -672,6 +672,42 @@ pub mod ffi {
     #[diplomat::opaque]
     pub struct Xml;
     impl Xml {
+        /// Produce an owned local ZATCA report as JSON. Inspect is_valid before acceptance.
+        /// Options default when absent; JSON inputs are limited to 4 KiB.
+        pub fn validate_zatca(
+            config: &Config,
+            xml: &DiplomatStr,
+            options_json: Option<&DiplomatStr>,
+            out: &mut DiplomatWrite,
+        ) -> Result<(), Box<BindingError>> {
+            boundary(|| {
+                let options = match options_json {
+                    None => inv_core::validation::ZatcaValidationOptions::default(),
+                    Some(value) => {
+                        if value.len() > 4096 {
+                            return Err(local_error(1, "options_json exceeds 4 KiB"));
+                        }
+                        serde_json::from_str(text(value)?).map_err(|error| {
+                            local_error(1, &format!("Invalid validation options: {error}"))
+                        })?
+                    }
+                };
+                let report = inv_core::validation::validate_zatca_invoice_from_str(
+                    text(xml)?,
+                    &config.0,
+                    &options,
+                )
+                .map_err(core_error)?;
+                let json = serde_json::to_string(&report).map_err(|error| {
+                    local_error(
+                        9,
+                        &format!("Could not serialize validation report: {error}"),
+                    )
+                })?;
+                write(json, out)
+            })
+        }
+
         pub fn validate(config: &Config, xml: &DiplomatStr) -> Result<bool, Box<BindingError>> {
             boundary(|| {
                 inv_core::validation::validate_xml_invoice_from_str(text(xml)?, &config.0)

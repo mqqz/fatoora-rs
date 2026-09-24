@@ -1,0 +1,37 @@
+{
+  "layers": {
+    "xsd": "failed",
+    "en": "failed",
+    "ksa": "failed",
+    "qr": "not_run",
+    "signature": "not_run",
+    "pih": "passed",
+    "global": "failed"
+  },
+  "findings": [
+    {
+      "source": "xsd",
+      "severity": "error",
+      "code": "SAXParseException",
+      "message": "Schema validation failed; XML does not comply with UBL 2.1 standards in line with ZATCA specifications. ERROR: org.xml.sax.SAXParseException; lineNumber: 132; columnNumber: 70; cvc-datatype-valid.1.2.1: '' is not a valid value for 'decimal'."
+    },
+    {
+      "source": "en",
+      "severity": "error",
+      "code": "BR-CO-12",
+      "message": "[BR-CO-12]-Sum of charges on document level (BT-108) = Σ Document level charge amount (BT-99)."
+    },
+    {
+      "source": "en",
+      "severity": "warning",
+      "code": "BR-CO-13",
+      "message": "[BR-CO-13]-Invoice total amount without VAT (BT-109) = Σ Invoice line net amount (BT-131) - Sum of allowances on document level (BT-107) + Sum of charges on document level (BT-108)."
+    },
+    {
+      "source": "ksa",
+      "severity": "error",
+      "code": "SaxonApiException",
+      "message": "Cannot convert string \" \" to double"
+    }
+  ]
+}

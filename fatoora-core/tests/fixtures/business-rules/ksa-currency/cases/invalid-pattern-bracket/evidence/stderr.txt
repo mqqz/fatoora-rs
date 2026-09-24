@@ -1,0 +1,28 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.timezone=UTC
+Error at char 52 in expression in xsl:if/@test on line 2468 column 154 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl:
+  FORX0002  Syntax error at char 0 in regular expression: Missing ']'
+  In template rule with match="element(Q{urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2}LineExtensionAmount)" on line 2448 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:apply-templates at file:/tmp/fatoora%20sdk%20parity%20no_yf4bi/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#106
+  In template rule with match="*" on line 104 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:next-match at file:/tmp/fatoora%20sdk%20parity%20no_yf4bi/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#3194
+  In template rule with match="cac:InvoiceLine" on line 3155 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:next-match at file:/tmp/fatoora%20sdk%20parity%20no_yf4bi/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#2779
+  In template rule with match="cac:* " on line 2764 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:next-match at file:/tmp/fatoora%20sdk%20parity%20no_yf4bi/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#2408
+  In template rule with match="cac:InvoiceLine" on line 2372 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:next-match at file:/tmp/fatoora%20sdk%20parity%20no_yf4bi/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#603
+  In template rule with match="/ubl:Invoice[not(cac:LegalMonetaryTotal/cbc:PrepaidAmount > 0)]/cac:InvoiceLine" on line 554 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:apply-templates at file:/tmp/fatoora%20sdk%20parity%20no_yf4bi/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#106
+  In template rule with match="*" on line 104 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:next-match at file:/tmp/fatoora%20sdk%20parity%20no_yf4bi/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#2971
+  In template rule with match="/ubl:Invoice" on line 2923 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:next-match at file:/tmp/fatoora%20sdk%20parity%20no_yf4bi/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#2329
+  In template rule with match="/ubl:Invoice" on line 2172 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:next-match at file:/tmp/fatoora%20sdk%20parity%20no_yf4bi/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#522
+  In template rule with match="/ubl:Invoice " on line 311 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by built-in template rule (text-only)
+  In template rule with match="/" on line 41 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl
+     invoked by xsl:apply-templates at file:/tmp/fatoora%20sdk%20parity%20no_yf4bi/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#309
+at template d7e29 on line 108 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl:
+     invoked by xsl:call-template at file:/tmp/fatoora%20sdk%20parity%20no_yf4bi/sdk/Data/Rules/Schematrons/20210819_ZATCA_E-invoice_Validation_Rules.xsl#77
+  In template rule with match="/" on line 41 of 20210819_ZATCA_E-invoice_Validation_Rules.xsl

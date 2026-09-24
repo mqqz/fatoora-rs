@@ -1,0 +1,37 @@
+{
+  "layers": {
+    "xsd": "passed",
+    "en": "passed",
+    "ksa": "passed",
+    "qr": "failed",
+    "signature": "failed",
+    "pih": "passed",
+    "global": "failed"
+  },
+  "findings": [
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-98",
+      "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+    },
+    {
+      "source": "qr",
+      "severity": "error",
+      "code": "hashedXml",
+      "message": "hashedXml does not match with qr code hashedXml or the hashedXml is missing "
+    },
+    {
+      "source": "signature",
+      "severity": "error",
+      "code": "invoiceSignedDataDigestValue",
+      "message": "wrong invoice hashing"
+    },
+    {
+      "source": "signature",
+      "severity": "error",
+      "code": "signatureValue",
+      "message": "wrong signature Value "
+    }
+  ]
+}

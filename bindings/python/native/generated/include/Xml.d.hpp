@@ -29,6 +29,14 @@ namespace _native {
 class Xml {
 public:
 
+  /**
+   * Produce an owned local ZATCA report as JSON. Inspect is_valid before acceptance.
+   * Options default when absent; JSON inputs are limited to 4 KiB.
+   */
+  inline static _native::diplomat::result<std::string, std::unique_ptr<_native::BindingError>> validate_zatca(const _native::Config& config, std::string_view xml, std::optional<std::string_view> options_json);
+  template<typename W>
+  inline static _native::diplomat::result<std::monostate, std::unique_ptr<_native::BindingError>> validate_zatca_write(const _native::Config& config, std::string_view xml, std::optional<std::string_view> options_json, W& writeable_output);
+
   inline static _native::diplomat::result<bool, std::unique_ptr<_native::BindingError>> validate(const _native::Config& config, std::string_view xml);
 
   inline static _native::diplomat::result<std::string, std::unique_ptr<_native::BindingError>> hash(std::string_view xml);

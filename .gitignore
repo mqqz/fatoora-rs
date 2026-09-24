@@ -1,6 +1,7 @@
 # Rust build files
 debug
 target
+!/fatoora-core/tests/fixtures/business-rules/integrity/cases/target/
 
 # Python 
 

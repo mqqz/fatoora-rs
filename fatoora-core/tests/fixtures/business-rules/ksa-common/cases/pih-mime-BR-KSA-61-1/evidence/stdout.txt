@@ -1,0 +1,19 @@
+********** Welcome to ZATCA E-Invoice Java SDK 3.4.8 *********************
+This SDK uses Java to call the SDK (jar) passing it an invoice XML file.
+It can take a Standard or Simplified XML, Credit Note, or Debit Note.
+It returns if the validation is successful or shows errors where the XML validation fails.
+It checks for syntax and content as well.
+You can use the command (fatoora -help) for more information.
+
+****************************************************************
+2026-09-23 13:08:20,602 [INFO] ValidationProcessorImpl - [XSD] validation result : PASSED
+2026-09-23 13:08:20,984 [INFO] ValidationProcessorImpl - [EN] validation result : PASSED
+2026-09-23 13:08:21,141 [INFO] ValidationProcessorImpl - [KSA] validation result : PASSED
+2026-09-23 13:08:21,141 [ERROR] ValidationProcessorImpl - ksa validation warnings : 
+2026-09-23 13:08:21,141 [WARN] ValidationProcessorImpl - CODE : BR-KSA-19, MESSAGE : [BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105).
+2026-09-23 13:08:21,141 [WARN] ValidationProcessorImpl - CODE : BR-KSA-61, MESSAGE : [BR-KSA-61]-Previous invoice hash (KSA-13) must exist in an invoice.
+2026-09-23 13:08:21,141 [WARN] ValidationProcessorImpl - CODE : BR-KSA-69, MESSAGE : [BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121).
+2026-09-23 13:08:21,141 [WARN] ValidationProcessorImpl - CODE : BR-KSA-26, MESSAGE : [BR-KSA-26]-If the invoice contains the previous invoice hash (KSA-13), this hash must be base64 encoded SHA256. The hash shall be computed using the following method as described in the ds:transforms block in the XML Invoice Specifications: 1. Remove the <Invoice><ext:UBLExtensions/> block 2. Remove the <Invoice><cac:AdditionalDocumentReference/> block where <cbc:ID/> = QR 3. Remove the <Invoice><cac:Signature/> block 4. Canonicalize the Invoice using the C14N11 standard 5. Hash the resulting string using SHA256 to a binary object 6. Base64 encode the binary object to generate the digest value For the first invoice, the previous invoice hash is "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==", the equivalent for base64 encoded SHA256 of "0" (zero) character.
+2026-09-23 13:08:21,142 [WARN] ValidationProcessorImpl - CODE : BR-KSA-15, MESSAGE : [BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has "01" as first 2 digits)) must contain the supply date (KSA-5).
+2026-09-23 13:08:21,159 [INFO] ValidationProcessorImpl - [PIH] validation result : PASSED
+2026-09-23 13:08:21,159 [INFO] InvoiceValidationService -  *** GLOBAL VALIDATION RESULT = PASSED 

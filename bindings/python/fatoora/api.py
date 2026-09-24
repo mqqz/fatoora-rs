@@ -648,3 +648,31 @@ def validate_xml_invoice_from_str(config: Config, xml: str) -> bool:
 
 def invoice_hash_base64_from_xml_str(xml: str) -> str:
     return _call(_native.Xml.hash, xml)
+
+
+def validate_zatca_invoice_from_str(
+    config: Config,
+    xml: str,
+    *,
+    previous_invoice_hash: Optional[str] = None,
+    evaluated_at: Optional[str] = None,
+) -> dict[str, Any]:
+    """Return the local ZATCA report, including rejection or incomplete coverage.
+
+    Inspect ``is_valid`` before accepting an invoice. Missing predecessor context
+    makes ``is_complete`` false. ``evaluated_at`` accepts RFC3339 text; defaults
+    use one UTC clock snapshot. Execution failures raise FatooraError with the
+    partial report in ``error.details['report']``. Local integrity does not
+    establish certificate issuer trust or remote acceptance.
+    """
+    if not isinstance(xml, str):
+        raise TypeError("xml must be a string")
+    for name, value in (("xml", xml), ("previous_invoice_hash", previous_invoice_hash),
+                        ("evaluated_at", evaluated_at)):
+        if value is not None and not isinstance(value, str):
+            raise TypeError(f"{name} must be a string or None")
+        if value is not None and "\x00" in value:
+            raise ValueError(f"{name} contains interior NUL")
+    options = json.dumps({"previous_invoice_hash": previous_invoice_hash,
+                          "evaluated_at": evaluated_at})
+    return json.loads(_call(_native.Xml.validate_zatca, config, xml, options))

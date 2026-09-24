@@ -387,3 +387,281 @@ fn invoice_request_emits_json_payload() {
         Some(expected_invoice.as_str())
     );
 }
+
+const PREVIOUS_HASH: &str =
+    "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==";
+const EVALUATED_AT: &str = "2026-09-23T12:00:00+03:00";
+
+fn standard_invoice_fixture() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../fatoora-core/tests/fixtures/sdk-parity/cases/standard-invoice/input.xml")
+}
+
+fn validate_zatca(path: &std::path::Path, extra: &[&str]) -> std::process::Output {
+    Command::new(cli_exe())
+        .args([
+            "validate",
+            "--profile",
+            "zatca",
+            "--format",
+            "json",
+            "--invoice",
+        ])
+        .arg(path)
+        .args(["--evaluated-at", EVALUATED_AT])
+        .args(extra)
+        .output()
+        .expect("run ZATCA validation command")
+}
+
+fn validation_json(output: &std::process::Output, expected_exit: i32) -> serde_json::Value {
+    assert_eq!(
+        output.status.code(),
+        Some(expected_exit),
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    serde_json::from_slice(&output.stdout).expect("stdout must contain exactly one JSON value")
+}
+
+#[test]
+fn zatca_cli_distinguishes_valid_incomplete_and_rejected_results() {
+    let fixture = standard_invoice_fixture();
+    let valid = validation_json(
+        &validate_zatca(&fixture, &["--previous-invoice-hash", PREVIOUS_HASH]),
+        0,
+    );
+    assert_eq!(valid["profile"], "zatca-sdk-238-R3.4.8");
+    assert_eq!(valid["evaluated_at"], EVALUATED_AT);
+    assert_eq!(valid["is_valid"], true);
+    assert_eq!(
+        valid["stages"][1]["evaluated_assertions"]
+            .as_array()
+            .unwrap()
+            .len(),
+        105
+    );
+    assert_eq!(
+        valid["stages"][2]["evaluated_assertions"]
+            .as_array()
+            .unwrap()
+            .len(),
+        152
+    );
+    assert_eq!(valid["stages"][3]["status"], "not_applicable");
+    assert_eq!(valid["stages"][5]["status"], "completed");
+
+    let incomplete = validation_json(&validate_zatca(&fixture, &[]), 4);
+    assert_eq!(incomplete["stages"][5]["status"], "context_required");
+    assert_eq!(incomplete["is_complete"], false);
+    assert_eq!(incomplete["has_errors"], false);
+
+    let rejected = validation_json(
+        &validate_zatca(
+            &fixture,
+            &[
+                "--previous-invoice-hash",
+                "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            ],
+        ),
+        2,
+    );
+    assert_eq!(rejected["stages"][5]["status"], "completed");
+    assert_eq!(rejected["is_valid"], false);
+    assert_eq!(rejected["has_errors"], true);
+    assert!(
+        rejected["stages"][5]["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|finding| finding["severity"] == "error")
+    );
+}
+
+#[test]
+fn zatca_cli_schema_rejection_precedes_incomplete_status_and_retains_findings() {
+    let path = unique_temp_path("schema-rejected");
+    std::fs::write(&path, "<not-an-invoice/>").unwrap();
+    let output = validate_zatca(&path, &[]);
+    std::fs::remove_file(&path).unwrap();
+    let report = validation_json(&output, 2);
+    assert_eq!(report["stages"][0]["status"], "completed");
+    assert_eq!(report["stages"][0]["findings"][0]["code"], "XSD_INVALID");
+    assert_eq!(report["stages"][1]["status"], "not_run");
+}
+
+#[test]
+fn zatca_cli_execution_failures_serialize_the_partial_report() {
+    let path = unique_temp_path("malformed-validation");
+    std::fs::write(&path, "<Invoice").unwrap();
+    let output = validate_zatca(&path, &[]);
+    std::fs::remove_file(&path).unwrap();
+    let error = validation_json(&output, 3);
+    assert_eq!(error["kind"], "invalid_xml");
+    assert_eq!(error["report"]["stages"][0]["status"], "not_run");
+
+    let xml = std::fs::read_to_string(standard_invoice_fixture()).unwrap();
+    let changed = xml.replacen(
+        "<cbc:LineExtensionAmount currencyID=\"SAR\">300.00",
+        "<cbc:LineExtensionAmount currencyID=\"[\">300.00",
+        1,
+    );
+    assert_ne!(changed, xml);
+    let path = unique_temp_path("rule-execution-validation");
+    std::fs::write(&path, changed).unwrap();
+    let output = validate_zatca(&path, &[]);
+    std::fs::remove_file(&path).unwrap();
+    let error = validation_json(&output, 3);
+    assert_eq!(error["kind"], "rule_evaluation");
+    assert_eq!(error["stage"], "ksa");
+    assert_eq!(error["assertion_site"], "ksa:112:BR-KSA-CL-02");
+    assert_eq!(error["report"]["stages"][1]["status"], "completed");
+    assert_eq!(error["report"]["stages"][2]["status"], "evaluation_failed");
+}
+
+#[test]
+fn zatca_cli_reports_file_and_option_errors_without_inventing_a_report() {
+    let missing = unique_temp_path("absent-validation-file");
+    let error = validation_json(&validate_zatca(&missing, &[]), 3);
+    assert_eq!(error["kind"], "io");
+    assert!(error.get("report").is_none());
+    let output = Command::new(cli_exe())
+        .args(["validate", "--profile=zatca", "--format=json", "--invoice"])
+        .arg(&missing)
+        .args(["--evaluated-at", "invalid-time"])
+        .output()
+        .unwrap();
+    let error = validation_json(&output, 3);
+    assert_eq!(error["kind"], "invalid_options");
+    assert!(error.get("report").is_none());
+    let invalid_hash = validation_json(
+        &validate_zatca(
+            &standard_invoice_fixture(),
+            &["--previous-invoice-hash", "bad"],
+        ),
+        3,
+    );
+    assert_eq!(invalid_hash["kind"], "invalid_context");
+    assert!(invalid_hash.get("report").is_some());
+}
+
+#[test]
+fn validation_usage_errors_keep_clap_diagnostics_and_exit_code() {
+    for arguments in [
+        vec!["--unrecognized-option"],
+        vec!["--previous-invoice-hash"],
+    ] {
+        let output = Command::new(cli_exe())
+            .args(["validate", "--profile=zatca", "--format=json", "--invoice"])
+            .arg(standard_invoice_fixture())
+            .args(arguments)
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(2));
+        assert!(output.stdout.is_empty());
+        assert!(!output.stderr.is_empty());
+    }
+}
+
+#[test]
+fn xsd_cli_json_is_schema_only_and_rejects_zatca_context_flags() {
+    let output = Command::new(cli_exe())
+        .args(["validate", "--format", "json", "--invoice"])
+        .arg(standard_invoice_fixture())
+        .output()
+        .unwrap();
+    let report = validation_json(&output, 0);
+    assert_eq!(report["layers_checked"], serde_json::json!(["xsd"]));
+    assert_eq!(report["issues"], serde_json::json!([]));
+    for (flag, value) in [
+        ("--evaluated-at", EVALUATED_AT),
+        ("--previous-invoice-hash", PREVIOUS_HASH),
+    ] {
+        let output = Command::new(cli_exe())
+            .args(["validate", "--format", "json", "--invoice"])
+            .arg(standard_invoice_fixture())
+            .args([flag, value])
+            .output()
+            .unwrap();
+        let error = validation_json(&output, 3);
+        assert_eq!(error["kind"], "invalid_options");
+        assert!(
+            error["message"]
+                .as_str()
+                .unwrap()
+                .contains("--profile zatca")
+        );
+    }
+}
+
+#[test]
+fn xsd_cli_preserves_default_text_failure_and_returns_json_findings_on_request() {
+    let path = unique_temp_path("xsd-cli-invalid");
+    std::fs::write(&path, "<not-an-invoice/>").unwrap();
+    let legacy = Command::new(cli_exe())
+        .args(["validate", "--invoice"])
+        .arg(&path)
+        .output()
+        .unwrap();
+    let structured = Command::new(cli_exe())
+        .args(["validate", "--format", "json", "--invoice"])
+        .arg(&path)
+        .output()
+        .unwrap();
+    std::fs::remove_file(&path).unwrap();
+    assert_eq!(legacy.status.code(), Some(1));
+    assert!(legacy.stdout.is_empty());
+    assert!(String::from_utf8_lossy(&legacy.stderr).contains("XML validation failed"));
+    let report = validation_json(&structured, 2);
+    assert_eq!(report["layers_checked"], serde_json::json!(["xsd"]));
+    assert_eq!(report["issues"][0]["code"], "XSD_INVALID");
+}
+
+#[test]
+fn zatca_cli_text_names_profile_stages_and_finding_locations() {
+    let output = Command::new(cli_exe())
+        .args(["validate", "--profile", "zatca", "--invoice"])
+        .arg(standard_invoice_fixture())
+        .args([
+            "--evaluated-at",
+            EVALUATED_AT,
+            "--previous-invoice-hash",
+            PREVIOUS_HASH,
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(0));
+    let text = String::from_utf8(output.stdout).unwrap();
+    assert!(text.contains("zatca-sdk-238-R3.4.8"));
+    assert!(text.contains("ksa: completed"));
+    assert!(text.contains("signature: not_applicable"));
+    assert!(text.contains("warning BR-"));
+    assert!(text.contains("local-name()"));
+}
+
+#[test]
+fn zatca_cli_bounds_file_reads_and_preserves_capacity_reports() {
+    use std::io::{Seek, SeekFrom, Write};
+    for multibyte in [false, true] {
+        let path = unique_temp_path("zatca-capacity");
+        let mut file = std::fs::File::create(&path).unwrap();
+        file.set_len(256 * 1024 * 1024).unwrap();
+        if multibyte {
+            file.seek(SeekFrom::Start(8 * 1024 * 1024)).unwrap();
+            file.write_all("€".as_bytes()).unwrap();
+        }
+        drop(file);
+        let result = validation_json(&validate_zatca(&path, &[]), 3);
+        assert_eq!(result["kind"], "capacity_exceeded");
+        assert_eq!(result["report"]["is_valid"], false);
+        assert!(
+            result["report"]["stages"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|stage| stage["status"] == "not_run")
+        );
+        std::fs::remove_file(path).unwrap();
+    }
+}

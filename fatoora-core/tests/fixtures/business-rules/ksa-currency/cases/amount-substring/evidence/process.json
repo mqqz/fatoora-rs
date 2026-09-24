@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "java",
+    "-Djdk.sunec.disableNative=false",
+    "-jar",
+    "/tmp/fatoora sdk parity no_yf4bi/sdk/Apps/zatca-einvoicing-sdk-238-R3.4.8.jar",
+    "--globalVersion",
+    "238-R3.4.8",
+    "-validate",
+    "-invoice",
+    "/tmp/fatoora-currency-capture-v2/cases/amount-substring/input.xml"
+  ],
+  "cwd": "/tmp/fatoora sdk parity no_yf4bi/sdk/Apps",
+  "exit_code": 0
+}

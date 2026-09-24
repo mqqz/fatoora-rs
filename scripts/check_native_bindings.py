@@ -25,6 +25,13 @@ def main():
             ], cwd=ROOT, check=True)
             subprocess.run([binary, str(ROOT / "fatoora-core/tests/fixtures/sdk-parity/cases/standard-invoice/sdk-signed.xml")] if language == "cpp" else [binary], check=True)
             print(f"{language} contract passed", flush=True)
+        binary = str(Path(directory) / "zatca")
+        subprocess.run([
+            *shlex.split(os.environ.get("CC", "cc")), "-std=c11", "-Wall", "-Wextra", "-Werror",
+            "-I", "bindings/c", "fatoora-ffi/tests/zatca_contract.c",
+            "-L", str(target), "-lfatoora_ffi", f"-Wl,-rpath,{target}", "-o", binary,
+        ], cwd=ROOT, check=True)
+        subprocess.run([binary, str(ROOT / "fatoora-core/tests/fixtures/sdk-parity/cases/standard-invoice/input.xml")], check=True)
 
 
 if __name__ == "__main__":

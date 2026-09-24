@@ -17,6 +17,9 @@
 
 
 
+typedef struct fatoora_Xml_validate_zatca_result {union { BindingError* err;}; bool is_ok;} fatoora_Xml_validate_zatca_result;
+fatoora_Xml_validate_zatca_result fatoora_Xml_validate_zatca(const Config* config, DiplomatStringView xml, OptionStringView options_json, DiplomatWrite* write);
+
 typedef struct fatoora_Xml_validate_result {union {bool ok; BindingError* err;}; bool is_ok;} fatoora_Xml_validate_result;
 fatoora_Xml_validate_result fatoora_Xml_validate(const Config* config, DiplomatStringView xml);
 

@@ -1,0 +1,67 @@
+{
+  "layers": {
+    "xsd": "passed",
+    "en": "passed",
+    "ksa": "passed",
+    "qr": "failed",
+    "signature": "failed",
+    "pih": "passed",
+    "global": "failed"
+  },
+  "findings": [
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-19",
+      "message": "[BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-60",
+      "message": "[BR-KSA-60]-Cryptographic stamp (KSA-15) must exist in simplified tax invoices and associated credit notes and debit notes (KSA-2, position 1 and 2 = 02)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-F-06-C32",
+      "message": "[BR-KSA-F-06-C32] - Field character limits for Buyer name field (BT-44) have not been met. The maximum limit is 1000 characters."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-98",
+      "message": "[BR-KSA-98] - The simplified invoice should be submitted within 24 hours of issuing the invoice."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-69",
+      "message": "[BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-27",
+      "message": "[BR-KSA-27]-The document must contain a QR code (KSA-14), and this code must be base64Binary."
+    },
+    {
+      "source": "qr",
+      "severity": "error",
+      "code": "QRCODE_INVALID",
+      "message": "Invalid QR code format, Please follow the ZATCA QR code specifications"
+    },
+    {
+      "source": "signature",
+      "severity": "error",
+      "code": "NullPointerException",
+      "message": "null"
+    },
+    {
+      "source": "signature",
+      "severity": "error",
+      "code": "certificate",
+      "message": "wrong invoiceCertificate  "
+    }
+  ]
+}

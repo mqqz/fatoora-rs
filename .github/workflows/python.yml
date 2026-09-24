@@ -17,6 +17,8 @@ on:
 jobs:
   test-bindings:
     runs-on: ubuntu-latest
+    env:
+      SKIP_ZATCA_LIVE_API: "1"
 
     steps:
       - uses: actions/checkout@v4

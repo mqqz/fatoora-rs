@@ -143,6 +143,26 @@ reference above also apply to these source materials. No SDK JAR or executable
 is bundled.
 The Java adapters in `scripts/sdk-parity/` are repository-authored test tooling.
 
+The business-rule development corpus under
+`fatoora-core/tests/fixtures/business-rules/` includes structured extractions of
+the SDK's CEN and Saudi rule stylesheets, findings extracted from the parity logs,
+and targeted invoice mutations with official SDK validation output. Its
+`NOTICE.md` identifies the exact source files and representation changes; source
+hashes are recorded in `catalog.json`. The SDK's LGPL v3 text and the incorporated
+GPL v3 text accompany those materials. Imported rules and messages retain their
+upstream terms. Extraction and capture scripts are repository-authored. No SDK
+JAR or executable is included.
+
+The rule-family modules in
+`fatoora-core/src/invoice/validation/business_rules/` translate all 257 assertion
+sites from those pinned SDK stylesheets into Rust. Its `metadata.rs` retains
+the corresponding rule identifiers and messages. The source-site mapping and
+tests are recorded in the corpus coverage ledger. The imported predicates and
+messages retain the upstream terms described above; the general XML, numeric,
+and reporting infrastructure is project-authored. Python wheels include the SDK
+rule notices and LGPL/GPL texts under `fatoora/licenses/zatca/`. Native CLI and FFI
+archives include the same files under `licenses/zatca/`.
+
 ## Templates
 
 `fatoora-core/assets/templates/*.xml` (3 files) were made by Mohamad Alsadhan,

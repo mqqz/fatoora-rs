@@ -1,0 +1,79 @@
+{
+  "layers": {
+    "xsd": "passed",
+    "en": "failed",
+    "ksa": "passed",
+    "qr": "not_run",
+    "signature": "not_run",
+    "pih": "passed",
+    "global": "failed"
+  },
+  "findings": [
+    {
+      "source": "en",
+      "severity": "error",
+      "code": "BR-CO-15",
+      "message": "[BR-CO-15]-Invoice total amount with VAT (BT-112) = Invoice total amount without VAT (BT-109) + Invoice total VAT amount (BT-110)."
+    },
+    {
+      "source": "en",
+      "severity": "error",
+      "code": "BR-CO-12",
+      "message": "[BR-CO-12]-Sum of charges on document level (BT-108) = Σ Document level charge amount (BT-99)."
+    },
+    {
+      "source": "en",
+      "severity": "error",
+      "code": "BR-CO-11",
+      "message": "[BR-CO-11]-Sum of allowances on document level (BT-107) = Σ Document level allowance amount (BT-92)."
+    },
+    {
+      "source": "en",
+      "severity": "warning",
+      "code": "BR-Z-08",
+      "message": "[BR-Z-08]-In a VAT breakdown (BG-23) where the VAT category code (BT-118) is \" Zero rated\" the VAT category taxable amount (BT-116) shall equal the sum of Invoice line net amounts (BT-131) minus the sum of Document level allowance amounts (BT-92) plus the sum of Document level charge amounts (BT-99) where the VAT category codes (BT-151, BT-95, BT-102) are \"Zero Rated\"."
+    },
+    {
+      "source": "en",
+      "severity": "warning",
+      "code": "BR-S-08",
+      "message": "[BR-S-08]-In a VAT breakdown (BG-23) where the VAT category code (BT-118) is \" Standard rated\" the VAT category taxable amount (BT-116) shall equal the sum of Invoice line net amounts (BT-131) minus the sum of Document level allowance amounts (BT-92) plus the sum of Document level charge amounts (BT-99) where the VAT category codes (BT-151, BT-95, BT-102) are \"Standard Rate\"."
+    },
+    {
+      "source": "en",
+      "severity": "warning",
+      "code": "BR-CO-10",
+      "message": "[BR-CO-10]-Sum of Invoice line net amount (BT-106) = Σ Invoice line net amount (BT-131)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-19",
+      "message": "[BR-KSA-19]-Each Document level charge (BG-21) shall have a code for the reason for document level charge (BT-105)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-51",
+      "message": "[BR-KSA-51]-The line amount with VAT (KSA-12) must be Invoice line net amount (BT-131) + Line VAT amount (KSA-11)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-EN16931-11",
+      "message": "[BR-KSA-EN16931-11]-Invoice line net amount (BT-131) must equal (Invoiced quantity (BT-129) * (Item net price (BT-146) / item price base quantity (BT-149))-) + Sum of invoice line charge amount (BT-141) - Sum of invoice line allowance amount (BT-136)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-69",
+      "message": "[BR-KSA-69]-A VAT breakdown (BG-23) with VAT Category code (BT-118) 'Zero rated' shall have a VAT exception reason code (BT-121)."
+    },
+    {
+      "source": "ksa",
+      "severity": "warning",
+      "code": "BR-KSA-15",
+      "message": "[BR-KSA-15]-The tax invoice ((invoice type code (BT-30) = 388) and (invoice transaction code (KSA-2) has \"01\" as first 2 digits)) must contain the supply date (KSA-5)."
+    }
+  ]
+}

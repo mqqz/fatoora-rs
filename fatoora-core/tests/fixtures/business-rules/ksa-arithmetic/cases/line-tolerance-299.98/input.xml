@@ -1,0 +1,203 @@
+<ns0:Invoice xmlns:ns0="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:ns1="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ns2="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2">
+  <ns1:ProfileID>reporting:1.0</ns1:ProfileID>
+  <ns1:ID>INV-STD-1001</ns1:ID>
+  <ns1:UUID>b2a43c49-3aab-4e3b-9d67-0da45a5e33cc</ns1:UUID>
+  <ns1:IssueDate>2024-02-10</ns1:IssueDate>
+  <ns1:IssueTime>09:15:00</ns1:IssueTime>
+  <ns1:InvoiceTypeCode name="0100000">388</ns1:InvoiceTypeCode>
+  <ns1:Note languageID="en">Complex standard invoice</ns1:Note>
+  <ns1:DocumentCurrencyCode>SAR</ns1:DocumentCurrencyCode>
+  <ns1:TaxCurrencyCode>SAR</ns1:TaxCurrencyCode>
+  <ns2:AdditionalDocumentReference>
+    <ns1:ID>ICV</ns1:ID>
+    <ns1:UUID>7</ns1:UUID>
+  </ns2:AdditionalDocumentReference>
+  <ns2:AdditionalDocumentReference>
+    <ns1:ID>PIH</ns1:ID>
+    <ns2:Attachment>
+      <ns1:EmbeddedDocumentBinaryObject mimeCode="text/plain">NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==</ns1:EmbeddedDocumentBinaryObject>
+    </ns2:Attachment>
+  </ns2:AdditionalDocumentReference>
+  <ns2:AccountingSupplierParty>
+    <ns2:Party>
+      <ns2:PartyIdentification>
+        <ns1:ID schemeID="CRN">7003339333</ns1:ID>
+      </ns2:PartyIdentification>
+      <ns2:PostalAddress>
+        <ns1:StreetName>King Fahd</ns1:StreetName>
+        <ns1:BuildingNumber>1234</ns1:BuildingNumber>
+        <ns1:PlotIdentification>5678</ns1:PlotIdentification>
+        <ns1:CitySubdivisionName>Olaya</ns1:CitySubdivisionName>
+        <ns1:CityName>Riyadh</ns1:CityName>
+        <ns1:PostalZone>12222</ns1:PostalZone>
+        <ns2:Country>
+          <ns1:IdentificationCode>SA</ns1:IdentificationCode>
+        </ns2:Country>
+      </ns2:PostalAddress>
+      <ns2:PartyTaxScheme>
+        <ns1:CompanyID>399999999900003</ns1:CompanyID>
+        <ns2:TaxScheme>
+          <ns1:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</ns1:ID>
+        </ns2:TaxScheme>
+      </ns2:PartyTaxScheme>
+      <ns2:PartyLegalEntity>
+        <ns1:RegistrationName>Acme Global Trading Co</ns1:RegistrationName>
+      </ns2:PartyLegalEntity>
+    </ns2:Party>
+  </ns2:AccountingSupplierParty>
+  <ns2:AccountingCustomerParty>
+    <ns2:Party>
+      <ns2:PostalAddress>
+        <ns1:StreetName>King Abdulaziz</ns1:StreetName>
+        <ns1:AdditionalStreetName>Al Zahra</ns1:AdditionalStreetName>
+        <ns1:BuildingNumber>4321</ns1:BuildingNumber>
+        <ns1:CitySubdivisionName>North</ns1:CitySubdivisionName>
+        <ns1:CityName>Jeddah</ns1:CityName>
+        <ns1:PostalZone>21577</ns1:PostalZone>
+        <ns2:Country>
+          <ns1:IdentificationCode>SA</ns1:IdentificationCode>
+        </ns2:Country>
+      </ns2:PostalAddress>
+      <ns2:PartyTaxScheme>
+        <ns1:CompanyID>310122393500003</ns1:CompanyID>
+        <ns2:TaxScheme>
+          <ns1:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</ns1:ID>
+        </ns2:TaxScheme>
+      </ns2:PartyTaxScheme>
+      <ns2:PartyLegalEntity>
+        <ns1:RegistrationName>Blue Desert Retail LLC</ns1:RegistrationName>
+      </ns2:PartyLegalEntity>
+    </ns2:Party>
+  </ns2:AccountingCustomerParty>
+  <ns2:PaymentMeans>
+    <ns1:PaymentMeansCode>30</ns1:PaymentMeansCode>
+  </ns2:PaymentMeans>
+  <ns2:AllowanceCharge>
+    <ns1:ChargeIndicator>false</ns1:ChargeIndicator>
+    <ns1:AllowanceChargeReason>Seasonal discount</ns1:AllowanceChargeReason>
+    <ns1:Amount currencyID="SAR">20.00</ns1:Amount>
+    <ns2:TaxCategory>
+      <ns1:ID schemeID="UN/ECE 5305" schemeAgencyID="6">S</ns1:ID>
+      <ns1:Percent>15</ns1:Percent>
+      <ns2:TaxScheme>
+        <ns1:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</ns1:ID>
+      </ns2:TaxScheme>
+    </ns2:TaxCategory>
+  </ns2:AllowanceCharge>
+  <ns2:AllowanceCharge>
+    <ns1:ChargeIndicator>true</ns1:ChargeIndicator>
+    <ns1:AllowanceChargeReason>Seasonal discount</ns1:AllowanceChargeReason>
+    <ns1:Amount currencyID="SAR">12.50</ns1:Amount>
+    <ns2:TaxCategory>
+      <ns1:ID schemeID="UN/ECE 5305" schemeAgencyID="6">S</ns1:ID>
+      <ns1:Percent>15</ns1:Percent>
+      <ns2:TaxScheme>
+        <ns1:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</ns1:ID>
+      </ns2:TaxScheme>
+    </ns2:TaxCategory>
+  </ns2:AllowanceCharge>
+  <ns2:TaxTotal>
+    <ns1:TaxAmount currencyID="SAR">118.88</ns1:TaxAmount>
+  </ns2:TaxTotal>
+  <ns2:TaxTotal>
+    <ns1:TaxAmount currencyID="SAR">118.88</ns1:TaxAmount>
+    <ns2:TaxSubtotal>
+      <ns1:TaxableAmount currencyID="SAR">792.50</ns1:TaxableAmount>
+      <ns1:TaxAmount currencyID="SAR">118.88</ns1:TaxAmount>
+      <ns2:TaxCategory>
+        <ns1:ID schemeID="UN/ECE 5305" schemeAgencyID="6">S</ns1:ID>
+        <ns1:Percent>15</ns1:Percent>
+        <ns2:TaxScheme>
+          <ns1:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</ns1:ID>
+        </ns2:TaxScheme>
+      </ns2:TaxCategory>
+    </ns2:TaxSubtotal>
+    <ns2:TaxSubtotal>
+      <ns1:TaxableAmount currencyID="SAR">600.00</ns1:TaxableAmount>
+      <ns1:TaxAmount currencyID="SAR">0.00</ns1:TaxAmount>
+      <ns2:TaxCategory>
+        <ns1:ID schemeID="UN/ECE 5305" schemeAgencyID="6">Z</ns1:ID>
+        <ns1:Percent>0</ns1:Percent>
+        <ns2:TaxScheme>
+          <ns1:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</ns1:ID>
+        </ns2:TaxScheme>
+      </ns2:TaxCategory>
+    </ns2:TaxSubtotal>
+  </ns2:TaxTotal>
+  <ns2:LegalMonetaryTotal>
+    <ns1:LineExtensionAmount currencyID="SAR">1400.00</ns1:LineExtensionAmount>
+    <ns1:TaxExclusiveAmount currencyID="SAR">1392.50</ns1:TaxExclusiveAmount>
+    <ns1:TaxInclusiveAmount currencyID="SAR">1511.38</ns1:TaxInclusiveAmount>
+    <ns1:AllowanceTotalAmount currencyID="SAR">20.00</ns1:AllowanceTotalAmount>
+    <ns1:ChargeTotalAmount currencyID="SAR">12.50</ns1:ChargeTotalAmount>
+    <ns1:PrepaidAmount currencyID="SAR">0.00</ns1:PrepaidAmount>
+    <ns1:PayableRoundingAmount currencyID="SAR">0.00</ns1:PayableRoundingAmount>
+    <ns1:PayableAmount currencyID="SAR">1511.38</ns1:PayableAmount>
+  </ns2:LegalMonetaryTotal>
+  <ns2:InvoiceLine>
+    <ns1:ID>1</ns1:ID>
+    <ns1:InvoicedQuantity unitCode="HUR">2</ns1:InvoicedQuantity>
+    <ns1:LineExtensionAmount currencyID="SAR">299.98</ns1:LineExtensionAmount>
+    <ns2:TaxTotal>
+      <ns1:TaxAmount currencyID="SAR">45.00</ns1:TaxAmount>
+      <ns1:RoundingAmount currencyID="SAR">345.00</ns1:RoundingAmount>
+    </ns2:TaxTotal>
+    <ns2:Item>
+      <ns1:Name>Consulting Services</ns1:Name>
+      <ns2:ClassifiedTaxCategory>
+        <ns1:ID schemeID="UN/ECE 5305" schemeAgencyID="6">S</ns1:ID>
+        <ns1:Percent>15</ns1:Percent>
+        <ns2:TaxScheme>
+          <ns1:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</ns1:ID>
+        </ns2:TaxScheme>
+      </ns2:ClassifiedTaxCategory>
+    </ns2:Item>
+    <ns2:Price>
+      <ns1:PriceAmount currencyID="SAR">150</ns1:PriceAmount>
+    </ns2:Price>
+  </ns2:InvoiceLine>
+  <ns2:InvoiceLine>
+    <ns1:ID>2</ns1:ID>
+    <ns1:InvoicedQuantity unitCode="EA">1</ns1:InvoicedQuantity>
+    <ns1:LineExtensionAmount currencyID="SAR">500.00</ns1:LineExtensionAmount>
+    <ns2:TaxTotal>
+      <ns1:TaxAmount currencyID="SAR">75.00</ns1:TaxAmount>
+      <ns1:RoundingAmount currencyID="SAR">575.00</ns1:RoundingAmount>
+    </ns2:TaxTotal>
+    <ns2:Item>
+      <ns1:Name>Software License</ns1:Name>
+      <ns2:ClassifiedTaxCategory>
+        <ns1:ID schemeID="UN/ECE 5305" schemeAgencyID="6">S</ns1:ID>
+        <ns1:Percent>15</ns1:Percent>
+        <ns2:TaxScheme>
+          <ns1:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</ns1:ID>
+        </ns2:TaxScheme>
+      </ns2:ClassifiedTaxCategory>
+    </ns2:Item>
+    <ns2:Price>
+      <ns1:PriceAmount currencyID="SAR">500</ns1:PriceAmount>
+    </ns2:Price>
+  </ns2:InvoiceLine>
+  <ns2:InvoiceLine>
+    <ns1:ID>3</ns1:ID>
+    <ns1:InvoicedQuantity unitCode="EA">3</ns1:InvoicedQuantity>
+    <ns1:LineExtensionAmount currencyID="SAR">600.00</ns1:LineExtensionAmount>
+    <ns2:TaxTotal>
+      <ns1:TaxAmount currencyID="SAR">0.00</ns1:TaxAmount>
+      <ns1:RoundingAmount currencyID="SAR">600.00</ns1:RoundingAmount>
+    </ns2:TaxTotal>
+    <ns2:Item>
+      <ns1:Name>Export Item</ns1:Name>
+      <ns2:ClassifiedTaxCategory>
+        <ns1:ID schemeID="UN/ECE 5305" schemeAgencyID="6">Z</ns1:ID>
+        <ns1:Percent>0</ns1:Percent>
+        <ns2:TaxScheme>
+          <ns1:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</ns1:ID>
+        </ns2:TaxScheme>
+      </ns2:ClassifiedTaxCategory>
+    </ns2:Item>
+    <ns2:Price>
+      <ns1:PriceAmount currencyID="SAR">200</ns1:PriceAmount>
+    </ns2:Price>
+  </ns2:InvoiceLine>
+</ns0:Invoice>
