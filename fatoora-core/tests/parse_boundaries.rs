@@ -1,6 +1,7 @@
 //! Mutate one field of an accepted fixture so rejection cannot be caused by an
 //! unrelated missing field. Parsing checks supplied amounts; it is not validation.
-use fatoora_core::invoice::xml::parse::parse_finalized_invoice_xml;
+use base64ct::{Base64, Encoding};
+use fatoora_core::invoice::xml::parse::{parse_finalized_invoice_xml, parse_signed_invoice_xml};
 use fatoora_core::{Error, ErrorKind};
 use libxml::{parser::Parser, xpath::Context};
 use serde_json::Value;
@@ -176,6 +177,35 @@ fn malformed_dates_and_counters_are_not_normalized() {
 }
 
 #[test]
+fn signed_parser_rejects_incomplete_or_ambiguous_qr_tlv() {
+    let doc = Parser::default().parse_string(XML).unwrap();
+    let ctx = Context::new(&doc).unwrap();
+    let qr_path = "//*[local-name()='AdditionalDocumentReference'][*[local-name()='ID']='QR']//*[local-name()='EmbeddedDocumentBinaryObject']";
+    let qr = ctx.evaluate(qr_path).unwrap().get_nodes_as_vec()[0].get_content();
+    let raw = Base64::decode_vec(&qr).unwrap();
+    let mut trailing_header = raw.clone();
+    trailing_header.push(10);
+    let mut truncated_value = raw.clone();
+    truncated_value.extend([10, 2, 1]);
+    let mut duplicate_hash = raw;
+    duplicate_hash.extend([6, 1, b'x']);
+    for value in [
+        "%%%".to_owned(),
+        Base64::encode_string(&trailing_header),
+        Base64::encode_string(&truncated_value),
+        Base64::encode_string(&duplicate_hash),
+    ] {
+        let xml = change(XML, qr_path, &value);
+        let error: Error = parse_signed_invoice_xml(&xml)
+            .expect_err("malformed QR must be rejected")
+            .into();
+        assert_eq!(error.kind(), ErrorKind::InvalidInput);
+        let details: Value = serde_json::from_str(&error.details_json()).unwrap();
+        assert_eq!(details["field"], "QR");
+    }
+}
+
+#[test]
 fn imported_transaction_flags_survive_serialization() {
     // The five digits follow the subtype in wire order: third party, nominal,
     // export, summary, self billed. Exercise each bit and their combinations.
@@ -204,6 +234,48 @@ fn imported_transaction_flags_survive_serialization() {
         invalid(
             &change(XML, &format!("{ROOT}/cbc:InvoiceTypeCode/@name"), code),
             "InvoiceTypeCode@name",
+        );
+    }
+}
+
+#[test]
+fn signed_parser_requires_each_qr_signature_component() {
+    use fatoora_core::invoice::xml::parse::ParseError;
+    let doc = Parser::default().parse_string(XML).unwrap();
+    let ctx = Context::new(&doc).unwrap();
+    let path = "//*[local-name()='AdditionalDocumentReference'][*[local-name()='ID']='QR']//*[local-name()='EmbeddedDocumentBinaryObject']";
+    let raw = Base64::decode_vec(&ctx.evaluate(path).unwrap().get_nodes_as_vec()[0].get_content())
+        .unwrap();
+    for (missing, label) in [
+        (6, "QR tag 6 (invoice hash)"),
+        (7, "QR tag 7 (signature)"),
+        (8, "QR tag 8 (public key)"),
+    ] {
+        let mut without_tag = Vec::new();
+        let mut offset = 0;
+        while offset < raw.len() {
+            let end = offset + 2 + usize::from(raw[offset + 1]);
+            if raw[offset] != missing {
+                without_tag.extend_from_slice(&raw[offset..end]);
+            }
+            offset = end;
+        }
+        let xml = change(XML, path, &Base64::encode_string(&without_tag));
+        assert!(
+            matches!(parse_signed_invoice_xml(&xml), Err(ParseError::MissingField(field)) if field == label)
+        );
+    }
+    // Tags 6 and 7 carry UTF-8 text, unlike the binary public key in tag 8.
+    for (tag, label) in [(6, "QR tag 6 (invoice hash)"), (7, "QR tag 7 (signature)")] {
+        let mut corrupted = raw.clone();
+        let mut offset = 0;
+        while corrupted[offset] != tag {
+            offset += 2 + usize::from(corrupted[offset + 1]);
+        }
+        corrupted[offset + 2] = 0xff;
+        let xml = change(XML, path, &Base64::encode_string(&corrupted));
+        assert!(
+            matches!(parse_signed_invoice_xml(&xml), Err(ParseError::MissingField(field)) if field == label)
         );
     }
 }

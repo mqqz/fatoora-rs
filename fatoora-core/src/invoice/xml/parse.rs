@@ -877,7 +877,13 @@ fn decode_qr_tlv(qr_b64: &str) -> Result<std::collections::HashMap<u8, Vec<u8>>,
     })?;
     let mut entries = std::collections::HashMap::new();
     let mut idx = 0;
-    while idx + 2 <= raw.len() {
+    while idx < raw.len() {
+        if raw.len() - idx < 2 {
+            return Err(ParseError::InvalidValue {
+                field: "QR",
+                value: "truncated TLV header".to_string(),
+            });
+        }
         let tag = raw[idx];
         let len = raw[idx + 1] as usize;
         let start = idx + 2;
@@ -888,7 +894,12 @@ fn decode_qr_tlv(qr_b64: &str) -> Result<std::collections::HashMap<u8, Vec<u8>>,
                 value: "truncated TLV".to_string(),
             });
         }
-        entries.insert(tag, raw[start..end].to_vec());
+        if entries.insert(tag, raw[start..end].to_vec()).is_some() {
+            return Err(ParseError::InvalidValue {
+                field: "QR",
+                value: format!("duplicate TLV tag {tag}"),
+            });
+        }
         idx = end;
     }
     Ok(entries)
