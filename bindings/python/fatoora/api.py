@@ -6,7 +6,7 @@ from decimal import Decimal
 from enum import IntEnum
 import json
 from threading import RLock
-from typing import Optional
+from typing import Any, Optional
 
 from . import _native
 from .errors import InvalidInputError, error_class_for_code

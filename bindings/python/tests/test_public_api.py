@@ -27,3 +27,11 @@ def test_distribution_has_no_legacy_loader_or_runtime_dependency():
     assert "fatoora/fatoora_ffi.h" not in files
     assert not any(requirement.lower().startswith("cffi") for requirement in dist.requires or [])
     assert not hasattr(fatoora, "FfiLibrary")
+
+
+def test_public_function_annotations_resolve():
+    from typing import get_type_hints
+
+    for name, function in inspect.getmembers(api, inspect.isfunction):
+        if not name.startswith("_") and function.__module__ == api.__name__:
+            get_type_hints(function)
