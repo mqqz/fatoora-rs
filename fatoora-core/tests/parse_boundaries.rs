@@ -279,3 +279,79 @@ fn signed_parser_requires_each_qr_signature_component() {
         );
     }
 }
+
+#[test]
+fn imported_note_preserves_language_text_and_default_language() {
+    let text = "خصم & تسوية <فاتورة>";
+    let xml = XML.replace(
+        ">ABC</cbc:Note>",
+        ">خصم &amp; تسوية &lt;فاتورة&gt;</cbc:Note>",
+    );
+    for (xml, language) in [
+        (xml.clone(), "ar"),
+        (xml.replace(" languageID=\"ar\"", ""), "en"),
+    ] {
+        let invoice = parse_finalized_invoice_xml(&xml).unwrap();
+        let note = invoice.data().note().unwrap();
+        assert_eq!(note.text(), text);
+        assert_eq!(note.language(), language);
+        let serialized = invoice.to_xml().unwrap();
+        let reparsed = parse_finalized_invoice_xml(&serialized).unwrap();
+        assert_eq!(reparsed.data().note(), invoice.data().note());
+    }
+}
+
+#[test]
+fn adjustment_vat_groups_cannot_be_merged_or_reassigned() {
+    // Even zero-value adjustments must refer to a group that actually exists.
+    invalid(
+        &change(
+            XML,
+            &format!("{ROOT}/cac:AllowanceCharge[1]/cac:TaxCategory[1]/cbc:Percent"),
+            "5",
+        ),
+        "AdjustmentVatRate",
+    );
+    let start = XML.find("<cac:AllowanceCharge>").unwrap();
+    let end = XML[start..].find("</cac:AllowanceCharge>").unwrap()
+        + start
+        + "</cac:AllowanceCharge>".len();
+    let second = XML[start..end].replace(">15<", ">5<");
+    assert_ne!(second, XML[start..end]);
+    let xml = format!("{}{}{}", &XML[..end], second, &XML[end..]);
+    invalid(&xml, "AllowanceCharge");
+}
+
+#[test]
+fn malformed_xml_and_missing_lines_are_distinct_import_failures() {
+    use fatoora_core::invoice::xml::parse::ParseError;
+    for parse in [
+        parse_finalized_invoice_xml("").map(|_| ()),
+        parse_signed_invoice_xml("").map(|_| ()),
+    ] {
+        let error = parse.unwrap_err();
+        assert!(matches!(error, ParseError::XmlParse(_)));
+        assert_eq!(error.kind(), ErrorKind::Xml);
+    }
+    let doc = Parser::default().parse_string(XML).unwrap();
+    let ctx = Context::new(&doc).unwrap();
+    for mut node in ctx
+        .evaluate("//*[local-name()='InvoiceLine']")
+        .unwrap()
+        .get_nodes_as_vec()
+    {
+        node.unlink();
+    }
+    assert!(matches!(
+        parse_finalized_invoice_xml(&doc.to_string()),
+        Err(ParseError::MissingField("VatCategory"))
+    ));
+    invalid(
+        &change(
+            XML,
+            &format!("{ROOT}/cac:InvoiceLine[2]/cac:Item/cac:ClassifiedTaxCategory/cbc:ID"),
+            "UNKNOWN",
+        ),
+        "LineVatCategory",
+    );
+}

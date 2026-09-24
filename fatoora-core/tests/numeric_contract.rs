@@ -425,3 +425,35 @@ fn supplied_line_total_is_checked_before_accepting_computed_vat() {
     assert_eq!(details["issues"][0]["supplied"], "1.01");
     assert_eq!(details["issues"][0]["expected"], "1");
 }
+
+#[test]
+fn nonstandard_vat_adjustments_preserve_category_and_amounts_on_import() {
+    use fatoora_core::invoice::xml::parse::parse_finalized_invoice_xml;
+    for category in [
+        VatCategory::Zero,
+        VatCategory::Exempt,
+        VatCategory::OutOfScope,
+    ] {
+        let invoice = invoice_builder_for_adjustments()
+            .vat_category(category)
+            .line_item(LineItem::new("Service", d("2"), "PCE", d("50"), d("0"), category).unwrap())
+            .invoice_level_discount(d("10"))
+            .invoice_level_charge(d("5"))
+            .allowance_reason("Contract adjustment")
+            .build()
+            .unwrap();
+        let imported = parse_finalized_invoice_xml(&invoice.to_xml().unwrap()).unwrap();
+        assert_eq!(imported.data().vat_category(), category);
+        assert_eq!(
+            imported.data().allowance_reason(),
+            Some("Contract adjustment")
+        );
+        assert_eq!(imported.totals().taxable_amount(), d("95"));
+        assert_eq!(imported.totals().tax_amount(), d("0"));
+        assert_eq!(imported.totals().payable_amount(), d("95"));
+        let groups = imported.totals().vat_breakdown();
+        assert_eq!(groups.len(), 1);
+        assert_eq!(groups[0].category(), category);
+        assert_eq!(groups[0].rate(), d("0"));
+    }
+}
