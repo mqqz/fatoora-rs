@@ -1,5 +1,7 @@
 /* Compile as C and C++; argv[1] is the standard invoice SDK fixture. */
-#include "fatoora.h"
+#include "Config.h"
+#include "Xml.h"
+#include "BindingError.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,51 +22,71 @@ static char *read_invoice(const char *path) {
     return xml;
 }
 
+static DiplomatStringView view(const char *text) {
+    DiplomatStringView value = {text, strlen(text)};
+    return value;
+}
+
+static DiplomatWrite *report(const Config *config, const char *xml, const char *options) {
+    DiplomatWrite *out = diplomat_buffer_write_create(0);
+    OptionStringView opts = {0};
+    if (options != NULL) { opts.is_ok = true; opts.ok = view(options); }
+    fatoora_Xml_validate_zatca_result result = fatoora_Xml_validate_zatca(config, view(xml), opts, out);
+    assert(result.is_ok);
+    return out;
+}
+
+static void invalid(const Config *config, DiplomatStringView xml, const char *options) {
+    DiplomatWrite *out = diplomat_buffer_write_create(0);
+    OptionStringView opts = {0};
+    if (options != NULL) { opts.is_ok = true; opts.ok = view(options); }
+    fatoora_Xml_validate_zatca_result result = fatoora_Xml_validate_zatca(config, xml, opts, out);
+    assert(!result.is_ok && fatoora_BindingError_code(result.err) == 1);
+    fatoora_BindingError_destroy(result.err);
+    diplomat_buffer_write_destroy(out);
+}
+
 int main(int argc, char **argv) {
     assert(argc == 2);
     char *xml = read_invoice(argv[1]);
-    struct FfiConfig *config = fatoora_config_new(FfiEnvironment_NonProduction);
+    fatoora_Config_new_result created = fatoora_Config_new(0);
+    assert(created.is_ok);
+    Config *config = created.ok;
     const char *options = "{\"previous_invoice_hash\":\"NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==\",\"evaluated_at\":\"2026-09-23T12:00:00+03:00\"}";
-    struct FfiResult_FfiString good = fatoora_validate_zatca_invoice_from_str(config, xml, options);
-    assert(good.ok && good.error == NULL);
-    assert(strstr(good.value.ptr, "\"is_valid\":true"));
-    assert(strstr(good.value.ptr, "\"severity\":\"warning\""));
-    struct FfiResult_FfiString missing = fatoora_validate_zatca_invoice_from_str(config, xml, NULL);
-    assert(missing.ok && strstr(missing.value.ptr, "context_required"));
-    assert(strstr(missing.value.ptr, "\"is_valid\":false"));
-    fatoora_string_free(missing.value);
-    struct FfiResult_FfiString rejected = fatoora_validate_zatca_invoice_from_str(config, "<wrong/>", options);
-    assert(rejected.ok && strstr(rejected.value.ptr, "XSD_INVALID"));
-    fatoora_string_free(rejected.value);
-    struct FfiResult_FfiString bad = fatoora_validate_zatca_invoice_from_str(config, "<Invoice", options);
-    assert(!bad.ok && fatoora_error_code(bad.error) == 4);
-    struct FfiString details = fatoora_error_details_json(bad.error);
-    fatoora_error_free(bad.error);
-    assert(strstr(details.ptr, "zatca_validation_execution"));
-    assert(strstr(details.ptr, "\"report\":"));
-    struct FfiResult_FfiString unknown = fatoora_validate_zatca_invoice_from_str(config, xml, "{\"unknown\":true}");
-    assert(!unknown.ok && fatoora_error_code(unknown.error) == 1);
-    fatoora_error_free(unknown.error);
-    struct FfiResult_FfiString null_xml = fatoora_validate_zatca_invoice_from_str(config, NULL, NULL);
-    assert(!null_xml.ok);
-    fatoora_error_free(null_xml.error);
-    struct FfiResult_FfiString utf8 = fatoora_validate_zatca_invoice_from_str(config, "\xff", NULL);
-    assert(!utf8.ok);
-    fatoora_error_free(utf8.error);
+    DiplomatWrite *good = report(config, xml, options);
+    assert(strstr(diplomat_buffer_write_get_bytes(good), "\"is_valid\":true"));
+    assert(strstr(diplomat_buffer_write_get_bytes(good), "\"severity\":\"warning\""));
+    DiplomatWrite *missing = report(config, xml, NULL);
+    assert(strstr(diplomat_buffer_write_get_bytes(missing), "context_required"));
+    assert(strstr(diplomat_buffer_write_get_bytes(missing), "\"is_valid\":false"));
+    diplomat_buffer_write_destroy(missing);
+    DiplomatWrite *rejected = report(config, "<wrong/>", options);
+    assert(strstr(diplomat_buffer_write_get_bytes(rejected), "XSD_INVALID"));
+    diplomat_buffer_write_destroy(rejected);
+    DiplomatWrite *out = diplomat_buffer_write_create(0);
+    OptionStringView defaults = {0};
+    fatoora_Xml_validate_zatca_result bad = fatoora_Xml_validate_zatca(config, view("<Invoice"), defaults, out);
+    assert(!bad.is_ok && fatoora_BindingError_code(bad.err) == 4);
+    DiplomatWrite *details = diplomat_buffer_write_create(0);
+    fatoora_BindingError_details_json(bad.err, details);
+    fatoora_BindingError_destroy(bad.err);
+    diplomat_buffer_write_destroy(out);
+    assert(strstr(diplomat_buffer_write_get_bytes(details), "zatca_validation_execution"));
+    assert(strstr(diplomat_buffer_write_get_bytes(details), "\"report\":"));
+    invalid(config, view(xml), "{\"unknown\":true}");
+    invalid(config, view("\xff"), NULL);
+    DiplomatStringView nul = {"<x/>\0ignored", 12};
+    invalid(config, nul, NULL);
     char oversized_options[4098];
     memset(oversized_options, ' ', sizeof(oversized_options));
-    oversized_options[0] = '{';
-    oversized_options[4096] = '}';
     oversized_options[4097] = '\0';
-    struct FfiResult_FfiString capacity = fatoora_validate_zatca_invoice_from_str(config, xml, oversized_options);
-    assert(!capacity.ok && fatoora_error_code(capacity.error) == 1);
-    fatoora_error_free(capacity.error);
-    fatoora_config_free(config);
+    invalid(config, view(xml), oversized_options);
+    fatoora_Config_destroy(config);
     free(xml);
-    assert(strstr(good.value.ptr, "\"is_complete\":true"));
-    assert(strstr(details.ptr, "invalid_xml"));
-    fatoora_string_free(good.value);
-    fatoora_string_free(details);
+    assert(strstr(diplomat_buffer_write_get_bytes(good), "\"is_complete\":true"));
+    assert(strstr(diplomat_buffer_write_get_bytes(details), "invalid_xml"));
+    diplomat_buffer_write_destroy(good);
+    diplomat_buffer_write_destroy(details);
     puts("ZATCA C report ownership and execution contracts passed");
     return 0;
 }

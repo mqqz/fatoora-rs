@@ -95,13 +95,12 @@ def test_invalid_inputs_cannot_silently_truncate_or_succeed():
                 validate_zatca_invoice_from_str(config, **kwargs)
 
 
-def test_fallback_header_declares_owned_report(monkeypatch):
-    import fatoora._lib as module
 
-    monkeypatch.setattr(module, "_find_header", lambda: None)
-    bindings = module.FfiLibrary()
-    result = bindings.lib.fatoora_validate_zatca_invoice_from_str(
-        bindings.ffi.NULL, b"<x/>", bindings.ffi.NULL
-    )
-    assert not result.ok
-    bindings.lib.fatoora_error_free(result.error)
+def test_generated_report_rejects_unknown_and_oversized_options():
+    from fatoora import _native
+
+    config = _native.Config.new(0)
+    for options in ('{"unknown":true}', ' ' * 4097):
+        with pytest.raises(Exception) as caught:
+            _native.Xml.validate_zatca(config, "<x/>", options)
+        assert caught.value.args[0].code() == 1

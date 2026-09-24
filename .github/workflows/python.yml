@@ -64,10 +64,10 @@ jobs:
         run: cargo build -p fatoora-ffi --release --locked
 
       - name: Install bindings
-        run: uv pip install --python .venv/bin/python -e bindings/python[dev]
+        run: uv pip install --python .venv/bin/python bindings/python[dev]
 
       - name: Run tests
-        run: uv run --python .venv/bin/python pytest bindings/python/tests
+        run: .venv/bin/python -m pytest bindings/python/tests
 
   build-wheels:
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'release/')

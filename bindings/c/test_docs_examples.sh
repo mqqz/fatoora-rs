@@ -2,7 +2,7 @@
 set -euo pipefail
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-include_dir="${root_dir}/fatoora-ffi/include"
+include_dir="${root_dir}/bindings/c"
 lib_dir="${root_dir}/target/debug"
 examples_dir="${root_dir}/bindings/c/examples"
 csr_props="${root_dir}/fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties"
@@ -29,7 +29,7 @@ for source in "${sources[@]}"; do
   base_name="$(basename "${source}" .c)"
   output="${examples_dir}/${base_name}"
   outputs+=("${output}")
-  cc ${CFLAGS:-} \
+  cc -std=c11 -Wall -Wextra -Werror ${CFLAGS:-} \
     -DFATOORA_DOC_CSR_PROPS="\"${csr_props}\"" \
     -DFATOORA_DOC_SIGNED_XML="\"${signed_xml}\"" \
     -DFATOORA_DOC_INVOICE_XML="\"${invoice_xml}\"" \

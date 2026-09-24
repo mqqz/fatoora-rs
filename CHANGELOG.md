@@ -5,12 +5,24 @@
 This release breaks compatibility with 0.1.x in Rust, the C ABI, Python, and
 serialized invoice data. Upgrade bindings and their native library together.
 
+### Added
+
+- Diplomat-generated C, C++, and Python native bindings for invoices, signing,
+  keys, CSRs, credentials, and HTTP responses. See the
+  [binding workflow](docs/development/diplomat.md).
+
 ### Breaking changes
+
+- The handwritten C ABI is replaced by generated `fatoora_Type_method` symbols.
+  Recompile C/C++ clients against the matching generated headers. Python retains
+  its high-level API but removes `FfiLibrary`, the CFFI loader, and custom library
+  or header environment overrides; wheels bundle their native implementation.
 
 - Invoice numbers use the crate-owned `Decimal` type. Rust callers construct
   values from strings or integers; JSON encodes them as decimal strings. Python
   accepts `decimal.Decimal`, `str`, or `int` and rejects floats. C numeric inputs
-  are UTF-8 strings, and numeric getters return owned strings. See the
+  are length-delimited UTF-8 strings; numeric getters write decimal text to
+  `DiplomatWrite`. See the
   [numeric migration guide](docs/reference/numbers.md#bindings-and-migration).
 - Rust `InvoiceBuilder` configuration methods consume and return the builder.
   Chain calls or assign their result back. `build()` consumes the builder on
@@ -42,8 +54,9 @@ serialized invoice data. Upgrade bindings and their native library together.
   including half-up rounding, VAT category aggregation, supplied line VAT,
   prepayments, and payable-rounding adjustments.
 - Enforce validated wrapper invariants during deserialization and expose
-  structured invoice validation reports. Rust XML validation covers XSD;
-  complete ZATCA business-rule validation remains separate work.
+  structured invoice validation reports. Local ZATCA validation covers XSD,
+  all 257 CEN/KSA assertions, and applicable integrity checks; reports retain
+  missing-context and execution-failure details.
 - Preserve optional address fields during XML import and output.
 - Preserve HTTP error status and bodies, reject unexpected redirects, and
   report malformed success responses without treating them as acceptance.
@@ -68,12 +81,10 @@ serialized invoice data. Upgrade bindings and their native library together.
   assets upload only after every native build succeeds.
 - Use the Cargo lockfile for native builds. Test installed wheels by calling
   the native library, and restrict Windows wheels to the supported AMD64 target.
-- Bundle the generated ABI header in Python wheels so address constructors and
-  the complete binding declarations are available outside a source checkout.
+- Bundle the generated Nanobind extension and native library in Python wheels.
+  Ship generated C/C++ headers with the native FFI archives.
 - Repair Windows wheels for runtime-loaded DLL dependencies. Windows CLI and
   FFI ZIP archives include vcpkg DLLs and their installed license material.
   Windows CLI users should extract the complete archive before running it.
-- Require CFFI 1.17+ so Windows loads repaired wheel dependencies through the
-  registered DLL search directories.
 
 [0.2.0]: https://github.com/mqqz/fatoora-rs/compare/v0.1.3...v0.2.0

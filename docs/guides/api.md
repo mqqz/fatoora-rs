@@ -38,7 +38,7 @@ optional document is present or decodable.
 
 Non-2xx invoice responses return structured errors with `http_status`, response
 text, and parsed JSON when available. Python exposes these in `error.details`;
-C exposes them through `fatoora_error_details_json`.
+C exposes them through `fatoora_BindingError_details_json`.
 
 ## Notes
 

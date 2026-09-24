@@ -139,19 +139,19 @@ in `ZatcaError::NotAccepted`.
 
 ## Contract coverage
 
-- [Public consumer workflows](../../fatoora-core/tests/public_api.rs):
+- [Public consumer workflows](https://github.com/mqqz/fatoora-rs/blob/main/fatoora-core/tests/public_api.rs):
   construction, direct serialization, import/signing, validation, and structured
   failures.
-- [Compile-fail consumers](../../fatoora-core/tests/ui/public_api): private
+- [Compile-fail consumers](https://github.com/mqqz/fatoora-rs/tree/main/fatoora-core/tests/ui/public_api): private
   helpers, removed traits/aliases, sealed roles, and signed XML formatting.
-- [Public submission](../../fatoora-core/tests/public_submission.rs): local HTTP
+- [Public submission](https://github.com/mqqz/fatoora-rs/blob/main/fatoora-core/tests/public_submission.rs): local HTTP
   requests, credentials, payloads, acceptance, business rejection, HTTP rejection,
   compliance, and cleared XML. Child processes isolate the endpoint override.
-- [Builder ownership](../../fatoora-core/tests/builder_ownership.rs),
-  [signed XML ownership](../../fatoora-core/tests/signed_xml_ownership.rs), and
-  [numeric contracts](../../fatoora-core/tests/numeric_contract.rs) cover values
+- [Builder ownership](https://github.com/mqqz/fatoora-rs/blob/main/fatoora-core/tests/builder_ownership.rs),
+  [signed XML ownership](https://github.com/mqqz/fatoora-rs/blob/main/fatoora-core/tests/signed_xml_ownership.rs), and
+  [numeric contracts](https://github.com/mqqz/fatoora-rs/blob/main/fatoora-core/tests/numeric_contract.rs) cover values
   and ownership in more detail.
-- [Examples](../../fatoora-core/examples) compile as external consumers. The live
+- [Examples](https://github.com/mqqz/fatoora-rs/tree/main/fatoora-core/examples) compile as external consumers. The live
   API example test is ignored by default and requires explicit opt-in.
 
 Run the offline workspace checks with:
@@ -163,8 +163,8 @@ SKIP_ZATCA_LIVE_API=1 CARGO_INCREMENTAL=0 cargo test --workspace --locked --offl
 The live API tests are skipped by that environment variable. SDK compatibility
 coverage remains tracked separately in issue #2. Binding migration remains in
 issue #5. The FFI uses these core methods; its authoritative declarations are the
-[generated header](../../fatoora-ffi/include/fatoora_ffi.h) and
-[exports](../../fatoora-ffi/src/lib.rs), rather than a duplicate signature list here.
+[generated headers](https://github.com/mqqz/fatoora-rs/tree/main/bindings/c) and
+[exports](https://github.com/mqqz/fatoora-rs/blob/main/fatoora-ffi/src/lib.rs), rather than a duplicate signature list here.
 
 ## Migration
 

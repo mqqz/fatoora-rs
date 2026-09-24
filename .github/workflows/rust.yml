@@ -47,6 +47,12 @@ jobs:
         run: cargo fmt --all -- --check
       - name: Clippy
         run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+      - name: Check generated bindings and native contracts
+        run: |
+          cargo install diplomat-tool --version 0.16.1 --locked
+          python3 scripts/generate_bindings.py --check
+          python3 scripts/check_native_bindings.py
+          python3 scripts/check_c_reference.py
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Test release checks and SDK capture harness

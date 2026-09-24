@@ -1,12 +1,13 @@
 ## fatoora Python bindings
 
-This package wraps the `fatoora-ffi` shared library via `cffi`.
+This package wraps Diplomat-generated native bindings with the public `fatoora`
+Python API. See [Diplomat bindings](../../docs/development/diplomat.md).
 
 ### Development (uv)
 
 ```bash
 uv venv
-uv pip install -e .
+uv pip install .
 ```
 
 ### Build a wheel (uv)
@@ -24,12 +25,11 @@ uv build --wheel
 
 - The build step compiles `fatoora-ffi` with `cargo build -p fatoora-ffi --release`.
 - The shared library is bundled into the Python package.
+- Building the native extension requires CMake and a C++20 compiler. Nanobind is
+  pinned in the build dependencies. Reinstall the package after native changes.
 - ZATCA API responses are exposed via opaque handles with getters (no JSON payloads).
 - Errors are raised as typed exceptions mapped from FFI error codes (see `FfiErrorKind`). Each exception exposes `.code`, `.kind`, and `.details`, a dictionary containing structured validation issues or diagnostics. Unknown codes remain available on a generic `FfiError`.
-- For local dev without install, set `FATOORA_FFI_PATH` or build and use the repo `target/` output.
-- If a `fatoora_ffi.h` header is present (from `FATOORA_CBINDGEN=1 cargo build -p fatoora-ffi`),
-  the Python wrapper will load its declarations automatically. You can override the header with
-  `FATOORA_FFI_HEADER=/path/to/fatoora_ffi.h`.
+- Reinstall the package after changes; the extension loads its bundled shared library.
 
 ### Examples
 

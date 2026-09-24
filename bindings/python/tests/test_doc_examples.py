@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import runpy
-import os
 from pathlib import Path
 
 
@@ -12,6 +11,7 @@ def test_doc_examples_run() -> None:
     examples = sorted(EXAMPLES_DIR.glob("*.py"))
     assert examples, "expected Python doc examples to exist"
     for example in examples:
-        if example.name == "api.py" and os.environ.get("SKIP_ZATCA_LIVE_API"):
+        # The HTTP example is covered by the local gateway response tests.
+        if example.name == "api.py":
             continue
         runpy.run_path(str(example), run_name="__main__")

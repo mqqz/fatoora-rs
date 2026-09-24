@@ -72,20 +72,32 @@ meaning; private diagnostic fields can grow behind accessors.
 
 ## C ownership
 
-`FfiError` is opaque. Access it only through these functions:
+`BindingError` is opaque. Include `BindingError.h` and use its generated accessors:
 
 ```c
-int32_t fatoora_error_code(struct FfiError *error);
-struct FfiString fatoora_error_message(struct FfiError *error);
-struct FfiString fatoora_error_details_json(struct FfiError *error);
-void fatoora_error_free(struct FfiError *error);
+int32_t fatoora_BindingError_code(const BindingError *error);
+void fatoora_BindingError_message(const BindingError *error, DiplomatWrite *out);
+void fatoora_BindingError_details_json(const BindingError *error, DiplomatWrite *out);
+void fatoora_BindingError_destroy(BindingError *error);
 ```
 
-A failed `FfiResult` owns an error handle. Free it exactly once. Each message or
-JSON accessor returns a separate UTF-8, NUL-terminated string; free each copy with
-`fatoora_string_free`. Copies remain valid after freeing the error handle.
-Embedded NULs in messages are displayed as `\0`; JSON preserves them as escapes.
-A null error handle returns code zero and null strings; freeing null is allowed.
+A failed generated result has `is_ok == false` and owns the `err` pointer in its
+union. Inspect the discriminator before reading that member, and destroy the
+error exactly once. Accessors require a valid live error; null is not an error
+sentinel accepted by the accessors.
+
+Message and JSON accessors write UTF-8 into a caller-supplied `DiplomatWrite`.
+For a growable writer, use `diplomat_buffer_write_create`, read its bytes with
+`diplomat_buffer_write_get_bytes` and `diplomat_buffer_write_len`, then call
+`diplomat_buffer_write_destroy`. Check the writer's `grow_failed` field because
+these accessors return void. Output belongs to the writer and remains valid after
+the error is destroyed; copy it before destroying the writer. Embedded NULs in
+messages are displayed as `\0`; JSON preserves them as escapes.
+
+Generated C++ bindings return an owned `BindingError` through the result's
+`.err()` value. Its `code()`, `message()`, and `details_json()` accessors expose the
+same data. `std::unique_ptr` releases the error; returned strings own their text.
+See the [C/C++ examples](bindings/c.md).
 
 Fallible C entrypoints catch unwinding Rust panics and return `Internal`.
 Builds using `panic=abort`, allocation failure, and invalid foreign pointers
@@ -156,7 +168,7 @@ Message-only failures use `diagnostics` containing a message. Their types are
 
 Types without additional fields are `invalid_decimal`, `decimal_out_of_range`,
 `missing_seller_vat`, `missing_seller_name`, `missing_buyer_id`, and
-`invalid_vat_format`. FFI-specific failures use `{"type":"error"}` with the
+`invalid_vat_format`. FFI-specific failures use `{"type":"binding_error"}` with the
 classification and message available through their accessors.
 
 Diagnostic location fields may be absent or null. File paths are converted to
@@ -198,7 +210,7 @@ details object has type `zatca_validation_execution` and these fields:
 
 The `rule_evaluation` classification describes interrupted execution. Ordinary
 business-rule violations remain findings in a successfully returned report.
-For C, `FfiResult_FfiString.ok` therefore describes whether a report was returned;
+For C, `fatoora_Xml_validate_zatca_result.is_ok` therefore describes whether a report was returned;
 it does not replace `is_valid`. Python raises the mapped exception for execution
 failures and exposes the partial report at `error.details["report"]`.
 
@@ -237,13 +249,18 @@ Convert an operation's error with `?` or `.into()`.
 
 Replace `signer.certificate()` with `signer.certificate_der()` or
 `signer.certificate_pem()`. These return owned bytes or text and `SigningError`
-on failure. C and Python retain their existing certificate export functions.
+on failure. Python retains its certificate export methods; C uses
+`fatoora_Signer_certificate_der` and `fatoora_Signer_certificate_pem`.
 
 `InvoiceFlags` now wraps its bitflags implementation privately. Its constants
 and bit operations remain available through crate-owned types. JSON representation
 and iteration are preserved. Code that used the `bitflags::Flags` trait or named bitflags
 iterator types must use the `InvoiceFlags` methods and owned iterators instead.
 
-Rebuild bindings against the matching library and generated headers. Code that
-accessed `FfiError` fields directly must use the accessors. Bindings must not
-allocate error handles or depend on their layout.
+The generated C ABI is a breaking replacement. Recompile against matching
+headers in `bindings/c` or `bindings/cpp`. Replace `FfiResult` handling with the
+per-function result's `is_ok` discriminator and `ok`/`err` union members. Replace
+`FfiError` accessors with `fatoora_BindingError_*`, text-buffer frees with
+`DiplomatWrite` ownership, and owned-object `*_free` calls with generated
+`*_destroy` functions. Error objects must be created by the library; their layout
+is private. The old headers and symbols are no longer available.

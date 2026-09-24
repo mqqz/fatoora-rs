@@ -1,14 +1,6 @@
-from __future__ import annotations
+# --8<-- [start:example]
+from fatoora import Config, Environment
 
-from fatoora import FfiLibrary
-
-
-def main() -> None:
-    ffi = FfiLibrary()
-    cfg = ffi.lib.fatoora_config_new(0)
-    print("config handle:", cfg)
-    ffi.lib.fatoora_config_free(cfg)
-
-
-if __name__ == "__main__":
-    main()
+with Config(Environment.NON_PRODUCTION) as config:
+    assert config.env() == Environment.NON_PRODUCTION
+# --8<-- [end:example]

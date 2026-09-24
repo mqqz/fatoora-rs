@@ -1,11 +1,15 @@
 # Configuration
 
+See [C and C++ bindings](bindings/c.md) for ownership rules and text output.
+The declarations below come from the generated headers. C++ exposes the same types
+in namespace `fatoora` through `fatoora/Type.hpp` headers.
+
 There are three main "environments" which are required to determine which ZATCA API endpoint to use.
 Additionally, the type of environment changes the signing/validation process slightly.
 
 - "Non-Production"
       Sometimes also called the "Sandbox". It's open to anyone to use without registration for
-      initial testing. It's a dummy environment with mainly hardcoded values and responses. For 
+      initial testing. It's a dummy environment with mainly hardcoded values and responses. For
       instance, the OTP "123345" is always considered valid.
 
       Endpoint: ["https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal/"]
@@ -17,10 +21,13 @@ Additionally, the type of environment changes the signing/validation process sli
       Endpoint: ["https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation/"]
 
 - "Production":
-      This is the real deal environment for in-production systems where real invoices are to be 
+      This is the real deal environment for in-production systems where real invoices are to be
       reported.
 
       Endpoint: ["https://gw-fatoora.zatca.gov.sa/e-invoicing/core/"]
+
+C constructors accept `uint8_t` environment values: `0` for non-production,
+`1` for simulation, and `2` for production. Other values return an error.
 
 ## Environment
 
@@ -41,7 +48,7 @@ Additionally, the type of environment changes the signing/validation process sli
 
     === "{{ lang.c }}"
         ```c
-        /* parse is not exposed in C; use FfiEnvironment enum constants directly */
+        /* Pass uint8_t: 0 = non-production, 1 = simulation, 2 = production. */
         ```
 
 ### `as_str`
@@ -103,7 +110,9 @@ Additionally, the type of environment changes the signing/validation process sli
 
     === "{{ lang.c }}"
         ```c
-        FfiConfig* fatoora_config_new(FfiEnvironment env);
+        #include "Config.h"
+
+        fatoora_Config_new_result fatoora_Config_new(uint8_t env);
         ```
 
 ### `env`
@@ -123,7 +132,9 @@ Additionally, the type of environment changes the signing/validation process sli
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiEnvironment fatoora_config_env(FfiConfig* config);
+        #include "Config.h"
+
+        uint8_t fatoora_Config_env(const Config* self);
         ```
 
 ### `default`
@@ -143,5 +154,7 @@ Additionally, the type of environment changes the signing/validation process sli
 
     === "{{ lang.c }}"
         ```c
-        /* call fatoora_config_new(FfiEnvironment_NonProduction) */
+        #include "Config.h"
+
+        fatoora_Config_new_result fatoora_Config_new(uint8_t env);
         ```

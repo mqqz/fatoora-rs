@@ -1,5 +1,9 @@
 # XML
 
+See [C and C++ bindings](bindings/c.md) for ownership rules and text output.
+The declarations below come from the generated headers. C++ exposes the same types
+in namespace `fatoora` through `fatoora/Type.hpp` headers.
+
 Serialization and parsing helpers for invoice XML.
 
 ## FinalizedInvoice serialization
@@ -27,7 +31,9 @@ Migration: remove `ToXml` imports and replace `to_xml_pretty()` with `to_xml()`.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_invoice_to_xml(FfiFinalizedInvoice* invoice);
+        #include "FinalizedInvoice.h"
+
+        fatoora_FinalizedInvoice_xml_result fatoora_FinalizedInvoice_xml(const FinalizedInvoice* self, DiplomatWrite* write);
         ```
 
 ### `to_xml_with_format`
@@ -68,14 +74,16 @@ Migration: remove `ToXml` imports and replace `to_xml_pretty()` with `to_xml()`.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_invoice_to_xml(FfiFinalizedInvoice* invoice);
+        #include "FinalizedInvoice.h"
+
+        fatoora_FinalizedInvoice_xml_result fatoora_FinalizedInvoice_xml(const FinalizedInvoice* self, DiplomatWrite* write);
         ```
 
 ## SignedInvoice
 
 Migration: replace Rust `signed.to_xml()?` with `signed.xml()` for a borrow or
 `signed.into_xml()` to take ownership. The C copying accessor was renamed from
-`fatoora_signed_invoice_xml` to `fatoora_signed_invoice_to_xml`; rebuild C callers
+`fatoora_SignedInvoice_xml` to `fatoora_SignedInvoice_xml`; rebuild C callers
 and bindings against the matching header and library.
 
 Imported signed invoices retain the exact supplied XML string. Newly signed
@@ -83,7 +91,8 @@ invoices retain the exact output of signing. Accessors never reformat it.
 Parsing signed XML does not verify its signature.
 
 Rust `xml()` borrows the stored string. C `to_xml` and Python `xml()` return
-independent copies. Release C strings with `fatoora_string_free`.
+independent copies. C writes text into `DiplomatWrite`; release buffer writers with
+`diplomat_buffer_write_destroy`.
 
 ### `xml`
 
@@ -101,7 +110,9 @@ independent copies. Release C strings with `fatoora_string_free`.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_to_xml(FfiSignedInvoice* signed);
+        #include "SignedInvoice.h"
+
+        fatoora_SignedInvoice_xml_result fatoora_SignedInvoice_xml(const SignedInvoice* self, DiplomatWrite* write);
         ```
 
 ### `into_xml`
@@ -116,8 +127,9 @@ SignedInvoice::into_xml(self) -> String
 ```
 
 ```c
-FfiResult_FfiString fatoora_signed_invoice_into_xml(FfiSignedInvoice* signed);
-/* Release the returned string with fatoora_string_free. */
+#include "SignedInvoice.h"
+
+fatoora_SignedInvoice_into_xml_result fatoora_SignedInvoice_into_xml(SignedInvoice* self, DiplomatWrite* write);
 ```
 
 ```python
@@ -144,8 +156,10 @@ SignedInvoice.into_xml() -> str
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiFinalizedInvoice fatoora_parse_finalized_invoice_xml(const char* xml);
-        FfiResult_FfiFinalizedInvoice fatoora_parse_finalized_invoice_xml_file(const char* path);
+        #include "FinalizedInvoice.h"
+
+        fatoora_FinalizedInvoice_from_xml_result fatoora_FinalizedInvoice_from_xml(DiplomatStringView value);
+        fatoora_FinalizedInvoice_from_file_result fatoora_FinalizedInvoice_from_file(DiplomatStringView value);
         ```
 
 ## `parse_signed_invoice_xml` / `parse_signed_invoice_xml_file`
@@ -168,8 +182,10 @@ SignedInvoice.into_xml() -> str
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiSignedInvoice fatoora_parse_signed_invoice_xml(const char* xml);
-        FfiResult_FfiSignedInvoice fatoora_parse_signed_invoice_xml_file(const char* path);
+        #include "SignedInvoice.h"
+
+        fatoora_SignedInvoice_from_xml_result fatoora_SignedInvoice_from_xml(DiplomatStringView value);
+        fatoora_SignedInvoice_from_file_result fatoora_SignedInvoice_from_file(DiplomatStringView value);
         ```
 
 ## Types

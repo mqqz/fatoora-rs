@@ -1,60 +1,29 @@
 /* --8<-- [start:example] */
-#include "fatoora.h"
-
+#include "SignedInvoice.h"
+#include "BindingError.h"
 #include <assert.h>
 #include <stdio.h>
-#include <stdlib.h>
-
-#ifndef FATOORA_DOC_INVOICE_XML
-#define FATOORA_DOC_INVOICE_XML "path/to/invoice.xml"
+#include <string.h>
+#ifndef FATOORA_DOC_SIGNED_XML
+#define FATOORA_DOC_SIGNED_XML "path/to/signed_invoice.xml"
 #endif
-
-static char *read_file(const char *path);
-
+static DiplomatStringView s(const char *v) { return (DiplomatStringView){v,strlen(v)}; }
+#include "Config.h"
+#include "Xml.h"
 int main(void) {
-  const char *invoice_xml_path = FATOORA_DOC_INVOICE_XML;
-  char *xml_cstr = read_file(invoice_xml_path);
-  struct FfiConfig *config = fatoora_config_new(FfiEnvironment_NonProduction);
-
-  /* invoice_xml_path = "path/to/invoice.xml" */
-  struct FfiResult_bool result =
-      fatoora_validate_xml_invoice_from_str(config, xml_cstr);
-
-  assert(result.value);
-
-  // you know the drill by now
-  free(xml_cstr);
-  fatoora_config_free(config);
-  return 0;
+    fatoora_Config_new_result config = fatoora_Config_new(0);
+    assert(config.is_ok);
+    fatoora_SignedInvoice_from_file_result invoice = fatoora_SignedInvoice_from_file(s(FATOORA_DOC_SIGNED_XML));
+    assert(invoice.is_ok);
+    DiplomatWrite *xml = diplomat_buffer_write_create(0);
+    fatoora_SignedInvoice_xml_result copied = fatoora_SignedInvoice_xml(invoice.ok, xml);
+    assert(copied.is_ok);
+    fatoora_SignedInvoice_destroy(invoice.ok);
+    DiplomatStringView view = {(const char *)diplomat_buffer_write_get_bytes(xml), diplomat_buffer_write_len(xml)};
+    fatoora_Xml_validate_result valid = fatoora_Xml_validate(config.ok, view);
+    assert(valid.is_ok && valid.ok);
+    diplomat_buffer_write_destroy(xml);
+    fatoora_Config_destroy(config.ok);
+    return 0;
 }
 /* --8<-- [end:example] */
-
-static char *read_file(const char *path) {
-  FILE *fp = fopen(path, "rb");
-  if (!fp) {
-    return NULL;
-  }
-  if (fseek(fp, 0, SEEK_END) != 0) {
-    fclose(fp);
-    return NULL;
-  }
-  long size = ftell(fp);
-  if (size < 0) {
-    fclose(fp);
-    return NULL;
-  }
-  rewind(fp);
-  char *buffer = malloc((size_t)size + 1);
-  if (!buffer) {
-    fclose(fp);
-    return NULL;
-  }
-  if (fread(buffer, 1, (size_t)size, fp) != (size_t)size) {
-    fclose(fp);
-    free(buffer);
-    return NULL;
-  }
-  buffer[size] = '\0';
-  fclose(fp);
-  return buffer;
-}

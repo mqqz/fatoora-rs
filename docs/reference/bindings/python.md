@@ -1,6 +1,6 @@
 # Python Bindings
 
-The Python package wraps the `fatoora-ffi` shared library via `cffi`.
+The Python package wraps the `fatoora-ffi` shared library via a Diplomat-generated Nanobind extension.
 
 ## Notes
 - Errors are raised as typed exceptions mapped from FFI error codes (see `FfiErrorKind`).
