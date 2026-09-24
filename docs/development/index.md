@@ -16,12 +16,12 @@ We prioritize:
 ## Quick Start
 There are two main ways to use `fatoora-rs`:
 
-- **CLI**: Best for quick validation, local workflows, and CI scripts. 
+- **CLI**: Best for quick validation, local workflows, and CI scripts.
 
     See the Guides for install and usage examples.
 
-- **Library**: Use the Rust crate directly, or use language bindings that wrap the shared FFI. 
-    
+- **Library**: Use the Rust crate directly, or use language bindings that wrap the shared FFI.
+
     This is typically the case for integrating into applications or services.
 
 ## Build the FFI shared library
@@ -43,19 +43,19 @@ Diplomat generates checked-in C/C++ headers and Python native sources. Follow th
 Use this flow for any new public capability:
 
 1. Add or change the Rust API in `fatoora-core`.
-2. Expose it in `fatoora-ffi` (prefer the macros in `fatoora-ffi/src/macros.rs`).
+2. Expose it in `fatoora-ffi` through a Diplomat bridge module.
 3. Regenerate headers (see above).
 4. Update language bindings (Python, C/C++) to wrap the new symbols.
 5. Add or update binding tests and docs.
 
 FFI conventions:
-- Use opaque handles and `*_free` functions for ownership.
-- Return `FfiResult<T>` everywhere and map errors via `FfiErrorKind`.
+- Use opaque owners and generated `*_destroy` functions for ownership.
+- Return generated results with owned `BindingError` values for fallible calls.
 
 ## API audit
 See `docs/development/api-audit.md` for the current core/FFI surface, proposed shape, and issues to address.
 
-## Python 
+## Python
 
 ### Python bindings (uv)
 ```bash
@@ -75,7 +75,7 @@ uv run --python .venv/bin/python pytest bindings/python/tests
 ```
 
 
-## See also 
+## See also
 
 - [Contributing](../contributing.md)
 

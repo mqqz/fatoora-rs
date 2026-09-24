@@ -7,6 +7,5 @@ pkg:
   python: fatoora
   c: fatoora
 ffi:
-  free_error: fatoora_error_free
-  free_string: fatoora_string_free
-  free_result: fatoora_result_free
+  free_error: fatoora_BindingError_destroy
+  free_writer: diplomat_buffer_write_destroy

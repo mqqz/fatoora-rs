@@ -1,7 +1,11 @@
 # ZATCA API Client
 
+See [C and C++ bindings](bindings/c.md) for ownership rules and text output.
+The declarations below come from the generated headers. C++ exposes the same types
+in namespace `fatoora` through `fatoora/Type.hpp` headers.
+
 The HTTP client is the main way to contact ZATCA's official fatoora platform API.
-Please do read the [ZATCA Official API Gateway](https://sandbox.zatca.gov.sa/IntegrationSandbox) 
+Please do read the [ZATCA Official API Gateway](https://sandbox.zatca.gov.sa/IntegrationSandbox)
 for more details.
 
 ## ZatcaClient
@@ -22,7 +26,9 @@ for more details.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiZatcaClient fatoora_zatca_client_new(FfiConfig* config);
+        #include "ZatcaClient.h"
+
+        fatoora_ZatcaClient_create_result fatoora_ZatcaClient_create(const Config* config);
         ```
 
 ### `post_csr_for_ccsid`
@@ -41,7 +47,9 @@ for more details.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiCsidCompliance fatoora_zatca_post_csr_for_ccsid(FfiZatcaClient* client, FfiCsr* csr, const char* otp);
+        #include "ZatcaClient.h"
+
+        fatoora_ZatcaClient_post_csr_for_ccsid_result fatoora_ZatcaClient_post_csr_for_ccsid(const ZatcaClient* self, const Csr* csr, DiplomatStringView otp);
         ```
 
 ### `post_ccsid_for_pcsid`
@@ -60,7 +68,9 @@ for more details.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiCsidProduction fatoora_zatca_post_ccsid_for_pcsid(FfiZatcaClient* client, FfiCsidCompliance* ccsid);
+        #include "ZatcaClient.h"
+
+        fatoora_ZatcaClient_post_ccsid_for_pcsid_result fatoora_ZatcaClient_post_ccsid_for_pcsid(const ZatcaClient* self, const CsidCompliance* credentials);
         ```
 
 ### `renew_csid`
@@ -79,7 +89,9 @@ for more details.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiCsidProduction fatoora_zatca_renew_csid(FfiZatcaClient* client, FfiCsidProduction* pcsid, FfiCsr* csr, const char* otp, const char* accept_language);
+        #include "ZatcaClient.h"
+
+        fatoora_ZatcaClient_renew_csid_result fatoora_ZatcaClient_renew_csid(const ZatcaClient* self, const CsidProduction* credentials, const Csr* csr, DiplomatStringView otp, OptionStringView accept_language);
         ```
 
 ### `check_invoice_compliance`
@@ -98,7 +110,9 @@ for more details.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiValidationResponse fatoora_zatca_check_invoice_compliance(FfiZatcaClient* client, FfiSignedInvoice* invoice, FfiCsidCompliance* ccsid);
+        #include "ZatcaClient.h"
+
+        fatoora_ZatcaClient_check_invoice_compliance_result fatoora_ZatcaClient_check_invoice_compliance(const ZatcaClient* self, const SignedInvoice* invoice, const CsidCompliance* credentials);
         ```
 
 ### `report_simplified_invoice`
@@ -117,7 +131,9 @@ for more details.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiValidationResponse fatoora_zatca_report_simplified_invoice(FfiZatcaClient* client, FfiSignedInvoice* invoice, FfiCsidProduction* pcsid, bool clearance_status, const char* accept_language);
+        #include "ZatcaClient.h"
+
+        fatoora_ZatcaClient_report_simplified_invoice_result fatoora_ZatcaClient_report_simplified_invoice(const ZatcaClient* self, const SignedInvoice* invoice, const CsidProduction* credentials, bool clearance_status, OptionStringView accept_language);
         ```
 
 ### `clear_standard_invoice`
@@ -136,7 +152,9 @@ for more details.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiValidationResponse fatoora_zatca_clear_standard_invoice(FfiZatcaClient* client, FfiSignedInvoice* invoice, FfiCsidProduction* pcsid, bool clearance_status, const char* accept_language);
+        #include "ZatcaClient.h"
+
+        fatoora_ZatcaClient_clear_standard_invoice_result fatoora_ZatcaClient_clear_standard_invoice(const ZatcaClient* self, const SignedInvoice* invoice, const CsidProduction* credentials, bool clearance_status, OptionStringView accept_language);
         ```
 
 ## CsidCredentials / CsidCompliance / CsidProduction
@@ -158,8 +176,11 @@ for more details.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiCsidCompliance fatoora_csid_compliance_new(FfiEnvironment env, const char* request_id, const char* token, const char* secret);
-        FfiResult_FfiCsidProduction fatoora_csid_production_new(FfiEnvironment env, const char* request_id, const char* token, const char* secret);
+        #include "CsidCompliance.h"
+        #include "CsidProduction.h"
+
+        fatoora_CsidCompliance_create_result fatoora_CsidCompliance_create(uint8_t environment, OptionStringView request_id, DiplomatStringView token, DiplomatStringView secret);
+        fatoora_CsidProduction_create_result fatoora_CsidProduction_create(uint8_t environment, OptionStringView request_id, DiplomatStringView token, DiplomatStringView secret);
         ```
 
 ### `env`
@@ -179,8 +200,11 @@ for more details.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiEnvironment fatoora_csid_compliance_env(FfiCsidCompliance* creds);
-        FfiResult_FfiEnvironment fatoora_csid_production_env(FfiCsidProduction* creds);
+        #include "CsidCompliance.h"
+        #include "CsidProduction.h"
+
+        uint8_t fatoora_CsidCompliance_env(const CsidCompliance* self);
+        uint8_t fatoora_CsidProduction_env(const CsidProduction* self);
         ```
 
 ### `request_id`
@@ -200,8 +224,11 @@ for more details.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_csid_compliance_request_id(FfiCsidCompliance* creds);
-        FfiResult_FfiString fatoora_csid_production_request_id(FfiCsidProduction* creds);
+        #include "CsidCompliance.h"
+        #include "CsidProduction.h"
+
+        fatoora_CsidCompliance_request_id_result fatoora_CsidCompliance_request_id(const CsidCompliance* self);
+        fatoora_CsidProduction_request_id_result fatoora_CsidProduction_request_id(const CsidProduction* self);
         ```
 
 ### `binary_security_token`
@@ -221,8 +248,11 @@ for more details.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_csid_compliance_binary_security_token(FfiCsidCompliance* creds);
-        FfiResult_FfiString fatoora_csid_production_binary_security_token(FfiCsidProduction* creds);
+        #include "CsidCompliance.h"
+        #include "CsidProduction.h"
+
+        fatoora_CsidCompliance_binary_security_token_result fatoora_CsidCompliance_binary_security_token(const CsidCompliance* self, DiplomatWrite* write);
+        fatoora_CsidProduction_binary_security_token_result fatoora_CsidProduction_binary_security_token(const CsidProduction* self, DiplomatWrite* write);
         ```
 
 ### `secret`
@@ -242,8 +272,11 @@ for more details.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_csid_compliance_secret(FfiCsidCompliance* creds);
-        FfiResult_FfiString fatoora_csid_production_secret(FfiCsidProduction* creds);
+        #include "CsidCompliance.h"
+        #include "CsidProduction.h"
+
+        fatoora_CsidCompliance_secret_result fatoora_CsidCompliance_secret(const CsidCompliance* self, DiplomatWrite* write);
+        fatoora_CsidProduction_secret_result fatoora_CsidProduction_secret(const CsidProduction* self, DiplomatWrite* write);
         ```
 
 ## Invoice response contract
@@ -261,8 +294,10 @@ alone does not establish invoice acceptance.
 | `cleared_invoice_base64()` | `Option<&str>` | `Optional[str]` | copied string; null if absent |
 | `cleared_invoice_xml()` | `Result<Option<String>, ZatcaError>` | `Optional[str]` or `ParseError` | copied decoded string or error; null if absent |
 
-C accessor names start with `fatoora_validation_response_`. Free copied strings
-with `fatoora_string_free`; they remain valid after the response handle is freed.
+C accessor names start with `fatoora_ValidationResponse_`. Text getters write to
+`DiplomatWrite`, or return optional owned `Text` objects. Destroy owned text with
+`fatoora_Text_destroy`; buffer writers use `diplomat_buffer_write_destroy`.
+Response children are owned copies and survive destruction of the response.
 A present but empty base64 field stays an empty string and fails decoding.
 
 Outcome uses the endpoint actually invoked: `REPORTED`/`NOT_REPORTED` for

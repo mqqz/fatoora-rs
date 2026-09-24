@@ -1,5 +1,9 @@
 # CSR
 
+See [C and C++ bindings](bindings/c.md) for ownership rules and text output.
+The declarations below come from the generated headers. C++ exposes the same types
+in namespace `fatoora` through `fatoora/Type.hpp` headers.
+
 CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
 ## CsrProperties
@@ -41,17 +45,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiCsrProperties fatoora_csr_properties_new(
-            const char* common_name,
-            const char* serial_number,
-            const char* organization_identifier,
-            const char* organization_unit_name,
-            const char* organization_name,
-            const char* country_name,
-            const char* invoice_type,
-            const char* location_address,
-            const char* industry_business_category
-        );
+        #include "CsrProperties.h"
+
+        fatoora_CsrProperties_new_result fatoora_CsrProperties_new(DiplomatStringView common_name, DiplomatStringView serial_number, DiplomatStringView organization_identifier, DiplomatStringView organization_unit_name, DiplomatStringView organization_name, DiplomatStringView country_name, DiplomatStringView invoice_type, DiplomatStringView location_address, DiplomatStringView industry_business_category);
         ```
 
 ### `from_properties_str`
@@ -71,7 +67,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiCsrProperties fatoora_csr_properties_from_str(const char* properties);
+        #include "CsrProperties.h"
+
+        fatoora_CsrProperties_from_properties_str_result fatoora_CsrProperties_from_properties_str(DiplomatStringView properties);
         ```
 
 ### `parse_csr_config`
@@ -91,7 +89,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiCsrProperties fatoora_csr_properties_parse_csr_config(const char* properties);
+        #include "CsrProperties.h"
+
+        fatoora_CsrProperties_from_properties_str_result fatoora_CsrProperties_from_properties_str(DiplomatStringView properties);
         ```
 
 ### `parse_csr_config_file`
@@ -111,7 +111,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiCsrProperties fatoora_csr_properties_parse_csr_config_file(const char* path);
+        #include "CsrProperties.h"
+
+        fatoora_CsrProperties_parse_csr_config_file_result fatoora_CsrProperties_parse_csr_config_file(DiplomatStringView path);
         ```
 
 ### `build`
@@ -131,7 +133,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiCsr fatoora_csr_build(FfiCsrProperties* props, FfiSigningKey* key, FfiEnvironment env);
+        #include "CsrProperties.h"
+
+        fatoora_CsrProperties_build_result fatoora_CsrProperties_build(const CsrProperties* self, const SigningKey* key, uint8_t env);
         ```
 
 ## SigningKey
@@ -153,7 +157,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiSigningKey fatoora_signing_key_generate(void);
+        #include "SigningKey.h"
+
+        fatoora_SigningKey_generate_result fatoora_SigningKey_generate(void);
         ```
 
 ### `from_pem`
@@ -173,7 +179,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiSigningKey fatoora_signing_key_from_pem(const char* pem);
+        #include "SigningKey.h"
+
+        fatoora_SigningKey_from_pem_result fatoora_SigningKey_from_pem(DiplomatStringView pem);
         ```
 
 ### `from_der`
@@ -193,7 +201,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiSigningKey fatoora_signing_key_from_der(const uint8_t* der, uintptr_t len);
+        #include "SigningKey.h"
+
+        fatoora_SigningKey_from_der_result fatoora_SigningKey_from_der(DiplomatU8View der);
         ```
 
 ### `to_pem`
@@ -213,7 +223,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signing_key_to_pem(FfiSigningKey* key);
+        #include "SigningKey.h"
+
+        fatoora_SigningKey_to_pem_result fatoora_SigningKey_to_pem(const SigningKey* self, DiplomatWrite* write);
         ```
 
 ### `to_der`
@@ -233,7 +245,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiBytes fatoora_signing_key_to_der(FfiSigningKey* key);
+        #include "SigningKey.h"
+
+        fatoora_SigningKey_to_der_result fatoora_SigningKey_to_der(const SigningKey* self);
         ```
 
 ## Csr
@@ -255,7 +269,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiCsr fatoora_csr_from_der(const uint8_t* der, uintptr_t len);
+        #include "Csr.h"
+
+        fatoora_Csr_from_der_result fatoora_Csr_from_der(DiplomatU8View der);
         ```
 
 ### `to_pem`
@@ -274,7 +290,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_csr_to_pem(FfiCsr* csr);
+        #include "Csr.h"
+
+        fatoora_Csr_to_pem_result fatoora_Csr_to_pem(const Csr* self, DiplomatWrite* write);
         ```
 
 ### `to_der`
@@ -293,7 +311,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiBytes fatoora_csr_to_der(FfiCsr* csr);
+        #include "Csr.h"
+
+        fatoora_Csr_to_der_result fatoora_Csr_to_der(const Csr* self);
         ```
 
 ### `to_base64`
@@ -312,7 +332,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_csr_to_base64(FfiCsr* csr);
+        #include "Csr.h"
+
+        fatoora_Csr_to_base64_result fatoora_Csr_to_base64(const Csr* self, DiplomatWrite* write);
         ```
 
 ### `to_pem_base64`
@@ -331,7 +353,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_csr_to_pem_base64(FfiCsr* csr);
+        #include "Csr.h"
+
+        fatoora_Csr_to_pem_base64_result fatoora_Csr_to_pem_base64(const Csr* self, DiplomatWrite* write);
         ```
 
 ### `subject_string`
@@ -350,7 +374,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_csr_subject_string(FfiCsr* csr);
+        #include "Csr.h"
+
+        fatoora_Csr_subject_string_result fatoora_Csr_subject_string(const Csr* self, DiplomatWrite* write);
         ```
 
 ### `extension_values_der`
@@ -369,7 +395,9 @@ CSR parsing and generation helpers shared by Rust, FFI, and Python.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiBytesList fatoora_csr_extension_values_der(FfiCsr* csr);
+        #include "Csr.h"
+
+        fatoora_Csr_extension_values_der_result fatoora_Csr_extension_values_der(const Csr* self);
         ```
 
 ## Errors

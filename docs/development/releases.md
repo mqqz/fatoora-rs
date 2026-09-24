@@ -42,7 +42,7 @@ dependencies and may need network access. Do not use `--no-verify` to bypass a
 packaging failure.
 
 Run the [Python binding tests](../contributing.md#tests) and
-[C/C++ contract checks](ffi-workflow.md#error-contract-smoke-test) against the
+[C/C++ contract checks](diplomat.md#generate-and-verify) against the
 candidate native build. Check generated headers for unexpected changes. Tests
 using mock HTTP servers need local loopback access; live ZATCA requests are
 disabled by the command above. The [SDK corpus](sdk-parity.md) runs offline and

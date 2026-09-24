@@ -1,8 +1,8 @@
 # C and C++ bindings
 
 The `fatoora-ffi` crate provides Diplomat-generated bindings. C headers are in
-[bindings/c](../../../bindings/c), and C++ headers are in
-[bindings/cpp](../../../bindings/cpp). Include the header for each type you use
+[bindings/c](https://github.com/mqqz/fatoora-rs/tree/main/bindings/c), and C++ headers are in
+[bindings/cpp](https://github.com/mqqz/fatoora-rs/tree/main/bindings/cpp). Include the header for each type you use
 and link `fatoora_ffi`. C++ classes live in namespace `fatoora`.
 
 The generated ABI replaces the former handwritten ABI. Its symbols follow
@@ -164,8 +164,8 @@ c++ -std=c++17 validate.cpp -I bindings/cpp -L target/release -lfatoora_ffi -o v
 
 Configure the runtime loader to find the matching shared library. macOS uses the
 `.dylib`; Windows uses the DLL and its import library. Complete executable
-contracts are in [diplomat_contract.c](../../../fatoora-ffi/tests/diplomat_contract.c)
-and [diplomat_contract.cpp](../../../fatoora-ffi/tests/diplomat_contract.cpp).
+contracts are in [diplomat_contract.c](https://github.com/mqqz/fatoora-rs/blob/main/fatoora-ffi/tests/diplomat_contract.c)
+and [diplomat_contract.cpp](https://github.com/mqqz/fatoora-rs/blob/main/fatoora-ffi/tests/diplomat_contract.cpp).
 
 See [generation and verification](../../development/diplomat.md) and
 [Python bindings](python.md).

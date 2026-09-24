@@ -1,5 +1,9 @@
 # Invoice Signing
 
+See [C and C++ bindings](bindings/c.md) for ownership rules and text output.
+The declarations below come from the generated headers. C++ exposes the same types
+in namespace `fatoora` through `fatoora/Type.hpp` headers.
+
 Signing helpers and signature metadata.
 
 ## InvoiceSigner / Signer
@@ -21,7 +25,9 @@ Signing helpers and signature metadata.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiSigner fatoora_signer_from_pem(const char* cert_pem, const char* key_pem);
+        #include "Signer.h"
+
+        fatoora_Signer_from_pem_result fatoora_Signer_from_pem(DiplomatStringView cert_pem, DiplomatStringView key_pem);
         ```
 
 ### `from_der`
@@ -41,7 +47,9 @@ Signing helpers and signature metadata.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiSigner fatoora_signer_from_der(const uint8_t* cert_der, uintptr_t cert_len, const uint8_t* key_der, uintptr_t key_len);
+        #include "Signer.h"
+
+        fatoora_Signer_from_der_result fatoora_Signer_from_der(DiplomatU8View cert_der, DiplomatU8View key_der);
         ```
 
 ### `certificate_pem`
@@ -60,7 +68,9 @@ Signing helpers and signature metadata.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signer_certificate_pem(FfiSigner* signer);
+        #include "Signer.h"
+
+        fatoora_Signer_certificate_pem_result fatoora_Signer_certificate_pem(const Signer* self, DiplomatWrite* write);
         ```
 
 ### `certificate_der`
@@ -79,7 +89,9 @@ Signing helpers and signature metadata.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiBytes fatoora_signer_certificate_der(FfiSigner* signer);
+        #include "Signer.h"
+
+        fatoora_Signer_certificate_der_result fatoora_Signer_certificate_der(const Signer* self);
         ```
 
 ### `sign_xml`
@@ -115,7 +127,9 @@ consuming access to `SignedInvoice` XML.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiSignedInvoice fatoora_invoice_sign(FfiFinalizedInvoice* invoice, FfiSigner* signer);
+        #include "Signer.h"
+
+        fatoora_Signer_sign_result fatoora_Signer_sign(const Signer* self, FinalizedInvoice* invoice);
         ```
 
 ## SignedInvoice
@@ -136,7 +150,9 @@ consuming access to `SignedInvoice` XML.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_to_xml(FfiSignedInvoice* signed);
+        #include "SignedInvoice.h"
+
+        fatoora_SignedInvoice_xml_result fatoora_SignedInvoice_xml(const SignedInvoice* self, DiplomatWrite* write);
         ```
 
 ### `to_xml_base64`
@@ -155,7 +171,9 @@ consuming access to `SignedInvoice` XML.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_to_xml_base64(FfiSignedInvoice* signed);
+        #include "SignedInvoice.h"
+
+        fatoora_SignedInvoice_to_xml_base64_result fatoora_SignedInvoice_to_xml_base64(const SignedInvoice* self, DiplomatWrite* write);
         ```
 
 ### `qr_code`
@@ -174,7 +192,9 @@ consuming access to `SignedInvoice` XML.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_qr_code(FfiSignedInvoice* signed);
+        #include "SignedInvoice.h"
+
+        fatoora_SignedInvoice_qr_code_result fatoora_SignedInvoice_qr_code(const SignedInvoice* self, DiplomatWrite* write);
         ```
 
 ### `invoice_hash`
@@ -193,7 +213,9 @@ consuming access to `SignedInvoice` XML.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_hash(FfiSignedInvoice* signed);
+        #include "SignedInvoice.h"
+
+        fatoora_SignedInvoice_invoice_hash_result fatoora_SignedInvoice_invoice_hash(const SignedInvoice* self, DiplomatWrite* write);
         ```
 
 ### `hash_base64`
@@ -212,7 +234,9 @@ consuming access to `SignedInvoice` XML.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_hash_base64(FfiSignedInvoice* signed);
+        #include "SignedInvoice.h"
+
+        fatoora_SignedInvoice_hash_base64_result fatoora_SignedInvoice_hash_base64(const SignedInvoice* self, DiplomatWrite* write);
         ```
 
 ### `signature`
@@ -231,7 +255,9 @@ consuming access to `SignedInvoice` XML.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_signature(FfiSignedInvoice* signed);
+        #include "SignedInvoice.h"
+
+        fatoora_SignedInvoice_signature_result fatoora_SignedInvoice_signature(const SignedInvoice* self, DiplomatWrite* write);
         ```
 
 ### `public_key`
@@ -250,7 +276,9 @@ consuming access to `SignedInvoice` XML.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_public_key(FfiSignedInvoice* signed);
+        #include "SignedInvoice.h"
+
+        fatoora_SignedInvoice_public_key_result fatoora_SignedInvoice_public_key(const SignedInvoice* self, DiplomatWrite* write);
         ```
 
 ### `zatca_key_signature`
@@ -269,7 +297,9 @@ consuming access to `SignedInvoice` XML.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_zatca_key_signature(FfiSignedInvoice* signed);
+        #include "SignedInvoice.h"
+
+        fatoora_SignedInvoice_zatca_key_signature_result fatoora_SignedInvoice_zatca_key_signature(const SignedInvoice* self);
         ```
 
 ### `signed_props_hash`
@@ -288,7 +318,9 @@ consuming access to `SignedInvoice` XML.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_signed_props_hash(FfiSignedInvoice* signed);
+        #include "SignedInvoice.h"
+
+        fatoora_SignedInvoice_signed_props_hash_result fatoora_SignedInvoice_signed_props_hash(const SignedInvoice* self, DiplomatWrite* write);
         ```
 
 ### `cert_hash`
@@ -302,7 +334,9 @@ consuming access to `SignedInvoice` XML.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_cert_hash(FfiSignedInvoice* signed);
+        #include "SignedInvoice.h"
+
+        fatoora_SignedInvoice_cert_hash_result fatoora_SignedInvoice_cert_hash(const SignedInvoice* self, DiplomatWrite* write);
         ```
 
 ### `signing_time`
@@ -316,7 +350,9 @@ consuming access to `SignedInvoice` XML.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_signing_time(FfiSignedInvoice* signed);
+        #include "SignedInvoice.h"
+
+        fatoora_SignedInvoice_signing_time_result fatoora_SignedInvoice_signing_time(const SignedInvoice* self, DiplomatWrite* write);
         ```
 
 ### `issuer`
@@ -335,7 +371,9 @@ consuming access to `SignedInvoice` XML.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_issuer(FfiSignedInvoice* signed);
+        #include "SignedInvoice.h"
+
+        fatoora_SignedInvoice_issuer_result fatoora_SignedInvoice_issuer(const SignedInvoice* self, DiplomatWrite* write);
         ```
 
 ### `serial`
@@ -354,7 +392,9 @@ consuming access to `SignedInvoice` XML.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_FfiString fatoora_signed_invoice_serial(FfiSignedInvoice* signed);
+        #include "SignedInvoice.h"
+
+        fatoora_SignedInvoice_serial_result fatoora_SignedInvoice_serial(const SignedInvoice* self, DiplomatWrite* write);
         ```
 
 ## `invoice_hash_base64_from_xml_str`

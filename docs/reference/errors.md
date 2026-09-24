@@ -210,7 +210,7 @@ details object has type `zatca_validation_execution` and these fields:
 
 The `rule_evaluation` classification describes interrupted execution. Ordinary
 business-rule violations remain findings in a successfully returned report.
-For C, `FfiResult_FfiString.ok` therefore describes whether a report was returned;
+For C, `fatoora_Xml_validate_zatca_result.is_ok` therefore describes whether a report was returned;
 it does not replace `is_valid`. Python raises the mapped exception for execution
 failures and exposes the partial report at `error.details["report"]`.
 

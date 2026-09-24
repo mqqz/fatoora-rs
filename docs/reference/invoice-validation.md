@@ -1,5 +1,9 @@
 # Invoice Validation
 
+See [C and C++ bindings](bindings/c.md) for ownership rules and text output.
+The declarations below come from the generated headers. C++ exposes the same types
+in namespace `fatoora` through `fatoora/Type.hpp` headers.
+
 Explicit schema and local ZATCA validation for original invoice XML.
 
 ## `validate_xml_invoice_from_str`
@@ -21,7 +25,9 @@ Explicit schema and local ZATCA validation for original invoice XML.
 
     === "{{ lang.c }}"
         ```c
-        FfiResult_bool fatoora_validate_xml_invoice_from_str(FfiConfig* config, const char* xml);
+        #include "Xml.h"
+
+        fatoora_Xml_validate_result fatoora_Xml_validate(const Config* config, DiplomatStringView xml);
         ```
 
 ## Behavior
@@ -99,17 +105,19 @@ validate_zatca_invoice_from_str(
 ```
 
 ```c
-FfiResult_FfiString fatoora_validate_zatca_invoice_from_str(
-    FfiConfig *config, const char *xml, const char *options_json);
+#include "Xml.h"
+
+fatoora_Xml_validate_zatca_result fatoora_Xml_validate_zatca(const Config* config, DiplomatStringView xml, OptionStringView options_json, DiplomatWrite* write);
 ```
 
-C accepts null options for defaults, or a JSON object containing
-`previous_invoice_hash` and `evaluated_at`. Strings must be NUL-terminated UTF-8.
-Options JSON is limited to 4 KiB. Free successful report strings with
-`fatoora_string_free`; execution errors use the existing error accessors and free
-function. An `ok` FFI result means a report was produced; inspect its `is_valid`
-field before accepting the document. Python returns the same report dictionary
-and rejects interior NULs before calling C.
+C accepts an absent `OptionStringView` for defaults, or a JSON object containing
+`previous_invoice_hash` and `evaluated_at`. Inputs are length-delimited UTF-8
+views; embedded NULs are rejected. Options JSON is limited to 4 KiB. The report
+is written to the supplied `DiplomatWrite`. Release buffer writers with
+`diplomat_buffer_write_destroy`, and errors with `fatoora_BindingError_destroy`.
+An `is_ok` result means a report was produced; inspect its `is_valid` field before
+accepting the document. Python returns the same report dictionary and rejects
+interior NULs before entering native code.
 
 The report contains `schema_version: 1`, `profile: "zatca-sdk-238-R3.4.8"`, the
 clock snapshot, and ordered `stages`: `xsd`, `cen`, `ksa`, `signature`, `qr`,

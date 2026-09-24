@@ -116,27 +116,16 @@ Python returns a dictionary for rejected or incomplete validation. Execution
 failures raise a binding exception. Raw XML and string options reject embedded
 NULs before C conversion.
 
-C callers pass a live configuration handle and UTF-8 strings:
+C callers use `fatoora_Xml_validate_zatca` with a live `Config`, a length-delimited
+XML view, an optional options JSON view, and a `DiplomatWrite` output. Check
+`result.is_ok` before reading the report. On failure, inspect the owned
+`BindingError` and destroy it with `fatoora_BindingError_destroy`.
 
-```c
-/* config, xml and options_json are supplied by the caller. */
-struct FfiResult_FfiString result =
-    fatoora_validate_zatca_invoice_from_str(config, xml, options_json);
-if (result.ok) {
-    /* Parse result.value.ptr and inspect is_valid before accepting the invoice. */
-    fatoora_string_free(result.value);
-} else {
-    struct FfiString details = fatoora_error_details_json(result.error);
-    /* details.ptr includes the partial report for pipeline execution failures. */
-    fatoora_string_free(details);
-    fatoora_error_free(result.error);
-}
-```
-
-`options_json` may be null for defaults. Otherwise, pass an object with optional
-`evaluated_at` and `previous_invoice_hash` fields. `result.ok` means the call
-returned a report; inspect that report's `is_valid` separately. Each returned
-string is owned and must be freed once.
+An absent options view selects defaults. Otherwise, pass an object with optional
+`evaluated_at` and `previous_invoice_hash` fields. A successful call can return a
+rejected or incomplete report; inspect `is_valid` before accepting the invoice.
+See the [C ownership example](../reference/bindings/c.md) and the
+[local validation contract](https://github.com/mqqz/fatoora-rs/blob/main/fatoora-ffi/tests/zatca_contract.c).
 
 ## Integrity scope and recorded policies
 
