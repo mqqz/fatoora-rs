@@ -809,6 +809,9 @@ def verify(root, output, corpus):
         raise CaptureError(
             "Fresh Rust exporter currently requires the repository corpus"
         )
+    typed_corpus = corpus.with_name("sdk-parity-typed")
+    typed_manifest = load_manifest(typed_corpus)
+    typed_cases = {case["id"] for case in typed_manifest["cases"]}
     new_output(output)
     before = {
         str(p.relative_to(root)): digest(p) for p in root.rglob("*") if p.is_file()
@@ -860,8 +863,8 @@ def verify(root, output, corpus):
         def check(name):
             case_id = name.removesuffix("-typed")
             directory = corpus / "cases" / case_id
-            if name.endswith("-typed") and case_id in m.get("typed_overrides", {}):
-                directory = corpus / m["typed_overrides"][case_id]
+            if name.endswith("-typed") and case_id in typed_cases:
+                directory = typed_corpus / "cases" / case_id
             expected = json.loads((directory / "expected.json").read_text())["signed_validation"]
             rec, raw = invoke(
                 scratch,
@@ -905,6 +908,7 @@ def verify(root, output, corpus):
             "sdk_version": VERSION,
             "jar_sha256": JAR_SHA256,
             "corpus_manifest_sha256": digest(corpus / "manifest.json"),
+            "typed_corpus_manifest_sha256": digest(typed_corpus / "manifest.json"),
             "results": reports,
         },
     )

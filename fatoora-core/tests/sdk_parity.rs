@@ -341,14 +341,22 @@ fn typed_serialization_and_signing_match_frozen_inputs() {
     let certificate = fs::read(root().join("credentials/certificate.der")).unwrap();
     let key = fs::read(root().join("credentials/private-key.der")).unwrap();
     let signer = InvoiceSigner::from_der(&certificate, &key).unwrap();
-    let inventory = manifest();
+    let typed_root = root().with_file_name("sdk-parity-typed");
+    let inventory: Value =
+        serde_json::from_slice(&fs::read(typed_root.join("manifest.json")).unwrap()).unwrap();
     for (id, invoice) in common::parity_invoices() {
         // The original corpus predates transaction-flag serialization. Keep it
         // as historical SDK evidence; typed builders use the refreshed capture.
-        let dir = inventory["typed_overrides"][id]
-            .as_str()
-            .map(|path| root().join(path))
-            .unwrap_or_else(|| root().join("cases").join(id));
+        let dir = if inventory["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|case| case["id"] == id)
+        {
+            typed_root.join("cases").join(id)
+        } else {
+            root().join("cases").join(id)
+        };
         assert_eq!(
             invoice.to_xml().unwrap(),
             fs::read_to_string(dir.join("input.xml")).unwrap(),
@@ -518,7 +526,9 @@ fn serialized_export_self_billing_is_rejected_like_the_sdk() {
             continue;
         }
         let evidence = fs::read_to_string(
-            root().join(format!("typed-cases/{id}/evidence/validate/stdout.txt")),
+            root()
+                .with_file_name("sdk-parity-typed")
+                .join(format!("cases/{id}/evidence/validate/stdout.txt")),
         )
         .unwrap();
         assert!(evidence.contains("CODE : BR-KSA-07,"));
@@ -542,4 +552,47 @@ fn serialized_export_self_billing_is_rejected_like_the_sdk() {
         );
         assert!(!report.is_valid());
     }
+}
+
+#[test]
+fn typed_capture_inventory_and_checksums_are_required_offline() {
+    let directory = root().with_file_name("sdk-parity-typed");
+    let m: Value =
+        serde_json::from_slice(&fs::read(directory.join("manifest.json")).unwrap()).unwrap();
+    assert_eq!(m["schema_version"], 1);
+    assert_eq!(m["sdk"], manifest()["sdk"]);
+    let ids: std::collections::BTreeSet<_> = m["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|case| case["id"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        ids,
+        [
+            "standard-invoice",
+            "export-self-billed",
+            "mixed-vat",
+            "out-of-scope",
+            "prepayment"
+        ]
+        .into_iter()
+        .collect()
+    );
+    for (path, expected) in m["artifacts"].as_object().unwrap() {
+        let bytes = fs::read(directory.join(path)).unwrap_or_else(|e| panic!("{path}: {e}"));
+        assert_eq!(
+            format!("{:x}", Sha256::digest(bytes)),
+            expected.as_str().unwrap(),
+            "{path}"
+        );
+    }
+    for case in m["cases"].as_array().unwrap() {
+        let path = format!("cases/{}/input.xml", case["id"].as_str().unwrap());
+        assert_eq!(case["input_sha256"], m["artifacts"][path]);
+    }
+    assert_eq!(
+        m["capture"]["tool_sha256"],
+        m["artifacts"]["evidence/capture-tools/sdk_parity.py"]
+    );
 }

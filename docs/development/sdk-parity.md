@@ -79,9 +79,10 @@ The suite exposed UTF-8 corruption in Arabic CSR properties, incorrect CSR templ
 
 The original `cases/` corpus remains frozen. Correcting XML serialization to
 preserve invoice flags changed five typed-builder inputs; their SDK captures
-live in `typed-cases/`, selected by the manifest's `typed_overrides` map. The
-manifest records the capture metadata and hashes each artifact, including the
-capture tools.
+live in the sibling `sdk-parity-typed/` corpus. Its separate manifest records
+the five case IDs, capture metadata, and hashes for every artifact and capture
+tool. The original manifest stays byte-for-byte unchanged because business-rule
+and integrity evidence pins its digest.
 
 The SDK rejects the corrected `standard-invoice` and `export-self-billed`
 inputs with BR-KSA-07 because both export and self-billing are set. Their old

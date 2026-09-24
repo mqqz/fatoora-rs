@@ -117,6 +117,21 @@ class CaptureContracts(unittest.TestCase):
             with self.assertRaises(sdk.CaptureError):
                 sdk.load_manifest(root)
 
+    def test_frozen_and_typed_corpora_verify_independently(self):
+        frozen = sdk.load_manifest(sdk.CORPUS)
+        typed = sdk.load_manifest(sdk.CORPUS.with_name("sdk-parity-typed"))
+        self.assertEqual(frozen["sdk"], typed["sdk"])
+        self.assertEqual(len(frozen["cases"]), 53)
+        self.assertEqual(
+            {case["id"] for case in typed["cases"]},
+            {"standard-invoice", "export-self-billed", "mixed-vat", "out-of-scope", "prepayment"},
+        )
+        # Business-rule observations pin the original corpus byte-for-byte.
+        observations = json.loads(
+            (sdk.CORPUS.parent / "business-rules/observations.json").read_text()
+        )
+        self.assertEqual(observations["corpus_manifest_sha256"], sdk.digest(sdk.CORPUS / "manifest.json"))
+
     def test_isolation_rewrites_paths_and_preserves_install(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d) / "SDK with spaces"
