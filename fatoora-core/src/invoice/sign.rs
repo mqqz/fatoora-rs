@@ -656,15 +656,22 @@ fn ensure_signature_structure(doc: &mut Document) -> Result<(), SigningError> {
 }
 
 fn import_fragment(doc: &mut Document, xml: &str) -> Result<Node, SigningError> {
-    let fragment = Parser::default().parse_string(xml).map_err(|e| {
+    let mut fragment = Parser::default().parse_string(xml).map_err(|e| {
         SigningError::Xml(crate::Diagnostic::new(format!("XML parse error: {e:?}")))
     })?;
     let mut node = fragment
         .get_root_element()
         .ok_or_else(|| SigningError::Xml(crate::Diagnostic::new("missing fragment root")))?;
     node.unlink();
-    doc.import_node(&mut node)
-        .map_err(|_| SigningError::Xml(crate::Diagnostic::new("failed to import fragment")))
+    let imported = doc.import_node(&mut node);
+    // libxml's import_node copies the node, but marks the detached source as
+    // linked. Restore its document ownership so dropping the fragment frees it.
+    fragment.set_root_element(&node);
+    let mut imported = imported
+        .map_err(|_| SigningError::Xml(crate::Diagnostic::new("failed to import fragment")))?;
+    // Keep the copy owned even if its caller fails before attaching it.
+    imported.unlink();
+    Ok(imported)
 }
 
 fn first_element_child(root: &Node) -> Option<Node> {
@@ -1208,6 +1215,25 @@ mod tests {
             }
             other => panic!("expected XML failure: {other}"),
         }
+    }
+
+    #[test]
+    fn imported_fragment_is_owned_until_attached() {
+        let mut doc = Parser::default().parse_string("<root/>").unwrap();
+        let mut imported = import_fragment(&mut doc, "<child><value>kept</value></child>")
+            .expect("import fragment");
+        assert!(
+            imported.is_unlinked(),
+            "unattached copy must be freed on drop"
+        );
+        assert_eq!(imported.get_content(), "kept");
+        doc.get_root_element()
+            .unwrap()
+            .add_child(&mut imported)
+            .unwrap();
+        assert!(!imported.is_unlinked(), "document owns the attached copy");
+        drop(imported);
+        assert_eq!(doc.get_root_element().unwrap().get_content(), "kept");
     }
 
     #[test]
