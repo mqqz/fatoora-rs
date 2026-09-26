@@ -132,3 +132,30 @@ Each Rust crate links to them with relative symlinks; Cargo includes the target
 contents in published packages. On Windows, enable Git symlink support before
 checking out the repository if you will package crates locally.
 Python packaging stages the files automatically.
+
+### Property tests
+
+`fatoora-core` runs Proptest with 256 generated cases per property in CI.
+Decimal properties compare checked arithmetic with an unbounded-integer oracle.
+Invoice properties independently calculate rounded line amounts and VAT groups
+in integer cents. XML properties compare the fields supported by both the builder
+and importer; they do not assert that arbitrary UBL or signed documents can be
+reconstructed without loss. Inputs cover reserved XML characters, Arabic text,
+CR/LF, invoice types, transaction flags, mixed VAT rates, and adjustments.
+
+Run a longer local pass with:
+
+```bash
+PROPTEST_CASES=10000 cargo test -p fatoora-core property_ --locked
+```
+
+Generators construct valid dependencies directly, including discount limits and
+adjustment VAT groups. Avoid filtering arbitrary inputs until the builder accepts
+them: that wastes cases and can make shrinking ineffective. Arithmetic bounds
+keep reference calculations exact; separate properties exercise the 96-bit limit.
+
+Commit discovered failure seeds (`fatoora-core/proptest-regressions/*.txt` or
+`fatoora-core/tests/*.proptest-regressions`) and add a small explicit regression
+for each bug. CI retains these files on failure. Keep the minimized input and the
+seed from the test log; changing a strategy can change what an old seed generates.
+The fixed examples and SDK corpus remain independent checks of the properties.

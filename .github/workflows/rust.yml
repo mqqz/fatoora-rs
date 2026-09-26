@@ -19,6 +19,7 @@ jobs:
     env:
       CARGO_TERM_COLOR: always
       SKIP_ZATCA_LIVE_API: "1"
+      PROPTEST_CASES: "256"
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
@@ -76,6 +77,15 @@ jobs:
             PATH="$RUNNER_TEMP/no-sdk:$PATH" \
             cargo llvm-cov --locked --all-features --workspace --lcov --output-path lcov.info -- --skip doc_example_api
           test ! -e "$SDK_JAVA_PROBE"
+      - name: Preserve property-test failure seeds
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: property-test-regressions
+          path: |
+            fatoora-core/proptest-regressions/**/*.txt
+            fatoora-core/tests/*.proptest-regressions
+          if-no-files-found: ignore
       - name: Verify packages without publishing
         run: cargo publish --workspace --locked --dry-run
       - name: Upload coverage to Codecov

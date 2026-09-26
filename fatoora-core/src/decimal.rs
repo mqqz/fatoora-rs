@@ -174,3 +174,7 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "decimal_properties.rs"]
+mod properties;
