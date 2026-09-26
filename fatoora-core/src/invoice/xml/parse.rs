@@ -161,9 +161,10 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
     } else {
         None
     };
-    let reason = xpath_text_optional(&ctx, "/ubl:Invoice/cac:PaymentMeans/cbc:InstructionNote")?
+    let reason = xpath_content_optional(&ctx, "/ubl:Invoice/cac:PaymentMeans/cbc:InstructionNote")?
+        .filter(|value| !value.trim().is_empty())
         .or_else(|| {
-            xpath_text_optional(&ctx, "/ubl:Invoice/cbc:Note")
+            xpath_content_optional(&ctx, "/ubl:Invoice/cbc:Note")
                 .ok()
                 .flatten()
         });
@@ -217,7 +218,7 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
     for item in line_items {
         builder = builder.line_item(item);
     }
-    if let Some(note) = xpath_text_optional(&ctx, "/ubl:Invoice/cbc:Note")? {
+    if let Some(note) = xpath_content_optional(&ctx, "/ubl:Invoice/cbc:Note")? {
         let language = xpath_text_optional(&ctx, "/ubl:Invoice/cbc:Note/@languageID")?
             .unwrap_or_else(|| "en".to_string());
         builder = builder.note(crate::invoice::InvoiceNote {
@@ -288,7 +289,7 @@ fn parse_finalized_invoice_doc(doc: &Document) -> Result<FinalizedInvoice, Parse
             });
         }
         if let Some(reason) =
-            xpath_text_optional(&ctx, &format!("{base}/cbc:AllowanceChargeReason"))?
+            xpath_content_optional(&ctx, &format!("{base}/cbc:AllowanceChargeReason"))?
         {
             builder = builder.allowance_reason(reason);
         }
@@ -581,7 +582,7 @@ fn parse_original_ref(ctx: &xpath::Context) -> Result<OriginalInvoiceRef, ParseE
 }
 
 fn parse_seller(ctx: &xpath::Context) -> Result<Party<SellerRole>, ParseError> {
-    let name = xpath_text_required(
+    let name = xpath_content_required(
         ctx,
         "/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName",
         "SellerName",
@@ -611,7 +612,7 @@ fn parse_seller(ctx: &xpath::Context) -> Result<Party<SellerRole>, ParseError> {
 }
 
 fn parse_address(ctx: &xpath::Context) -> Result<Address, ParseError> {
-    let street = xpath_text_required(
+    let street = xpath_content_required(
         ctx,
         "/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:StreetName",
         "SellerStreet",
@@ -621,11 +622,11 @@ fn parse_address(ctx: &xpath::Context) -> Result<Address, ParseError> {
         "/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:BuildingNumber",
         "SellerBuildingNumber",
     )?;
-    let district = xpath_text_optional(
+    let district = xpath_content_optional(
         ctx,
         "/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:CitySubdivisionName",
     )?;
-    let city = xpath_text_required(
+    let city = xpath_content_required(
         ctx,
         "/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:CityName",
         "SellerCity",
@@ -649,7 +650,7 @@ fn parse_address(ctx: &xpath::Context) -> Result<Address, ParseError> {
         country_code,
         city,
         street,
-        additional_street: xpath_text_optional(
+        additional_street: xpath_content_optional(
             ctx,
             "/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:AdditionalStreetName",
         )?,
@@ -694,7 +695,7 @@ fn parse_line_items(ctx: &xpath::Context) -> Result<Vec<LineItem>, ParseError> {
     for idx in 1..=nodes.len() {
         let base = format!("(//cac:InvoiceLine)[{idx}]");
         let _id = xpath_text_required(ctx, &format!("{base}/cbc:ID"), "LineID")?;
-        let name = xpath_text_required(ctx, &format!("{base}/cac:Item/cbc:Name"), "LineName")?;
+        let name = xpath_content_required(ctx, &format!("{base}/cac:Item/cbc:Name"), "LineName")?;
         let quantity = xpath_text_required(
             ctx,
             &format!("{base}/cbc:InvoicedQuantity"),
@@ -855,19 +856,29 @@ fn xpath_text_required(
 }
 
 fn xpath_text_optional(ctx: &xpath::Context, expr: &str) -> Result<Option<String>, ParseError> {
+    Ok(xpath_content_optional(ctx, expr)?
+        .map(|value| value.trim().to_owned())
+        .filter(|value| !value.is_empty()))
+}
+
+// Free-text fields must retain their content; codes and numbers use the
+// normalized helper above. Required text still rejects whitespace-only values.
+fn xpath_content_required(
+    ctx: &xpath::Context,
+    expr: &str,
+    label: &'static str,
+) -> Result<String, ParseError> {
+    xpath_content_optional(ctx, expr)?
+        .filter(|value| !value.trim().is_empty())
+        .ok_or(ParseError::MissingField(label))
+}
+
+fn xpath_content_optional(ctx: &xpath::Context, expr: &str) -> Result<Option<String>, ParseError> {
     let nodes = ctx
         .evaluate(expr)
         .map_err(|e| ParseError::XPath(format!("{e:?}")))?
         .get_nodes_as_vec();
-    let node = match nodes.first() {
-        Some(node) => node,
-        None => return Ok(None),
-    };
-    let value = node.get_content().trim().to_string();
-    if value.is_empty() {
-        return Ok(None);
-    }
-    Ok(Some(value))
+    Ok(nodes.first().map(|node| node.get_content()))
 }
 
 fn decode_qr_tlv(qr_b64: &str) -> Result<std::collections::HashMap<u8, Vec<u8>>, ParseError> {

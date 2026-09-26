@@ -1054,6 +1054,11 @@ fn to_xml_with_format<T: InvoiceView + ?Sized>(
             })?;
     }
 
+    // XML normalizes literal CR and CRLF before parsing text. Character
+    // references preserve the caller's value (including CR followed by LF).
+    if buffer.contains('\r') {
+        buffer = buffer.replace('\r', "&#13;");
+    }
     Ok(buffer)
 }
 

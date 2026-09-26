@@ -397,22 +397,24 @@ fn parse_credit_note_defaults_reason_when_missing() {
 }
 
 #[test]
-fn parse_credit_note_uses_note_when_instruction_missing() {
-    let xml = load_credit_note_xml();
-    let xml = xml.replace(
-        "<cbc:InstructionNote>In case of goods or services refund | عند ترجيع السلع أو الخدمات</cbc:InstructionNote>",
-        "",
-    );
-    let xml = xml.replace(
-        "<cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>",
-        "<cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode><cbc:Note>fallback note</cbc:Note>",
-    );
-    let invoice = parse_finalized_invoice_xml(&xml).expect("parse credit note");
-    match invoice.data().invoice_type() {
-        InvoiceType::CreditNote(_, _, reason) => {
-            assert_eq!(reason, "fallback note");
+fn parse_credit_note_uses_note_when_instruction_missing_or_blank() {
+    for replacement in ["", "<cbc:InstructionNote> \t </cbc:InstructionNote>"] {
+        let xml = load_credit_note_xml();
+        let xml = xml.replace(
+            "<cbc:InstructionNote>In case of goods or services refund | عند ترجيع السلع أو الخدمات</cbc:InstructionNote>",
+            replacement,
+        );
+        let xml = xml.replace(
+            "<cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>",
+            "<cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode><cbc:Note>fallback note</cbc:Note>",
+        );
+        let invoice = parse_finalized_invoice_xml(&xml).expect("parse credit note");
+        match invoice.data().invoice_type() {
+            InvoiceType::CreditNote(_, _, reason) => {
+                assert_eq!(reason, "fallback note");
+            }
+            _ => panic!("expected credit note"),
         }
-        _ => panic!("expected credit note"),
     }
 }
 
