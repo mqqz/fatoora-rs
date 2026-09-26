@@ -416,7 +416,9 @@ fn remove_hash_exclusions(doc: &Document) -> Result<(), SigningError> {
                 )))
             })?
             .get_nodes_as_vec();
-        for mut node in nodes {
+        // Dropping an unlinked node frees its subtree. Matches are in document
+        // order, so remove descendants before their ancestors.
+        for mut node in nodes.into_iter().rev() {
             node.unlink();
         }
     }
@@ -1003,6 +1005,20 @@ mod tests {
         assert!(!canonicalized.contains("<?xml"));
     }
     #[test]
+    fn canonicalized_invoice_removes_nested_exclusions() {
+        let xml = r#"<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"><ext:UBLExtensions><ext:UBLExtensions><cbc:Note>inner extension</cbc:Note></ext:UBLExtensions></ext:UBLExtensions><cbc:ID>INV-1</cbc:ID><cac:AdditionalDocumentReference><cbc:ID>QR</cbc:ID><cac:AdditionalDocumentReference><cbc:ID>QR</cbc:ID></cac:AdditionalDocumentReference></cac:AdditionalDocumentReference><cac:Signature><cac:Signature><cbc:ID>inner signature</cbc:ID></cac:Signature></cac:Signature><cbc:Note>kept</cbc:Note></Invoice>"#;
+        let doc = Parser::default().parse_string(xml).expect("parse invoice");
+        let canonicalized = canonicalize_invoice(&doc).expect("canonicalize invoice");
+
+        assert_eq!(
+            canonicalized,
+            r#"<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"><cbc:ID>INV-1</cbc:ID><cbc:Note>kept</cbc:Note></Invoice>"#
+        );
+        // The source document is untouched by canonicalization.
+        assert!(doc.to_string().contains("inner signature"));
+    }
+
+    #[test]
     fn signed_properties_xml_matches_document() {
         let xml_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("tests/fixtures/invoices/sample-simplified-invoice.xml");
@@ -1357,7 +1373,7 @@ mod tests {
     }
 
     fn remove_nodes(ctx: &xpath::Context, expr: &str) {
-        for mut node in select_nodes(ctx, expr) {
+        for mut node in select_nodes(ctx, expr).into_iter().rev() {
             node.unlink();
         }
     }
