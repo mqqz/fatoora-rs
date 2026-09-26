@@ -103,6 +103,9 @@ exact boundaries, and independent expected results over getter-only coverage.
 The FFI HTTP test supplies its gateway URL through a child process environment so
 parallel tests cannot redirect one another's requests.
 
+Seeded XML, QR and signing fuzz targets live in [`fuzz/`](fuzz/README.md).
+The PR check replays their seeds and fuzzes each target for 20 seconds.
+
 ## Benchmarks
 Benchmark data lives in `bench/`. The CLI benchmark results are tracked in `bench/cli/results`.
 

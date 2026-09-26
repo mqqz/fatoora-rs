@@ -1,0 +1,63 @@
+name: fuzz
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CARGO_TERM_COLOR: always
+    defaults:
+      run:
+        working-directory: fuzz
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install native dependencies
+        run: sudo apt-get update && sudo apt-get install -y libxml2-dev pkg-config clang
+      - name: Install Rust
+        run: rustup toolchain install nightly-2026-08-28 --profile minimal --component rust-src,rustfmt,clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: fuzz
+          cache-directories: ~/.cargo/bin
+      - name: Install cargo-fuzz
+        run: CARGO_NET_OFFLINE=false cargo +nightly-2026-08-28 install cargo-fuzz --version 0.13.2 --locked
+      - name: Fetch locked dependencies
+        run: CARGO_NET_OFFLINE=false cargo +nightly-2026-08-28 fetch --locked
+      - name: Check targets
+        run: |
+          cargo +nightly-2026-08-28 fmt -- --check
+          cargo +nightly-2026-08-28 clippy --locked --bins -- -D warnings
+      - name: Build with AddressSanitizer
+        run: |
+          cargo +nightly-2026-08-28 fuzz build
+          git diff --exit-code -- Cargo.lock
+      - name: Replay seeds and fuzz for 20 seconds per target
+        shell: bash
+        run: |
+          mkdir -p logs
+          for target in xml_parse qr_decode signing_inputs; do
+            cargo +nightly-2026-08-28 fuzz run "$target" "seeds/$target" -- \
+              -runs=0 -timeout=5 -rss_limit_mb=2048 -max_len=32768 \
+              2>&1 | tee "logs/$target-seeds.log"
+            mkdir -p "corpus/$target"
+            cp "seeds/$target/"* "corpus/$target/"
+            cargo +nightly-2026-08-28 fuzz run "$target" -- \
+              -max_total_time=20 -timeout=5 -rss_limit_mb=2048 -max_len=32768 \
+              2>&1 | tee "logs/$target.log"
+          done
+      - name: Preserve failures and run logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-failures
+          path: |
+            fuzz/artifacts/
+            fuzz/logs/
+          if-no-files-found: ignore

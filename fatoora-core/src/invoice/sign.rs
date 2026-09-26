@@ -416,7 +416,9 @@ fn remove_hash_exclusions(doc: &Document) -> Result<(), SigningError> {
                 )))
             })?
             .get_nodes_as_vec();
-        for mut node in nodes {
+        // Dropping an unlinked node frees its subtree. Matches are in document
+        // order, so remove descendants before their ancestors.
+        for mut node in nodes.into_iter().rev() {
             node.unlink();
         }
     }
@@ -656,15 +658,22 @@ fn ensure_signature_structure(doc: &mut Document) -> Result<(), SigningError> {
 }
 
 fn import_fragment(doc: &mut Document, xml: &str) -> Result<Node, SigningError> {
-    let fragment = Parser::default().parse_string(xml).map_err(|e| {
+    let mut fragment = Parser::default().parse_string(xml).map_err(|e| {
         SigningError::Xml(crate::Diagnostic::new(format!("XML parse error: {e:?}")))
     })?;
     let mut node = fragment
         .get_root_element()
         .ok_or_else(|| SigningError::Xml(crate::Diagnostic::new("missing fragment root")))?;
     node.unlink();
-    doc.import_node(&mut node)
-        .map_err(|_| SigningError::Xml(crate::Diagnostic::new("failed to import fragment")))
+    let imported = doc.import_node(&mut node);
+    // libxml's import_node copies the node, but marks the detached source as
+    // linked. Restore its document ownership so dropping the fragment frees it.
+    fragment.set_root_element(&node);
+    let mut imported = imported
+        .map_err(|_| SigningError::Xml(crate::Diagnostic::new("failed to import fragment")))?;
+    // Keep the copy owned even if its caller fails before attaching it.
+    imported.unlink();
+    Ok(imported)
 }
 
 fn first_element_child(root: &Node) -> Option<Node> {
@@ -996,6 +1005,20 @@ mod tests {
         assert!(!canonicalized.contains("<?xml"));
     }
     #[test]
+    fn canonicalized_invoice_removes_nested_exclusions() {
+        let xml = r#"<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"><ext:UBLExtensions><ext:UBLExtensions><cbc:Note>inner extension</cbc:Note></ext:UBLExtensions></ext:UBLExtensions><cbc:ID>INV-1</cbc:ID><cac:AdditionalDocumentReference><cbc:ID>QR</cbc:ID><cac:AdditionalDocumentReference><cbc:ID>QR</cbc:ID></cac:AdditionalDocumentReference></cac:AdditionalDocumentReference><cac:Signature><cac:Signature><cbc:ID>inner signature</cbc:ID></cac:Signature></cac:Signature><cbc:Note>kept</cbc:Note></Invoice>"#;
+        let doc = Parser::default().parse_string(xml).expect("parse invoice");
+        let canonicalized = canonicalize_invoice(&doc).expect("canonicalize invoice");
+
+        assert_eq!(
+            canonicalized,
+            r#"<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"><cbc:ID>INV-1</cbc:ID><cbc:Note>kept</cbc:Note></Invoice>"#
+        );
+        // The source document is untouched by canonicalization.
+        assert!(doc.to_string().contains("inner signature"));
+    }
+
+    #[test]
     fn signed_properties_xml_matches_document() {
         let xml_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("tests/fixtures/invoices/sample-simplified-invoice.xml");
@@ -1211,6 +1234,25 @@ mod tests {
     }
 
     #[test]
+    fn imported_fragment_is_owned_until_attached() {
+        let mut doc = Parser::default().parse_string("<root/>").unwrap();
+        let mut imported = import_fragment(&mut doc, "<child><value>kept</value></child>")
+            .expect("import fragment");
+        assert!(
+            imported.is_unlinked(),
+            "unattached copy must be freed on drop"
+        );
+        assert_eq!(imported.get_content(), "kept");
+        doc.get_root_element()
+            .unwrap()
+            .add_child(&mut imported)
+            .unwrap();
+        assert!(!imported.is_unlinked(), "document owns the attached copy");
+        drop(imported);
+        assert_eq!(doc.get_root_element().unwrap().get_content(), "kept");
+    }
+
+    #[test]
     fn import_fragment_rejects_invalid_xml() {
         let mut doc = load_sample_doc();
         let err = import_fragment(&mut doc, "").expect_err("invalid fragment");
@@ -1331,7 +1373,7 @@ mod tests {
     }
 
     fn remove_nodes(ctx: &xpath::Context, expr: &str) {
-        for mut node in select_nodes(ctx, expr) {
+        for mut node in select_nodes(ctx, expr).into_iter().rev() {
             node.unlink();
         }
     }
