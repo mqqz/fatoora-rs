@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.3.0] - Unreleased
-
-Upgrade bindings and their native library together. This release replaces the
-C ABI and Python native loader, adds complete local ZATCA validation, and
-removes libxml2 from ordinary builds and distributed artifacts.
+## [0.4.0] - Unreleased
 
 ### Breaking changes
 
@@ -14,6 +10,25 @@ removes libxml2 from ordinary builds and distributed artifacts.
   `cargo install fatoora-cli`. Python still imports as `fatoora`; Rust crate
   names and C/C++ interfaces remain unchanged. Documentation now lives at
   https://docs.fatoority.com.
+- Before switching Python distributions, uninstall the previous distribution,
+  then install `fatoority`; both distributions provide the same `fatoora` import package.
+- The CLI executable is now `fatoora`. It shares its name with the official
+  ZATCA SDK executable; use an explicit path when both are installed.
+
+### Distribution
+
+- Publish the first `fatoority` Python distribution and `fatoora-cli` crate.
+  Existing packages remain available under their historical names.
+- Synchronize `fatoora-core`, `fatoora-derive`, `fatoora-ffi`, `fatoora-cli`, and
+  the Python distribution at 0.4.0.
+
+## [0.3.0] - 2026-10-11
+
+Upgrade bindings and their native library together. This release replaces the
+C ABI and Python native loader, adds complete local ZATCA validation, and
+removes libxml2 from ordinary builds and distributed artifacts.
+
+### Breaking changes
 
 - Replace handwritten C exports with Diplomat-generated `fatoora_Type_method`
   symbols. Recompile C/C++ clients against the matching generated headers.
@@ -145,3 +160,5 @@ serialized invoice data. Upgrade bindings and their native library together.
 [0.2.0]: https://github.com/mqqz/fatoority/compare/v0.1.3...v0.2.0
 
 [0.3.0]: https://github.com/mqqz/fatoority/compare/v0.2.0...v0.3.0
+
+[0.4.0]: https://github.com/mqqz/fatoority/compare/v0.3.0...v0.4.0
