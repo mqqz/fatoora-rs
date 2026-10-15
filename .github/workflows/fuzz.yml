@@ -2,6 +2,27 @@ name: fuzz
 
 on:
   pull_request:
+    # Include shared build inputs and the cross-package release metadata check.
+    paths:
+      - '.github/workflows/fuzz.yml'
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+      - 'bindings/python/pyproject.toml'
+      - 'bindings/python/uv.lock'
+      - 'bindings/js/package.json'
+      - 'bindings/js/package-lock.json'
+      - 'bindings/dotnet/Fatoora.csproj'
+      - 'bindings/kotlin/build.gradle.kts'
+      - 'scripts/check_release.py'
+      - '.cargo/**'
+      - 'rust-toolchain*'
+      - 'fatoora-core/**'
+      - 'fatoora-derive/**'
+      - 'fuzz/**'
+      - 'rustfmt.toml'
+      - '.rustfmt.toml'
+      - 'clippy.toml'
+      - '.clippy.toml'
   workflow_dispatch:
 
 permissions:

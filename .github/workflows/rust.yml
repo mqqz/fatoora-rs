@@ -2,8 +2,78 @@ name: rust
 
 on:
   pull_request:
+    # Include shared build inputs and the cross-package release metadata check.
+    paths:
+      - '.github/workflows/rust.yml'
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+      - 'bindings/python/pyproject.toml'
+      - 'bindings/python/uv.lock'
+      - 'bindings/js/package.json'
+      - 'bindings/js/package-lock.json'
+      - 'bindings/dotnet/Fatoora.csproj'
+      - 'bindings/kotlin/build.gradle.kts'
+      - 'scripts/check_release.py'
+      - '.cargo/**'
+      - 'rust-toolchain*'
+      - 'fatoora-core/**'
+      - 'fatoora-derive/**'
+      - 'fatoora-ffi/**'
+      - 'LICENSE-*'
+      - 'THIRD_PARTY_NOTICES.md'
+      - 'fatoora-cli/**'
+      - 'bindings/c/**'
+      - 'bindings/cpp/**'
+      - 'bindings/python/native/generated/**'
+      - 'bindings/js/generated/**'
+      - 'bindings/dotnet/generated/**'
+      - 'bindings/kotlin/generated/**'
+      - 'scripts/**'
+      - 'bench/dotnet/**'
+      - 'README.md'
+      - 'rustfmt.toml'
+      - '.rustfmt.toml'
+      - 'clippy.toml'
+      - '.clippy.toml'
+      - 'codecov.yml'
+      - '.codecov.yml'
     branches: ["**"]
   push:
+    # Include shared build inputs and the cross-package release metadata check.
+    paths:
+      - '.github/workflows/rust.yml'
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+      - 'bindings/python/pyproject.toml'
+      - 'bindings/python/uv.lock'
+      - 'bindings/js/package.json'
+      - 'bindings/js/package-lock.json'
+      - 'bindings/dotnet/Fatoora.csproj'
+      - 'bindings/kotlin/build.gradle.kts'
+      - 'scripts/check_release.py'
+      - '.cargo/**'
+      - 'rust-toolchain*'
+      - 'fatoora-core/**'
+      - 'fatoora-derive/**'
+      - 'fatoora-ffi/**'
+      - 'LICENSE-*'
+      - 'THIRD_PARTY_NOTICES.md'
+      - 'fatoora-cli/**'
+      - 'bindings/c/**'
+      - 'bindings/cpp/**'
+      - 'bindings/python/native/generated/**'
+      - 'bindings/js/generated/**'
+      - 'bindings/dotnet/generated/**'
+      - 'bindings/kotlin/generated/**'
+      - 'scripts/**'
+      - 'bench/dotnet/**'
+      - 'README.md'
+      - 'rustfmt.toml'
+      - '.rustfmt.toml'
+      - 'clippy.toml'
+      - '.clippy.toml'
+      - 'codecov.yml'
+      - '.codecov.yml'
     branches: ["main"]
     tags:
       - "v*"
@@ -103,7 +173,6 @@ jobs:
           cargo install diplomat-tool --version 0.16.1 --locked
           python3 scripts/generate_bindings.py --check
           python3 scripts/check_native_bindings.py
-          python3 scripts/check_c_reference.py
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Test release checks and SDK capture harness

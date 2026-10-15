@@ -1,13 +1,45 @@
-name: docs 
+name: docs
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/docs.yml'
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'fatoora-core/examples/**'
+      - 'bindings/*/examples/**'
+      - 'bindings/c/**'
+      - 'scripts/check_c_reference.py'
   push:
-    branches:
-      - main
+    branches: [main]
+    paths:
+      - '.github/workflows/docs.yml'
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'fatoora-core/examples/**'
+      - 'bindings/*/examples/**'
+      - 'bindings/c/**'
+      - 'scripts/check_c_reference.py'
+  workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
-  deploy:
+  validate:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install mkdocs-material mkdocs-macros-plugin
+      - run: mkdocs build --strict
+      - name: Compile C documentation examples
+        run: python3 scripts/check_c_reference.py
+  deploy:
+    needs: validate
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Configure Git Credentials
@@ -16,12 +48,12 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.x
-      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV 
+          python-version: '3.12'
+      - run: echo "cache_id=$(date --utc '+%V')" >> "$GITHUB_ENV"
       - uses: actions/cache@v4
         with:
           key: mkdocs-material-${{ env.cache_id }}
-          path: ~/.cache 
+          path: ~/.cache
           restore-keys: |
             mkdocs-material-
       - run: pip install mkdocs-material mkdocs-macros-plugin

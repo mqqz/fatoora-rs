@@ -1,7 +1,55 @@
 name: dotnet
 on:
   pull_request:
+    # Include shared build inputs and the cross-package release metadata check.
+    paths:
+      - '.github/workflows/dotnet.yml'
+      - 'global.json'
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+      - 'bindings/python/pyproject.toml'
+      - 'bindings/python/uv.lock'
+      - 'bindings/js/package.json'
+      - 'bindings/js/package-lock.json'
+      - 'bindings/dotnet/Fatoora.csproj'
+      - 'bindings/kotlin/build.gradle.kts'
+      - 'scripts/check_release.py'
+      - '.cargo/**'
+      - 'rust-toolchain*'
+      - 'fatoora-core/**'
+      - 'fatoora-derive/**'
+      - 'fatoora-ffi/**'
+      - 'LICENSE-*'
+      - 'THIRD_PARTY_NOTICES.md'
+      - 'bindings/dotnet/**'
+      - 'scripts/check_dotnet.py'
+      - 'scripts/check_dotnet_linux.py'
+      - 'scripts/package_dotnet.py'
   push:
+    # Include shared build inputs and the cross-package release metadata check.
+    paths:
+      - '.github/workflows/dotnet.yml'
+      - 'global.json'
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+      - 'bindings/python/pyproject.toml'
+      - 'bindings/python/uv.lock'
+      - 'bindings/js/package.json'
+      - 'bindings/js/package-lock.json'
+      - 'bindings/dotnet/Fatoora.csproj'
+      - 'bindings/kotlin/build.gradle.kts'
+      - 'scripts/check_release.py'
+      - '.cargo/**'
+      - 'rust-toolchain*'
+      - 'fatoora-core/**'
+      - 'fatoora-derive/**'
+      - 'fatoora-ffi/**'
+      - 'LICENSE-*'
+      - 'THIRD_PARTY_NOTICES.md'
+      - 'bindings/dotnet/**'
+      - 'scripts/check_dotnet.py'
+      - 'scripts/check_dotnet_linux.py'
+      - 'scripts/package_dotnet.py'
     branches: [main]
     tags: ["v*"]
   workflow_dispatch:

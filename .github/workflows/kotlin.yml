@@ -1,7 +1,63 @@
 name: kotlin
 on:
   pull_request:
+    # Include shared build inputs and the cross-package release metadata check.
+    paths:
+      - '.github/workflows/kotlin.yml'
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+      - 'bindings/python/pyproject.toml'
+      - 'bindings/python/uv.lock'
+      - 'bindings/js/package.json'
+      - 'bindings/js/package-lock.json'
+      - 'bindings/dotnet/Fatoora.csproj'
+      - 'bindings/kotlin/build.gradle.kts'
+      - 'scripts/check_release.py'
+      - '.cargo/**'
+      - 'rust-toolchain*'
+      - 'fatoora-core/**'
+      - 'fatoora-derive/**'
+      - 'fatoora-ffi/**'
+      - 'LICENSE-*'
+      - 'THIRD_PARTY_NOTICES.md'
+      - 'bindings/kotlin/**'
+      - 'scripts/build_kotlin.py'
+      - 'scripts/check_kotlin.py'
+      - 'scripts/generate_kotlin.py'
+      - 'scripts/install_kotlin_generator.py'
+      - 'scripts/patches/diplomat-kotlin.patch'
+      - 'scripts/check_dotnet_linux.py'
+      - 'scripts/publish_kotlin.py'
+      - 'scripts/tests/test_publish_kotlin.py'
   push:
+    # Include shared build inputs and the cross-package release metadata check.
+    paths:
+      - '.github/workflows/kotlin.yml'
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+      - 'bindings/python/pyproject.toml'
+      - 'bindings/python/uv.lock'
+      - 'bindings/js/package.json'
+      - 'bindings/js/package-lock.json'
+      - 'bindings/dotnet/Fatoora.csproj'
+      - 'bindings/kotlin/build.gradle.kts'
+      - 'scripts/check_release.py'
+      - '.cargo/**'
+      - 'rust-toolchain*'
+      - 'fatoora-core/**'
+      - 'fatoora-derive/**'
+      - 'fatoora-ffi/**'
+      - 'LICENSE-*'
+      - 'THIRD_PARTY_NOTICES.md'
+      - 'bindings/kotlin/**'
+      - 'scripts/build_kotlin.py'
+      - 'scripts/check_kotlin.py'
+      - 'scripts/generate_kotlin.py'
+      - 'scripts/install_kotlin_generator.py'
+      - 'scripts/patches/diplomat-kotlin.patch'
+      - 'scripts/check_dotnet_linux.py'
+      - 'scripts/publish_kotlin.py'
+      - 'scripts/tests/test_publish_kotlin.py'
     branches: [main]
     tags: ["v*"]
   workflow_dispatch:
