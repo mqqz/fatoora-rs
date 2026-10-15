@@ -183,8 +183,11 @@ jobs:
           api-level: ${{ matrix.api }}
           arch: x86_64
           target: ${{ matrix.target }}
+          # The API 35 16 KiB image exhausts the emulator's default 2560 MiB.
+          ram-size: 4096M
           disable-animations: true
           script: |
+            adb shell cat /proc/meminfo
             if [ '${{ matrix.page-size }}' = '16384' ]; then test "$(adb shell getconf PAGE_SIZE | tr -d '\r')" = '16384'; fi
             adb install dist/android/apk/androidTest/debug/android-debug-androidTest.apk
             adb shell am instrument -w com.fatoora.test/androidx.test.runner.AndroidJUnitRunner | tee instrumentation.txt
