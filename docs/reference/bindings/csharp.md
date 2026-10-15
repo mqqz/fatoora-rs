@@ -1,10 +1,26 @@
+---
+title: C# and .NET ZATCA E-Invoicing Library
+description: Install the Fatoority NuGet package for .NET 8 or later. Explore C# examples for ZATCA invoice signing, validation, and integration.
+---
+
 # C# / .NET bindings
 
 The `Fatoority` NuGet package wraps the Rust SDK through Diplomat-generated C#
 classes in namespace `Fatoora`. It targets .NET 8 or later and includes the native
 `fatoora_ffi` library for the packaged runtime identifiers (RIDs).
 
-## Build and install
+## Install from NuGet
+
+In your application project, install the published package:
+
+```sh
+dotnet add package Fatoority
+```
+
+Use the `Fatoora` namespace. Check the supported native platforms below before
+deploying your application.
+
+## Build from source
 
 From a source checkout with Rust, Python 3.11+ and the .NET 8 SDK:
 

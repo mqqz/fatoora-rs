@@ -6,6 +6,31 @@ in namespace `fatoora` through `fatoora/Type.hpp` headers.
 
 Explicit schema and local ZATCA validation for original invoice XML.
 
+
+## Construction, parsing, and validation
+
+These operations establish different guarantees:
+
+| Operation | Guarantee |
+| --- | --- |
+| Validated wrapper constructor or deserialization | Validation and normalization implemented by that wrapper |
+| `build()` | Selected field, range, and amount checks; computed totals |
+| XML parsing | Supported fields, wrapper and builder checks, and modeled supplied amounts |
+| XSD validation | Conformance to the bundled UBL schema |
+| Explicit ZATCA validation | Pinned SDK rule profiles and applicable local integrity checks, with stage coverage |
+| Signing | Generates signature material |
+| Parsing a signed invoice | Extracts signature material without verifying authenticity |
+
+`FinalizedInvoice` does not imply full business-rule compliance. `SignedInvoice`
+may come from parsing and does not prove its signature was verified. No local
+operation establishes remote acceptance or certificate issuer trust.
+
+`CountryCode`, `CurrencyCode`, `InvoiceTimestamp`, `InvoiceDate`, and `VatId`
+deserialize through their constructors with the same normalization. Invalid
+values are rejected according to each wrapper's checks. `VatId` currently checks
+only that the trimmed value is nonempty.
+
+
 ## `validate_xml_invoice_from_str`
 
 ### `validate`

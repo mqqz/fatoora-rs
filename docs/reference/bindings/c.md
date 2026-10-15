@@ -1,3 +1,8 @@
+---
+title: C and C++ ZATCA E-Invoicing Library
+description: Integrate fatoority with C or C++. Download native libraries and headers, set up linking, and follow ZATCA e-invoicing examples.
+---
+
 # C and C++ bindings
 
 For C applications, use the [C API](../../development/c-api.md): one

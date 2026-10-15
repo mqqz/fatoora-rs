@@ -1,3 +1,8 @@
+---
+title: Python ZATCA E-Invoicing Library
+description: Install fatoority for Python and use fatoora to generate CSRs, sign invoice XML, validate invoices, and work with ZATCA APIs.
+---
+
 # Python Bindings
 
 The Python package wraps the `fatoora-ffi` shared library via a Diplomat-generated Nanobind extension.

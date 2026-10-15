@@ -1,3 +1,8 @@
+---
+title: JavaScript and TypeScript ZATCA E-Invoicing Library
+description: Use fatoority in Node.js or the browser. Install the WebAssembly package and explore ZATCA invoice signing, validation, and API examples.
+---
+
 # JavaScript / TypeScript bindings
 
 The `fatoority` ES module package runs the Rust SDK in WebAssembly. Diplomat generates the object bindings and TypeScript declarations; a small facade provides async `fetch` calls. Node 22+ and modern browsers are supported. Browser execution requires WebAssembly, Web Crypto, FinalizationRegistry and top-level await.

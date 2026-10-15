@@ -1,0 +1,15 @@
+/* Keep the homepage actions readable when they wrap on narrow screens. */
+.md-typeset .home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.md-typeset .home-actions > a {
+  white-space: nowrap;
+}
+
+.md-typeset .home-actions .md-button:not(.md-button--primary) {
+  color: var(--md-typeset-color);
+}

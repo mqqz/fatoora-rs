@@ -19,7 +19,9 @@
 
 #
 
-An *unofficial* open-source toolkit for everything you'd need for ZATCA (Zakat, Tax and Customs Authority of Saudi Arabia) Phase 1 and 2 compliant e-invoicing.
+`fatoority` is an unofficial open-source toolkit for developers building e-invoicing integrations
+in Saudi Arabia. Sign invoice XML, validate it locally, generate QR payloads, and
+connect to ZATCA APIs for Phase 1 and Phase 2 workflows.
 
 With bindings and support for many programming languages:
 - 🦀 Rust <a href="https://crates.io/crates/fatoora-core"><img src="https://img.shields.io/crates/v/fatoora-core?logo=rust&label=fatoora-core" alt="fatoora-core Crates.io Version"/></a>
@@ -30,29 +32,36 @@ With bindings and support for many programming languages:
 
 - 🟣 C# / .NET <a href="https://www.nuget.org/packages/Fatoority"><img src="https://img.shields.io/nuget/v/Fatoority?logo=dotnet" alt="NuGet Version"/></a>
 
-- ☕ [Kotlin / Java / Android](https://docs.fatoority.com/reference/bindings/kotlin/) <a href="https://central.sonatype.com/artifact/com.fatoority/fatoority"><img src="https://img.shields.io/maven-central/v/com.fatoority/fatoority?logo=kotlin" alt="Maven Central Version"/></a>
+- ☕ Kotlin / Java / Android <a href="https://central.sonatype.com/artifact/com.fatoority/fatoority"><img src="https://img.shields.io/maven-central/v/com.fatoority/fatoority?logo=kotlin" alt="Maven Central Version"/></a>
 
-- 🌀 C/C++ (through the C FFI see ![releases](https://github.com/mqqz/fatoority/releases))
+- 🌀 C/C++ (through the C FFI see [releases](https://github.com/mqqz/fatoority/releases))
 
 - 🔌 Also, a Command Line Interface (CLI) Tool  <a href="https://crates.io/crates/fatoora-cli"><img src="https://img.shields.io/crates/v/fatoora-cli?logo=rust&label=fatoora-cli" alt="fatoora-cli Crates.io Version"/></a>
 
-**Disclaimer**:
-`fatoority` is not affiliated, associated, authorized, endorsed by, or in any way officially connected with ZATCA (Zakat, Tax and Customs Authority), or any of its subsidiaries or its affiliates. The official ZATCA website can be found at https://zatca.gov.sa.
+> **Disclaimer**:
+> `fatoority` is not affiliated, associated, authorized, endorsed by, or in any way officially connected with ZATCA (Zakat, Tax and Customs Authority), or any of its subsidiaries or its affiliates.
+> The official ZATCA website can be found at https://zatca.gov.sa.
 
 ## 🗂️ Documentation
 Checkout the [homepage](https://docs.fatoority.com), also the Rust API at [docs.rs](https://docs.rs/fatoora-core/latest/fatoora_core/) may prove useful.
 
 ## ⚡ Features
 
-Everything done by the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloadSDK) 
+Tools for your ZATCA integration:
 - 📩 [CSR Generation](https://docs.fatoority.com/guides/csr/)
-- ✍️ [Invoice Signing](https://docs.fatoority.com/guides/invoice-signing/) (All invoice types)
+- ✍️ [Invoice Signing](https://docs.fatoority.com/guides/invoice-signing/) (Standard and simplified invoices, credit notes, and debit notes)
 - ✅ [Validation](https://docs.fatoority.com/guides/validation/) (UBL and local ZATCA rules)
 - 🧾 [QR Generation](https://docs.fatoority.com/guides/qr/)
 - 📨 [API Requests](https://docs.fatoority.com/guides/api/)
 
-🚀 *But we do it faster and better* e.g. ~190x faster invoice hashing than ZATCA's SDK (see [`bench/`](https://github.com/mqqz/fatoority/blob/main/bench/cli/results/hash_bench.md))
+🚀 But we do it faster and better e.g. ~190x faster invoice hashing than ZATCA's SDK (see bench/)
+
 ⚙️ Rigorously tested with fuzzing and ~97% coverage
+
+See the [benchmarks](https://docs.fatoority.com/benchmarks/) for measured performance
+and methodology, and [SDK compatibility notes](https://docs.fatoority.com/development/sdk-parity/)
+for the scope of comparison with the official SDK.
+Local validation does not establish certificate issuer trust or ZATCA gateway acceptance.
 
 ## 📥 Installation
 <details>
@@ -72,10 +81,10 @@ pip install fatoority
 </details>
 
 <details>
-<summary>JavaScript</summary>
+<summary>JavaScript / TypeScript</summary>
 
 ```sh
-npm i fatoority
+npm install fatoority
 ```
 </details>
 
@@ -85,11 +94,6 @@ npm i fatoority
 ```sh
 dotnet add package Fatoority
 ```
-
-The package uses namespace `Fatoora` and includes native libraries for Linux x64,
-Windows x64, and macOS arm64.
-See the [C# reference](https://docs.fatoority.com/reference/bindings/csharp/) for installation, deterministic
-disposal, prepared HTTP requests, and package verification.
 
 </details>
 
@@ -119,13 +123,6 @@ dependencies {
 
 For Android, use `com.fatoority:fatoority-android:0.4.3` instead of the desktop
 artifact. Java/Kotlin imports remain `com.fatoora`.
-
-The desktop package runs on Java 8+ and bundles Linux x86-64, Windows x86-64 and
-macOS arm64 native libraries. Android supports API 26+ on `arm64-v8a` / `x86_64`.
-See the [Kotlin / Java reference](https://docs.fatoority.com/reference/bindings/kotlin/)
-for Android installation, platform prerequisites, ownership and coroutines.
-For unpublished versions, use the
-[local build instructions](bindings/kotlin/README.md#build-and-test).
 
 </details>
 

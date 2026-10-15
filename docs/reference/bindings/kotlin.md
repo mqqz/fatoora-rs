@@ -1,3 +1,8 @@
+---
+title: Kotlin, Java and Android ZATCA E-Invoicing Library
+description: Install fatoority from Maven Central for Kotlin, Java, or Android. Find platform requirements and ZATCA integration examples.
+---
+
 # Kotlin / Java bindings
 
 The Kotlin/JVM bindings expose the Rust SDK as `com.fatoora` classes through JNA.

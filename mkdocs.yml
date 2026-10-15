@@ -1,13 +1,15 @@
 site_name: fatoority
-site_description: Unofficial toolkit for ZATCA Phase 1/2 compliant e-invoicing
-site_url: https://docs.fatoority.com
+site_description: Build Saudi e-invoicing integrations with fatoority. Sign invoices, validate XML, generate QR payloads, and connect to ZATCA APIs.
+site_url: https://docs.fatoority.com/
 repo_name: mqqz/fatoority
 repo_url: https://github.com/mqqz/fatoority
 
 theme:
   name: material
+  custom_dir: docs/overrides
   features:
     - content.tabs.link
+    - content.code.copy
   logo: assets/images/crab-logo.png
   palette:
     scheme: slate
@@ -57,6 +59,9 @@ nav:
   - Contributing: contributing.md
   - Security: security.md
 
+extra_css:
+  - assets/stylesheets/home.css
+
 plugins:
   - search
   - macros:
@@ -64,6 +69,7 @@ plugins:
         - docs/_vars.yml
 
 markdown_extensions:
+  - attr_list
   - admonition
   - pymdownx.details
   - toc:
