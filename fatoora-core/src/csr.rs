@@ -2,6 +2,7 @@
 use crate::config::EnvironmentType;
 use base64ct::{Base64, Encoding};
 use ecdsa;
+use ecdsa::elliptic_curve::Generate;
 use fatoora_derive::Validate;
 use java_properties::PropertiesIter;
 use k256::pkcs8::{DecodePrivateKey, EncodePrivateKey, LineEnding as KeyLineEnding};
@@ -20,7 +21,7 @@ use x509_cert::{
         pem::LineEnding as CsrLineEnding,
     },
     ext::{
-        AsExtension, Extension,
+        Criticality, Extension,
         pkix::{SubjectAltName, name::GeneralName},
     },
     name,
@@ -119,8 +120,8 @@ impl Encode for TemplateNameExtension {
     }
 }
 
-impl AsExtension for TemplateNameExtension {
-    fn critical(&self, _name: &name::Name, _exts: &[Extension]) -> bool {
+impl Criticality for TemplateNameExtension {
+    fn criticality(&self, _name: &name::Name, _exts: &[Extension]) -> bool {
         false
     }
 }

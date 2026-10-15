@@ -303,10 +303,7 @@ pub fn invoice_hash_base64_from_xml_str(xml: &str) -> Result<String, SigningErro
 fn sign_hash(key: &SigningKey, hash_b64: &str) -> Result<String, SigningError> {
     let hash_bytes = Base64::decode_vec(hash_b64)
         .map_err(|e| SigningError::SigningError(format!("Failed to decode base64 hash: {e:?}")))?;
-    let signature: Signature = key
-        .sign_recoverable(&hash_bytes)
-        .map_err(|e| SigningError::SigningError(format!("Failed to sign invoice hash: {e:?}")))?
-        .0;
+    let signature: Signature = key.sign_recoverable(&hash_bytes).0;
     Ok(Base64::encode_string(signature.to_der().as_bytes()))
 }
 

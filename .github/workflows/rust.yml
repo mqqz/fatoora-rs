@@ -14,6 +14,36 @@ on:
         required: false
         default: "false"
 jobs:
+  fresh-consumer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Rust
+        run: rustup update stable
+      - name: Build consumer with freshly resolved dependencies
+        shell: bash
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/fresh-consumer-target
+        run: |
+          consumer=$(mktemp -d "$RUNNER_TEMP/fatoora-consumer.XXXXXX")
+          mkdir -p "$consumer/src"
+          # An external workspace cannot inherit the repository's Cargo.lock.
+          # Use this checkout so the check also covers unreleased changes.
+          cat > "$consumer/Cargo.toml" <<EOF
+          [package]
+          name = "fatoora-fresh-consumer"
+          version = "0.0.0"
+          edition = "2024"
+          publish = false
+
+          [workspace]
+
+          [dependencies]
+          fatoora-core = { path = "$GITHUB_WORKSPACE/fatoora-core" }
+          EOF
+          echo 'pub use fatoora_core::*;' > "$consumer/src/lib.rs"
+          cargo build --manifest-path "$consumer/Cargo.toml"
+
   coverage:
     runs-on: ubuntu-latest
     env:
@@ -118,7 +148,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    needs: coverage
+    needs: [coverage, fresh-consumer]
     if: |
       startsWith(github.ref, 'refs/tags/v') ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.publish == 'true')
