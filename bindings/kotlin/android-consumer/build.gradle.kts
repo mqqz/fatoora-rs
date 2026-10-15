@@ -18,7 +18,7 @@ android {
 }
 dependencies {
     // Resolve the built AAR and transitive metadata; no project dependency.
-    implementation("com.fatoora:fatoority-android:${rootProject.version}")
+    implementation("com.fatoority:fatoority-android:${rootProject.version}")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }

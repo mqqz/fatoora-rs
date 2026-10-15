@@ -3,7 +3,7 @@ dependencyResolutionManagement {
     repositories {
         exclusiveContent {
             forRepository { maven { url = uri("build/repository") } }
-            filter { includeGroup("com.fatoora") }
+            filter { includeGroup("com.fatoority") }
         }
         google()
         mavenCentral()

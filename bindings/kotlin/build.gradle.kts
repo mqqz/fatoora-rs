@@ -6,9 +6,10 @@ plugins {
     id("com.android.library") version "8.9.2" apply false
     id("com.android.application") version "8.9.2" apply false
     `java-library`
+    id("org.jetbrains.dokka") version "2.2.0"
     `maven-publish`
 }
-group = "com.fatoora"
+group = "com.fatoority"
 version = "0.4.2"
 
 kotlin {
@@ -42,7 +43,24 @@ tasks.jar {
         into("licenses/zatca")
     }
 }
-publishing { publications { create<MavenPublication>("jvm") { from(components["java"]); artifactId = "fatoority" } } }
+dokka {
+    dokkaSourceSets.configureEach {
+        perPackageOption {
+            matchingRegex.set("com\\.fatoora\\.raw.*")
+            suppress.set(true)
+        }
+    }
+}
+val javadocJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("javadoc")
+    from(tasks.dokkaGeneratePublicationHtml.flatMap { it.outputDirectory })
+    from("README.md")
+}
+publishing { publications { create<MavenPublication>("jvm") {
+    from(components["java"])
+    artifactId = "fatoority"
+    artifact(javadocJar)
+} } }
 
 publishing.repositories { maven { name = "staging"; url = uri(layout.buildDirectory.dir("repository")) } }
 
@@ -52,6 +70,16 @@ publishing.publications.withType<MavenPublication>().configureEach {
         name.set("Fatoority")
         description.set("Kotlin and Java bindings for the Fatoority ZATCA SDK")
         url.set("https://github.com/mqqz/fatoority")
+        developers { developer {
+            id.set("mqqz")
+            name.set("mqqz")
+            url.set("https://github.com/mqqz")
+        } }
+        scm {
+            url.set("https://github.com/mqqz/fatoority")
+            connection.set("scm:git:https://github.com/mqqz/fatoority.git")
+            developerConnection.set("scm:git:ssh://git@github.com/mqqz/fatoority.git")
+        }
         licenses { license {
             name.set("See THIRD_PARTY_NOTICES.md")
             url.set("https://github.com/mqqz/fatoority/blob/main/THIRD_PARTY_NOTICES.md")

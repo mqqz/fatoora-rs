@@ -5,16 +5,52 @@ Java callers use static factories and overloads with ordinary return values;
 native failures throw `BindingException`. The public API does not expose Kotlin
 `Result` or unsigned types with JVM-mangled method names.
 
-## Build and install
+## Install from Maven Central
 
-See the [package README](https://github.com/mqqz/fatoority/tree/main/bindings/kotlin)
-for local Maven installation, Android SDK setup and test commands. Packages are
-CI artifacts and local builds; Maven Central publication is not configured.
+Use a published release from Maven Central. Java/Kotlin imports remain
+`com.fatoora`; the Maven group is `com.fatoority`.
 
-| Artifact | Runtime | Native platforms in CI |
+For desktop Gradle projects, add this to `build.gradle.kts`:
+
+```kotlin
+repositories { mavenCentral() }
+dependencies {
+    implementation("com.fatoority:fatoority:0.4.2")
+}
+```
+
+For Maven, add this dependency to `pom.xml` (Maven Central is used by default):
+
+```xml
+<dependency>
+  <groupId>com.fatoority</groupId>
+  <artifactId>fatoority</artifactId>
+  <version>0.4.2</version>
+</dependency>
+```
+
+For Android, include `mavenCentral()` in the repositories under
+`dependencyResolutionManagement` in `settings.gradle.kts`, then add the Android
+artifact to your app's `build.gradle.kts`:
+
+```kotlin
+dependencies {
+    implementation("com.fatoority:fatoority-android:0.4.2")
+}
+```
+
+Choose the desktop JAR or Android AAR, not both. They bundle the native libraries
+for their supported platforms and resolve JNA and coroutines transitively.
+Consumers do not need Rust or a separate native-library build.
+
+For unpublished versions or development builds, see the
+[package README](https://github.com/mqqz/fatoority/tree/main/bindings/kotlin#build-and-test)
+for the local Maven repository, Android SDK setup and test commands.
+
+| Artifact | Runtime | Bundled native platforms |
 | --- | --- | --- |
-| `com.fatoora:fatoority:0.4.2` | Java 8+ | Linux x86-64, Windows x86-64, macOS arm64 |
-| `com.fatoora:fatoority-android:0.4.2` | Android API 26+ | arm64-v8a, x86_64 |
+| `com.fatoority:fatoority:0.4.2` | Java 8+ | Linux x86-64, Windows x86-64, macOS arm64 |
+| `com.fatoority:fatoority-android:0.4.2` | Android API 26+ | arm64-v8a, x86_64 |
 
 The desktop JAR includes JNA native resource directories. Linux CI assets require
 glibc 2.28+; musl/Alpine is not included. Local native builds inherit the host's
