@@ -4,6 +4,7 @@ on:
     # Include shared build inputs and the cross-package release metadata check.
     paths:
       - '.github/workflows/dotnet.yml'
+      - 'global.json'
       - '**/Cargo.toml'
       - '**/Cargo.lock'
       - 'bindings/python/pyproject.toml'
@@ -28,6 +29,7 @@ on:
     # Include shared build inputs and the cross-package release metadata check.
     paths:
       - '.github/workflows/dotnet.yml'
+      - 'global.json'
       - '**/Cargo.toml'
       - '**/Cargo.lock'
       - 'bindings/python/pyproject.toml'

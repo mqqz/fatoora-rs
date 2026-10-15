@@ -58,6 +58,11 @@ class WorkflowPaths(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertEqual(selected(path), expected)
 
+    def test_dotnet_sdk_selection_triggers_only_dotnet(self):
+        for event in ('pull_request', 'push'):
+            with self.subTest(event=event):
+                self.assertEqual(selected('global.json', event), {'dotnet'})
+
     def test_core_and_bridge_changes_reach_consumers(self):
         consumers = {'rust', 'python', 'javascript', 'dotnet', 'kotlin', 'release'}
         for path in ['fatoora-core/src/invoice.rs', 'fatoora-core/assets/schema.xsd', 'fatoora-derive/src/lib.rs']:
