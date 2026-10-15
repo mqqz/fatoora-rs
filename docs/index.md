@@ -67,7 +67,7 @@ The main core library (`fatoora-core`) is written in Rust with a C FFI that allo
     ```
     Install it in your application's project:
     ```sh
-    dotnet add package Fatoority --version 0.4.2 --source /absolute/path/to/dist/dotnet
+    dotnet add package Fatoority --version 0.4.3 --source /absolute/path/to/dist/dotnet
     ```
     See the [C# / .NET reference](reference/bindings/csharp.md) for requirements,
     native platforms, and ownership rules.

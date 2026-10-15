@@ -103,7 +103,7 @@ Install a published release from Maven Central.
 ```kotlin
 repositories { mavenCentral() }
 dependencies {
-    implementation("com.fatoority:fatoority:0.4.2")
+    implementation("com.fatoority:fatoority:0.4.3")
 }
 ```
 
@@ -113,11 +113,11 @@ dependencies {
 <dependency>
   <groupId>com.fatoority</groupId>
   <artifactId>fatoority</artifactId>
-  <version>0.4.2</version>
+  <version>0.4.3</version>
 </dependency>
 ```
 
-For Android, use `com.fatoority:fatoority-android:0.4.2` instead of the desktop
+For Android, use `com.fatoority:fatoority-android:0.4.3` instead of the desktop
 artifact. Java/Kotlin imports remain `com.fatoora`.
 
 The desktop package runs on Java 8+ and bundles Linux x86-64, Windows x86-64 and

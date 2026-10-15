@@ -15,7 +15,7 @@ For desktop Gradle projects, add this to `build.gradle.kts`:
 ```kotlin
 repositories { mavenCentral() }
 dependencies {
-    implementation("com.fatoority:fatoority:0.4.2")
+    implementation("com.fatoority:fatoority:0.4.3")
 }
 ```
 
@@ -25,7 +25,7 @@ For Maven, add this dependency to `pom.xml` (Maven Central is used by default):
 <dependency>
   <groupId>com.fatoority</groupId>
   <artifactId>fatoority</artifactId>
-  <version>0.4.2</version>
+  <version>0.4.3</version>
 </dependency>
 ```
 
@@ -35,7 +35,7 @@ artifact to your app's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.fatoority:fatoority-android:0.4.2")
+    implementation("com.fatoority:fatoority-android:0.4.3")
 }
 ```
 
@@ -49,8 +49,8 @@ for the local Maven repository, Android SDK setup and test commands.
 
 | Artifact | Runtime | Bundled native platforms |
 | --- | --- | --- |
-| `com.fatoority:fatoority:0.4.2` | Java 8+ | Linux x86-64, Windows x86-64, macOS arm64 |
-| `com.fatoority:fatoority-android:0.4.2` | Android API 26+ | arm64-v8a, x86_64 |
+| `com.fatoority:fatoority:0.4.3` | Java 8+ | Linux x86-64, Windows x86-64, macOS arm64 |
+| `com.fatoority:fatoority-android:0.4.3` | Android API 26+ | arm64-v8a, x86_64 |
 
 The desktop JAR includes JNA native resource directories. Linux CI assets require
 glibc 2.28+; musl/Alpine is not included. Local native builds inherit the host's
