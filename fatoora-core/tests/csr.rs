@@ -5,6 +5,60 @@ use std::path::Path;
 use std::str::FromStr;
 
 #[test]
+fn csr_templates_remain_noncritical_and_signatures_verify_in_all_environments() {
+    use k256::{
+        ecdsa::{Signature, VerifyingKey, signature::Verifier},
+        pkcs8::DecodePublicKey,
+    };
+    use x509_cert::{
+        der::{Decode, Encode},
+        ext::Extensions,
+        request::CertReq,
+    };
+
+    let properties = CsrProperties::from_properties_str(include_str!(
+        "fixtures/csr-configs/csr-config-example-EN.properties"
+    ))
+    .unwrap();
+    let key = SigningKey::generate();
+    for (environment, template) in [
+        (EnvironmentType::NonProduction, "TSTZATCA-Code-Signing"),
+        (EnvironmentType::Simulation, "PREZATCA-Code-Signing"),
+        (EnvironmentType::Production, "ZATCA-Code-Signing"),
+    ] {
+        let csr = properties.build(&key, environment).unwrap();
+        let parsed = CertReq::from_der(&csr.to_der().unwrap()).unwrap();
+        let public_key =
+            VerifyingKey::from_public_key_der(&parsed.info.public_key.to_der().unwrap()).unwrap();
+        let signature = Signature::from_der(parsed.signature.as_bytes().unwrap()).unwrap();
+        public_key
+            .verify(&parsed.info.to_der().unwrap(), &signature)
+            .unwrap();
+
+        let extensions: Vec<_> = csr
+            .extension_values_der()
+            .into_iter()
+            .flat_map(|der| Extensions::from_der(&der).unwrap())
+            .collect();
+        assert_eq!(extensions.len(), 2);
+        let template_extension = extensions
+            .iter()
+            .find(|extension| extension.extn_id.to_string() == "1.3.6.1.4.1.311.20.2")
+            .unwrap();
+        assert!(!template_extension.critical);
+        assert_eq!(
+            String::from_der(template_extension.extn_value.as_bytes()).unwrap(),
+            template
+        );
+        let san = extensions
+            .iter()
+            .find(|extension| extension.extn_id.to_string() == "2.5.29.17")
+            .unwrap();
+        assert!(!san.critical);
+    }
+}
+
+#[test]
 fn test_parse_csr_config() {
     let config_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/csr-configs/csr-config-example-EN.properties");

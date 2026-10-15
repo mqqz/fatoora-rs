@@ -588,7 +588,7 @@ fn signing_qr_preserves_certificate_spki_point_encoding() {
     let (_, key_der, _) = build_test_signing_material();
     let key = K256SigningKey::from_pkcs8_der(&key_der).unwrap();
     for compressed in [true, false] {
-        let point = key.verifying_key().to_encoded_point(compressed);
+        let point = key.verifying_key().to_sec1_point(compressed);
         let point = point.as_bytes();
         // id-ecPublicKey + secp256k1, followed by the original SEC1 point.
         let mut spki = vec![

@@ -5,6 +5,7 @@ unsafe extern "C" {
 }
 
 // getrandom's custom backend is defined once, in the final binding artifact.
+// getrandom 0.4 retains the v03 backend symbol used by transitive 0.3 callers.
 #[unsafe(no_mangle)]
 unsafe extern "Rust" fn __getrandom_v03_custom(
     dest: *mut u8,
