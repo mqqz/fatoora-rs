@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <PackageId>Fatoority</PackageId>
-    <Version>0.4.2</Version>
+    <Version>0.4.3</Version>
     <Authors>mqqz</Authors>
     <Description>C# bindings for the Fatoora ZATCA SDK.</Description>
     <PackageLicenseFile>THIRD_PARTY_NOTICES.md</PackageLicenseFile>

@@ -1,6 +1,18 @@
 # Changelog
 
-## [0.4.2] - Unreleased
+## [0.4.3] - Unreleased
+
+- Add Kotlin/JVM bindings with a Java-friendly API, deterministic ownership,
+  coroutine helpers, and Android AAR packaging for arm64 and x86-64.
+- Publish JVM and Android packages under `com.fatoority` on Maven Central, with
+  signed artifacts, sources, API documentation, and package-consumer tests.
+- Support GPG signing subkeys and increase Android emulator memory for the
+  16 KiB page-size tests.
+- Replace prerelease crypto dependencies with stable versions so fresh Cargo
+  consumers build successfully; add a fresh-consumer CI check.
+- Synchronize Rust, Python, npm, NuGet, and Maven packages at 0.4.3.
+
+## [0.4.2] - 2026-10-12
 
 - Add C#/.NET 8 bindings with deterministic disposal, strict string conversion,
   and prepared requests for asynchronous HTTP through caller-owned transports.

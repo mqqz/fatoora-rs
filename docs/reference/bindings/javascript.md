@@ -24,7 +24,7 @@ python3 scripts/build_js.py
 Install the resulting tarball in your application:
 
 ```sh
-npm install /path/to/fatoority-0.4.2.tgz
+npm install /path/to/fatoority-0.4.3.tgz
 ```
 
 The generated bindings are checked in. Regeneration requires `diplomat-tool 0.16.1`; follow the [binding workflow](../../development/diplomat.md) when changing Rust bridge declarations. Version tags publish the tested package to npm through GitHub Actions.

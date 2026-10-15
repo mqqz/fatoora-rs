@@ -15,7 +15,7 @@ python3 scripts/package_dotnet.py --output-dir dist/dotnet
 In your application's project directory, install the local package:
 
 ```sh
-dotnet add package Fatoority --version 0.4.2 --source /absolute/path/to/dist/dotnet
+dotnet add package Fatoority --version 0.4.3 --source /absolute/path/to/dist/dotnet
 ```
 
 A local build includes the host RID. The C# CI workflow tests Linux, Windows and
