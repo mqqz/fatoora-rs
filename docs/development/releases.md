@@ -1,8 +1,8 @@
 # Preparing a release
 
-Rust crates, Python, JS/TS, and C# packages share a release version. A `v*` tag
-starts five independent publication workflows: crates.io, PyPI, npm, NuGet.org,
-and GitHub native assets. Creating or merging a release PR does not publish packages.
+Rust crates, Python, JS/TS, C#, and Kotlin/Java packages share a release version.
+A `v*` tag starts six independent publication workflows: crates.io, PyPI, npm,
+NuGet.org, Maven Central, and GitHub native assets. Creating or merging a release PR does not publish packages.
 
 ## Prepare the candidate
 
@@ -10,7 +10,8 @@ Use a branch named `release/<version>` so its PR runs the Linux, macOS, and
 Windows wheel and native builds. Update all four crate manifests, their internal
 dependency requirements, `bindings/python/pyproject.toml`, and the version in
 `bindings/js/package.json` and `bindings/js/package-lock.json`. Update the
-`Version` in `bindings/dotnet/Fatoora.csproj`. Refresh the root
+`Version` in `bindings/dotnet/Fatoora.csproj` and `version` in
+`bindings/kotlin/build.gradle.kts`. Refresh the root
 `Cargo.lock` and `bindings/python/uv.lock` without upgrading unrelated packages.
 Refresh `fuzz/Cargo.lock` and `scripts/xsd-compat/Cargo.lock` as well; their
 independent workspaces resolve SDK path dependencies at the new version.
@@ -107,6 +108,95 @@ Branch dispatches requesting publication fail the tag check; dispatches with
 whether the version already exists before retrying. The push does not silently
 skip duplicate versions.
 
+## Maven Central publishing
+
+The `kotlin.yml` workflow publishes `com.fatoority:fatoority` (desktop JAR) and
+`com.fatoority:fatoority-android` (Android AAR). The namespace reflects ownership
+of `fatoority.com`; it does not change the `com.fatoora` Java/Kotlin API package.
+
+Before the first release:
+
+1. Sign in to [Sonatype Central](https://central.sonatype.com/), add the
+   `com.fatoority` namespace, and verify the DNS TXT record requested for
+   `fatoority.com`.
+2. Generate a user token from the Central account page. Store its username and
+   password as repository Actions secrets `MAVEN_CENTRAL_USERNAME` and
+   `MAVEN_CENTRAL_PASSWORD`. These are the token credentials, not your login
+   password.
+3. Create a dedicated signing key, or select an existing RSA signing key. For a
+   new key, choose RSA (signing-capable), 4096 bits, an expiry such as two years,
+   and a passphrase. The name and email on the public key will be public.
+
+```sh
+gpg --full-generate-key
+gpg --list-secret-keys --keyid-format LONG
+```
+
+Use the full primary fingerprint from that output below. Publish the public key
+so Central can verify signatures, then pipe the armored private key directly to
+GitHub's encrypted Actions secret. No private-key file is needed.
+
+```sh
+export GPG_TTY="$(tty)"
+SIGNING_FINGERPRINT=YOUR_FULL_PRIMARY_FINGERPRINT
+gpg --keyserver hkps://keyserver.ubuntu.com --send-keys "$SIGNING_FINGERPRINT"
+gpg --armor --export-secret-keys "$SIGNING_FINGERPRINT" |
+  gh secret set GPG_PRIVATE_KEY --repo mqqz/fatoority
+
+gh secret set GPG_PASSPHRASE --repo mqqz/fatoority
+gh secret set MAVEN_CENTRAL_USERNAME --repo mqqz/fatoority
+gh secret set MAVEN_CENTRAL_PASSWORD --repo mqqz/fatoority
+```
+
+The last three commands prompt for values. You can also add them under repository
+**Settings → Secrets and variables → Actions → New repository secret**.
+`GPG_PRIVATE_KEY` must contain the entire ASCII-armored private key, including
+its BEGIN/END lines, with no base64 wrapping. `GPG_PASSPHRASE` is its passphrase.
+Keep a backup of the key and its revocation certificate. When extending its
+expiry, send the updated public key to the keyserver and replace the private-key
+secret. See [Sonatype's GPG guide](https://central.sonatype.org/publish/requirements/gpg/)
+and [token setup](https://central.sonatype.org/publish/generate-portal-token/).
+
+Every Kotlin workflow validates a Central bundle without credentials after the
+three desktop jobs, isolated JAR consumer, and both Android emulator consumers
+pass. The bundle must contain both packages, all supported native platforms,
+sources, Dokka API documentation, and complete POM metadata. It includes Gradle
+module metadata and recalculated checksums; repository-level Maven metadata and
+other versions are excluded.
+
+The publish job runs only for `v*` tags or a manual dispatch with `publish: true`.
+It checks that the selected ref is a tag matching every package version, imports
+the signing key into a temporary keyring, signs the tested artifacts without
+rebuilding them, and uploads a single bundle to Central using `AUTOMATIC`
+publishing. It waits for `PUBLISHED`; an accepted upload alone is not success.
+Normal commits, PRs, and dispatches with `publish: false` do not publish or receive
+credentials. Tag workflows are not cancelled by a newer run.
+
+For an unpublished local bundle check, download and combine the `kotlin-maven`
+and `kotlin-android-maven` CI artifacts into one repository directory, then run:
+
+```sh
+python3 scripts/publish_kotlin.py --repository dist/maven
+```
+
+This creates an **unsigned validation bundle**, without contacting Central. Add
+`--sign` with the GPG environment variables set to exercise signing locally.
+Only the release workflow should use `--publish`.
+
+For recovery, inspect the deployment ID in the job log or the
+`kotlin-central-deployment` artifact and check its status in Central before
+retrying. A timeout or lost upload response does not prove publication failed.
+If Central already has a pending deployment, finish or drop it there; do not
+blindly upload another bundle. Both artifact versions must be unused for a fresh
+upload. When neither is published and no deployment is pending, dispatch
+`kotlin.yml` on the unchanged release tag with `publish: true`. Central versions
+are immutable. A tag created before this workflow exists cannot gain it by
+rerunning; ship the publishing setup in a new release commit and tag.
+
+After success, verify both coordinates in Central and resolve each in a fresh
+Gradle/Maven consumer. The first publication still requires verified namespace,
+valid secrets, and server-side validation; local tests cannot establish those.
+
 ## Publication prerequisites
 
 Before tagging, check the candidate commit's Rust tests, Python tests, Cargo
@@ -146,7 +236,8 @@ git push origin v0.4.2
 
 The tag starts publication. Rust publishes derive, core, FFI, then CLI. Python
 publishes after its binding tests and wheel builds. NuGet publishes after its
-combined package passes all platform consumers. GitHub assets upload after
+combined package passes all platform consumers. Maven Central publishes after
+the desktop and Android consumers and Central bundle checks pass. GitHub assets upload after
 all native builds. Manual Rust/Python publishing must also run against the
 matching tag; manual native releases check out their supplied tag.
 

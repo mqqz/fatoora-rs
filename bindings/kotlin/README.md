@@ -5,6 +5,50 @@ The Android AAR supports API 26+ on `arm64-v8a` and `x86_64`.
 See the [Kotlin / Java reference](https://docs.fatoority.com/reference/bindings/kotlin/)
 for installation, requests, ownership and coroutine behavior.
 
+## Install from Maven Central
+
+Use a published release from Maven Central. Java/Kotlin imports remain
+`com.fatoora`; the Maven group is `com.fatoority`.
+
+For desktop Gradle projects, add this to `build.gradle.kts`:
+
+```kotlin
+repositories { mavenCentral() }
+dependencies {
+    implementation("com.fatoority:fatoority:0.4.2")
+}
+```
+
+For Maven, add this dependency to `pom.xml` (Maven Central is used by default):
+
+```xml
+<dependency>
+  <groupId>com.fatoority</groupId>
+  <artifactId>fatoority</artifactId>
+  <version>0.4.2</version>
+</dependency>
+```
+
+For Android, include `mavenCentral()` in the repositories under
+`dependencyResolutionManagement` in `settings.gradle.kts`, then add the Android
+artifact to your app's `build.gradle.kts`:
+
+```kotlin
+dependencies {
+    implementation("com.fatoority:fatoority-android:0.4.2")
+}
+```
+
+Choose the desktop JAR or Android AAR, not both. They bundle the native libraries
+for their supported platforms and resolve JNA and coroutines transitively.
+Consumers do not need Rust or a separate native-library build.
+
+For an unpublished version, use the [local build](#build-and-test) below.
+Publisher setup is documented in the
+[release guide](https://docs.fatoority.com/development/releases/#maven-central-publishing).
+
+## Usage
+
 ```kotlin
 import com.fatoora.*
 
@@ -57,15 +101,15 @@ python3 scripts/check_kotlin.py
 
 The Maven repository is `bindings/kotlin/build/repository`. A local build embeds
 the host native library. CI combines Linux x86-64 (glibc 2.28+), Windows x86-64
-and macOS arm64 in its `kotlin-maven` artifact. No Maven Central publication is
-configured. Add the local repository in your app's Gradle configuration:
+and macOS arm64 in its `kotlin-maven` artifact. Add the local repository in your
+app's Gradle configuration to test an unpublished build:
 
 ```kotlin
 repositories {
     maven { url = uri("/absolute/path/to/fatoority/bindings/kotlin/build/repository") }
     mavenCentral()
 }
-dependencies { implementation("com.fatoora:fatoority:0.4.2") }
+dependencies { implementation("com.fatoority:fatoority:0.4.2") }
 ```
 
 For Android, install SDK 35, build-tools 35.0.0 and NDK 28.2.13676358:
@@ -76,7 +120,7 @@ python3 scripts/build_kotlin.py --android --ndk "$ANDROID_HOME/ndk/28.2.13676358
 bindings/kotlin/gradlew -p bindings/kotlin -Pandroid=true :android:connectedDebugAndroidTest
 ```
 
-Use `com.fatoora:fatoority-android:0.4.2` from that repository in Android apps.
+Use `com.fatoority:fatoority-android:0.4.2` from that repository in Android apps.
 Do not add the desktop artifact alongside it. The AAR bundles both Android native
 libraries and consumer shrinker rules; its Maven metadata supplies JNA's AAR and
 coroutines. Native ELF segments support 16 KiB pages. Android TLS uses bundled

@@ -30,7 +30,7 @@ With bindings and support for many programming languages:
 
 - 🟣 C# / .NET <a href="https://www.nuget.org/packages/Fatoority"><img src="https://img.shields.io/nuget/v/Fatoority?logo=dotnet" alt="NuGet Version"/></a>
 
-- ☕ [Kotlin / Java / Android](https://docs.fatoority.com/reference/bindings/kotlin/)
+- ☕ [Kotlin / Java / Android](https://docs.fatoority.com/reference/bindings/kotlin/) <a href="https://central.sonatype.com/artifact/com.fatoority/fatoority"><img src="https://img.shields.io/maven-central/v/com.fatoority/fatoority?logo=kotlin" alt="Maven Central Version"/></a>
 
 - 🌀 C/C++ (through the C FFI see ![releases](https://github.com/mqqz/fatoority/releases))
 
@@ -96,15 +96,36 @@ disposal, prepared HTTP requests, and package verification.
 <details>
 <summary>Kotlin / Java / Android</summary>
 
-Build the local JVM Maven package (JDK 17, Rust and Python 3.11+):
+Install a published release from Maven Central.
 
-```sh
-python3 scripts/build_kotlin.py
+**Gradle** (`build.gradle.kts`):
+
+```kotlin
+repositories { mavenCentral() }
+dependencies {
+    implementation("com.fatoority:fatoority:0.4.2")
+}
 ```
 
-The package runs on Java 8+. Android uses a separate AAR for API 26+ and
-`arm64-v8a` / `x86_64`. See the [Kotlin / Java reference](https://docs.fatoority.com/reference/bindings/kotlin/)
-for local Maven installation, Android builds, ownership and coroutine support.
+**Maven** (`pom.xml`):
+
+```xml
+<dependency>
+  <groupId>com.fatoority</groupId>
+  <artifactId>fatoority</artifactId>
+  <version>0.4.2</version>
+</dependency>
+```
+
+For Android, use `com.fatoority:fatoority-android:0.4.2` instead of the desktop
+artifact. Java/Kotlin imports remain `com.fatoora`.
+
+The desktop package runs on Java 8+ and bundles Linux x86-64, Windows x86-64 and
+macOS arm64 native libraries. Android supports API 26+ on `arm64-v8a` / `x86_64`.
+See the [Kotlin / Java reference](https://docs.fatoority.com/reference/bindings/kotlin/)
+for Android installation, platform prerequisites, ownership and coroutines.
+For unpublished versions, use the
+[local build instructions](bindings/kotlin/README.md#build-and-test).
 
 </details>
 
