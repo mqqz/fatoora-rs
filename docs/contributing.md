@@ -164,5 +164,5 @@ python3 scripts/check_js_package.py
 
 The WASM build uses its own size profile and pinned Binaryen `wasm-opt -Oz`.
 It verifies compressed schemas byte-for-byte and enforces raw/gzip size budgets.
-See the [size breakdown](reference/bindings/javascript.md#artifact-size) before
-changing dependencies or removing validation functionality to reduce size.
+Run the size check above when changing dependencies; preserve validation functionality
+when reducing artifact size.

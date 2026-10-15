@@ -1,25 +1,18 @@
+---
+title: Decimal numbers and invoice rounding
+description: Exact decimal inputs, supported precision, VAT rounding and invoice total calculations in fatoority.
+---
+
 # Decimal numbers and rounding
 
-Invoice numeric values use `fatoora_core::Decimal`, a crate-owned type. Construct
-values from decimal strings or integers. Floating-point conversions are not part
-of the API.
-
-```rust
-use fatoora_core::{Decimal, invoice::{LineItem, VatCategory}};
-
-let item = LineItem::new(
-    "Item", Decimal::from(3), "PCE", "0.3333".parse()?,
-    Decimal::from(15), VatCategory::Standard,
-)?;
-assert_eq!(item.total_amount(), "1.00".parse()?);
-```
+Use decimal strings or integers for invoice amounts. Parsing never silently rounds an input.
 
 ## Representation
 
 Accepted syntax is `[+-]digits[.digits]`, using ASCII digits. Whitespace,
 exponents, separators, infinities and NaN are rejected. Parsing never rounds.
 The range is a signed 96-bit coefficient with a scale from 0 through 28.
-Values outside that range return `DecimalError::OutOfRange`.
+Values outside that range fail with an out-of-range error.
 
 Equality compares numeric values: `1.0` equals `1.00`. Display and JSON use
 canonical decimal strings, without exponents or unnecessary trailing zeros.
@@ -46,7 +39,7 @@ constraints in the [ZATCA XML standard, May 2023](https://www.zatca.gov.sa/ar/E-
   totals without introducing another calculation stage.
 
 For three lines of `0.03` at 15%, each calculated line VAT is `0.00`, while document
-VAT is `0.01`. The regression suite checks this difference.
+VAT is `0.01`.
 
 Rates must be between 0 and 100 with at most two decimal places. Supplied amounts
 such as document discounts and charges must already have at most two decimals.
@@ -62,9 +55,9 @@ adjustment category/rate groups require a richer adjustment model and are reject
 
 ## Calculated and supplied values
 
-`LineItem::new` calculates amounts. `from_totals` and `try_from_parts` validate
-supplied amounts against those calculations exactly; they return `InvoiceError`
-on a mismatch. Validation issues expose the supplied and expected values.
+Line-item construction calculates amounts. Importing supplied totals validates them
+against those calculations exactly; mismatches return validation issues containing
+the supplied and expected values.
 
 XML import preserves supplied line VAT. The May 2023 standard removed BR-KSA-50;
 BR-KSA-51 still relates line gross to line net plus supplied VAT. Import validates
@@ -76,35 +69,42 @@ This numeric validation covers the model's supported calculations. It does not
 replace the complete ZATCA business-rule validator or add line allowances, line
 charges or price-base quantities to the model.
 
-## Bindings and migration
 
-This changes Rust signatures, JSON numeric fields and the C ABI. Rebuild native
-bindings and their callers together.
+## Values in your language
 
-Python inputs accept `decimal.Decimal`, `str` or `int`; floats are rejected.
-Numeric getters return `decimal.Decimal`.
+=== "Rust"
 
-```python
-builder.add_line_item("Item", 3, "PCE", "0.3333", "15", VatCategory.STANDARD)
-```
+    `fatoora_core::Decimal` accepts decimal strings through `parse()` and integers through `Decimal::from`. Parsing returns `DecimalError` on invalid syntax or range. Numeric getters return `Decimal`.
 
-C inputs are NUL-terminated UTF-8 decimal strings, such as `"0.3333"`.
-Numeric getters return owned decimal text through `char **out`; release it with
-`fatoora_string_free()`. The backing decimal library has no public ABI representation.
+    ```rust
+    let price: fatoora_core::Decimal = "0.3333".parse()?;
+    ```
 
-## Regression checks
+=== "Python"
 
-`numeric_contract.rs` tests rounding boundaries, adjustments, category aggregation,
-XML import and serialization. `decimal.rs` covers parsing and string serialization.
-QR, FFI and Python tests check the same amounts at their respective boundaries.
+    Inputs accept `decimal.Decimal`, `str`, or `int`. Both `float` and `bool` are rejected. Numeric getters return `decimal.Decimal`.
 
-For independent numeric-rule checks using an extracted official SDK:
+    ```python
+    from decimal import Decimal
+    price = Decimal("0.3333")
+    ```
 
-```sh
-ZATCA_SDK_ROOT=/path/to/sdk cargo test -p fatoora-core --test numeric_contract official_sdk_numeric_rules
-```
+=== "JavaScript"
 
-That test runs both official Schematron stylesheets through the SDK's bundled
-Saxon engine. It checks numeric-rule failures only; unrelated invoice requirements
-and signing are outside this test. Without the environment variable, it reports
-that the SDK check was skipped.
+    Pass quantities, prices, rates and amounts as decimal strings, such as `"0.3333"`. Numeric getters return strings. Avoid converting financial values to `Number`, which can lose precision.
+
+=== "C#"
+
+    Pass quantities, prices, rates and amounts as invariant decimal strings, such as `"0.3333"`. Numeric getters return `string`. If formatting a `decimal`, use `CultureInfo.InvariantCulture`.
+
+=== "Kotlin"
+
+    Pass quantities, prices, rates and amounts as decimal strings. Numeric getters return `String`. Use `BigDecimal.toPlainString()` when converting a value; scientific notation is not accepted.
+
+=== "Java"
+
+    Pass quantities, prices, rates and amounts as decimal strings. Numeric getters return `String`. Use `BigDecimal.toPlainString()` when converting a value; scientific notation is not accepted.
+
+=== "C"
+
+    Inputs are NUL-terminated UTF-8 decimal strings, such as `"0.3333"`. Numeric getters return owned text through `char **out`; release it with `fatoora_string_free()`. Check the returned `FatooraStatus` before reading the output.

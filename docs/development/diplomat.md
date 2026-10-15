@@ -140,7 +140,7 @@ test coverage separately.
 
 The [JS package](../reference/bindings/javascript.md) uses a WASM artifact and a small async fetch facade. `prepare_*` APIs are also exposed to native bindings so callers can supply their own transport. Requests own their bytes, headers and decoding context. Existing native blocking methods remain available.
 
-See the [JS/TS reference](../reference/bindings/javascript.md) for usage and artifact size.
+See the [JS/TS reference](../reference/bindings/javascript.md) for installation and usage.
 The build applies the `wasm-release` profile, lossless schema compression and
 Binaryen `wasm-opt -Oz`; raw and gzip size limits run before packaging.
 

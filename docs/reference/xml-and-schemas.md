@@ -1,43 +1,30 @@
-# XML and Schemas
+---
+title: UBL XML and schema behavior
+description: Understand bundled UBL 2.1 validation, XML hashing, decimal support and the limits of schema validation.
+---
 
-Details about XML handling, templates, and bundled schemas.
+# XML and schemas
 
-## Bundled Schema
+The library reads and writes UBL invoice XML and includes the UBL 2.1 invoice schema. Validation uses bundled resources and does not download schemas from locations supplied by an invoice. No SDK installation or network access is needed.
 
-???+ note "UBL 2.1"
-    - UBL 2.1 XSD is bundled at:
-      fatoora-core/assets/schemas/UBL2.1/xsd/maindoc/UBL-Invoice-2.1.xsd
-    - Validation always loads this bundled schema.
+## Choose an operation
 
-## Decimal compatibility
+| Operation | Input | Result and guarantee |
+| --- | --- | --- |
+| [Parse XML](xml.md) | Invoice XML text | A supported invoice model with field and amount checks; not a complete compliance check |
+| [Validate the schema](invoice-validation.md) | Original XML and configuration | Checks element structure, attributes and schema types |
+| [Validate locally](invoice-validation.md#local-zatca-report) | Original XML, configuration and predecessor context | A report covering schema, business rules and applicable integrity checks |
+| [Hash XML](xml.md) | Original XML text | Base64 invoice digest after invoice-specific exclusions and canonicalization |
+| [Sign XML](invoice-signing.md) | XML, certificate and private key | Signed XML; signing alone does not establish compliance |
 
-XSD validation uses `xsd-schema` 0.2.2 with a per-thread compiled schema cache
-and a fresh validation runtime for every document. Imports resolve only to the
-15 embedded resources; validation does not fetch instance schema locations.
+## Decimal values
 
-The backend's fixed-size decimal representation cannot hold every valid UBL
-value. The adapter changes the four CCTS decimal bases (`AmountType`,
-`MeasureType`, `NumericType`, and `QuantityType`) to strings **in memory** and
-checks their decimal syntax separately, without numeric conversion. This
-covers 196 bundled element declarations, including amounts, quantities,
-measurements, percentages, rates, and numeric values. Bundled XSD files remain
-unchanged. Attributes, content models, and type overrides are still validated.
-Tests guard the assumption that these types have no numeric facets or identity
-constraints that would require numeric comparison.
+The bundled schema's amount, measure, numeric and quantity fields accept XML decimal syntax without imposing a machine floating-point range. This preserves schema validation for large decimal values. An extension that directly uses `xs:decimal` can still encounter the schema engine's numeric capacity limit.
 
-This is limited to the bundled decimal families. An arbitrary extension using
-`xs:decimal` directly still has the upstream capacity limit. Business-rule
-arithmetic retains its separate exact-decimal representation and resource limits;
-passing XSD does not guarantee that an invoice passes those rules.
+Invoice-model calculations and business-rule validation have separate precision and capacity limits. Passing schema validation does not mean a value can be calculated by the model. See [decimal numbers and rounding](numbers.md).
 
-## Signing Templates
+## Hashing and signed XML
 
-???+ note "Embedded templates"
-    - fatoora-core/assets/templates/ubl_extensions.xml
-    - fatoora-core/assets/templates/cac_signature.xml
-    - fatoora-core/assets/templates/qr_reference.xml
+Invoice hashing applies the invoice-specific exclusions and C14N 1.1 canonicalization before calculating the digest. It is not a hash of the raw file bytes. Keep the returned signed XML unchanged when storing or submitting it: formatting or rebuilding it can change signature-relevant content.
 
-## Canonicalization
-
-!!! note "Canonicalization"
-    - Signing canonicalizes XML using C14N 1.1 before hashing and signature generation.
+Parsing a signed invoice reads its embedded signature metadata; it does not verify the signature, certificate issuer trust or remote acceptance. Use the validation report to determine which checks actually completed.

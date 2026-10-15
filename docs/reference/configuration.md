@@ -1,166 +1,131 @@
-# Configuration
+---
+title: Environment and Configuration Reference
+description: Choose the ZATCA sandbox, simulation, or production environment. Find configuration values, constructors, defaults, and environment behavior for each language.
+---
 
-C signatures use the [C API](../development/c-api.md). See [C and C++ bindings](bindings/c.md) for ownership and build instructions.
-The declarations below come from the generated headers. C++ exposes the same types
-in namespace `fatoora` through `fatoora/Type.hpp` headers.
+# Environment and configuration
 
-There are three main "environments" which are required to determine which ZATCA API endpoint to use.
-Additionally, the type of environment changes the signing/validation process slightly.
+Configuration selects the ZATCA API environment. Use the same environment for
+CSR generation, credentials, and the client that sends requests.
 
-- "Non-Production"
-      Sometimes also called the "Sandbox". It's open to anyone to use without registration for
-      initial testing. It's a dummy environment with mainly hardcoded values and responses. For
-      instance, the OTP "123345" is always considered valid.
+## Environment values
 
-      Endpoint: ["https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal/"]
+| Environment | Purpose | API base URL |
+| --- | --- | --- |
+| Non-production | Integration sandbox for initial testing | `https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal/` |
+| Simulation | Testing the integration before production | `https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation/` |
+| Production | Live invoice operations | `https://gw-fatoora.zatca.gov.sa/e-invoicing/core/` |
 
-- "Simulation":
-      The simulation environment requires registration at the developer portal. It's also used for
-      testing only.
+The environment also selects the CSR certificate-template extension. Choosing an
+environment does not obtain credentials or establish that an invoice is accepted.
+Clients reject credentials issued for a different environment before sending a request.
 
-      Endpoint: ["https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation/"]
+<span id="environment"></span>
+<span id="config"></span>
+<span id="from_str"></span>
+<span id="as_str"></span>
+<span id="endpoint_url"></span>
+<span id="new"></span>
+<span id="env"></span>
+<span id="default"></span>
 
-- "Production":
-      This is the real deal environment for in-production systems where real invoices are to be
-      reported.
+## Language reference
 
-      Endpoint: ["https://gw-fatoora.zatca.gov.sa/e-invoicing/core/"]
+=== "Rust"
+    Import `Config` and `EnvironmentType` from `fatoora_core::config`.
 
-C constructors accept `uint8_t` environment values: `0` for non-production,
-`1` for simulation, and `2` for production. Other values return an error.
+    | Operation | Returns | Behavior |
+    | --- | --- | --- |
+    | `Config::new(env: EnvironmentType)` | `Config` | Stores the selected environment. |
+    | `Config::default()` | `Config` | Selects `EnvironmentType::NonProduction`. |
+    | `config.env()` | `EnvironmentType` | Returns the stored value. |
+    | `EnvironmentType::from_str(value: &str)` | `Result<EnvironmentType, EnvironmentParseError>` | Requires `std::str::FromStr` in scope. |
+    | `env.as_str()` | `&'static str` | Returns the canonical string below. |
+    | `env.endpoint_url()` | `&'static str` | Returns the base URL above. |
 
-## Environment
+    The variants are `NonProduction`, `Simulation`, and `Production`. Parsing accepts
+    `non_production`, `simulation`, and `production`, case-insensitively. It does not
+    trim whitespace or accept `sandbox` as an alias. Canonical strings are lowercase.
 
-### `from_str`
+=== "Python"
+    Import `Config` and `Environment` from `fatoora`.
 
-???+ note "Parse environment"
-    Convert a string value to an environment enum.
+    | Operation | Returns | Behavior |
+    | --- | --- | --- |
+    | `Config(env=Environment.NON_PRODUCTION)` | `Config` | Creates configuration; defaults to non-production. |
+    | `config.env()` | `Environment` | Returns the stored value. |
+    | `Environment(value)` | `Environment` | Converts integer `0`, `1`, or `2`; invalid values raise `ValueError`. |
+    | `env.value` | `int` | Returns the numeric value. |
 
-    === "{{ lang.rust }}"
-        ```rust
-        EnvironmentType::from_str(env: &str) -> Result<EnvironmentType, EnvironmentParseError>
-        ```
+    `Environment` is an integer enum: `NON_PRODUCTION = 0`, `SIMULATION = 1`,
+    `PRODUCTION = 2`. It does not parse environment names. Configuration objects support
+    `with` and `close()`; see [Python resource handling](bindings/python.md).
 
-    === "{{ lang.python }}"
-        ```python
-        Environment(value: str) -> Environment
-        ```
+=== "JavaScript"
+    Import `Config` from `fatoority`.
 
-    === "{{ lang.c }}"
-        ```c
-        /* Pass uint8_t: 0 = non-production, 1 = simulation, 2 = production. */
-        ```
+    | Operation | Returns | Behavior |
+    | --- | --- | --- |
+    | `Config.new_(env)` | `Config` | Pass integer `0`, `1`, or `2`. |
+    | `config.env()` | `number` | Returns the stored environment. |
 
-### `as_str`
+    Use `0` for non-production, `1` for simulation, `2` for production. There is no
+    implicit default. Invalid environments throw an `Error` with a `BindingError` cause. See
+    [JavaScript setup](bindings/javascript.md) for loading the package.
 
-???+ note "Get canonical string"
-    Return the canonical string value of the environment.
+=== "C#"
+    Use the `Fatoora` namespace.
 
-    === "{{ lang.rust }}"
-        ```rust
-        EnvironmentType::as_str(&self) -> &'static str
-        ```
+    | Operation | Returns | Behavior |
+    | --- | --- | --- |
+    | `Config.New(byte env)` | `Config` | Pass `0`, `1`, or `2`. |
+    | `config.Env()` | `byte` | Returns the stored environment. |
 
-    === "{{ lang.python }}"
-        ```python
-        Environment.value: str
-        ```
+    Use `0` for non-production, `1` for simulation, `2` for production. There is no
+    implicit default. Invalid environments throw `BindingErrorException`. Use `using` to
+    dispose configuration when finished. See [C# setup](bindings/csharp.md).
 
-    === "{{ lang.c }}"
-        ```c
-        /* not exposed; use enum value directly */
-        ```
+=== "Kotlin"
+    Import `com.fatoora.Config`.
 
-### `endpoint_url`
+    | Operation | Returns | Behavior |
+    | --- | --- | --- |
+    | `Config.create(env: Int)` | `Config` | Pass `0`, `1`, or `2`. |
+    | `config.env()` | `Int` | Returns the stored environment. |
 
-???+ note "Resolve API base URL"
-    Return the ZATCA API base URL for the selected environment.
+    Use `0` for non-production, `1` for simulation, `2` for production. There is no
+    implicit default. Invalid values raise an exception. Use `.use { ... }` or `close()`
+    for configuration objects. See [Kotlin setup](bindings/kotlin.md).
 
-    === "{{ lang.rust }}"
-        ```rust
-        EnvironmentType::endpoint_url(&self) -> &'static str
-        ```
+=== "Java"
+    Import `com.fatoora.Config`.
 
-    === "{{ lang.python }}"
-        ```python
-        # not directly exposed
-        ```
+    | Operation | Returns | Behavior |
+    | --- | --- | --- |
+    | `Config.create(int env)` | `Config` | Pass `0`, `1`, or `2`. |
+    | `config.env()` | `int` | Returns the stored environment. |
 
-    === "{{ lang.c }}"
-        ```c
-        /* not exposed */
-        ```
+    Use `0` for non-production, `1` for simulation, `2` for production. There is no
+    implicit default. Invalid values raise an exception. Use try-with-resources or
+    `close()` for configuration objects. See [Java setup](bindings/kotlin.md).
 
-## Config
+=== "C"
+    Include `fatoora.h`. Pass `0` for non-production, `1` for simulation, or `2` for
+    production. There is no implicit default; other values return an error.
 
-### `new`
+    ```c
+    FatooraStatus fatoora_config_new(int32_t env,
+        FatooraConfig **out, FatooraError **error);
+    FatooraStatus fatoora_config_env(const FatooraConfig *self,
+        uint8_t *out, FatooraError **error);
+    void fatoora_config_free(FatooraConfig *self);
+    ```
 
-???+ note "Create config"
-    Create an environment-aware config handle.
+    On `FATOORA_OK`, the constructor writes an owned configuration to `out` and the
+    getter writes the environment number. Release configuration with
+    `fatoora_config_free`. See [C error and ownership conventions](bindings/c.md).
 
-    === "{{ lang.rust }}"
-        ```rust
-        Config::new(env: EnvironmentType) -> Config
-        ```
+## Related reference
 
-    === "{{ lang.python }}"
-        ```python
-        Config(env: Environment = Environment.NON_PRODUCTION)
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_config_new(int32_t env,
-            FatooraConfig **out,
-            FatooraError **error);
-        ```
-
-### `env`
-
-???+ note "Read config environment"
-    Return the environment value stored in a config.
-
-    === "{{ lang.rust }}"
-        ```rust
-        Config::env(&self) -> EnvironmentType
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        Config.env() -> Environment
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_config_env(const FatooraConfig *self,
-            uint8_t *out,
-            FatooraError **error);
-        ```
-
-### `default`
-
-???+ note "Default config"
-    Create a default config using non-production environment.
-
-    === "{{ lang.rust }}"
-        ```rust
-        Config::default() -> Config
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        Config() -> Config
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_config_new(int32_t env,
-            FatooraConfig **out,
-            FatooraError **error);
-        ```
+- [CSR and private keys](csr.md)
+- [ZATCA API client](api-client.md)

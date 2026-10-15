@@ -1,140 +1,182 @@
 ---
 title: JavaScript and TypeScript ZATCA E-Invoicing Library
-description: Use fatoority in Node.js or the browser. Install the WebAssembly package and explore ZATCA invoice signing, validation, and API examples.
+description: JavaScript package reference for fatoority. Learn supported runtimes, exact decimal values, validation results, errors, and asynchronous ZATCA API requests.
 ---
 
-# JavaScript / TypeScript bindings
+# JavaScript package reference
 
-The `fatoority` ES module package runs the Rust SDK in WebAssembly. Diplomat generates the object bindings and TypeScript declarations; a small facade provides async `fetch` calls. Node 22+ and modern browsers are supported. Browser execution requires WebAssembly, Web Crypto, FinalizationRegistry and top-level await.
+Use `fatoority` in Node.js or a browser to build, sign, and validate invoices and
+send ZATCA API requests. The package includes WebAssembly and TypeScript declarations.
+For a complete task walkthrough, start with the [guides](../../guides/validation.md).
 
 ## Install
-
-Install the package from npm:
 
 ```sh
 npm install fatoority
 ```
 
-## Build from source
-
-From a source checkout with Rust, Node 22+, npm and Python 3:
-
-```sh
-rustup target add wasm32-unknown-unknown
-npm ci --prefix bindings/js
-python3 scripts/build_js.py
-(cd bindings/js && npm pack)
-```
-
-Install the resulting tarball in your application:
-
-```sh
-npm install /path/to/fatoority-0.4.3.tgz
-```
-
-The generated bindings are checked in. Regeneration requires `diplomat-tool 0.16.1`; follow the [binding workflow](../../development/diplomat.md) when changing Rust bridge declarations. Version tags publish the tested package to npm through GitHub Actions.
+Import from the package root for asynchronous API requests and validation with an
+automatically supplied clock:
 
 ```js
-import { Config, SigningKey, Xml } from 'fatoority';
+import { Config, SigningKey, Xml, ZatcaClient } from 'fatoority';
 
-const config = Config.new_(0); // 0: nonproduction, 1: simulation, 2: production
+const config = Config.new_(0);
 const key = SigningKey.generate();
-const report = JSON.parse(Xml.validateZatca(config, invoiceXml));
-if (!report.is_valid) {
-  console.log(report.stages);
-}
+const privateKeyPem = key.toPem();
 ```
 
-Declarations are included and work with TypeScript `NodeNext` and `bundler` module resolution. No separate `@types` package is needed.
+The private key is secret material; store it securely. Environment values are `0` (nonproduction), `1` (simulation), and
+`2` (production). Configuration, CSR generation, and credentials must agree.
 
-## Licensing and build flags
-
-The WASM includes SDK-derived rule predicates and messages under the upstream
-terms documented in [third-party notices](https://github.com/mqqz/fatoority/blob/main/THIRD_PARTY_NOTICES.md),
-matching native distributions. The npm package is not entirely MIT/Apache-2.0;
-its license field points to its bundled notice. See the package README's
-[licensing explanation](https://github.com/mqqz/fatoority/blob/main/bindings/js/README.md#licensing)
-for the LGPL/GPL texts, source, and the recorded CEN provenance limitation.
-
-User-set `RUSTFLAGS` or `CARGO_ENCODED_RUSTFLAGS` override `.cargo/config.toml`;
-retain `--cfg getrandom_backend="custom"` when building WASM with either variable.
-
-## API requests
-
-```js
---8<-- "bindings/js/examples/sdk.mjs:api"
-```
-
-The configuration and credentials must use the same environment. API methods prepare requests synchronously in Rust, await the selected fetch transport, then decode status/body bytes in Rust. Outgoing bytes are copied before the network wait. HTTP success does not establish invoice acceptance; inspect `outcome()` or call `ensureAccepted()`.
-
-| Method | Credential scope / result |
-| --- | --- |
-| `postCsrForCcsid(csr, otp, options?)` | Issues compliance credentials |
-| `postCcsidForPcsid(credentials, options?)` | Compliance credentials to production credentials |
-| `renewCsid(credentials, csr, otp, language?, options?)` | Renews production credentials |
-| `checkInvoiceCompliance(invoice, credentials, options?)` | Compliance credentials; validation response |
-| `reportSimplifiedInvoice(invoice, credentials, clearanceStatus?, language?, options?)` | Production credentials; reporting response |
-| `clearStandardInvoice(invoice, credentials, clearanceStatus?, language?, options?)` | Production credentials; clearance response |
-
-`options.signal` accepts an `AbortSignal`. Inject a transport through `new ZatcaClient(config, { fetch })`. The default adapter refuses redirects and passes HTTP error responses to Rust decoding.
-
-For a custom HTTP client, import `ZatcaClient` from `fatoority/raw` and call its `prepare*` methods. The returned request owns `method()`, `url()`, `headersJson()` (header pairs), `body().asSlice()`, and the operation/environment needed by `decode(status, bytes)`. `sendPrepared(request, { fetch, signal })` is the standard adapter. Prepared headers contain credentials; avoid logging them.
+Node.js 22+ and modern browsers are supported. Browser execution requires
+WebAssembly, Web Crypto, `FinalizationRegistry`, and top-level await. TypeScript
+users can use `NodeNext` or `bundler` module resolution; no separate `@types`
+package is needed.
 
 ## Values, ownership and errors
 
-- Decimal inputs and outputs are strings, preserving exact amounts. Invoice counters are `bigint`.
-- Optional strings use `null`; an empty string stays distinct. Generated method names use camelCase, and Rust `new` constructors become `new_`.
-- `build()`, signing and `intoXml()` consume inner invoice state. Reuse fails. Generated objects are garbage-collected through FinalizationRegistry; pointers are internal and cannot be shared between workers.
-- Generated byte results are copies. Each worker needs its own WASM instance and objects.
-- A Rust failure throws an `Error` whose `cause` is a `BindingError`. Read `cause.code()`, `cause.message()` and `cause.detailsJson()`.
-- Fetch, cancellation and body-read failures throw `TransportError` with the original `cause` and optional `httpStatus`.
+| Value | JavaScript representation and behavior |
+| --- | --- |
+| Text | `string`; embedded NUL is rejected |
+| Optional text input | `string` or `null`; `""` is a present empty value |
+| Optional text output | `Text` object or `null`; call `value()` when present |
+| Decimal amount or quantity | Exact decimal `string`, such as `"15.25"`; do not pass a floating-point number |
+| Invoice counter | `bigint`, within the unsigned 64-bit range |
+| Binary output | `Bytes.asSlice()` returns a copied `number[]`; use `Uint8Array.from(...)` for a typed byte array |
+| Native object | Object managed by `FinalizationRegistry` |
+| Invoice outcome | `InvoiceOutcome.Accepted`, `Rejected`, or `Unknown` |
 
-`Xml.validateZatca` returns JSON containing stage coverage and `is_valid`. Rejection and missing context must be distinguished from execution failure. Local validation does not establish gateway acceptance or certificate issuer trust.
+Method names use camelCase. Constructors named `new` in the underlying API use
+`new_`, such as `Config.new_(0)`. Read the [number reference](../numbers.md) for
+accepted decimal syntax and rounding rules.
 
-The facade supplies one JS timestamp when `evaluated_at` is omitted. Set it explicitly in the options JSON for reproducible validation. The raw WASM API requires that field. Read files in Node or the browser and pass their contents; native filesystem helpers are excluded.
+`InvoiceBuilder.build()`, `Signer.sign()`, and `SignedInvoice.intoXml()` consume
+the object's inner state. Build and signing failures can also consume state;
+create a new input object before retrying. Subsequent use of consumed state
+throws an error. Returned invoice data, addresses, totals, and response children
+are independent snapshots.
+
+Objects belong to the WebAssembly instance that created them. Each worker needs
+its own instance and objects; do not transfer internal pointers between workers.
+Garbage collection does not guarantee immediate cleanup or erasure of secrets.
+
+A library failure throws an `Error` with a `BindingError` in `cause`. Read
+`code()`, `message()`, and `detailsJson()` from that cause. The JSON contains
+structured information such as validation findings or an HTTP response body.
+See [error codes and details](../errors.md).
+
+```js
+try {
+  Config.new_(99);
+} catch (error) {
+  const details = JSON.parse(error.cause.detailsJson());
+  console.error(error.cause.code(), error.cause.message(), details);
+}
+```
+
+Network, cancellation, and response-body read failures throw `TransportError`.
+It preserves the original `cause`; `httpStatus` is present when a response was
+received but its body could not be read. HTTP rejection decoded by the library
+uses the structured library error instead.
+
+## Local validation
+
+| Method | Inputs | Returns |
+| --- | --- | --- |
+| `Xml.validate(config, xml)` | Live `Config`, invoice XML string | `true` on schema success; throws on invalid XML or schema rejection |
+| `Xml.validateZatca(config, xml, optionsJson?)` | Live `Config`, invoice XML, optional JSON string or `null` | JSON report string, including rejection or incomplete coverage |
+| `Xml.hash(xml)` | Invoice XML string | Base64 invoice hash; throws when XML cannot be processed |
+
+For Node.js, save your invoice as `invoice.xml` and read it as UTF-8:
+
+```js
+import { readFile } from 'node:fs/promises';
+import { Config, Xml } from 'fatoority';
+
+const invoiceXml = await readFile('invoice.xml', 'utf8');
+const config = Config.new_(0);
+const report = JSON.parse(Xml.validateZatca(config, invoiceXml));
+console.log(report.is_valid, report.is_complete);
+```
+
+`optionsJson` accepts `previous_invoice_hash` and `evaluated_at`. Use
+`JSON.stringify({ previous_invoice_hash: previousHash })` to supply invoice-history
+context. `evaluated_at` is an RFC3339 timestamp; the package root supplies the
+current time once if omitted. Set it explicitly for repeatable checks. The
+`fatoority/raw` validation API requires an explicit timestamp.
+
+A returned report does not imply validity: inspect `is_valid`. Missing predecessor
+context produces incomplete coverage. Execution failures throw and may include a
+partial report in the error details. See the [validation reference](../invoice-validation.md)
+for fields, stage statuses, and limits. Local validation does not establish
+remote acceptance or certificate issuer trust. Read files using Node.js or browser
+APIs and pass their contents; filesystem helpers are not available in WebAssembly.
+
+## API requests
+
+Create `new ZatcaClient(config)` to use the global `fetch`, or
+`new ZatcaClient(config, { fetch: customFetch })` to provide a compatible transport.
+All methods below return promises. Optional `options` accepts `{ signal }`, where
+`signal` is an `AbortSignal`.
+
+| Method | Inputs | Promise result |
+| --- | --- | --- |
+| `postCsrForCcsid(csr, otp, options?)` | `Csr`, OTP string | `CsidCompliance` |
+| `postCcsidForPcsid(credentials, options?)` | `CsidCompliance` | `CsidProduction` |
+| `renewCsid(credentials, csr, otp, acceptLanguage?, options?)` | `CsidProduction`, `Csr`, OTP, optional language string | `CsidProduction` |
+| `checkInvoiceCompliance(invoice, credentials, options?)` | `SignedInvoice`, `CsidCompliance` | `ValidationResponse` |
+| `reportSimplifiedInvoice(invoice, credentials, clearanceStatus?, acceptLanguage?, options?)` | `SignedInvoice`, `CsidProduction`; status defaults to `false`, language to `null` | `ValidationResponse` |
+| `clearStandardInvoice(invoice, credentials, clearanceStatus?, acceptLanguage?, options?)` | `SignedInvoice`, `CsidProduction`; status defaults to `true`, language to `null` | `ValidationResponse` |
+
+`clearanceStatus` controls the clearance-status request header; it is not the
+result of the operation. `acceptLanguage` controls the language request header.
+Pass optional positional arguments explicitly when supplying a later argument.
+
+HTTP success alone does not establish invoice acceptance. Inspect `outcome()` or
+call `ensureAccepted()` on a `ValidationResponse`. For clearance,
+`clearedInvoiceXml()` returns a nullable `Text` owner; call `value()` and save the
+returned document when present. See [API requests and responses](../api-client.md) for
+credential requirements and response fields, and the [API guide](../../guides/api.md)
+for a complete workflow.
+
+### Prepared requests
+
+For your own HTTP integration, import `ZatcaClient` from `fatoority/raw`, construct
+it with `ZatcaClient.create(config)`, and call its `prepare*` methods. These return
+`ComplianceRequest`, `ProductionRequest`, or `InvoiceRequest` objects.
+
+| Request method | Return value |
+| --- | --- |
+| `method()` | HTTP method string |
+| `url()` | Complete request URL string |
+| `headersJson()` | JSON array of header-name/value pairs |
+| `body()` | `Bytes`; use `asSlice()` for a copied request body |
+| `decode(status, bytes)` | Credentials or `ValidationResponse`, depending on request type; may throw |
+
+Prepared requests retain their data and decoding context independently of the
+original invoice and credentials. Copy the outgoing body before awaiting HTTP.
+Pass every HTTP status and its response bytes to `decode`, including non-2xx
+responses. Disable redirects. Headers contain credentials and should not be logged.
+
+Alternatively, `sendPrepared(request, { fetch, signal })` from `fatoority` performs
+these steps and returns a promise for the decoded result. It copies the body
+before awaiting, refuses redirects, and forwards HTTP error responses to decoding.
 
 ## Browser deployment
 
-The loader resolves `fatoora_ffi.wasm` relative to its package modules. Deploy the generated modules and WASM together, or configure your bundler to copy the WASM to that URL. Serve them over HTTP(S); the browser must permit WebAssembly execution and provide Web Crypto.
+The loader resolves `fatoora_ffi.wasm` relative to its package modules. Deploy the
+modules and WASM together, or configure your bundler to copy WASM to that URL.
+Serve the application over HTTP(S), with WebAssembly execution and Web Crypto
+available.
 
-Direct ZATCA requests depend on gateway CORS. A custom server-side transport can perform the HTTP request while Rust retains ownership of request construction and response decoding. Choose where to retain credentials and private keys according to your application's trust boundary.
+Direct ZATCA requests depend on gateway CORS. Use a server-side transport when
+needed and decide where credentials and private keys should reside. Local
+validation runs without Java, external SDK files, or network access.
 
-## Artifact size
+## Licensing and source builds
 
-Measured with the same SDK capabilities and all 15 UBL schemas included. Sizes below are decimal MB; gzip uses level 9.
-
-| Build | WASM | Gzip |
-| --- | ---: | ---: |
-| Original Rust release artifact | 8.974 MB | 2.010 MB |
-| Previous package after host-glue cleanup | 7.976 MB | 1.862 MB |
-| Size profile and `wasm-opt -Oz` | 6.406 MB | 1.510 MB |
-| Compressed schemas and unused metadata removed | **3.525 MB** | **1.512 MB** |
-
-The `wasm-release` Cargo profile uses `opt-level = "z"`, LTO, one codegen unit, symbol stripping and aborting panics. The build invokes pinned Binaryen 123's `wasm-opt -Oz`. It then removes unused wasm-bindgen descriptor metadata and checks the result against **4,000,000 bytes raw** and **1,800,000 bytes gzipped**. An oversized artifact fails the build.
-
-The baseline contained 4.26 MB of code, 3.90 MB of data and 0.66 MB of function names. The XSD sources alone occupied 2,996,782 bytes. WASM embeds losslessly compressed resources; the build decompresses each resource and asserts byte equality with its original source. Validation inflates resources when compiling the cached schema. Original XSD files and their constraints are preserved.
-
-Baseline function-name attribution found about 1.31 MB of XSD engine code and 0.80 MB of regex engine code. Those are approximate code-body totals, excluding shared generics and data tables. Unicode regex features remain enabled because schema and XML validation depend on their semantics. The final artifact contains about 2.46 MB of code and 1.04 MB of data.
-
-Internal schema compression primarily reduces the raw WASM footprint; after gzip it is roughly neutral because the schema text was already highly compressible. Schema compilation still needs the decompressed contents in memory.
-
-Reproduce the measurements:
-
-```sh
-python3 scripts/build_js.py
-python3 scripts/check_wasm_size.py --json
-```
-
-`xsd-schema` also enables Chrono's wasm-bindgen features transitively. The build removes unused descriptor exports and maps the retained UTF-8 throw helper to Diplomat's equivalent import. It rejects unsupported host imports, including a JS clock or object runtime.
-
-## Verification
-
-```sh
-npm run check --prefix bindings/js
-node bindings/js/tests/runtime.test.mjs
-npx --prefix bindings/js playwright install chromium
-node bindings/js/tests/browser.mjs
-python3 scripts/check_js_package.py
-```
-
-These checks cover the optimized artifact, optional Arabic strings, exact decimals, consumed objects, memory growth, schema acceptance/rejection, all six API operations, cancellation and redirects. The npm check installs a packed tarball in a fresh directory and loads its bundled WASM. Live gateway and browser CORS acceptance require separate testing.
+The package contains ZATCA-derived rules and messages with additional terms in
+[third-party notices](https://github.com/mqqz/fatoority/blob/main/THIRD_PARTY_NOTICES.md).
+TypeScript declarations ship with the package. For source-build instructions,
+see the [binding development documentation](../../development/diplomat.md).

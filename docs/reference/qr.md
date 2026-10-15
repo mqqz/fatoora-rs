@@ -1,46 +1,53 @@
-# QR
+---
+title: ZATCA invoice QR payload reference
+description: Read the Base64 TLV QR payload from a signed invoice and understand its fields, size limits and validation behavior.
+---
 
-C signatures use the [C API](../development/c-api.md). See [C and C++ bindings](bindings/c.md) for ownership and build instructions.
-The declarations below come from the generated headers. C++ exposes the same types
-in namespace `fatoora` through `fatoora/Type.hpp` headers.
+# QR payloads
 
-ZATCA QR payload generation and accessors.
+Signing generates a Base64-encoded TLV payload for the invoice. Pass this text to a QR image renderer to display or print it; the library returns text, not a PNG or SVG.
 
-## SignedInvoice
+## Payload contract
 
-### `qr_code`
+| Value | Meaning |
+| --- | --- |
+| Tags 1–5 | Seller name, VAT registration number, timestamp, total including VAT and VAT total |
+| Tags 6–9 | Invoice hash and signature material, where applicable |
+| Individual field size | At most 255 UTF-8 bytes during generation; Arabic characters can occupy multiple bytes |
+| Encoded size | At most 700 Base64 characters during generation |
 
-???+ note "Read QR payload"
-    Read the Base64 TLV QR payload from a signed invoice.
+Reading a stored QR payload does not validate its contents or enforce the generation limits. Parsing signed XML extracts metadata without verifying authenticity. Use [local invoice validation](invoice-validation.md) to check the QR against the invoice and signature material.
 
-    === "{{ lang.rust }}"
-        ```rust
-        SignedInvoice::qr_code(&self) -> &str
-        ```
+## Read the payload
 
-    === "{{ lang.python }}"
-        ```python
-        SignedInvoice.qr_code() -> str
-        ```
+The getter takes no arguments and leaves the signed invoice usable.
 
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
+=== "Rust"
 
-        FatooraStatus fatoora_signed_invoice_qr_code(const FatooraSignedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
+    `SignedInvoice::qr_code(&self) -> &str` borrows the payload from the invoice. Copy with `.to_owned()` to keep it after dropping the invoice.
 
-## Errors
+=== "Python"
 
-!!! warning "Errors"
-    - `QrCodeError` covers missing fields, TLV length overflow, or XML extraction failures.
+    `SignedInvoice.qr_code() -> str` returns an independent string.
 
-## Behavior
+=== "JavaScript"
 
-!!! note "Behavior"
-    - QR payloads use TLV tags 1-5 for seller + totals, and tags 6-9 for hash/signature data when present.
-    - The Base64-encoded payload must be 700 characters or fewer.
+    `SignedInvoice.qrCode()` returns a string.
 
-See also: [QR Guide](../guides/qr.md)
+=== "C#"
+
+    `SignedInvoice.QrCode()` returns a managed `string`.
+
+=== "Kotlin"
+
+    `SignedInvoice.qrCode(): String` returns a managed string.
+
+=== "Java"
+
+    `SignedInvoice.qrCode()` returns a `String`.
+
+=== "C"
+
+    `fatoora_signed_invoice_qr_code(invoice, &out, &error)` returns `FatooraStatus`. `invoice` is a live `const FatooraSignedInvoice *`; `out` is an owned `char *`. On success, release the payload with `fatoora_string_free(out)`. Release any error with `fatoora_error_free(error)`.
+
+For a complete rendering workflow, see the [QR guide](../guides/qr.md).
