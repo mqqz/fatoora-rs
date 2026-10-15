@@ -209,4 +209,4 @@ upstream terms in the bundled
 Those terms apply to the native component distributed with the C# package, as
 they do to other SDK distributions.
 
-For source-build instructions, see the [binding development documentation](../../development/diplomat.md#c-net).
+For source-build instructions, see the [binding development documentation](../../development/diplomat.md).

@@ -244,7 +244,7 @@ Choose your language, then follow its setup and run instructions.
     ```
 
     [Download this example](../assets/examples/c/validation.c).
-    For other platforms, follow the [C build instructions](../development/c-api.md#build-and-run).
+    For other platforms, follow the [C installation and linking reference](../reference/bindings/c.md).
     The cleanup section releases handles and returned strings, including on failure.
 
     ```c
@@ -332,5 +332,5 @@ should not become the default for your live integration.
 
 Next, [submit the invoice and check gateway acceptance](api.md).
 The [validation reference](../reference/invoice-validation.md) covers report fields
-and error contracts; [business-rule development](../development/business-rules.md)
+and error contracts; [SDK compatibility](../development/sdk-parity.md)
 records differences from the SDK.

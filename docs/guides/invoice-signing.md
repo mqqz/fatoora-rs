@@ -178,7 +178,7 @@ Choose your language, then follow its setup and run instructions.
     ```
 
     [Download this example](../assets/examples/c/signing.c).
-    For other platforms, follow the [C build instructions](../development/c-api.md#build-and-run).
+    For other platforms, follow the [C installation and linking reference](../reference/bindings/c.md).
     The cleanup section releases handles and returned strings, including on failure.
 
 

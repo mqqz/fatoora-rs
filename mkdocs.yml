@@ -44,19 +44,13 @@ nav:
           - QR: reference/qr.md
       - API Client: reference/api-client.md
       - Errors: reference/errors.md
-  - Development:
-      - Overview: development/index.md
       - SDK Compatibility: development/sdk-parity.md
-      - Business-rule Development: development/business-rules.md
+  - Contributing:
+      - Getting Started: contributing.md
+      - Binding Development: development/diplomat.md
+      - Validation Tests: development/business-rules.md
       - Releases: development/releases.md
-      - API Audit: development/api-audit.md
-      - FFI Workflow: development/ffi-workflow.md
-      - Diplomat Bindings: development/diplomat.md
-      - C API: development/c-api.md
-      - FFI Parity Workflow: development/ffi-parity.md
-      - API Parity Matrix: development/api-parity.md
   - Benchmarks: benchmarks.md
-  - Contributing: contributing.md
   - Security: security.md
 
 extra_css:

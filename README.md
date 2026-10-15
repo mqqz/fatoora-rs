@@ -152,7 +152,7 @@ To build the library from a source checkout:
 cargo build -p fatoora-ffi --release --locked
 ```
 
-The [C API](https://github.com/mqqz/fatoority/blob/main/docs/development/c-api.md)
+The [C API](https://github.com/mqqz/fatoority/blob/main/docs/reference/bindings/c.md)
 provides one `fatoora.h`, plain strings, shared errors, and named-field options.
 Compile `bindings/c/fatoora.c` once with your application, add `bindings/c` to
 your include path, and link `fatoora_ffi`. Release archives also include the C

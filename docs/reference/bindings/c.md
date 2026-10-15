@@ -51,6 +51,8 @@ Configure your runtime loader to find the shared library: `.so` on Linux, `.dyli
       -Ibindings/c -L/path/to/native-library -lfatoora_ffi -o validate
     ```
 
+    Release archives use `include/fatoora.h`, `src/fatoora.c` and `include/generated/`. Compile the archive's `src/fatoora.c` with `-Iinclude` and link the matching native library. If your application is C++, compile this adapter as C, then link the object into your application.
+
     **Values and ownership**
 
     | Value | Contract |
