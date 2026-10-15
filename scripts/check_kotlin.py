@@ -22,7 +22,7 @@ def main():
     version = tomllib.loads((ROOT / "fatoora-ffi/Cargo.toml").read_text())["package"][
         "version"
     ]
-    package = repository / f"com/fatoora/fatoority/{version}/fatoority-{version}.jar"
+    package = repository / f"com/fatoority/fatoority/{version}/fatoority-{version}.jar"
     if not package.is_file():
         parser.error(f"Package missing: {package}; run scripts/build_kotlin.py first")
     with tempfile.TemporaryDirectory(prefix="fatoora-java-consumer-") as directory:
@@ -35,12 +35,12 @@ def main():
 repositories {
     exclusiveContent {
         forRepository { maven { url = uri(%s) } }
-        filter { includeGroup('com.fatoora') }
+        filter { includeGroup('com.fatoority') }
     }
     mavenCentral()
 }
 dependencies {
-    implementation 'com.fatoora:fatoority:%s'
+    implementation 'com.fatoority:fatoority:%s'
     testImplementation 'junit:junit:4.13.2'
 }
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }

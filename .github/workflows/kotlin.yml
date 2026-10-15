@@ -5,11 +5,16 @@ on:
     branches: [main]
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish to Maven Central (select an existing release tag)
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
   group: kotlin-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 jobs:
   generator:
     runs-on: ubuntu-latest
@@ -188,3 +193,69 @@ jobs:
             adb install dist/android-consumer/androidTest/debug/android-consumer-debug-androidTest.apk
             adb shell am instrument -w com.fatoora.consumer.test/androidx.test.runner.AndroidJUnitRunner | tee consumer.txt
             if ! grep -Eq 'OK \([0-9]+ tests?\)' consumer.txt; then adb logcat -d -b crash; adb logcat -d -t 200; exit 1; fi
+
+  central-bundle:
+    needs: [generator, package, android-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: kotlin-maven
+          path: dist/maven
+      - uses: actions/download-artifact@v4
+        with:
+          name: kotlin-android-maven
+          path: dist/maven
+      - run: python3 -m unittest discover -s scripts/tests -p test_publish_kotlin.py -v
+      - name: Validate Central artifacts without credentials
+        run: python3 scripts/publish_kotlin.py --repository dist/maven
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kotlin-central-repository
+          path: dist/maven
+          if-no-files-found: error
+  publish:
+    needs: central-bundle
+    if: |
+      github.repository == 'mqqz/fatoority' &&
+      ((github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
+       (github.event_name == 'workflow_dispatch' && inputs.publish))
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    concurrency:
+      group: maven-central-publish-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: kotlin-central-repository
+          path: dist/maven
+      - name: Check release tag
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_REF_TYPE: ${{ github.ref_type }}
+        run: |
+          test "$RELEASE_REF_TYPE" = tag
+          python3 scripts/check_release.py --tag "$RELEASE_TAG"
+      - name: Sign and publish tested artifacts
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+        run: python3 scripts/publish_kotlin.py --repository dist/maven --sign --publish
+      - name: Retain deployment ID for recovery
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kotlin-central-deployment
+          path: dist/central/*.deployment.json
+          if-no-files-found: ignore

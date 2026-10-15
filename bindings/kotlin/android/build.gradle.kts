@@ -52,6 +52,8 @@ afterEvaluate {
     publishing { publications { create<MavenPublication>("android") {
         from(components["release"])
         artifactId = "fatoority-android"
+        // Desktop and Android expose the same Kotlin/Java source API.
+        artifact(rootProject.tasks.named("javadocJar"))
     } } }
 }
 
@@ -62,6 +64,16 @@ publishing.publications.withType<MavenPublication>().configureEach {
         name.set("Fatoority Android")
         description.set("Kotlin and Java bindings for Android with bundled native libraries")
         url.set("https://github.com/mqqz/fatoority")
+        developers { developer {
+            id.set("mqqz")
+            name.set("mqqz")
+            url.set("https://github.com/mqqz")
+        } }
+        scm {
+            url.set("https://github.com/mqqz/fatoority")
+            connection.set("scm:git:https://github.com/mqqz/fatoority.git")
+            developerConnection.set("scm:git:ssh://git@github.com/mqqz/fatoority.git")
+        }
         licenses { license {
             name.set("See THIRD_PARTY_NOTICES.md")
             url.set("https://github.com/mqqz/fatoority/blob/main/THIRD_PARTY_NOTICES.md")
