@@ -1,13 +1,15 @@
 site_name: fatoority
-site_description: Unofficial toolkit for ZATCA Phase 1/2 compliant e-invoicing
-site_url: https://docs.fatoority.com
+site_description: Build Saudi e-invoicing integrations with fatoority. Sign invoices, validate XML, generate QR payloads, and connect to ZATCA APIs.
+site_url: https://docs.fatoority.com/
 repo_name: mqqz/fatoority
 repo_url: https://github.com/mqqz/fatoority
 
 theme:
   name: material
+  custom_dir: docs/overrides
   features:
     - content.tabs.link
+    - content.code.copy
   logo: assets/images/crab-logo.png
   palette:
     scheme: slate
@@ -42,20 +44,17 @@ nav:
           - QR: reference/qr.md
       - API Client: reference/api-client.md
       - Errors: reference/errors.md
-  - Development:
-      - Overview: development/index.md
       - SDK Compatibility: development/sdk-parity.md
-      - Business-rule Development: development/business-rules.md
+  - Contributing:
+      - Getting Started: contributing.md
+      - Binding Development: development/diplomat.md
+      - Validation Tests: development/business-rules.md
       - Releases: development/releases.md
-      - API Audit: development/api-audit.md
-      - FFI Workflow: development/ffi-workflow.md
-      - Diplomat Bindings: development/diplomat.md
-      - C API: development/c-api.md
-      - FFI Parity Workflow: development/ffi-parity.md
-      - API Parity Matrix: development/api-parity.md
   - Benchmarks: benchmarks.md
-  - Contributing: contributing.md
   - Security: security.md
+
+extra_css:
+  - assets/stylesheets/home.css
 
 plugins:
   - search
@@ -64,6 +63,7 @@ plugins:
         - docs/_vars.yml
 
 markdown_extensions:
+  - attr_list
   - admonition
   - pymdownx.details
   - toc:

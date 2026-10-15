@@ -1,216 +1,190 @@
-# XML
+---
+title: Invoice XML Parsing and Serialization Reference
+description: Parse, serialize, and preserve ZATCA invoice XML with fatoority. Find input formats, return types, formatting options, and signed XML ownership rules.
+---
 
-C signatures use the [C API](../development/c-api.md). See [C and C++ bindings](bindings/c.md) for ownership and build instructions.
-The declarations below come from the generated headers. C++ exposes the same types
-in namespace `fatoora` through `fatoora/Type.hpp` headers.
+# Invoice XML
 
-Serialization and parsing helpers for invoice XML.
+Use these APIs to read invoice XML into an invoice model, serialize a finalized invoice, or retrieve the exact XML stored by a signed invoice. For a walkthrough, see [invoice signing](../guides/invoice-signing.md) or [validation](../guides/validation.md).
 
-## FinalizedInvoice serialization
+## Choose an operation
 
-Serialization methods are inherent on `FinalizedInvoice`; no trait import is
-needed. Signed invoices expose stored XML through `xml()` and `into_xml()` and
-have no formatting methods.
+| Operation | Input | Result and behavior |
+| --- | --- | --- |
+| Parse finalized invoice | Complete invoice XML text or a file path | A finalized invoice with supported fields and calculated totals. Supplied supported amounts are checked against calculations. |
+| Parse signed invoice | Complete signed invoice XML text or a file path | A signed invoice containing signature metadata and the exact supplied XML text. Parsing does not verify the signature. |
+| Serialize finalized invoice | Finalized invoice | XML text with default two-space indentation. Serialization creates a document from the model; it is not a lossless XML editor. |
+| Read signed XML | Signed invoice | Exact stored XML, without formatting changes. Newly signed invoices store the output of signing; imported invoices store the input text. |
+| Take signed XML | Signed invoice | Exact stored XML and consumption of the invoice state. |
+| Encode signed XML | Signed invoice | Base64 of the stored XML, suitable for APIs that require encoded invoice content. |
 
-Migration: remove `ToXml` imports and replace `to_xml_pretty()` with `to_xml()`.
+Text inputs contain XML, not Base64 or a filename. File variants take a local filesystem path and read its contents as text. Parsing can fail on malformed XML, unsupported or missing required fields, or inconsistent supplied amounts. File operations can also fail when the path cannot be read.
 
-### `to_xml`
+Parsing and serialization do not establish schema conformance, business-rule compliance, or invoice acceptance. Run [validation](invoice-validation.md) explicitly when needed.
 
-???+ note "Serialize to XML"
-    Serialize a finalized invoice with the default two-space indentation.
+<span id="signedinvoice"></span>
+## Preserve signed XML
 
-    === "{{ lang.rust }}"
-        ```rust
-        FinalizedInvoice::to_xml(&self) -> Result<String, InvoiceXmlError>
-        ```
+Keep returned signed XML unchanged when saving or submitting it. Do not pretty-print, normalize whitespace, or reconstruct it from invoice data. Reading metadata does not change the stored XML. For edits followed by signing, see [invoice signing](invoice-signing.md).
 
-    === "{{ lang.python }}"
-        ```python
-        # use FinalizedInvoice.xml()
-        ```
+## Language reference
 
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
+Choose your language for imports, exact calls, returns, and ownership behavior.
 
-        FatooraStatus fatoora_finalized_invoice_xml(const FatooraFinalizedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
+=== "Rust"
 
-### `to_xml_with_format`
+    Import parsing functions from `fatoora_core::invoice::xml::parse` and `XmlFormat` from `fatoora_core::invoice::xml`.
 
-???+ note "Serialize with format"
-    Convert to XML with explicit format option.
+    **Parse XML**
 
-    === "{{ lang.rust }}"
-        ```rust
-        FinalizedInvoice::to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError>
-        ```
+    ```rust
+    parse_finalized_invoice_xml(xml: &str) -> Result<FinalizedInvoice, ParseError>
+    parse_finalized_invoice_xml_file(path: impl AsRef<Path>) -> Result<FinalizedInvoice, ParseError>
+    parse_signed_invoice_xml(xml: &str) -> Result<SignedInvoice, ParseError>
+    parse_signed_invoice_xml_file(path: impl AsRef<Path>) -> Result<SignedInvoice, ParseError>
+    ```
 
-    === "{{ lang.python }}"
-        ```python
-        # not exposed directly
-        ```
+    **Serialize finalized invoices**
 
-    === "{{ lang.c }}"
-        ```c
-        /* not exposed directly */
-        ```
+    ```rust
+    FinalizedInvoice::to_xml(&self) -> Result<String, InvoiceXmlError>
+    FinalizedInvoice::to_xml_with_format(&self, format: XmlFormat) -> Result<String, InvoiceXmlError>
+    ```
 
-## FinalizedInvoice
+    `to_xml()` uses two spaces of indentation. Choose `XmlFormat::Compact` for compact output or `XmlFormat::Pretty { indent_char: ' ', indent_size: 4 }` for explicit indentation. These are inherent methods; no serialization trait import is needed. They borrow the invoice and return a new owned string.
 
-### `xml`
+    **Read signed invoices**
 
-???+ note "Get finalized invoice XML"
+    ```rust
+    SignedInvoice::xml(&self) -> &str
+    SignedInvoice::into_xml(self) -> String
+    SignedInvoice::to_xml_base64(&self) -> String
+    ```
 
-    === "{{ lang.rust }}"
-        ```rust
-        FinalizedInvoice::to_xml(&self) -> Result<String, InvoiceXmlError>
-        ```
+    `xml()` borrows stored XML for the invoice's lifetime. `into_xml()` consumes the invoice and transfers the stored string without copying. `to_xml_base64()` returns a new string and leaves the invoice available. Signed invoices have no formatting methods.
 
-    === "{{ lang.python }}"
-        ```python
-        FinalizedInvoice.xml() -> str
-        ```
+=== "Python"
 
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
+    Import these functions and invoice types from `fatoora`.
 
-        FatooraStatus fatoora_finalized_invoice_xml(const FatooraFinalizedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
+    **Parse XML**
 
-## SignedInvoice
+    ```python
+    parse_finalized_invoice_xml(xml: str) -> FinalizedInvoice
+    parse_finalized_invoice_xml_file(path: str) -> FinalizedInvoice
+    parse_signed_invoice_xml(xml: str) -> SignedInvoice
+    parse_signed_invoice_xml_file(path: str) -> SignedInvoice
+    ```
 
-Migration: replace Rust `signed.to_xml()?` with `signed.xml()` for a borrow or
-`signed.into_xml()` to take ownership. In the C API,
-`fatoora_signed_invoice_xml()` copies the XML and
-`fatoora_signed_invoice_into_xml()` consumes the signed invoice's inner state.
+    **Read XML**
 
-Imported signed invoices retain the exact supplied XML string. Newly signed
-invoices retain the exact output of signing. Accessors never reformat it.
-Parsing signed XML does not verify its signature.
+    ```python
+    FinalizedInvoice.xml() -> str
+    FinalizedInvoice.to_xml() -> str
+    SignedInvoice.xml() -> str
+    SignedInvoice.to_xml() -> str
+    SignedInvoice.into_xml() -> str
+    SignedInvoice.to_xml_base64() -> str
+    ```
 
-Rust `xml()` borrows the stored string. C `fatoora_signed_invoice_xml()` and Python
-`xml()` return independent copies. C returns owned text through `char **out`;
-release it with `fatoora_string_free()`.
+    `to_xml()` is an alias for `xml()`. Finalized output uses the default formatting; signed output preserves stored text. String results are independent Python strings. `into_xml()` consumes signed invoice state; later reads fail, but `close()` remains safe. Other methods leave state available. Use context managers or `close()` for owned objects. Errors raise exceptions; see [errors](errors.md).
 
-### `xml`
+=== "JavaScript"
 
-???+ note "Get signed invoice XML"
+    Import `FinalizedInvoice` and `SignedInvoice` from `fatoority`. These operations are synchronous and throw an `Error` with a `BindingError` cause on failure.
 
-    === "{{ lang.rust }}"
-        ```rust
-        SignedInvoice::xml(&self) -> &str
-        ```
+    ```javascript
+    const finalized = FinalizedInvoice.fromXml(xml);
+    const signed = SignedInvoice.fromXml(signedXml);
+    const unsignedText = finalized.xml();
+    const signedText = signed.xml();
+    const encoded = signed.toXmlBase64();
+    const takenText = signed.intoXml();
+    ```
 
-    === "{{ lang.python }}"
-        ```python
-        SignedInvoice.xml() -> str
-        ```
+    Both `fromXml` methods expect a string and return their named invoice object. Every XML accessor returns a string. `intoXml()` consumes the signed invoice state; subsequent access fails. `xml()` and `toXmlBase64()` leave it available. Read a file using your host environment before passing its text to `fromXml`; filesystem parsing methods are not exposed in this binding. Finalized formatting is fixed to the default; signed output is exact stored text.
 
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
+=== "C#"
 
-        FatooraStatus fatoora_signed_invoice_xml(const FatooraSignedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
+    Use `Fatoora`. Methods throw on failure. Use `using` to dispose owned invoice objects.
 
-### `into_xml`
+    ```csharp
+    FinalizedInvoice FinalizedInvoice.FromXml(string value)
+    FinalizedInvoice FinalizedInvoice.FromFile(string value)
+    SignedInvoice SignedInvoice.FromXml(string value)
+    SignedInvoice SignedInvoice.FromFile(string value)
+    string FinalizedInvoice.Xml()
+    string SignedInvoice.Xml()
+    string SignedInvoice.IntoXml()
+    string SignedInvoice.ToXmlBase64()
+    ```
 
-Consume the signed invoice and return its exact stored XML. Rust transfers the
-stored `String` without copying it. C transfers the result into an owned C string;
-Python decodes that result into a Python string. C and Python clear the invoice
-handle, so subsequent access returns an error and closing it remains safe.
+    `FromFile` takes a local path. Returned strings are independent managed values. `IntoXml()` consumes invoice state, so further reads fail; disposal remains safe. Other accessors preserve the object. Finalized formatting uses two-space indentation; signed output is exact stored text.
 
-```rust
-SignedInvoice::into_xml(self) -> String
-```
+=== "Kotlin"
 
-```c
-#include "fatoora.h"
+    Import `com.fatoora.FinalizedInvoice` and `com.fatoora.SignedInvoice`. Methods throw on failure. Close invoice objects with `use`.
 
-FatooraStatus fatoora_signed_invoice_into_xml(FatooraSignedInvoice *self,
-    char **out,
-    FatooraError **error);
-```
+    ```kotlin
+    FinalizedInvoice.fromXml(value: String): FinalizedInvoice
+    FinalizedInvoice.fromFile(value: String): FinalizedInvoice
+    SignedInvoice.fromXml(value: String): SignedInvoice
+    SignedInvoice.fromFile(value: String): SignedInvoice
+    FinalizedInvoice.xml(): String
+    SignedInvoice.xml(): String
+    SignedInvoice.intoXml(): String
+    SignedInvoice.toXmlBase64(): String
+    ```
 
-```python
-SignedInvoice.into_xml() -> str
-```
+    `fromFile` takes a local path. XML results are independent strings. `intoXml()` consumes invoice state; later access fails and `close()` remains safe. Reading `xml()` or `toXmlBase64()` leaves the invoice available. Finalized output uses default two-space indentation; signed output is exact stored text.
 
-## `parse_finalized_invoice_xml` / `parse_finalized_invoice_xml_file`
+=== "Java"
 
-### parse finalized invoice
+    Import `com.fatoora.FinalizedInvoice` and `com.fatoora.SignedInvoice`. Use try-with-resources to close invoice objects; methods throw on failure.
 
-???+ note "Parse finalized invoice XML"
+    ```java
+    FinalizedInvoice FinalizedInvoice.fromXml(String value)
+    FinalizedInvoice FinalizedInvoice.fromFile(String value)
+    SignedInvoice SignedInvoice.fromXml(String value)
+    SignedInvoice SignedInvoice.fromFile(String value)
+    String FinalizedInvoice.xml()
+    String SignedInvoice.xml()
+    String SignedInvoice.intoXml()
+    String SignedInvoice.toXmlBase64()
+    ```
 
-    === "{{ lang.rust }}"
-        ```rust
-        parse_finalized_invoice_xml(xml: &str) -> Result<FinalizedInvoice, ParseError>
-        parse_finalized_invoice_xml_file(path: impl AsRef<Path>) -> Result<FinalizedInvoice, ParseError>
-        ```
+    Static `fromFile` methods take a local path. String results remain valid after the invoice is closed. `intoXml()` consumes signed state; later access fails, and closing remains safe. The other accessors preserve state. Finalized output uses two-space indentation; signed output is exact stored text.
 
-    === "{{ lang.python }}"
-        ```python
-        parse_finalized_invoice_xml(xml: str) -> FinalizedInvoice
-        parse_finalized_invoice_xml_file(path: str) -> FinalizedInvoice
-        ```
+=== "C"
 
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
+    Include `fatoora.h`. All calls below return `FatooraStatus` and take `FatooraError **error` as their final argument. Check status before reading an output; free any returned error with `fatoora_error_free()`.
 
-        FatooraStatus fatoora_finalized_invoice_from_xml(const char *value,
-            FatooraFinalizedInvoice **out,
-            FatooraError **error);
+    **Parse XML**
 
-        FatooraStatus fatoora_finalized_invoice_from_file(const char *value,
-            FatooraFinalizedInvoice **out,
-            FatooraError **error);
-        ```
+    ```c
+    FatooraStatus fatoora_finalized_invoice_from_xml(const char *value,
+        FatooraFinalizedInvoice **out, FatooraError **error);
+    FatooraStatus fatoora_finalized_invoice_from_file(const char *value,
+        FatooraFinalizedInvoice **out, FatooraError **error);
+    FatooraStatus fatoora_signed_invoice_from_xml(const char *value,
+        FatooraSignedInvoice **out, FatooraError **error);
+    FatooraStatus fatoora_signed_invoice_from_file(const char *value,
+        FatooraSignedInvoice **out, FatooraError **error);
+    ```
 
-## `parse_signed_invoice_xml` / `parse_signed_invoice_xml_file`
+    `value` is a NUL-terminated UTF-8 XML string for `_from_xml`, or a local path for `_from_file`. Returned invoice handles are owned; release them with `fatoora_finalized_invoice_free()` or `fatoora_signed_invoice_free()`.
 
-### parse signed invoice
+    **Read XML**
 
-???+ note "Parse signed invoice XML"
+    ```c
+    FatooraStatus fatoora_finalized_invoice_xml(const FatooraFinalizedInvoice *self,
+        char **out, FatooraError **error);
+    FatooraStatus fatoora_signed_invoice_xml(const FatooraSignedInvoice *self,
+        char **out, FatooraError **error);
+    FatooraStatus fatoora_signed_invoice_into_xml(FatooraSignedInvoice *self,
+        char **out, FatooraError **error);
+    FatooraStatus fatoora_signed_invoice_to_xml_base64(const FatooraSignedInvoice *self,
+        char **out, FatooraError **error);
+    ```
 
-    === "{{ lang.rust }}"
-        ```rust
-        parse_signed_invoice_xml(xml: &str) -> Result<SignedInvoice, ParseError>
-        parse_signed_invoice_xml_file(path: impl AsRef<Path>) -> Result<SignedInvoice, ParseError>
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        parse_signed_invoice_xml(xml: str) -> SignedInvoice
-        parse_signed_invoice_xml_file(path: str) -> SignedInvoice
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signed_invoice_from_xml(const char *value,
-            FatooraSignedInvoice **out,
-            FatooraError **error);
-
-        FatooraStatus fatoora_signed_invoice_from_file(const char *value,
-            FatooraSignedInvoice **out,
-            FatooraError **error);
-        ```
-
-## Types
-
-!!! note "Types"
-    - `XmlFormat` selects compact output or explicit indentation for finalized invoices.
-    - `InvoiceXmlError` reports serialization failures.
-    - `ParseError` reports XML parsing failures and missing/invalid fields.
-
-See also: [Validation Guide](../guides/validation.md)
+    Each output is owned NUL-terminated text; release it with `fatoora_string_free()`. `_xml` copies the result and preserves invoice state. `_into_xml` consumes signed invoice state; further reads fail, but the outer handle must still be freed. `_to_xml_base64` returns encoded text without consuming state. Finalized formatting uses two-space indentation; signed output is never reformatted.

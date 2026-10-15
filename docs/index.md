@@ -1,144 +1,175 @@
-# fatoority
+---
+title: ZATCA E-Invoicing SDK and CLI
+description: Build Saudi e-invoicing integrations with fatoority. Sign invoices, validate XML, generate QR payloads, and connect to ZATCA APIs.
+---
 
-An unofficial open-source toolkit for ZATCA (Saudi Arabia) Phase 1 and 2 compliant e-invoicing. The core is written in Rust with a CLI and bindings for other languages.
+# ZATCA e-invoicing for your application
 
-!!! note
-    This project is in active early development and the public API may evolve.
+fatoority is an open-source toolkit for developers building e-invoicing integrations
+in Saudi Arabia. Sign invoice XML, validate it locally, generate QR payloads, and
+connect to ZATCA APIs for Phase 1 and Phase 2 workflows.
 
-## Why 
+Use the Rust library, add it to your application in Python, JavaScript/TypeScript,
+C#, Kotlin/Java (including Android), or C/C++, or run the command-line tool from your terminal.
 
-This library was born out of the frustration involved in working with the ZATCA ecosystem; The official documentation is fragmented, too high-level at best or just totally vague. The official CLI is slow, restrictive, and difficult to integrate into real-world workflow, and existing third-party libraries tend to be incomplete, poorly documented, or built around narrow assumptions that do not generalise well.
+[Try it](#try-it-validate-an-invoice){ .md-button .md-button--primary }
+[Choose your language](#choose-your-language){ .md-button }
+[View on GitHub](https://github.com/mqqz/fatoority)
+{ .home-actions }
 
-`fatoority` aims to remove this overhead by handling ZATCA specific details in a predictable and reliable way. By abstracting away compliance quirks and low-level details, development effort can stay focused on business logic and product concerns, where it actually matters.
+fatoority is an independent project and is not affiliated with ZATCA.
 
-## Features
+## What you can build
 
-- ZATCA phase 1 + 2 compliance (incl. all invoice sub/types)
-- Fast and efficient
-- Well-documented
-- Easy-to-use
+| Task | How fatoority helps |
+| --- | --- |
+| [Create and sign invoices](guides/invoice-signing.md) | Build invoice data and sign XML for standard and simplified invoices, credit notes, and debit notes. |
+| [Validate invoice XML](guides/validation.md) | Check UBL schemas, local ZATCA business rules, and applicable signature and QR checks before submission. |
+| [Generate QR payloads](guides/qr.md) | Generate base64-encoded invoice QR data or read the payload embedded in signed XML. |
+| [Generate a certificate signing request](guides/csr.md) | Create a signing key and CSR for device onboarding. |
+| [Hash invoices](reference/invoice-signing.md) | Compute invoice hashes and prepare invoice request payloads for API submission. |
+| [Connect to ZATCA](guides/api.md) | Integrate onboarding, compliance checks, reporting, and clearance into your application. |
 
+Local validation helps catch problems before submission. It does not establish
+ZATCA gateway acceptance or certificate issuer trust. See the
+[validation guide](guides/validation.md) for coverage and how to interpret results.
 
-## Quick Start
+## Try it: validate an invoice
 
-There are two main ways to interact with `fatoority`. Either through:
+Start with a local XML schema check. You do not need an account, certificate, or
+API credentials for this example.
 
-- **The Command Line Interaface (CLI)**:
+### 1. Install the CLI
 
-This CLI aims to be a *lighter, efficient and ergonomic* replacement to the official [ZATCA SDK](https://sandbox.zatca.gov.sa/downloadSDK) CLI tool.
+With [Rust and Cargo](https://www.rust-lang.org/tools/install) installed, run:
 
-- **Code Libraries**:
+```sh
+cargo install fatoora-cli
+```
 
-The main core library (`fatoora-core`) is written in Rust with a C FFI that allows interopability with many languages:
+You can also download a binary for your platform from
+[GitHub Releases](https://github.com/mqqz/fatoority/releases). Extract the archive
+and put the `fatoora` executable on your `PATH`.
 
-    - Rust (using the `fatoora-core` crate)
+### 2. Download the sample invoice
 
-    - C/C++ (directly through the FFI shared library)
+Save [sample-invoice.xml](assets/examples/sample-invoice.xml) in your working
+folder. It contains demonstration data for this schema check.
 
-    - Python (wrapper library over the FFI)
+### 3. Run the check
 
-    - JavaScript / TypeScript (WebAssembly with async fetch)
+From the folder containing the file:
 
-    - C# / .NET 8 (NuGet with native runtime assets)
+```sh
+fatoora validate --invoice sample-invoice.xml
+```
 
-## Installation
+Expected output:
+
+```text
+OK
+```
+
+`OK` means the XML passes the bundled UBL schema check. To run local ZATCA rules
+and inspect individual findings, follow the [invoice validation guide](guides/validation.md).
+For more terminal commands, see the [CLI guide](guides/cli.md).
+
+## Choose your language
+
+Install the package for your application, then follow its examples. The project
+and most packages are named `fatoority`; existing API names such as Python's
+`fatoora` import and Rust's `fatoora_core` remain unchanged.
 
 === "Rust"
-    ```bash
+    ```sh
     cargo add fatoora-core
     ```
 
+    Import `fatoora_core` in your code.
+    [Start with invoice signing](guides/invoice-signing.md) or browse the
+    [Rust API reference](https://docs.rs/fatoora-core/latest/fatoora_core/).
+
 === "Python"
-    ```bash
+    ```sh
     pip install fatoority
     ```
 
-=== "JavaScript / TypeScript"
+    Import `fatoora` in your code.
+    [Follow the Python setup and examples](reference/bindings/python.md).
+
+=== "JavaScript"
     ```sh
     npm install fatoority
     ```
-    See the [JS/TS reference](reference/bindings/javascript.md) for source builds,
-    browser deployment, async API calls and package sizes.
 
-=== "C# / .NET"
-    Build a local NuGet package from a source checkout:
+    Use the WebAssembly package in Node.js or a browser.
+    [Follow the JavaScript/TypeScript setup and examples](reference/bindings/javascript.md),
+    including browser asset setup and API transport requirements.
+
+=== "C#"
     ```sh
-    python3 scripts/package_dotnet.py --output-dir dist/dotnet
-    ```
-    Install it in your application's project:
-    ```sh
-    dotnet add package Fatoority --version 0.4.3 --source /absolute/path/to/dist/dotnet
-    ```
-    See the [C# / .NET reference](reference/bindings/csharp.md) for requirements,
-    native platforms, and ownership rules.
-
-=== "C (FFI)"
-    Download the precompiled ffi library and headers for your platform from [github releases](https://github.com/mqqz/fatoority/releases)
-    and use the [C API](development/c-api.md) for plain strings,
-    named-field options, and shared error handling.
-
-=== "CLI"
-    You can either install the binary using `cargo install`:
-    ```bash
-    cargo install fatoora-cli
-    ```
-    Or alternatively grab the precompiled binary for your platform from [github releases](https://github.com/mqqz/fatoority/releases)
-
-
-## Basic Usage
-
-=== "Rust"
-    ```rust
-    use fatoora_core::config::EnvironmentType;
-    use fatoora_core::csr::{CsrProperties, SigningKey};
-
-    let props_text = std::fs::read_to_string("csr.properties")?;
-    let props = CsrProperties::from_properties_str(&props_text)?;
-    let key = SigningKey::generate();
-    let csr = props.build(&key, EnvironmentType::NonProduction)?;
-    let csr_pem = csr.to_pem()?;
-    let key_pem = key.to_pem()?;
+    dotnet add package Fatoority
     ```
 
-=== "Python"
-    ```python
-    from fatoora.config import Environment
-    from fatoora.csr import CsrProperties, SigningKey
+    Use the `Fatoora` namespace with .NET 8 or later.
+    [Follow the C# setup and examples](reference/bindings/csharp.md), including
+    supported native platforms.
 
-    props = CsrProperties.parse_csr_config_file("csr.properties")
-    key = SigningKey.generate()
-    csr = props.build(key, Environment.NON_PRODUCTION)
-    csr_pem = csr.to_pem_base64()
-    key_pem = key.to_pem()
+=== "Kotlin / Java / Android"
+    Install from Maven Central with Gradle or Maven.
+
+    **Gradle** (`build.gradle.kts`):
+
+    ```kotlin
+    repositories { mavenCentral() }
+    dependencies {
+        implementation("com.fatoority:fatoority:0.4.3")
+    }
     ```
 
-=== "C# / .NET"
-    ```csharp
-    using Fatoora;
+    **Maven** (add inside `<dependencies>` in `pom.xml`):
 
-    using var properties = CsrProperties.ParseCsrConfigFile("csr.properties");
-    using var key = SigningKey.Generate();
-    using var csr = properties.Build(key, 0); // Nonproduction.
-    string csrPem = csr.ToPem();
-    string keyPem = key.ToPem();
+    ```xml
+    <dependency>
+      <groupId>com.fatoority</groupId>
+      <artifactId>fatoority</artifactId>
+      <version>0.4.3</version>
+    </dependency>
     ```
 
-=== "CLI"
-    ```bash
-    fatoora csr --csr-config csr.properties --generated-csr csr.pem --private-key key.pem --pem
-    ```
+    Import `com.fatoora` in your code.
+    [Follow the Kotlin/Java examples](reference/bindings/kotlin.md) for
+    supported platforms and Android setup. For Android, use
+    `com.fatoority:fatoority-android:0.4.3` instead of the desktop artifact.
 
-## Runtime boundaries
+=== "C / C++"
+    Download the `fatoora-ffi-*` archive with the native library and C/C++ headers from
+    [GitHub Releases](https://github.com/mqqz/fatoority/releases).
 
-Local validation covers UBL schemas, ZATCA rules and applicable signature/QR checks.
-It does not establish gateway acceptance or certificate issuer trust.
-Browser API calls depend on gateway CORS; server-side Node uses its own fetch transport.
-JS objects belong to their WASM instance and cannot be shared between workers.
+    [Follow the C/C++ setup and examples](reference/bindings/c.md) for compilation
+    and linking instructions.
 
-## Where to Go Next
-- [CLI](guides/cli.md)
-- [JavaScript / TypeScript](reference/bindings/javascript.md)
-- [Python Bindings](reference/bindings/python.md)
-- [C# / .NET](reference/bindings/csharp.md)
-- [Benchmarks](benchmarks.md)
-- [Contributing](contributing.md)
+## Continue your integration
+
+If you are adding invoicing to an application, start with
+[building and signing an invoice](guides/invoice-signing.md), then
+[validate the XML](guides/validation.md) before sending it.
+
+For device onboarding, [generate a CSR](guides/csr.md), then use the
+[ZATCA API client](guides/api.md) to request credentials and submit invoices.
+The guides explain the inputs needed at each step.
+
+## About the project
+
+The core is written in Rust and shared by the CLI and language bindings.
+The project code is available under the
+[MIT or Apache-2.0 license](https://github.com/mqqz/fatoority#license).
+Third-party materials retain their upstream terms; see the
+[third-party notices](https://github.com/mqqz/fatoority/blob/main/THIRD_PARTY_NOTICES.md).
+
+See the [SDK compatibility notes](development/sdk-parity.md) for the scope of
+comparison with the official SDK, and [benchmarks](benchmarks.md) for measured
+performance and methodology.
+
+Need help with an integration? [Open an issue](https://github.com/mqqz/fatoority/issues).
+To help improve the library or these docs, read the [contributing guide](contributing.md).

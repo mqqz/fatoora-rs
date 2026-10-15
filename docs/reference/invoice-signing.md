@@ -1,464 +1,265 @@
-# Invoice Signing
+---
+title: Invoice signing and signature metadata reference
+description: Certificate and key requirements, signing methods, return values, ownership and signed invoice metadata for every supported language.
+---
+
+# Invoice signing reference
+
+Create a signer from an X.509 certificate and an unencrypted secp256k1 private key in PKCS#8 format. Use it to sign a finalized invoice or existing XML. For a complete workflow, see the [signing guide](../guides/invoice-signing.md).
+
+## Inputs and behavior
+
+| Operation | Expected input | Result and behavior |
+| --- | --- | --- |
+| Create from PEM | Certificate PEM and private-key PEM text | A reusable signer; rejects invalid certificate/key encodings |
+| Create from DER | Certificate DER bytes and private-key PKCS#8 DER bytes | A reusable signer with the same behavior as PEM construction |
+| Export certificate | Live signer | Certificate as PEM text or DER bytes |
+| Sign finalized invoice | A finalized invoice and a live signer | A signed invoice; consumes the finalized invoice's state |
+| Sign existing XML | UBL invoice XML text | Signed XML text; preserves bytes outside the signing structures it owns. Re-signing requires the same certificate |
+| Hash existing XML | XML text | Base64 invoice digest after invoice-specific exclusions and canonicalization |
+
+Signer construction parses the certificate and key; it does not establish that they match, that the certificate is trusted, or that its dates are valid. Signing checks that the private key matches the certificate and rejects a mismatch. It does not run the complete invoice validator. Validate the resulting XML separately when you need a local compliance report.
+
+Keep signed XML unchanged for storage and submission. Signing existing XML does not construct an invoice model or run all model-import checks.
+
+## Signed invoice values
+
+All getters below leave the signed invoice usable. Values extracted from imported signed XML are metadata, not proof of signature verification.
+
+| Value | Returned content |
+| --- | --- |
+| XML | Original stored signed XML text |
+| XML Base64 | Base64 of that stored XML text |
+| QR code | Base64 TLV payload for rendering; see [QR reference](qr.md) |
+| Invoice hash | Embedded invoice digest from signature metadata |
+| Model hash | Recomputed hash of the underlying finalized model's serialization; **not an alias for the embedded hash** |
+| Signature | Encoded invoice signature |
+| Public key | Encoded public-key material |
+| ZATCA key signature | Optional encoded certificate-signature material |
+| Issuer / serial | Certificate issuer and serial from signed properties |
+| Certificate hash | Encoded certificate digest |
+| Signed properties hash | Encoded signed-properties digest |
+| Signing time | UTC text in `YYYY-MM-DDTHH:MM:SS` format |
+
+To hash a particular XML document, use the XML hash operation rather than the model hash getter. See [XML reference](xml.md) for parsing and consuming XML access.
+
+## Methods by language
+
+<span id="invoicesigner-signer"></span>
+<span id="finalizedinvoice"></span>
+<span id="signedinvoice"></span>
+<span id="from_pem"></span>
+<span id="from_der"></span>
+<span id="certificate_pem"></span>
+<span id="certificate_der"></span>
+<span id="sign_xml"></span>
+<span id="sign"></span>
+<span id="xml"></span>
+<span id="to_xml_base64"></span>
+<span id="qr_code"></span>
+<span id="invoice_hash"></span>
+<span id="hash_base64"></span>
+<span id="signature"></span>
+<span id="public_key"></span>
+<span id="zatca_key_signature"></span>
+<span id="signed_props_hash"></span>
+<span id="cert_hash"></span>
+<span id="signing_time"></span>
+<span id="issuer"></span>
+<span id="serial"></span>
+<span id="invoice_hash_base64_from_xml_str"></span>
+<span id="hash-from-xml"></span>
+
+=== "Rust"
+
+    Import `InvoiceSigner`, `SigningError`, and `invoice_hash_base64_from_xml_str`
+    from `fatoora_core::invoice::sign`.
+
+    **Construct, export and sign**
+
+    ```rust
+    InvoiceSigner::from_pem(cert_pem: &str, key_pem: &str) -> Result<InvoiceSigner, SigningError>
+    InvoiceSigner::from_der(cert_der: &[u8], key_der: &[u8]) -> Result<InvoiceSigner, SigningError>
+    signer.certificate_pem() -> Result<String, SigningError>
+    signer.certificate_der() -> Result<Vec<u8>, SigningError>
+    signer.sign_xml(xml: &str) -> Result<String, SigningError>
+    invoice.sign(signer: &InvoiceSigner) -> Result<SignedInvoice, SigningError>
+    invoice_hash_base64_from_xml_str(xml: &str) -> Result<String, SigningError>
+    ```
+
+    `invoice.sign` takes a `FinalizedInvoice` by value. `SignedInvoice::xml`, `qr_code`, `invoice_hash`, `signature` and `public_key` return borrowed `&str`; `zatca_key_signature` returns `Option<&str>`. `to_xml_base64` returns `String`; `hash_base64` returns `Result<String, SigningError>`.
+
+    Use `signed.signed_properties()` for `issuer()`, `serial()`, `cert_hash()`, `signed_props_hash()` and `signing_time()`, all borrowed `&str`. Copy borrowed strings to retain them after dropping the invoice. Failures expose `SigningError::kind()` and structured details through the shared error type.
+
+=== "Python"
+
+    | Call | Return |
+    | --- | --- |
+    | `Signer.from_pem(cert_pem: str, key_pem: str)` | `Signer` |
+    | `Signer.from_der(cert_der: bytes, key_der: bytes)` | `Signer` |
+    | `signer.certificate_pem()` / `certificate_der()` | `str` / `bytes` |
+    | `signer.sign_xml(xml: str)` | `str` |
+    | `finalized.sign(signer: Signer)` | `SignedInvoice`; consumes finalized state |
+    | `invoice_hash_base64_from_xml_str(xml: str)` | `str` |
 
-C signatures use the [C API](../development/c-api.md). See [C and C++ bindings](bindings/c.md) for ownership and build instructions.
-The declarations below come from the generated headers. C++ exposes the same types
-in namespace `fatoora` through `fatoora/Type.hpp` headers.
+    `SignedInvoice` string getters are `xml()`, `to_xml_base64()`, `qr_code()`, `invoice_hash()`, `hash_base64()`, `signature()`, `public_key()`, `issuer()`, `serial()`, `cert_hash()`, `signed_props_hash()` and `signing_time()`. `zatca_key_signature()` returns `str | None`. Strings and bytes are independent copies. Use context managers or `close()` for owners; errors raise the typed exceptions in [errors](errors.md).
+
+=== "JavaScript"
 
-Signing helpers and signature metadata.
+    | Call | Return |
+    | --- | --- |
+    | `Signer.fromPem(certPem: string, keyPem: string)` | `Signer` |
+    | `Signer.fromDer(certDer: Array<number>, keyDer: Array<number>)` | `Signer` |
+    | `signer.certificatePem()` | `string` |
+    | `signer.certificateDer()` | `Bytes` |
+    | `signer.signXml(xml: string)` | `string` |
+    | `signer.sign(invoice: FinalizedInvoice)` | `SignedInvoice`; consumes invoice state |
+    | `Xml.hash(xml: string)` | `string` |
+
+    `SignedInvoice` text getters: `xml()`, `toXmlBase64()`, `qrCode()`, `invoiceHash()`, `hashBase64()`, `signature()`, `publicKey()`, `issuer()`, `serial()`, `certHash()`, `signedPropsHash()`, `signingTime()`. Each returns `string`. `zatcaKeySignature()` returns optional `Text`; read its `value()` to obtain text.
 
-## InvoiceSigner / Signer
+    Objects use garbage-collected cleanup. `Bytes.asSlice()` returns a copied number array. Native failures throw an `Error` with a `BindingError` in `error.cause`; see [error handling](errors.md).
+
+=== "C#"
 
-### `from_pem`
+    | Call | Return |
+    | --- | --- |
+    | `Signer.FromPem(certPem: string, keyPem: string)` | `Signer` |
+    | `Signer.FromDer(certDer: byte[], keyDer: byte[])` | `Signer` |
+    | `signer.CertificatePem()` | `string` |
+    | `signer.CertificateDer()` | `Bytes` |
+    | `signer.SignXml(xml: string)` | `string` |
+    | `signer.Sign(invoice: FinalizedInvoice)` | `SignedInvoice`; consumes invoice state |
+    | `Xml.Hash(xml: string)` | `string` |
+
+    `SignedInvoice` text getters: `Xml()`, `ToXmlBase64()`, `QrCode()`, `InvoiceHash()`, `HashBase64()`, `Signature()`, `PublicKey()`, `Issuer()`, `Serial()`, `CertHash()`, `SignedPropsHash()`, `SigningTime()`. Each returns `string`. `ZatcaKeySignature()` returns optional `Text`; read its `Value()` to obtain text.
 
-???+ note "Create signer from PEM"
-    Create a signer from PEM-encoded certificate and private key.
+    Dispose native owners, including optional `Text` and certificate `Bytes`. A `Bytes.AsSlice()` view must also be disposed; copy it with `Clone()` before releasing its owner. Native failures throw `BindingErrorException`; dispose its `Inner` after reading details.
+
+=== "Kotlin"
 
-    === "{{ lang.rust }}"
-        ```rust
-        InvoiceSigner::from_pem(cert_pem: &str, key_pem: &str) -> Result<InvoiceSigner, SigningError>
-        ```
+    | Call | Return |
+    | --- | --- |
+    | `Signer.fromPem(certPem: String, keyPem: String)` | `Signer` |
+    | `Signer.fromDer(certDer: ByteArray, keyDer: ByteArray)` | `Signer` |
+    | `signer.certificatePem()` | `String` |
+    | `signer.certificateDer()` | `Bytes` |
+    | `signer.signXml(xml: String)` | `String` |
+    | `signer.sign(invoice: FinalizedInvoice)` | `SignedInvoice`; consumes invoice state |
+    | `Xml.hash(xml: String)` | `String` |
+
+    `SignedInvoice` text getters: `xml()`, `toXmlBase64()`, `qrCode()`, `invoiceHash()`, `hashBase64()`, `signature()`, `publicKey()`, `issuer()`, `serial()`, `certHash()`, `signedPropsHash()`, `signingTime()`. Each returns `String`. `zatcaKeySignature()` returns optional `Text`; read its `value()` to obtain text.
 
-    === "{{ lang.python }}"
-        ```python
-        Signer.from_pem(cert_pem: str, key_pem: str) -> Signer
-        ```
+    Use `use` or `close()` for native owners, including optional `Text` and certificate `Bytes`. `Bytes.asSlice()` returns a copied `ByteArray`. Failures throw `BindingException`.
+
+=== "Java"
 
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signer_from_pem(const char *cert_pem,
-            const char *key_pem,
-            FatooraSigner **out,
-            FatooraError **error);
-        ```
-
-### `from_der`
-
-???+ note "Create signer from DER"
-    Create a signer from DER-encoded certificate and private key.
-
-    === "{{ lang.rust }}"
-        ```rust
-        InvoiceSigner::from_der(cert_der: &[u8], key_der: &[u8]) -> Result<InvoiceSigner, SigningError>
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        Signer.from_der(cert_der: bytes, key_der: bytes) -> Signer
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signer_from_der(const uint8_t *cert_der,
-            size_t cert_der_len,
-            const uint8_t *key_der,
-            size_t key_der_len,
-            FatooraSigner **out,
-            FatooraError **error);
-        ```
-
-### `certificate_pem`
-
-???+ note "Read signer certificate as PEM"
-
-    === "{{ lang.rust }}"
-        ```rust
-        InvoiceSigner::certificate_pem(&self) -> Result<String, SigningError>
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        Signer.certificate_pem() -> str
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signer_certificate_pem(const FatooraSigner *self,
-            char **out,
-            FatooraError **error);
-        ```
-
-### `certificate_der`
-
-???+ note "Read signer certificate as DER"
-
-    === "{{ lang.rust }}"
-        ```rust
-        InvoiceSigner::certificate_der(&self) -> Result<Vec<u8>, SigningError>
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        Signer.certificate_der() -> bytes
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signer_certificate_der(const FatooraSigner *self,
-            FatooraBytes **out,
-            FatooraError **error);
-        ```
-
-### `sign_xml`
-
-```rust
-InvoiceSigner::sign_xml(&self, xml: &str) -> Result<String, SigningError>
-```
-
-Signs pre-built XML and returns the signed XML string. This does not construct a
-`SignedInvoice` or run its invoice-model parsing checks. The input is parsed and
-serialized, so its original byte representation is not preserved. Keep the
-returned signed XML unchanged. Signing does not establish invoice compliance.
-
-See [signed XML ownership](xml.md#signedinvoice) for borrowed, copied, and
-consuming access to `SignedInvoice` XML.
-
-## FinalizedInvoice
-
-### `sign`
-
-???+ note "Sign finalized invoice"
-    Sign finalized invoice XML and return a signed invoice.
-
-    === "{{ lang.rust }}"
-        ```rust
-        FinalizedInvoice::sign(self, signer: &InvoiceSigner) -> Result<SignedInvoice, SigningError>
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        FinalizedInvoice.sign(signer: Signer) -> SignedInvoice
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signer_sign(const FatooraSigner *self,
-            FatooraFinalizedInvoice *invoice,
-            FatooraSignedInvoice **out,
-            FatooraError **error);
-        ```
-
-## SignedInvoice
-
-### `xml`
-
-???+ note "Get signed XML"
-
-    === "{{ lang.rust }}"
-        ```rust
-        SignedInvoice::xml(&self) -> &str
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        SignedInvoice.xml() -> str
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signed_invoice_xml(const FatooraSignedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
-
-### `to_xml_base64`
-
-???+ note "Get signed XML as Base64"
-
-    === "{{ lang.rust }}"
-        ```rust
-        SignedInvoice::to_xml_base64(&self) -> String
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        SignedInvoice.to_xml_base64() -> str
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signed_invoice_to_xml_base64(const FatooraSignedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
-
-### `qr_code`
-
-???+ note "Get QR payload"
-
-    === "{{ lang.rust }}"
-        ```rust
-        SignedInvoice::qr_code(&self) -> &str
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        SignedInvoice.qr_code() -> str
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signed_invoice_qr_code(const FatooraSignedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
-
-### `invoice_hash`
-
-???+ note "Get invoice hash"
-
-    === "{{ lang.rust }}"
-        ```rust
-        SignedInvoice::invoice_hash(&self) -> &str
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        SignedInvoice.invoice_hash() -> str
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signed_invoice_invoice_hash(const FatooraSignedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
-
-### `hash_base64`
-
-???+ note "Get invoice hash as Base64"
-
-    === "{{ lang.rust }}"
-        ```rust
-        SignedInvoice::hash_base64(&self) -> Result<String, SigningError>
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        SignedInvoice.hash_base64() -> str
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signed_invoice_hash_base64(const FatooraSignedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
-
-### `signature`
-
-???+ note "Get signature value"
-
-    === "{{ lang.rust }}"
-        ```rust
-        SignedInvoice::signature(&self) -> &str
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        SignedInvoice.signature() -> str
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signed_invoice_signature(const FatooraSignedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
-
-### `public_key`
-
-???+ note "Get public key"
-
-    === "{{ lang.rust }}"
-        ```rust
-        SignedInvoice::public_key(&self) -> &str
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        SignedInvoice.public_key() -> str
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signed_invoice_public_key(const FatooraSignedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
-
-### `zatca_key_signature`
-
-???+ note "Get optional ZATCA key signature"
-
-    === "{{ lang.rust }}"
-        ```rust
-        SignedInvoice::zatca_key_signature(&self) -> Option<&str>
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        SignedInvoice.zatca_key_signature() -> Optional[str]
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signed_invoice_zatca_key_signature(const FatooraSignedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
-
-### `signed_props_hash`
-
-???+ note "Get signed properties hash"
-
-    === "{{ lang.rust }}"
-        ```rust
-        SignedProperties::signed_props_hash(&self) -> &str
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        SignedInvoice.signed_props_hash() -> str
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signed_invoice_signed_props_hash(const FatooraSignedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
-
-### `cert_hash`
-
-???+ note "Get certificate hash"
-
-    === "{{ lang.python }}"
-        ```python
-        SignedInvoice.cert_hash() -> str
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signed_invoice_cert_hash(const FatooraSignedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
-
-### `signing_time`
-
-???+ note "Get signing timestamp"
-
-    === "{{ lang.python }}"
-        ```python
-        SignedInvoice.signing_time() -> str
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signed_invoice_signing_time(const FatooraSignedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
-
-### `issuer`
-
-???+ note "Get certificate issuer from signed properties"
-
-    === "{{ lang.rust }}"
-        ```rust
-        SignedProperties::issuer(&self) -> &str
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        SignedInvoice.issuer() -> str
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signed_invoice_issuer(const FatooraSignedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
-
-### `serial`
-
-???+ note "Get certificate serial from signed properties"
-
-    === "{{ lang.rust }}"
-        ```rust
-        SignedProperties::serial(&self) -> &str
-        ```
-
-    === "{{ lang.python }}"
-        ```python
-        SignedInvoice.serial() -> str
-        ```
-
-    === "{{ lang.c }}"
-        ```c
-        #include "fatoora.h"
-
-        FatooraStatus fatoora_signed_invoice_serial(const FatooraSignedInvoice *self,
-            char **out,
-            FatooraError **error);
-        ```
-
-## `invoice_hash_base64_from_xml_str`
-
-### hash from XML
-
-???+ note "Compute invoice hash (Base64)"
-    Compute invoice hash from XML and return it as Base64.
-
-    === "{{ lang.rust }}"
-        ```rust
-        invoice_hash_base64_from_xml_str(xml: &str) -> Result<String, SigningError>
-        ```
-
-## Errors
-
-!!! warning "Errors"
-    - `SigningError` covers XML parsing, canonicalization, and certificate/key errors.
-
-## Notes
-
-!!! note "Notes"
-    - `SignedProperties::signing_time` uses `YYYY-MM-DDTHH:MM:SS` format (UTC).
-    - Invoice hashes are computed from canonicalized XML excluding signature fields.
-
-See also: [Invoice Signing Guide](../guides/invoice-signing.md)
+    | Call | Return |
+    | --- | --- |
+    | `Signer.fromPem(certPem: String, keyPem: String)` | `Signer` |
+    | `Signer.fromDer(certDer: byte[], keyDer: byte[])` | `Signer` |
+    | `signer.certificatePem()` | `String` |
+    | `signer.certificateDer()` | `Bytes` |
+    | `signer.signXml(xml: String)` | `String` |
+    | `signer.sign(invoice: FinalizedInvoice)` | `SignedInvoice`; consumes invoice state |
+    | `Xml.hash(xml: String)` | `String` |
+
+    `SignedInvoice` text getters: `xml()`, `toXmlBase64()`, `qrCode()`, `invoiceHash()`, `hashBase64()`, `signature()`, `publicKey()`, `issuer()`, `serial()`, `certHash()`, `signedPropsHash()`, `signingTime()`. Each returns `String`. `zatcaKeySignature()` returns optional `Text`; read its `value()` to obtain text.
+
+    Use try-with-resources for native owners, including optional `Text` and certificate `Bytes`. `Bytes.asSlice()` returns a copied `byte[]`. Failures throw `BindingException`.
+
+=== "C"
+
+    Include `fatoora.h`. All functions return `FatooraStatus`; inspect outputs only after `FATOORA_OK`. Inputs are borrowed for the call. Release strings with `fatoora_string_free`, bytes with `fatoora_bytes_free`, errors with `fatoora_error_free` and objects with their corresponding free function. Optional text is `NULL` when absent.
+
+    ```c
+    #include "fatoora.h"
+
+    FatooraStatus fatoora_signer_from_pem(const char *cert_pem,
+        const char *key_pem,
+        FatooraSigner **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signer_from_der(const uint8_t *cert_der,
+        size_t cert_der_len,
+        const uint8_t *key_der,
+        size_t key_der_len,
+        FatooraSigner **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signer_certificate_pem(const FatooraSigner *self,
+        char **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signer_certificate_der(const FatooraSigner *self,
+        FatooraBytes **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signer_sign(const FatooraSigner *self,
+        FatooraFinalizedInvoice *invoice,
+        FatooraSignedInvoice **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signer_sign_xml(const FatooraSigner *self,
+        const char *xml,
+        char **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_xml_hash(const char *xml,
+        char **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signed_invoice_xml(const FatooraSignedInvoice *self,
+        char **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signed_invoice_to_xml_base64(const FatooraSignedInvoice *self,
+        char **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signed_invoice_qr_code(const FatooraSignedInvoice *self,
+        char **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signed_invoice_invoice_hash(const FatooraSignedInvoice *self,
+        char **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signed_invoice_hash_base64(const FatooraSignedInvoice *self,
+        char **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signed_invoice_signature(const FatooraSignedInvoice *self,
+        char **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signed_invoice_public_key(const FatooraSignedInvoice *self,
+        char **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signed_invoice_zatca_key_signature(const FatooraSignedInvoice *self,
+        char **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signed_invoice_signed_props_hash(const FatooraSignedInvoice *self,
+        char **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signed_invoice_cert_hash(const FatooraSignedInvoice *self,
+        char **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signed_invoice_signing_time(const FatooraSignedInvoice *self,
+        char **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signed_invoice_issuer(const FatooraSignedInvoice *self,
+        char **out,
+        FatooraError **error);
+
+    FatooraStatus fatoora_signed_invoice_serial(const FatooraSignedInvoice *self,
+        char **out,
+        FatooraError **error);
+    ```
+
+    Signing consumes the finalized invoice state; its outer handle still needs `fatoora_finalized_invoice_free`.

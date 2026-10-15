@@ -1,0 +1,17 @@
+Guide sample inputs
+
+These examples are for local development and demonstration. The certificate and
+private key are public test credentials, not credentials for a user's business.
+
+Source files in https://github.com/mqqz/fatoority:
+- csr.properties: fatoora-core/tests/fixtures/csr-configs/csr-config-example-EN.properties
+- invoice.xml: fatoora-core/tests/fixtures/sdk-parity/cases/simplified-invoice/input.xml
+- signed.xml: fatoora-core/tests/fixtures/sdk-parity/cases/simplified-invoice/sdk-signed.xml
+- sample-invoice.xml: fatoora-core/tests/fixtures/invoices/sample-simplified-invoice.xml
+- certificate.der and private-key.der: fatoora-core/tests/fixtures/sdk-parity/credentials/
+- certificate.pem and private-key.pem: PEM encodings of those same DER files
+- previous-hash.txt and validation-options.json: predecessor value used by invoice.xml
+
+Third-party inputs retain their upstream terms. See THIRD_PARTY_NOTICES.md and
+the fixture notices in the repository. The project's license does not relicense
+third-party fixtures. Example program code is under MIT OR Apache-2.0.

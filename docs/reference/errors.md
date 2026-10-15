@@ -1,141 +1,182 @@
-# Errors
+---
+title: Error codes, exceptions and structured diagnostics
+description: Handle fatoority errors using stable codes and JSON details, including validation issues, API failures and partial reports.
+---
 
-Rust operations return errors for their module: `InvoiceError`, `CsrError`,
-`SigningError`, `QrCodeError`, `InvoiceXmlError`, `ParseError`,
-`XmlValidationError`, `ZatcaValidationError`, `ZatcaError`, `DecimalError`, and
-`EnvironmentParseError`.
-Each has a `kind()` method for shared classification.
+# Errors and diagnostics
 
-Convert a module error into `fatoora_core::Error` when combining operations.
-The conversion retains the original error, including validation issues and API
-responses. `Display` provides a human-readable message; `details_json()` provides
-the binding representation.
-
-```rust
-use fatoora_core::{Error, ErrorKind};
-use fatoora_core::invoice::{InvoiceError, InvoiceBuilder};
-
-fn build(builder: InvoiceBuilder) -> Result<(), Error> {
-    let _invoice = builder.build()?;
-    Ok(())
-}
-
-fn inspect(error: &Error) {
-    if let Error::Invoice(InvoiceError::Validation(validation)) = error {
-        for issue in validation.issues() {
-            eprintln!("{:?}: {:?}", issue.field(), issue.kind());
-        }
-    }
-    if error.kind() == ErrorKind::Validation {
-        eprintln!("{}", error.details_json());
-    }
-}
-```
+Use error codes and structured fields to decide how to recover. Messages are intended for display and can change; do not parse their wording.
 
 ## Shared classification
 
-Rust and C use the following stable categories. Python maps each category to an
-exception class. Consumers must retain unknown numeric codes and provide a
-generic fallback when categories are added.
-
-| Code | Rust / C category | Python exception |
+| Code | Category | Meaning |
 | --- | --- | --- |
-| 1 | InvalidInput | InvalidInputError |
-| 2 | Validation | ValidationError |
-| 3 | Parse | ParseError |
-| 4 | Xml | XmlError |
-| 5 | Crypto | CryptoError |
-| 6 | Io | IoError |
-| 7 | Network | NetworkError |
-| 8 | Unauthorized | UnauthorizedError |
-| 9 | Internal | InternalError |
-| 10 | Api | ApiError |
+| 1 | InvalidInput | An argument, key, certificate, option or context is invalid |
+| 2 | Validation | A model validation failure or interrupted rule evaluation |
+| 3 | Parse | Structured data, a successful API response, or returned cleared XML could not be decoded |
+| 4 | Xml | An XML operation failed |
+| 5 | Crypto | A cryptographic operation failed |
+| 6 | Io | A file or other I/O operation failed |
+| 7 | Network | A network operation failed |
+| 8 | Unauthorized | The service rejected authorization |
+| 9 | Internal | An internal operation failed |
+| 10 | Api | A non-authorization API response or acceptance check failed |
 
-Classification follows the cause: an XML failure during signing is `Xml`, and a
-file-read failure is `Io`. Invalid certificate or key input is `InvalidInput`.
+Classification follows the cause: an XML failure during signing is `Xml`, while a file-read failure is `Io`. Preserve unknown numeric codes and provide a generic fallback. An `Internal` failure may leave an operation consumed; discard affected operation handles.
 
-## Owned diagnostics and evolution
+## Handle an error
 
-Backend failures are converted to `Diagnostic`, which exposes `message()`,
-`file()`, `line()`, `column()`, and `severity()`. Locations and severity are
-optional. Line and column numbers are one-based. Severity is `Warning`, `Error`,
-or `Fatal` when available. Property-file parsing preserves the reported line.
-Backend-specific numeric error codes are outside the public contract.
+=== "Rust"
 
-Public error payloads and source chains use crate-owned or standard-library
-types. They do not expose third-party backend objects or public conversions from
-backend errors. Diagnostic wording can change with backend versions.
+    Rust operations return errors for their module: `InvoiceError`, `CsrError`,
+    `SigningError`, `QrCodeError`, `InvoiceXmlError`, `ParseError`,
+    `XmlValidationError`, `ZatcaValidationError`, `ZatcaError`, `DecimalError`, and
+    `EnvironmentParseError`.
+    Each has a `kind()` method for shared classification.
 
-Public error enums are `#[non_exhaustive]`; downstream matches need a fallback
-arm. New variants can be added. Existing variant fields keep their types and
-meaning; private diagnostic fields can grow behind accessors.
+    Convert a module error into `fatoora_core::Error` when combining operations.
+    The conversion retains the original error, including validation issues and API
+    responses. `Display` provides a human-readable message; `details_json()` provides
+    the binding representation.
 
-## C ownership
+    ```rust
+    use fatoora_core::{Error, ErrorKind};
+    use fatoora_core::invoice::{InvoiceError, InvoiceBuilder};
 
-The C API uses opaque `FatooraError` owners and a shared `FatooraStatus`:
+    fn build(builder: InvoiceBuilder) -> Result<(), Error> {
+        let _invoice = builder.build()?;
+        Ok(())
+    }
 
-```c
-#include "fatoora.h"
+    fn inspect(error: &Error) {
+        if let Error::Invoice(InvoiceError::Validation(validation)) = error {
+            for issue in validation.issues() {
+                eprintln!("{:?}: {:?}", issue.field(), issue.kind());
+            }
+        }
+        if error.kind() == ErrorKind::Validation {
+            eprintln!("{}", error.details_json());
+        }
+    }
+    ```
 
-FatooraStatus fatoora_error_code(const FatooraError *error);
-const char *fatoora_error_message(const FatooraError *error);
-const char *fatoora_error_details_json(const FatooraError *error);
-void fatoora_error_free(FatooraError *error);
-```
+    **Diagnostics and matching errors**
 
-Pass `FatooraError **error` as the last argument of an operation, or `NULL` when
-only the status matters. `FATOORA_OK` indicates success; other values preserve
-the numeric classification and structured native details. The error's message
-and JSON strings are borrowed until `fatoora_error_free()`. Output slots are
-cleared on entry: release a previous error before reusing its slot.
+    Backend failures are converted to `Diagnostic`, which exposes `message()`,
+    `file()`, `line()`, `column()`, and `severity()`. Locations and severity are
+    optional. Line and column numbers are one-based. Severity is `Warning`, `Error`,
+    or `Fatal` when available. Property-file parsing preserves the reported line.
+    Backend-specific numeric error codes are outside the public contract.
 
-C allocation failure can leave the error or its diagnostic strings unavailable;
-use the operation's returned status to decide success. Error accessors accept
-`NULL`: code returns `FATOORA_OK`, message returns an empty string, and details
-returns `{}`. Freeing `NULL` is safe. See the [C API](../development/c-api.md)
-for owned string outputs and allocation rules.
+    Diagnostic wording can change. Use error kinds and structured fields for decisions.
 
-### Raw ABI and C++ errors
+    Public error enums are `#[non_exhaustive]`; downstream matches need a fallback
+    arm. New variants can be added. Existing variant fields keep their types and
+    meaning; private diagnostic fields can grow behind accessors.
 
-`BindingError` is opaque. Include `BindingError.h` and use its generated accessors:
+=== "Python"
 
-```c
-#include "BindingError.h"
+    Native-operation exceptions inherit from `FfiError` and `FatooraError`. These exceptions
+    carry `.code`, `.kind`, and `.details`. Unknown codes produce `FfiError`, with
+    `.kind` set to `None`; the original code and details remain available.
 
-int32_t fatoora_BindingError_code(const BindingError *error);
-void fatoora_BindingError_message(const BindingError *error, DiplomatWrite *out);
-void fatoora_BindingError_details_json(const BindingError *error, DiplomatWrite *out);
-void fatoora_BindingError_destroy(BindingError *error);
-```
+    ```python
+    from fatoora import InvoiceBuilder, InvoiceSubType, InvoiceTypeKind
+    from fatoora.errors import ValidationError
 
-A failed generated result has `is_ok == false` and owns the `err` pointer in its
-union. Inspect the discriminator before reading that member, and destroy the
-error exactly once. Accessors require a valid live error; null is not an error
-sentinel accepted by the accessors.
+    builder = InvoiceBuilder.new(InvoiceTypeKind.TAX, InvoiceSubType.SIMPLIFIED)
+    try:
+        builder.build()
+    except ValidationError as error:
+        for issue in error.details.get("issues", []):
+            print(issue["field"], issue["kind"])
+    ```
 
-Message and JSON accessors write UTF-8 into a caller-supplied `DiplomatWrite`.
-For a growable writer, use `diplomat_buffer_write_create`, read its bytes with
-`diplomat_buffer_write_get_bytes` and `diplomat_buffer_write_len`, then call
-`diplomat_buffer_write_destroy`. Check the writer's `grow_failed` field because
-these accessors return void. Output belongs to the writer and remains valid after
-the error is destroyed; copy it before destroying the writer. Embedded NULs in
-messages are displayed as `\0`; JSON preserves them as escapes.
 
-Generated C++ bindings return an owned `BindingError` through the result's
-`.err()` value. Its `code()`, `message()`, and `details_json()` accessors expose the
-same data. `std::unique_ptr` releases the error; returned strings own their text.
-See the [C/C++ examples](bindings/c.md).
+    Argument conversion and application code can also raise ordinary Python exceptions, such as `TypeError` or `ValueError`.
 
-Fallible C entrypoints catch unwinding Rust panics and return `Internal`.
-Builds using `panic=abort`, allocation failure, and invalid foreign pointers
-cannot be recovered this way. A caller must still obey pointer and handle
-ownership requirements. An operation that panics is not guaranteed to roll back
-its mutations; discard affected operation handles after an `Internal` failure.
+    Mapped exception classes are `InvalidInputError`, `ValidationError`, `ParseError`, `XmlError`, `CryptoError`, `IoError`, `NetworkError`, `UnauthorizedError`, `InternalError` and `ApiError`, in numeric code order. Local execution failures may expose a partial validation report at `error.details["report"]`.
+
+=== "JavaScript"
+
+    Native operations throw an `Error` whose `cause` is a `BindingError`.
+    Inspect the cause for `code()`, `message()` and `detailsJson()`; parse the
+    latter with `JSON.parse`. Transport and application errors can have other causes.
+
+    ```javascript
+    import { BindingError } from "fatoority";
+
+    function inspectError(error) {
+      if (error?.cause instanceof BindingError) {
+        const details = error.cause;
+        console.error(details.code(), details.message());
+        console.error(JSON.parse(details.detailsJson()));
+      } else {
+        console.error(error);
+      }
+    }
+    ```
+
+    The error object uses garbage-collected cleanup. A local validation call returning JSON means a report was produced; inspect `is_valid` to decide whether the invoice passed.
+
+=== "C#"
+
+    Native operations throw `BindingErrorException`. Its `Inner` owns a `BindingError`: read `Code()`, `Message()` and `DetailsJson()`, then dispose it. The exception's `Message` is copied text.
+
+    ```csharp
+    catch (BindingErrorException error)
+    {
+        using var details = error.Inner;
+        Console.Error.WriteLine($"{details.Code()}: {details.Message()}");
+        Console.Error.WriteLine(details.DetailsJson());
+    }
+    ```
+
+    A returned local validation report still needs its `is_valid` field checked.
+
+=== "Kotlin"
+
+    Native operations throw `BindingException` with `code`, `message` and `detailsJson`. These are copied managed values; the exception needs no cleanup. Parse `detailsJson` with your application's JSON library. Calls on a closed owner throw `IllegalStateException`.
+
+    A returned local validation report still needs its `is_valid` field checked.
+
+=== "Java"
+
+    Native operations throw `BindingException`. Read `getCode()`, `getMessage()` and `getDetailsJson()`. These are copied managed values; the exception needs no cleanup. Calls on a closed owner throw `IllegalStateException`.
+
+    A returned local validation report still needs its `is_valid` field checked.
+
+=== "C"
+
+    The C API uses opaque `FatooraError` owners and a shared `FatooraStatus`:
+
+    ```c
+    #include "fatoora.h"
+
+    FatooraStatus fatoora_error_code(const FatooraError *error);
+    const char *fatoora_error_message(const FatooraError *error);
+    const char *fatoora_error_details_json(const FatooraError *error);
+    void fatoora_error_free(FatooraError *error);
+    ```
+
+    Pass `FatooraError **error` as the last argument of an operation, or `NULL` when
+    only the status matters. `FATOORA_OK` indicates success; other values preserve
+    the numeric classification and structured native details. The error's message
+    and JSON strings are borrowed until `fatoora_error_free()`. Output slots are
+    cleared on entry: release a previous error before reusing its slot.
+
+    C allocation failure can leave the error or its diagnostic strings unavailable;
+    use the operation's returned status to decide success. Error accessors accept
+    `NULL`: code returns `FATOORA_OK`, message returns an empty string, and details
+    returns `{}`. Freeing `NULL` is safe. See [C bindings](bindings/c.md) for allocation and ownership rules.
+
+
+    For local validation, `FATOORA_OK` means a report was returned; inspect its JSON `is_valid` field. A failure can include a partial report in the error details.
 
 ## JSON details
 
 Every details object contains a `type` string. The schema is explicitly mapped
-from owned errors; it is independent of Rust enum serialization. Existing field
+from errors rather than language-specific serialization. Existing field
 meanings and discriminator strings are stable. Additional fields and types may
 be added. Consumers must ignore unknown fields and handle unknown types.
 Messages are for display and must not be parsed for classification.
@@ -157,7 +198,7 @@ An invoice validation failure looks like this:
 }
 ```
 
-Issue fields use snake_case names corresponding to `InvoiceField`. Issue kinds
+Issue fields use snake_case names for invoice fields. Issue kinds
 are `missing`, `empty`, `invalid_format`, `out_of_range`, or `mismatch`.
 `line_item_index` is zero-based, or null for an invoice-level issue. Decimal
 values are exact strings with insignificant trailing zeroes removed; absent
@@ -195,7 +236,7 @@ Message-only failures use `diagnostics` containing a message. Their types are
 
 Types without additional fields are `invalid_decimal`, `decimal_out_of_range`,
 `missing_seller_vat`, `missing_seller_name`, `missing_buyer_id`, and
-`invalid_vat_format`. FFI-specific failures use `{"type":"binding_error"}` with the
+`invalid_vat_format`. Binding-level failures use `{"type":"binding_error"}` with the
 classification and message available through their accessors.
 
 Diagnostic location fields may be absent or null. File paths are converted to
@@ -205,16 +246,9 @@ decimal, or QR details.
 
 ### Local ZATCA execution failures
 
-`validate_zatca_invoice_from_str` returns a report for rejection or incomplete
-coverage. Check `report.is_valid()` in Rust or the JSON `is_valid` field before
-accepting an invoice. `is_complete` describes stage coverage, and `has_errors`
-includes findings obtained before a stage failed. Warnings allow validity once
-all required stages complete. These derived fields are recomputed from stages
-when a report is deserialized.
+Local validation returns a report for ordinary rejection or incomplete coverage. Inspect `is_valid` before accepting an invoice. `is_complete` describes stage coverage; `has_errors` includes findings obtained before a stage failed. Warnings allow validity once all required stages complete.
 
-Execution failures return `ZatcaValidationError`. Converting it into
-`fatoora_core::Error` preserves its typed source and partial report. The binding
-details object has type `zatca_validation_execution` and these fields:
+Interrupted execution produces an error. Its details have type `zatca_validation_execution` and these fields:
 
 | Field | Meaning |
 | --- | --- |
@@ -237,63 +271,4 @@ details object has type `zatca_validation_execution` and these fields:
 
 The `rule_evaluation` classification describes interrupted execution. Ordinary
 business-rule violations remain findings in a successfully returned report.
-For C, `fatoora_xml_validate_zatca()` returning `FATOORA_OK` therefore describes whether a report was returned;
-it does not replace `is_valid`. Python raises the mapped exception for execution
-failures and exposes the partial report at `error.details["report"]`.
-
-Invalid binding arguments or malformed options JSON can fail before the pipeline
-starts and have no report. Callers must allow that absence. The CLI's ZATCA JSON
-mode serializes `ZatcaValidationError` directly: its message is in `message`,
-with the same failure metadata and partial `report`. C/Python error details use
-the `diagnostics` representation described above.
-
-See [Local ZATCA validation](../development/business-rules.md) for stage
-applicability, required predecessor context and the pinned profile's limits.
-
-## Python
-
-All binding exceptions inherit from `FfiError` and `FatooraError`. Exceptions
-carry `.code`, `.kind`, and `.details`. Unknown codes produce `FfiError`, with
-`.kind` set to `None`; the original code and details remain available.
-
-```python
-from fatoora import InvoiceBuilder, InvoiceSubType, InvoiceTypeKind
-from fatoora.errors import ValidationError
-
-builder = InvoiceBuilder.new(InvoiceTypeKind.TAX, InvoiceSubType.SIMPLIFIED)
-try:
-    builder.build()
-except ValidationError as error:
-    for issue in error.details.get("issues", []):
-        print(issue["field"], issue["kind"])
-```
-
-## Migrating existing callers
-
-Use `error.to_string()` instead of `Error::message()`. `Error` wraps module errors
-and no longer has the `new(kind, message)` constructor or `Clone`/`Eq` derives.
-Convert an operation's error with `?` or `.into()`.
-
-Replace `signer.certificate()` with `signer.certificate_der()` or
-`signer.certificate_pem()`. These return owned bytes or text and `SigningError`
-on failure. Python retains its certificate export methods; C uses
-`fatoora_signer_certificate_der` and `fatoora_signer_certificate_pem`.
-
-`InvoiceFlags` now wraps its bitflags implementation privately. Its constants
-and bit operations remain available through crate-owned types. JSON representation
-and iteration are preserved. Code that used the `bitflags::Flags` trait or named bitflags
-iterator types must use the `InvoiceFlags` methods and owned iterators instead.
-
-The generated C ABI is a breaking replacement of the former handwritten ABI.
-For a simpler source interface, migrate to the [C API](../development/c-api.md):
-include its new `fatoora.h`, compile the C adapter once, use `FatooraStatus` and
-`FatooraError`, and release objects with `fatoora_<type>_free()`. This is a new
-contract, not compatibility with the former handwritten `fatoora.h`.
-
-For callers using the raw ABI directly, recompile against matching
-headers in `bindings/c/generated` or `bindings/cpp`. Replace `FfiResult` handling with the
-per-function result's `is_ok` discriminator and `ok`/`err` union members. Replace
-`FfiError` accessors with `fatoora_BindingError_*`, text-buffer frees with
-`DiplomatWrite` ownership, and owned-object `*_free` calls with generated
-`*_destroy` functions. Error objects must be created by the library; their layout
-is private. The old headers and symbols are no longer available.
+Invalid arguments or malformed options can fail before validation starts and have no partial report. Always allow for that absence. See [invoice validation](invoice-validation.md) for stage applicability and predecessor context.

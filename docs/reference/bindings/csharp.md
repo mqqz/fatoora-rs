@@ -1,57 +1,65 @@
-# C# / .NET bindings
+---
+title: C# and .NET ZATCA E-Invoicing Library
+description: C# package reference for Fatoority on .NET 8. Learn supported platforms, input values, returned objects, disposal, errors, validation, and ZATCA API requests.
+---
 
-The `Fatoority` NuGet package wraps the Rust SDK through Diplomat-generated C#
-classes in namespace `Fatoora`. It targets .NET 8 or later and includes the native
-`fatoora_ffi` library for the packaged runtime identifiers (RIDs).
+# C# package reference
 
-## Build and install
+Use the `Fatoority` NuGet package to build, sign, and validate invoices and send
+ZATCA API requests from .NET 8 or later. Public classes use the `Fatoora` namespace.
+The package includes the native library for its supported platforms.
 
-From a source checkout with Rust, Python 3.11+ and the .NET 8 SDK:
+## Install from NuGet
+
+In your application project, install the published package:
 
 ```sh
-python3 scripts/package_dotnet.py --output-dir dist/dotnet
+dotnet add package Fatoority
 ```
 
-In your application's project directory, install the local package:
+Use the `Fatoora` namespace. Check the supported native platforms below before
+deploying your application.
 
-```sh
-dotnet add package Fatoority --version 0.4.3 --source /absolute/path/to/dist/dotnet
-```
+## Supported platforms
 
-A local build includes the host RID. The C# CI workflow tests Linux, Windows and
-macOS and assembles their native libraries into a combined `nuget` artifact.
-Version tags publish the tested artifact to NuGet.org through trusted publishing;
-the commands above also support local packages before publication. Match the application's OS and architecture to a RID included in
-the package. NuGet supplies the native asset at runtime, so no library search-path
-override is needed.
+| Runtime identifier | Platform |
+| --- | --- |
+| `linux-x64` | Linux x86-64, glibc 2.28 or later |
+| `win-x64` | Windows x86-64 |
+| `osx-arm64` | macOS Apple Silicon |
 
-Release `linux-x64` assets are built and tested on glibc 2.28 (AlmaLinux 8).
-They require glibc 2.28 or newer; musl/Alpine is not included. Locally built
-packages inherit the build host's libc requirements.
-
-Generated sources are checked in. Building the package does not require Diplomat.
-Regeneration uses a pinned fork containing the runtime safety fixes; see the
-[binding workflow](../../development/diplomat.md#c-net).
+Match your application's OS and architecture to a packaged runtime identifier.
+NuGet supplies the native asset at runtime; no library search-path override is
+needed. Linux musl/Alpine is not included. A package built locally inherits its
+build host's libc requirements.
 
 ## Example
 
-The guide snippets below are methods from the buildable
-[example project](https://github.com/mqqz/fatoority/tree/main/bindings/dotnet/examples).
-They use `Fatoora`, `System`, and `System.Text.Json`.
+Import `Fatoora` and dispose native objects when finished:
 
 ```csharp
---8<-- "bindings/dotnet/examples/SdkExamples.cs:csr"
+using Fatoora;
+
+using var config = Config.New(0);
+using var key = SigningKey.Generate();
+using var bytes = key.ToDer();
+using var view = bytes.AsSlice();
+byte[] privateKey = view.Clone();
 ```
+
+`privateKey` is an independent managed copy. Keep it secure; disposing the native
+objects does not erase that array. Follow the [CSR guide](../../guides/csr.md)
+for a complete credential-generation workflow.
 
 Use environment `0` for nonproduction, `1` for simulation, and `2` for production.
 Configuration, CSR generation, and credentials must agree on the environment.
 See the [CSR](../../guides/csr.md), [signing](../../guides/invoice-signing.md),
 [validation](../../guides/validation.md), and [QR](../../guides/qr.md) guides for
-C# examples alongside the other languages.
+complete C# examples.
 
 ## Values and ownership
 
-| Rust bridge value | C# representation |
+| Value | C# representation |
 | --- | --- |
 | Text input | `string`; invalid UTF-16 and embedded NUL are rejected |
 | Optional text input | `string?`; `null` and `""` remain distinct |
@@ -62,7 +70,7 @@ C# examples alongside the other languages.
 | Owned binary output | `Bytes`; call `AsSlice()` and copy with `Clone()` when needed |
 | Invoice acceptance | `InvoiceOutcome.Accepted`, `Rejected`, or `Unknown` |
 
-All 31 opaque classes implement `IDisposable`, including returned snapshots and
+Native object classes implement `IDisposable`, including returned snapshots and
 `BindingError`. Disposal is idempotent; later calls on that wrapper throw
 `ObjectDisposedException`. Finalization provides cleanup if disposal is omitted,
 but its timing is not deterministic. Releasing an owner does not guarantee
@@ -106,15 +114,31 @@ reading it. Invalid UTF-16 fails before the native call with
 
 ## API requests
 
-```csharp
---8<-- "bindings/dotnet/examples/SdkExamples.cs:api"
-```
+Create a client with `ZatcaClient.Create(config)`. Dispose the client, credentials,
+and responses with `using`. The following methods return owned objects:
+
+| Method | Inputs | Returns |
+| --- | --- | --- |
+| `PostCsrForCcsid(csr, otp)` | `Csr`, OTP string | `CsidCompliance` |
+| `PostCcsidForPcsid(credentials)` | `CsidCompliance` | `CsidProduction` |
+| `RenewCsid(credentials, csr, otp, acceptLanguage)` | `CsidProduction`, `Csr`, OTP, nullable language string | `CsidProduction` |
+| `CheckInvoiceCompliance(invoice, credentials)` | `SignedInvoice`, `CsidCompliance` | `ValidationResponse` |
+| `ReportSimplifiedInvoice(invoice, credentials, clearanceStatus, acceptLanguage)` | `SignedInvoice`, `CsidProduction`, Boolean, nullable language string | `ValidationResponse` |
+| `ClearStandardInvoice(invoice, credentials, clearanceStatus, acceptLanguage)` | `SignedInvoice`, `CsidProduction`, Boolean, nullable language string | `ValidationResponse` |
+
+All listed arguments are required, including nullable arguments: pass `null` when
+no language override is needed. `clearanceStatus` sets the clearance-status
+request header; use `false` for ordinary reporting and `true` for clearance.
+It does not describe the result of the operation.
 
 The native client methods block the calling thread. HTTP success alone does not
 establish invoice acceptance: inspect `Outcome()` or call `EnsureAccepted()`.
-For clearance, read and save `ClearedInvoiceXml()` when present. See the
+For clearance, `ClearedInvoiceXml()` returns `Text?`: when present, read `Value()`,
+save the text, and dispose the returned owner. See the
 [API guide](../../guides/api.md#response-receipt-and-acceptance) for rejection,
 unknown outcomes, and cleared-document semantics.
+
+### Prepared requests
 
 | Blocking method | Prepared equivalent | Credential scope / result |
 | --- | --- | --- |
@@ -125,11 +149,17 @@ unknown outcomes, and cleared-document semantics.
 | `ReportSimplifiedInvoice` | `PrepareReportSimplifiedInvoice` | Production credentials; reporting response |
 | `ClearStandardInvoice` | `PrepareClearStandardInvoice` | Production credentials; clearance response |
 
+`PreparePostCsrForCcsid` returns `ComplianceRequest`; credential exchange and
+renewal return `ProductionRequest`; invoice operations return `InvoiceRequest`.
+Their arguments match the corresponding blocking method.
+
 For asynchronous HTTP or cancellation, use a `Prepare*` method and your own
 `HttpClient`. The request exposes `Method()`, `Url()`, `HeadersJson()` (a JSON
 array of header pairs), and an owned `Body()`. Copy its bytes before awaiting the
 transport. Pass the HTTP status and response bytes to `Decode(ushort, byte[])`,
-including non-2xx responses, so Rust can classify gateway errors. Configure the
+including non-2xx responses, so the library can classify gateway errors.
+`Decode` returns an owned `CsidCompliance`, `CsidProduction`, or
+`ValidationResponse` matching the request type; dispose it after use. Configure the
 transport to refuse redirects, and pass your cancellation token to send/read
 operations. The generated blocking methods do not accept a cancellation token.
 
@@ -139,7 +169,28 @@ should not be logged.
 
 ## Local validation
 
-`Xml.ValidateZatca(config, xml, optionsJson)` returns a JSON report. Inspect
+| Method | Inputs | Returns |
+| --- | --- | --- |
+| `Xml.Validate(config, xml)` | Live `Config`, invoice XML string | `true` on schema success; throws on malformed XML or schema rejection |
+| `Xml.ValidateZatca(config, xml, optionsJson)` | Live `Config`, invoice XML string, nullable options JSON string | JSON report string, including rejection or incomplete coverage |
+| `Xml.Hash(xml)` | Invoice XML string | Base64 invoice hash; throws when XML cannot be processed |
+
+Pass `null` explicitly for default validation options. Otherwise, serialize an
+object containing `previous_invoice_hash` and/or `evaluated_at`; unknown option
+fields are rejected. The evaluation timestamp uses RFC3339 format.
+
+```csharp
+using Fatoora;
+using System.Text.Json;
+using System.IO;
+
+string invoiceXml = File.ReadAllText("invoice.xml");
+using var config = Config.New(0);
+using var report = JsonDocument.Parse(Xml.ValidateZatca(config, invoiceXml, null));
+bool valid = report.RootElement.GetProperty("is_valid").GetBoolean();
+```
+
+`Xml.ValidateZatca(config, xml, optionsJson)` returns a JSON report string. Inspect
 `is_valid` and `stages`; a rejected document returns a report, while an execution
 failure throws an exception that may carry a partial report in its details.
 Provide the predecessor hash from invoice history and set `evaluated_at` for
@@ -158,17 +209,4 @@ upstream terms in the bundled
 Those terms apply to the native component distributed with the C# package, as
 they do to other SDK distributions.
 
-## Verification
-
-```sh
-python3 scripts/check_dotnet.py
-python3 scripts/package_dotnet.py --output-dir dist/dotnet
-python3 scripts/check_dotnet.py --package-only --package-dir dist/dotnet
-```
-
-The checks compile the guide examples and cover Unicode conversion, optional
-strings, errors, disposal, concurrent byte access, key encodings, signing,
-frozen SDK hashes, prepared requests, and response snapshots. Package verification
-uses a fresh consumer with no project reference or native search-path overrides.
-The CI matrix tests the combined NuGet package on Linux, Windows, and macOS.
-Local Linux results do not establish Windows/macOS or live gateway acceptance.
+For source-build instructions, see the [binding development documentation](../../development/diplomat.md).
