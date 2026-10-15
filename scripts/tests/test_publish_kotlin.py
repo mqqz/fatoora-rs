@@ -262,6 +262,12 @@ class CentralProtocolTests(unittest.TestCase):
 )
 class SigningTests(unittest.TestCase):
     def test_real_signature_verifies_and_rejects_tampering(self):
+        self.check_signature("sign")
+
+    def test_certification_primary_uses_signing_subkey(self):
+        self.check_signature("cert")
+
+    def check_signature(self, primary_usage):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
             home.chmod(0o700)
@@ -283,13 +289,28 @@ class SigningTests(unittest.TestCase):
                         "--quick-generate-key",
                         "Fatoority test <test@example.invalid>",
                         "rsa2048",
-                        "sign",
+                        primary_usage,
                         "1d",
                     ],
                     input=password,
                     capture_output=True,
                     check=True,
                 )
+                if primary_usage == "cert":
+                    listing = subprocess.check_output(
+                        [*command, "--with-colons", "--list-secret-keys"], text=True
+                    )
+                    fingerprint = next(
+                        line.split(":")[9]
+                        for line in listing.splitlines()
+                        if line.startswith("fpr:")
+                    )
+                    subprocess.run(
+                        [*command, "--quick-add-key", fingerprint, "rsa2048", "sign", "1d"],
+                        input=password,
+                        capture_output=True,
+                        check=True,
+                    )
                 key = subprocess.run(
                     [*command, "--armor", "--export-secret-keys"],
                     input=password,

@@ -149,7 +149,8 @@ def sign(files):
                         "--passphrase-fd",
                         "0",
                         "--local-user",
-                        fingerprints[0] + "!",
+                        # Select this key, allowing GPG to use its signing subkey.
+                        fingerprints[0],
                         "--armor",
                         "--output",
                         str(signature),
