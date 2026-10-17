@@ -1,0 +1,1882 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Install the fatoora CLI, validate a sample invoice, generate a CSR, sign XML, and read QR payloads. Understand command output and validation exit codes.">
+      
+      
+      
+        <link rel="canonical" href="https://docs.fatoority.com/guides/cli/">
+      
+      
+        <link rel="prev" href="../api/">
+      
+      
+        <link rel="next" href="../../reference/configuration/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>ZATCA E-Invoicing CLI - Install and Use fatoority - fatoority</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/home.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+  
+    
+    
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="fatoority">
+    <meta property="og:title" content="ZATCA E-Invoicing CLI - Install and Use fatoority - fatoority">
+    <meta property="og:description" content="Install the fatoora CLI, validate a sample invoice, generate a CSR, sign XML, and read QR payloads. Understand command output and validation exit codes.">
+    <meta property="og:url" content="https://docs.fatoority.com/guides/cli/">
+    <meta property="og:image" content="https://docs.fatoority.com/assets/images/crab-logo.png">
+    <meta property="og:image:alt" content="fatoority crab logo">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="ZATCA E-Invoicing CLI - Install and Use fatoority - fatoority">
+    <meta name="twitter:description" content="Install the fatoora CLI, validate a sample invoice, generate a CSR, sign XML, and read QR payloads. Understand command output and validation exit codes.">
+    <meta name="twitter:image" content="https://docs.fatoority.com/assets/images/crab-logo.png">
+    <meta name="twitter:image:alt" content="fatoority crab logo">
+  
+
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#use-the-fatoora-command-line-tool" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="fatoority" class="md-header__button md-logo" aria-label="fatoority" data-md-component="logo">
+      
+  <img src="../../assets/images/crab-logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            fatoority
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ZATCA E-Invoicing CLI - Install and Use fatoority
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mqqz/fatoority" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mqqz/fatoority
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="fatoority" class="md-nav__button md-logo" aria-label="fatoority" data-md-component="logo">
+      
+  <img src="../../assets/images/crab-logo.png" alt="logo">
+
+    </a>
+    fatoority
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mqqz/fatoority" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mqqz/fatoority
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../csr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CSR Generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../invoice-signing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Invoice Signing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ZATCA API Client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#install-and-check-the-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install and check the command
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validate-your-first-invoice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validate your first invoice
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-local-zatca-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run local ZATCA checks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generate-a-csr-and-private-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate a CSR and private key
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sign-invoice-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sign invoice XML
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#read-or-generate-qr-payloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read or generate QR payloads
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compute-a-hash-or-prepare-a-request-payload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compute a hash or prepare a request payload
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interpret-validation-exit-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interpret validation exit codes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#if-something-goes-wrong" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If something goes wrong
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/csr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CSR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bindings
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bindings
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/bindings/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/bindings/javascript/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JavaScript / TypeScript
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/bindings/csharp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C# / .NET
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/bindings/kotlin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kotlin / Java
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/bindings/c/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C/C++ (FFI)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Invoice
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Invoice
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/invoice-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/numbers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decimal numbers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/invoice-signing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/invoice-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/xml-and-schemas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML and Schemas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/qr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/api-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/sdk-parity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SDK Compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Contributing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/diplomat/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Binding Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/business-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#install-and-check-the-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install and check the command
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validate-your-first-invoice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validate your first invoice
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-local-zatca-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run local ZATCA checks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generate-a-csr-and-private-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate a CSR and private key
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sign-invoice-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sign invoice XML
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#read-or-generate-qr-payloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read or generate QR payloads
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compute-a-hash-or-prepare-a-request-payload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compute a hash or prepare a request payload
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interpret-validation-exit-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interpret validation exit codes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#if-something-goes-wrong" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If something goes wrong
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="use-the-fatoora-command-line-tool">Use the fatoora command-line tool<a class="headerlink" href="#use-the-fatoora-command-line-tool" title="Permanent link">&para;</a></h1>
+<p>Run invoice tasks from your terminal without writing an application. This guide
+starts with a local schema check, then shows CSR generation, signing, and QR
+operations. The executable is named <code>fatoora</code>; the installable crate is <code>fatoora-cli</code>.</p>
+<h2 id="install-and-check-the-command">Install and check the command<a class="headerlink" href="#install-and-check-the-command" title="Permanent link">&para;</a></h2>
+<p>Choose one installation method:</p>
+<ul>
+<li>With <a href="https://www.rust-lang.org/tools/install">Rust and Cargo</a>, run <code>cargo install fatoora-cli</code>.</li>
+<li>Download the <code>fatoora-cli-*</code> archive for your platform from
+  <a href="https://github.com/mqqz/fatoority/releases">GitHub Releases</a>. Extract it and add
+  the folder containing <code>fatoora</code> (or <code>fatoora.exe</code>) to your <code>PATH</code>.</li>
+</ul>
+<p>Release archives use <code>.tar.gz</code> on Linux/macOS and <code>.zip</code> on Windows. They include
+license texts and rule notices under <code>licenses/zatca/</code>.</p>
+<p>Open a terminal and check the installation:</p>
+<div class="highlight"><pre><span></span><code>fatoora<span class="w"> </span>--help
+</code></pre></div>
+<p>You should see the command list. Use <code>fatoora &lt;command&gt; --help</code> for that command's
+options, for example <code>fatoora sign --help</code>.</p>
+<h2 id="validate-your-first-invoice">Validate your first invoice<a class="headerlink" href="#validate-your-first-invoice" title="Permanent link">&para;</a></h2>
+<p>Save <a href="../../assets/examples/sample-invoice.xml">sample-invoice.xml</a> in your working
+folder, open a terminal there, and run:</p>
+<div class="highlight"><pre><span></span><code>fatoora<span class="w"> </span>validate<span class="w"> </span>--invoice<span class="w"> </span>sample-invoice.xml
+</code></pre></div>
+<p>Expected output:</p>
+<div class="highlight"><pre><span></span><code>OK
+</code></pre></div>
+<p>This checks the bundled UBL schema locally. It does not run the full ZATCA profile
+or submit the invoice. No account or credentials are needed.</p>
+<h2 id="run-local-zatca-checks">Run local ZATCA checks<a class="headerlink" href="#run-local-zatca-checks" title="Permanent link">&para;</a></h2>
+<p>For a practice report, download <a href="../../assets/examples/invoice.xml">invoice.xml</a> and
+<a href="../../assets/examples/previous-hash.txt">previous-hash.txt</a>. This unsigned sample
+passes the schema check but can produce signature and QR findings under the full
+profile. The predecessor file is context for this sample only.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Linux / macOS shell</label><label for="__tabbed_1_2">PowerShell</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code>fatoora<span class="w"> </span>validate<span class="w"> </span>--invoice<span class="w"> </span>invoice.xml<span class="w"> </span>--profile<span class="w"> </span>zatca<span class="w"> </span>--format<span class="w"> </span>json<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--previous-invoice-hash<span class="w"> </span><span class="s2">"</span><span class="k">$(</span>cat<span class="w"> </span>previous-hash.txt<span class="k">)</span><span class="s2">"</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="n">fatoora</span> <span class="n">validate</span> <span class="p">-</span><span class="n">-invoice</span> <span class="n">invoice</span><span class="p">.</span><span class="n">xml</span> <span class="p">-</span><span class="n">-profile</span> <span class="n">zatca</span> <span class="p">-</span><span class="n">-format</span> <span class="n">json</span> <span class="p">`</span>
+  <span class="p">-</span><span class="n">-previous-invoice-hash</span> <span class="p">(</span><span class="nb">Get-Content</span> <span class="n">-Raw</span> <span class="n">previous-hash</span><span class="p">.</span><span class="n">txt</span><span class="p">).</span><span class="n">Trim</span><span class="p">()</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<p>For real invoices, obtain the predecessor hash from trusted invoice history. Read
+<code>is_valid</code>, <code>is_complete</code>, and the stage findings in the JSON output. A complete
+local check still does not establish gateway acceptance or certificate issuer trust.
+See <a href="../validation/">invoice validation</a> for interpreting the report.</p>
+<p>Use <code>--evaluated-at</code> with an RFC3339 timestamp only when you need a fixed evaluation
+time, such as a reproducible historical test. Otherwise the command uses the current clock.</p>
+<h2 id="generate-a-csr-and-private-key">Generate a CSR and private key<a class="headerlink" href="#generate-a-csr-and-private-key" title="Permanent link">&para;</a></h2>
+<p>Download <a href="../../assets/examples/csr.properties">csr.properties</a> for a non-production
+practice run, then run:</p>
+<div class="highlight"><pre><span></span><code>fatoora<span class="w"> </span>csr<span class="w"> </span>--csr-config<span class="w"> </span>csr.properties<span class="w"> </span>--generated-csr<span class="w"> </span>csr.pem<span class="w"> </span>--private-key<span class="w"> </span>key.pem<span class="w"> </span>--pem
+</code></pre></div>
+<p>This writes <code>csr.pem</code> and <code>key.pem</code>. Keep the key private. Before onboarding your
+own device, replace the sample properties using the <a href="../csr/">CSR guide</a>.</p>
+<p><code>--pem</code> selects PEM text; without it, output is base64 DER. Without output-file
+options, the command writes the CSR and key to standard output.</p>
+<h2 id="sign-invoice-xml">Sign invoice XML<a class="headerlink" href="#sign-invoice-xml" title="Permanent link">&para;</a></h2>
+<p>For a local example, download <a href="../../assets/examples/invoice.xml">invoice.xml</a>,
+<a href="../../assets/examples/certificate.pem">certificate.pem</a>, and
+<a href="../../assets/examples/private-key.pem">private-key.pem</a>. The certificate and key are
+public demonstration fixtures, not credentials for your business.</p>
+<div class="highlight"><pre><span></span><code>fatoora<span class="w"> </span>sign<span class="w"> </span>--invoice<span class="w"> </span>invoice.xml<span class="w"> </span>--cert<span class="w"> </span>certificate.pem<span class="w"> </span>--key<span class="w"> </span>private-key.pem<span class="w"> </span>--signed-invoice<span class="w"> </span>signed.xml
+</code></pre></div>
+<p>The command writes <code>signed.xml</code>. Use your own matching certificate and key in an
+integration. The <a href="../invoice-signing/">signing guide</a> explains their origin and the
+next validation step. Certificate and key formats must match: both PEM, or both
+DER with <code>--cert-format der --key-format der</code>.</p>
+<p>Output-file commands can replace existing files; choose paths appropriate to your workflow.</p>
+<h2 id="read-or-generate-qr-payloads">Read or generate QR payloads<a class="headerlink" href="#read-or-generate-qr-payloads" title="Permanent link">&para;</a></h2>
+<p>To read the payload already embedded in <code>signed.xml</code>:</p>
+<div class="highlight"><pre><span></span><code>fatoora<span class="w"> </span>qr-read<span class="w"> </span>--invoice<span class="w"> </span>signed.xml
+</code></pre></div>
+<p>To generate a payload from an unsigned invoice:</p>
+<div class="highlight"><pre><span></span><code>fatoora<span class="w"> </span>qr<span class="w"> </span>--invoice<span class="w"> </span>invoice.xml
+</code></pre></div>
+<p><code>qr</code> can also regenerate from signed XML. Add <code>--fail-on-signed</code> when your workflow
+should reject signed input. Output is base64-encoded text; redirect it to <code>qr.txt</code>
+if needed. The <a href="../qr/">QR guide</a> explains how to pass it to an image renderer.</p>
+<h2 id="compute-a-hash-or-prepare-a-request-payload">Compute a hash or prepare a request payload<a class="headerlink" href="#compute-a-hash-or-prepare-a-request-payload" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>fatoora<span class="w"> </span>generate-hash<span class="w"> </span>--invoice<span class="w"> </span>invoice.xml
+</code></pre></div>
+<p>This prints a base64 invoice hash. For signed XML, it prints the signed hash;
+otherwise it hashes finalized invoice XML.</p>
+<div class="highlight"><pre><span></span><code>fatoora<span class="w"> </span>invoice-request<span class="w"> </span>--invoice<span class="w"> </span>signed.xml<span class="w"> </span>--api-request<span class="w"> </span>request.json
+</code></pre></div>
+<p>This writes a request payload to <code>request.json</code>. It does not submit it. Continue
+with the <a href="../api/">API integration guide</a> to handle credentials and acceptance.</p>
+<h2 id="interpret-validation-exit-codes">Interpret validation exit codes<a class="headerlink" href="#interpret-validation-exit-codes" title="Permanent link">&para;</a></h2>
+<p>The default schema command and the ZATCA profile have different exit contracts:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Exit code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Schema check</td>
+<td><code>0</code></td>
+<td>Schema valid; prints <code>OK</code></td>
+</tr>
+<tr>
+<td>Schema check</td>
+<td><code>1</code></td>
+<td>Validation or execution failure</td>
+</tr>
+<tr>
+<td>ZATCA profile</td>
+<td><code>0</code></td>
+<td>Valid, including complete coverage; warnings can remain</td>
+</tr>
+<tr>
+<td>ZATCA profile</td>
+<td><code>2</code></td>
+<td>Invoice rejected</td>
+</tr>
+<tr>
+<td>ZATCA profile</td>
+<td><code>3</code></td>
+<td>Execution failure; inspect any partial report</td>
+</tr>
+<tr>
+<td>ZATCA profile</td>
+<td><code>4</code></td>
+<td>Incomplete coverage</td>
+</tr>
+<tr>
+<td>Command usage</td>
+<td><code>2</code></td>
+<td>Invalid arguments; read the usage message</td>
+</tr>
+</tbody>
+</table>
+<p>Do not interpret code <code>2</code> without considering whether arguments were accepted
+and a validation report was produced.</p>
+<h2 id="if-something-goes-wrong">If something goes wrong<a class="headerlink" href="#if-something-goes-wrong" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Command not found</td>
+<td>Extract the release archive, update <code>PATH</code>, and open a new terminal.</td>
+</tr>
+<tr>
+<td>Input file not found</td>
+<td>Run from the input folder or use an absolute path.</td>
+</tr>
+<tr>
+<td>Certificate/key error</td>
+<td>Check that the pair matches and both files use the selected format.</td>
+</tr>
+<tr>
+<td>Incomplete report</td>
+<td>Supply trusted predecessor context and inspect missing stages.</td>
+</tr>
+</tbody>
+</table>
+<p>For a full walkthrough of a specific task, continue with
+<a href="../csr/">CSR generation</a>, <a href="../invoice-signing/">signing</a>, or <a href="../validation/">validation</a>.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.tabs.link", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

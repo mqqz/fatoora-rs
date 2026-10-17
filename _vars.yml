@@ -1,0 +1,11 @@
+lang:
+  rust: Rust
+  python: Python
+  c: C (FFI)
+pkg:
+  rust: fatoora_core
+  python: fatoora
+  c: fatoora
+ffi:
+  free_error: fatoora_BindingError_destroy
+  free_writer: diplomat_buffer_write_destroy

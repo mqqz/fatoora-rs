@@ -1,0 +1,1950 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Validate ZATCA invoice XML with fatoority. Reference for schema checks, local validation options, report fields, stage coverage, errors, and language-specific return values.">
+      
+      
+      
+        <link rel="canonical" href="https://docs.fatoority.com/reference/invoice-validation/">
+      
+      
+        <link rel="prev" href="../invoice-signing/">
+      
+      
+        <link rel="next" href="../xml/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Invoice Validation API Reference - fatoority</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/home.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+  
+    
+    
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="fatoority">
+    <meta property="og:title" content="Invoice Validation API Reference - fatoority">
+    <meta property="og:description" content="Validate ZATCA invoice XML with fatoority. Reference for schema checks, local validation options, report fields, stage coverage, errors, and language-specific return values.">
+    <meta property="og:url" content="https://docs.fatoority.com/reference/invoice-validation/">
+    <meta property="og:image" content="https://docs.fatoority.com/assets/images/crab-logo.png">
+    <meta property="og:image:alt" content="fatoority crab logo">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Invoice Validation API Reference - fatoority">
+    <meta name="twitter:description" content="Validate ZATCA invoice XML with fatoority. Reference for schema checks, local validation options, report fields, stage coverage, errors, and language-specific return values.">
+    <meta name="twitter:image" content="https://docs.fatoority.com/assets/images/crab-logo.png">
+    <meta name="twitter:image:alt" content="fatoority crab logo">
+  
+
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#invoice-validation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="fatoority" class="md-header__button md-logo" aria-label="fatoority" data-md-component="logo">
+      
+  <img src="../../assets/images/crab-logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            fatoority
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Invoice Validation API Reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mqqz/fatoority" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mqqz/fatoority
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="fatoority" class="md-nav__button md-logo" aria-label="fatoority" data-md-component="logo">
+      
+  <img src="../../assets/images/crab-logo.png" alt="logo">
+
+    </a>
+    fatoority
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mqqz/fatoority" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mqqz/fatoority
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/csr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CSR Generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/invoice-signing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Invoice Signing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/qr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ZATCA API Client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../csr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CSR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bindings
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bindings
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bindings/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bindings/javascript/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JavaScript / TypeScript
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bindings/csharp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C# / .NET
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bindings/kotlin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kotlin / Java
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bindings/c/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C/C++ (FFI)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Invoice
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Invoice
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../invoice-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../numbers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decimal numbers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../invoice-signing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#choose-the-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose the check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inputs-and-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs and options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#local-zatca-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local ZATCA report
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Findings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#execution-failures-and-partial-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execution failures and partial results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#language-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Language reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xml-and-schemas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML and Schemas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/sdk-parity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SDK Compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Contributing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/diplomat/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Binding Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/business-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#choose-the-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose the check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inputs-and-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs and options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#local-zatca-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local ZATCA report
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Findings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#execution-failures-and-partial-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execution failures and partial results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#language-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Language reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="invoice-validation">Invoice validation<a class="headerlink" href="#invoice-validation" title="Permanent link">&para;</a></h1>
+<p>Validate the original invoice XML before relying on its structure or business-rule results. Choose a schema check for UBL structure, or a local ZATCA report for schema, business rules, and applicable integrity checks. For a runnable example, see the <a href="../../guides/validation/">validation guide</a>.</p>
+<p><span id="construction-parsing-and-validation"></span></p>
+<h2 id="choose-the-check">Choose the check<a class="headerlink" href="#choose-the-check" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>What it establishes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Build an invoice</td>
+<td>Implemented field, range, and amount checks; calculated totals.</td>
+</tr>
+<tr>
+<td>Parse invoice XML</td>
+<td>Supported fields and supplied amounts can be represented by the invoice model.</td>
+</tr>
+<tr>
+<td>Validate the schema</td>
+<td>Conformance to the bundled UBL 2.1 schema.</td>
+</tr>
+<tr>
+<td>Run local ZATCA validation</td>
+<td>Results and coverage for the local profile's schema, business rules, signature, QR, and predecessor checks.</td>
+</tr>
+<tr>
+<td>Sign an invoice</td>
+<td>Signature material was generated; no implicit business-rule validation.</td>
+</tr>
+<tr>
+<td>Parse a signed invoice</td>
+<td>Signature material was extracted; no implicit authenticity check.</td>
+</tr>
+</tbody>
+</table>
+<p>No local result proves remote acceptance, certificate issuer trust, or revocation status. Integrity checks verify supported algorithms and references, bind the embedded key to the signature, and compare QR data with the invoice and certificate.</p>
+<p><span id="behavior"></span></p>
+<h2 id="inputs-and-options">Inputs and options<a class="headerlink" href="#inputs-and-options" title="Permanent link">&para;</a></h2>
+<p>All checks take complete invoice XML text and a configuration object. Pass original XML, not Base64 or a file path. Schema checks use bundled resources and do not need network access. Malformed XML is rejected rather than repaired.</p>
+<p>Local validation additionally accepts these optional context values:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Expected value</th>
+<th>If omitted</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>previous_invoice_hash</code></td>
+<td>Canonical Base64 SHA-256 digest, or the SDK's Base64-encoded hexadecimal digest representation. This is the expected predecessor hash, compared with the invoice's PIH.</td>
+<td>Predecessor stage reports <code>context_required</code>; the report is incomplete and <code>is_valid</code> is false.</td>
+</tr>
+<tr>
+<td><code>evaluated_at</code></td>
+<td>RFC3339 instant with timezone, such as <code>2026-10-15T09:30:00Z</code> or <code>2026-10-15T12:30:00+03:00</code>.</td>
+<td>One clock snapshot is used for the validation run.</td>
+</tr>
+</tbody>
+</table>
+<p>The validator cannot obtain invoice history. Supply predecessor context from your own invoice sequence. An empty string is not an omitted option. APIs that accept options as JSON require an object containing only these keys, with string or null values. The encoded options input is limited to <strong>4 KiB (4096 bytes)</strong>; unknown keys and malformed values are rejected.</p>
+<p><span id="local-zatca-report"></span></p>
+<h2 id="local-zatca-report">Local ZATCA report<a class="headerlink" href="#local-zatca-report" title="Permanent link">&para;</a></h2>
+<p>A completed function call means a report was produced. Always inspect <code>is_valid</code>; rejected invoices and incomplete coverage can both be returned without an execution error.</p>
+<table>
+<thead>
+<tr>
+<th>Report field</th>
+<th>Value and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>schema_version</code></td>
+<td>Report format version, currently <code>1</code>.</td>
+</tr>
+<tr>
+<td><code>profile</code></td>
+<td>Local validation profile identifier, currently <code>zatca-sdk-238-R3.4.8</code>.</td>
+</tr>
+<tr>
+<td><code>evaluated_at</code></td>
+<td>The evaluation clock snapshot, including offset.</td>
+</tr>
+<tr>
+<td><code>stages</code></td>
+<td>Ordered stage results: <code>xsd</code>, <code>cen</code>, <code>ksa</code>, <code>signature</code>, <code>qr</code>, <code>previous_invoice_hash</code>.</td>
+</tr>
+<tr>
+<td><code>is_complete</code></td>
+<td>All required stages completed exactly once; explicitly inapplicable signature/QR stages count as covered.</td>
+</tr>
+<tr>
+<td><code>has_errors</code></td>
+<td>At least one error finding exists, including findings from partial stages.</td>
+</tr>
+<tr>
+<td><code>is_valid</code></td>
+<td>Complete coverage with no error findings. Warnings do not make this false.</td>
+</tr>
+</tbody>
+</table>
+<p>Each stage contains <code>stage</code>, <code>status</code>, <code>findings</code>, <code>evaluated_assertions</code> (the assertion sites evaluated), and optional <code>provenance</code> with source <code>stylesheet</code> and <code>sha256</code>. Provenance identifies the rules used; applications can retain it alongside reports for traceability.</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Checks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>xsd</code></td>
+<td>Bundled UBL XML structure.</td>
+</tr>
+<tr>
+<td><code>cen</code></td>
+<td>Applicable European invoice business rules in the selected profile.</td>
+</tr>
+<tr>
+<td><code>ksa</code></td>
+<td>Applicable Saudi invoice business rules in the selected profile.</td>
+</tr>
+<tr>
+<td><code>signature</code></td>
+<td>Local signature integrity; skipped as inapplicable for standard invoices under this profile.</td>
+</tr>
+<tr>
+<td><code>qr</code></td>
+<td>QR integrity and consistency; skipped as inapplicable for standard invoices under this profile.</td>
+</tr>
+<tr>
+<td><code>previous_invoice_hash</code></td>
+<td>Invoice PIH compared with supplied predecessor context.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Stage status</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>completed</code></td>
+<td>Checks finished; findings may still contain errors.</td>
+</tr>
+<tr>
+<td><code>not_run</code></td>
+<td>A dependency failed or execution stopped earlier.</td>
+</tr>
+<tr>
+<td><code>not_applicable</code></td>
+<td>The selected profile does not require this stage for this invoice.</td>
+</tr>
+<tr>
+<td><code>context_required</code></td>
+<td>Required predecessor context was not supplied.</td>
+</tr>
+<tr>
+<td><code>evaluation_failed</code></td>
+<td>Execution stopped before completion; findings may be partial.</td>
+</tr>
+</tbody>
+</table>
+<p>Schema rejection returns a report and skips dependent stages. A report with no findings is not sufficient by itself: it can be incomplete. For example, missing predecessor context can yield <code>has_errors: false</code>, <code>is_complete: false</code>, and <code>is_valid: false</code>.</p>
+<h2 id="findings">Findings<a class="headerlink" href="#findings" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Finding field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>layer</code></td>
+<td><code>field_checks</code>, <code>xsd</code>, <code>business_rules</code>, <code>signature</code>, <code>qr</code>, or <code>previous_invoice_hash</code>.</td>
+</tr>
+<tr>
+<td><code>code</code></td>
+<td>Stable rule or library identifier; use this for programmatic handling.</td>
+</tr>
+<tr>
+<td><code>severity</code></td>
+<td><code>warning</code> or <code>error</code>.</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td>Human-readable explanation. Wording is not a stable API.</td>
+</tr>
+<tr>
+<td><code>location</code></td>
+<td>Optional model field path, XPath, or XML source coordinates.</td>
+</tr>
+<tr>
+<td><code>assertion_site</code></td>
+<td>Optional source assertion identifier on local ZATCA findings.</td>
+</tr>
+</tbody>
+</table>
+<p>Field paths use zero-based indexes, such as <code>line_items[0].quantity</code>. XML line and column positions are one-based. Business-rule findings use XPath locations against the original document; some findings have no reliable location.</p>
+<p>Field codes include <code>FIELD_REQUIRED</code>, <code>FIELD_EMPTY</code>, <code>FIELD_INVALID_FORMAT</code>, <code>FIELD_OUT_OF_RANGE</code>, and <code>FIELD_MISMATCH</code>. Schema violations use <code>XSD_INVALID</code>. Business-rule findings use their implemented rule codes.</p>
+<h2 id="execution-failures-and-partial-results">Execution failures and partial results<a class="headerlink" href="#execution-failures-and-partial-results" title="Permanent link">&para;</a></h2>
+<p>An invalid invoice is different from a check that could not finish. Malformed XML, unsupported DTDs, capacity limits, invalid context, and rule/integrity execution failures produce an error. When validation has started, the error carries the partial report and all findings collected so far.</p>
+<p>Execution details include <code>kind</code>, optional <code>stage</code>, <code>assertion_site</code>, <code>location</code>, and <code>report</code>. The error message is exposed directly or in <code>diagnostics</code>, depending on the language API. Failure kinds are <code>invalid_xml</code>, <code>unsupported_xml</code>, <code>capacity_exceeded</code>, <code>invalid_context</code>, <code>rule_evaluation</code>, <code>schema</code>, and <code>integrity</code>. Invalid options rejected before validation starts need not carry a report. Never treat partial findings as complete coverage. See <a href="../errors/#local-zatca-execution-failures">errors</a> for the shared error contract.</p>
+<p><span id="validate_xml_invoice_from_str"></span>
+<span id="validate"></span>
+<span id="validation-reports-rust"></span></p>
+<h2 id="language-reference">Language reference<a class="headerlink" href="#language-reference" title="Permanent link">&para;</a></h2>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:7"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><input id="__tabbed_1_4" name="__tabbed_1" type="radio" /><input id="__tabbed_1_5" name="__tabbed_1" type="radio" /><input id="__tabbed_1_6" name="__tabbed_1" type="radio" /><input id="__tabbed_1_7" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Rust</label><label for="__tabbed_1_2">Python</label><label for="__tabbed_1_3">JavaScript</label><label for="__tabbed_1_4">C#</label><label for="__tabbed_1_5">Kotlin</label><label for="__tabbed_1_6">Java</label><label for="__tabbed_1_7">C</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>Import these functions and report types from <code>fatoora_core::invoice::validation</code>, and <code>Config</code> from <code>fatoora_core::config</code>.</p>
+<p><strong>Schema validation</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">validate_xml_invoice_from_str</span><span class="p">(</span><span class="n">xml</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="n">config</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">Config</span><span class="p">)</span>
+<span class="w">    </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="p">(),</span><span class="w"> </span><span class="n">XmlValidationError</span><span class="o">&gt;</span>
+<span class="n">validate_xml_invoice_report_from_str</span><span class="p">(</span><span class="n">xml</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="n">config</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">Config</span><span class="p">)</span>
+<span class="w">    </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">ValidationReport</span><span class="p">,</span><span class="w"> </span><span class="n">XmlValidationError</span><span class="o">&gt;</span>
+</code></pre></div>
+<p>The first returns <code>Ok(())</code> on schema success and <code>Err</code> for violations or execution failures. The report form returns <code>Ok(report)</code> even for schema violations; inspect <code>report.has_errors()</code>. Malformed XML and schema setup failures return <code>Err</code> because validation did not complete.</p>
+<p><code>ValidationReport</code> contains <code>layers_checked: Vec&lt;ValidationLayer&gt;</code> and <code>issues: Vec&lt;ValidationFinding&gt;</code>. The schema report marks only <code>ValidationLayer::Xsd</code>, including when schema errors were found. An absent layer makes no claim. Convert builder errors using <code>ValidationReport::from(&amp;validation_error)</code> or <code>ValidationFinding::from(&amp;validation_issue)</code>; conversion preserves findings but runs no new checks.</p>
+<p><strong>Local ZATCA validation</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">validate_zatca_invoice_from_str</span><span class="p">(</span>
+<span class="w">    </span><span class="n">xml</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">,</span>
+<span class="w">    </span><span class="n">config</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">Config</span><span class="p">,</span>
+<span class="w">    </span><span class="n">options</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">ZatcaValidationOptions</span><span class="p">,</span>
+<span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">ZatcaValidationReport</span><span class="p">,</span><span class="w"> </span><span class="n">ZatcaValidationError</span><span class="o">&gt;</span>
+</code></pre></div>
+<p><code>ZatcaValidationOptions</code> has <code>previous_invoice_hash: Option&lt;String&gt;</code> and <code>evaluated_at: Option&lt;chrono::DateTime&lt;chrono::FixedOffset&gt;&gt;</code>. <code>Default::default()</code> omits both. Native callers may omit evaluation time; direct WASM callers must supply it. The 4 KiB JSON limit applies to JSON binding inputs, not this typed options struct.</p>
+<p><code>ZatcaValidationReport</code> exposes <code>schema_version</code>, <code>profile</code>, <code>evaluated_at</code>, and <code>stages</code>. Call <code>is_complete()</code>, <code>has_errors()</code>, and <code>is_valid()</code> for derived outcomes. <code>validation_report()</code> aggregates findings into the shared report; only completed stages contribute checked layers, and both CEN and KSA must complete before <code>BusinessRules</code> is listed. Partial findings remain in the aggregate.</p>
+<p>On <code>Err(error)</code>, <code>error.report</code> contains the partial <code>Box&lt;ZatcaValidationReport&gt;</code>; <code>error.kind</code>, <code>stage</code>, <code>assertion_site</code>, <code>location</code>, and <code>message</code> describe the failure. Serializing reports includes derived outcomes; deserialization recomputes them from stage coverage. Calls borrow configuration and inputs and do not consume invoice objects.</p>
+</div>
+<div class="tabbed-block">
+<p>Import from <code>fatoora</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="n">validate_xml_invoice_from_str</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n">Config</span><span class="p">,</span> <span class="n">xml</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span>
+<span class="n">validate_zatca_invoice_from_str</span><span class="p">(</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">Config</span><span class="p">,</span>
+    <span class="n">xml</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">previous_invoice_hash</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">evaluated_at</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span>
+</code></pre></div>
+<p>The schema function returns <code>True</code> on success; violations raise an exception rather than returning <code>False</code>. Local validation returns a dictionary even when the document is rejected or coverage is incomplete. Inspect <code>report["is_valid"]</code> and then <code>report["stages"]</code> for explanations.</p>
+<p>The wrapper encodes context as JSON, subject to the 4096-byte options limit. XML and context must be strings (or <code>None</code> for absent options); interior NUL characters are rejected. Execution failures raise <code>FatooraError</code>; after validation starts, <code>error.details["report"]</code> contains partial results. Check whether the key exists because invalid input can fail before a report exists. Configuration is borrowed and remains reusable.</p>
+</div>
+<div class="tabbed-block">
+<p>Import <code>Xml</code> from <code>fatoority</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">schemaValid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">Xml</span><span class="p">.</span><span class="nx">validate</span><span class="p">(</span><span class="nx">config</span><span class="p">,</span><span class="w"> </span><span class="nx">xml</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">reportJson</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">Xml</span><span class="p">.</span><span class="nx">validateZatca</span><span class="p">(</span><span class="nx">config</span><span class="p">,</span><span class="w"> </span><span class="nx">xml</span><span class="p">,</span><span class="w"> </span><span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">previous_invoice_hash</span><span class="o">:</span><span class="w"> </span><span class="nx">previousHash</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">evaluated_at</span><span class="o">:</span><span class="w"> </span><span class="s2">"2026-10-15T09:30:00Z"</span>
+<span class="p">}));</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">report</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">reportJson</span><span class="p">);</span>
+</code></pre></div>
+<p><code>Xml.validate(config, xml)</code> accepts <code>Config</code> and XML string, returns <code>true</code> on schema success, and throws an <code>Error</code> with a <code>BindingError</code> cause on violations or execution failures; it does not return <code>false</code> for invalid XML.</p>
+<p><code>Xml.validateZatca(config, xml, optionsJson = null)</code> returns a JSON <strong>string</strong>, not a parsed object or Promise. Pass <code>null</code> to omit options. The public wrapper supplies one host clock snapshot when <code>evaluated_at</code> is omitted. Options are restricted to 4096 UTF-8 bytes. Parse the result, then inspect <code>report.is_valid</code>; successful invocation alone is not validation success.</p>
+<p>On execution failure, parse <code>error.cause.detailsJson()</code> for structured details and an optional <code>report</code>. Invalid options can fail before a report exists. Inputs and configuration remain available; validation does not consume them.</p>
+</div>
+<div class="tabbed-block">
+<p>Use <code>Fatoora.Xml</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="kt">bool</span><span class="w"> </span><span class="n">Xml</span><span class="p">.</span><span class="n">Validate</span><span class="p">(</span><span class="n">Config</span><span class="w"> </span><span class="n">config</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">xml</span><span class="p">)</span>
+<span class="kt">string</span><span class="w"> </span><span class="n">Xml</span><span class="p">.</span><span class="n">ValidateZatca</span><span class="p">(</span><span class="n">Config</span><span class="w"> </span><span class="n">config</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">xml</span><span class="p">,</span><span class="w"> </span><span class="kt">string?</span><span class="w"> </span><span class="n">optionsJson</span><span class="p">)</span>
+</code></pre></div>
+<p><code>Validate</code> returns <code>true</code> on schema success and throws on violations or execution failures. <code>ValidateZatca</code> returns JSON text even for a rejected or incomplete invoice. Pass <code>null</code> for default options or a JSON object string with the keys documented above (maximum 4096 UTF-8 bytes). Parse the result with <code>System.Text.Json</code> and inspect <code>is_valid</code>.</p>
+<p>Both methods borrow configuration, which remains reusable. On <code>BindingErrorException</code>, <code>error.Inner.DetailsJson()</code> returns structured JSON; a failure after validation starts includes <code>report</code>. Dispose the owned <code>error.Inner</code> after reading it. Earlier input rejection may omit the report. Use <code>using</code> for configuration ownership.</p>
+</div>
+<div class="tabbed-block">
+<p>Import <code>com.fatoora.Xml</code> and <code>com.fatoora.Config</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="n">Xml</span><span class="p">.</span><span class="na">validate</span><span class="p">(</span><span class="n">config</span><span class="p">:</span><span class="w"> </span><span class="n">Config</span><span class="p">,</span><span class="w"> </span><span class="n">xml</span><span class="p">:</span><span class="w"> </span><span class="kt">String</span><span class="p">):</span><span class="w"> </span><span class="kt">Boolean</span>
+<span class="n">Xml</span><span class="p">.</span><span class="na">validateZatca</span><span class="p">(</span><span class="n">config</span><span class="p">:</span><span class="w"> </span><span class="n">Config</span><span class="p">,</span><span class="w"> </span><span class="n">xml</span><span class="p">:</span><span class="w"> </span><span class="kt">String</span><span class="p">,</span><span class="w"> </span><span class="n">optionsJson</span><span class="p">:</span><span class="w"> </span><span class="kt">String?</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">):</span><span class="w"> </span><span class="kt">String</span>
+</code></pre></div>
+<p><code>validate</code> returns <code>true</code> on schema success; violations and execution failures throw <code>BindingException</code>. <code>validateZatca</code> returns JSON text for completed calls, including rejected or incomplete invoices. Parse it with your JSON library and inspect <code>is_valid</code>.</p>
+<p>Omit <code>optionsJson</code> or pass null for defaults; otherwise provide a JSON object string containing the documented context keys, limited to 4096 UTF-8 bytes. <code>BindingException.detailsJson</code> contains structured failure details and an optional partial <code>report</code>. Invalid options can fail before that report exists. Configuration is borrowed and reusable; close it with <code>use</code> when finished.</p>
+</div>
+<div class="tabbed-block">
+<p>Import <code>com.fatoora.Xml</code> and <code>com.fatoora.Config</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="kt">boolean</span><span class="w"> </span><span class="n">Xml</span><span class="p">.</span><span class="na">validate</span><span class="p">(</span><span class="n">Config</span><span class="w"> </span><span class="n">config</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">xml</span><span class="p">)</span>
+<span class="n">String</span><span class="w"> </span><span class="n">Xml</span><span class="p">.</span><span class="na">validateZatca</span><span class="p">(</span><span class="n">Config</span><span class="w"> </span><span class="n">config</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">xml</span><span class="p">)</span>
+<span class="n">String</span><span class="w"> </span><span class="n">Xml</span><span class="p">.</span><span class="na">validateZatca</span><span class="p">(</span><span class="n">Config</span><span class="w"> </span><span class="n">config</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">xml</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">optionsJson</span><span class="p">)</span>
+</code></pre></div>
+<p><code>validate</code> returns <code>true</code> on schema success and throws <code>BindingException</code> on violations or execution failures. <code>validateZatca</code> returns a JSON string even if validation rejects the invoice or coverage is incomplete. Parse the result with your JSON library and inspect <code>is_valid</code>.</p>
+<p>The two-argument overload uses default options. The third argument accepts null or a JSON object string with the documented context keys, limited to 4096 UTF-8 bytes. On failure, <code>error.getDetailsJson()</code> returns structured details with an optional partial <code>report</code>; earlier input rejection may omit it. Configuration remains reusable. Use try-with-resources to close it when finished.</p>
+</div>
+<div class="tabbed-block">
+<p>Include <code>fatoora.h</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="n">FatooraStatus</span><span class="w"> </span><span class="nf">fatoora_xml_validate</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FatooraConfig</span><span class="w"> </span><span class="o">*</span><span class="n">config</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">xml</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="o">*</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">FatooraError</span><span class="w"> </span><span class="o">**</span><span class="n">error</span><span class="p">);</span>
+<span class="n">FatooraStatus</span><span class="w"> </span><span class="nf">fatoora_xml_validate_zatca</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FatooraConfig</span><span class="w"> </span><span class="o">*</span><span class="n">config</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">xml</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">options_json</span><span class="p">,</span>
+<span class="w">    </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">FatooraError</span><span class="w"> </span><span class="o">**</span><span class="n">error</span><span class="p">);</span>
+</code></pre></div>
+<p>Inputs are NUL-terminated UTF-8 strings. <code>config</code> is borrowed and reusable. Schema validation returns <code>FATOORA_OK</code> with <code>*out = true</code> on success. Violations and execution failures return an error status, not a successful false result; do not read output on failure.</p>
+<p>For local validation, pass <code>NULL</code> options for defaults or a JSON object string (at most 4096 bytes). <code>FATOORA_OK</code> means the owned JSON report was produced; parse its <code>is_valid</code> field before treating validation as successful. Release report text with <code>fatoora_string_free()</code>.</p>
+<p>On failure, <code>fatoora_error_details_json(error)</code> returns borrowed JSON text with an optional partial <code>report</code>. Read or copy it before freeing the error with <code>fatoora_error_free()</code>. Invalid options can fail before a report exists. The error status indicates execution failure; a successfully returned report can separately describe invoice rejection.</p>
+</div>
+</div>
+</div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.tabs.link", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

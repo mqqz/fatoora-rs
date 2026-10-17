@@ -1,0 +1,2757 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Reference for ZATCA credentials, invoice compliance, reporting, and clearance. Find method inputs, return values, response fields, acceptance checks, and custom transport options.">
+      
+      
+      
+        <link rel="canonical" href="https://docs.fatoority.com/reference/api-client/">
+      
+      
+        <link rel="prev" href="../qr/">
+      
+      
+        <link rel="next" href="../errors/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>ZATCA API Client and Response Reference - fatoority</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/home.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+  
+    
+    
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="fatoority">
+    <meta property="og:title" content="ZATCA API Client and Response Reference - fatoority">
+    <meta property="og:description" content="Reference for ZATCA credentials, invoice compliance, reporting, and clearance. Find method inputs, return values, response fields, acceptance checks, and custom transport options.">
+    <meta property="og:url" content="https://docs.fatoority.com/reference/api-client/">
+    <meta property="og:image" content="https://docs.fatoority.com/assets/images/crab-logo.png">
+    <meta property="og:image:alt" content="fatoority crab logo">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="ZATCA API Client and Response Reference - fatoority">
+    <meta name="twitter:description" content="Reference for ZATCA credentials, invoice compliance, reporting, and clearance. Find method inputs, return values, response fields, acceptance checks, and custom transport options.">
+    <meta name="twitter:image" content="https://docs.fatoority.com/assets/images/crab-logo.png">
+    <meta name="twitter:image:alt" content="fatoority crab logo">
+  
+
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#zatca-api-client" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="fatoority" class="md-header__button md-logo" aria-label="fatoority" data-md-component="logo">
+      
+  <img src="../../assets/images/crab-logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            fatoority
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ZATCA API Client and Response Reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mqqz/fatoority" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mqqz/fatoority
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="fatoority" class="md-nav__button md-logo" aria-label="fatoority" data-md-component="logo">
+      
+  <img src="../../assets/images/crab-logo.png" alt="logo">
+
+    </a>
+    fatoority
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mqqz/fatoority" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mqqz/fatoority
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/csr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CSR Generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/invoice-signing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Invoice Signing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/qr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ZATCA API Client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../csr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CSR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bindings
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bindings
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bindings/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bindings/javascript/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JavaScript / TypeScript
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bindings/csharp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C# / .NET
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bindings/kotlin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kotlin / Java
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bindings/c/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C/C++ (FFI)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Invoice
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Invoice
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../invoice-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../numbers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decimal numbers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../invoice-signing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../invoice-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xml-and-schemas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML and Schemas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Client
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#choose-an-operation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose an operation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input values
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interpret-an-invoice-response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interpret an invoice response
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#http-failures-and-custom-transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HTTP failures and custom transport
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#language-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Language reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/sdk-parity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SDK Compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Contributing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/diplomat/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Binding Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/business-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#choose-an-operation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose an operation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input values
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interpret-an-invoice-response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interpret an invoice response
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#http-failures-and-custom-transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HTTP failures and custom transport
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#language-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Language reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="zatca-api-client">ZATCA API client<a class="headerlink" href="#zatca-api-client" title="Permanent link">&para;</a></h1>
+<p>The API client requests credentials and submits signed invoices to the selected
+<a href="../configuration/">environment</a>. For a runnable integration, start with the
+<a href="../../guides/api/">API guide</a>. This reference describes inputs, returned data, and
+how to distinguish a completed request from an accepted invoice.</p>
+<h2 id="choose-an-operation">Choose an operation<a class="headerlink" href="#choose-an-operation" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Required input</th>
+<th>Returns</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Issue compliance credentials</td>
+<td>CSR and OTP</td>
+<td>Compliance credentials (CCSID)</td>
+<td>Sends the CSR as Base64-encoded PEM.</td>
+</tr>
+<tr>
+<td>Issue production credentials</td>
+<td>Compliance credentials with a request ID</td>
+<td>Production credentials (PCSID)</td>
+<td>Uses the compliance request ID to request production credentials.</td>
+</tr>
+<tr>
+<td>Renew production credentials</td>
+<td>Existing production credentials, new CSR, OTP, response language</td>
+<td>Production credentials</td>
+<td>Submits a renewal request.</td>
+</tr>
+<tr>
+<td>Check invoice compliance</td>
+<td>Signed invoice and compliance credentials</td>
+<td>Validation response</td>
+<td>Checks the invoice; a passing check does not establish reporting or clearance.</td>
+</tr>
+<tr>
+<td>Report a simplified invoice</td>
+<td>Signed simplified invoice, production credentials, clearance flag, response language</td>
+<td>Validation response</td>
+<td>Rejects standard invoices before sending.</td>
+</tr>
+<tr>
+<td>Clear a standard invoice</td>
+<td>Signed standard invoice, production credentials, clearance flag, response language</td>
+<td>Validation response</td>
+<td>Rejects simplified invoices before sending.</td>
+</tr>
+</tbody>
+</table>
+<p>Credentials must match the client's environment. Production credentials describe
+the credential scope; they can belong to a test environment. The credential
+constructor stores supplied values; it does not authenticate them or obtain a
+certificate. Preserve the request ID returned during compliance onboarding.</p>
+<h2 id="input-values">Input values<a class="headerlink" href="#input-values" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Expected value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Configuration</td>
+<td>Selected environment</td>
+<td>Used for endpoints and credential environment checks.</td>
+</tr>
+<tr>
+<td>CSR</td>
+<td>Parsed or generated certificate signing request</td>
+<td>See <a href="../csr/">CSR reference</a>. Supply the matching private key separately when signing invoices.</td>
+</tr>
+<tr>
+<td>OTP</td>
+<td>Text supplied for the onboarding or renewal operation</td>
+<td>Sent in the OTP header. Invalid HTTP-header characters fail before transport.</td>
+</tr>
+<tr>
+<td>Token</td>
+<td>Binary security token returned by ZATCA</td>
+<td>Used with the secret for HTTP Basic authentication.</td>
+</tr>
+<tr>
+<td>Secret</td>
+<td>Credential secret returned by ZATCA</td>
+<td>Keep credentials out of logs.</td>
+</tr>
+<tr>
+<td>Request ID</td>
+<td>Optional text from credential issuance</td>
+<td>Required to request production credentials from compliance credentials.</td>
+</tr>
+<tr>
+<td>Invoice</td>
+<td>Signed invoice object</td>
+<td>The client sends its hash, UUID, and Base64 XML.</td>
+</tr>
+<tr>
+<td>Clearance flag</td>
+<td>Boolean</td>
+<td>Sends <code>Clearance-Status: 1</code> when true, <code>0</code> when false. It does not change the selected operation.</td>
+</tr>
+<tr>
+<td>Response language</td>
+<td><code>ar</code>, <code>en</code>, or omitted</td>
+<td>Only the exact value <code>ar</code> selects Arabic; every other value sends English.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="interpret-an-invoice-response">Interpret an invoice response<a class="headerlink" href="#interpret-an-invoice-response" title="Permanent link">&para;</a></h2>
+<p>A successful HTTP status means that a response body was decoded. <strong>Check acceptance
+before treating an invoice as reported or cleared.</strong> The acceptance helper fails
+for both rejected and unknown outcomes.</p>
+<table>
+<thead>
+<tr>
+<th>Invoked operation</th>
+<th>Accepted status</th>
+<th>Rejected status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reporting</td>
+<td><code>REPORTED</code></td>
+<td><code>NOT_REPORTED</code></td>
+</tr>
+<tr>
+<td>Clearance</td>
+<td><code>CLEARED</code></td>
+<td><code>NOT_CLEARED</code></td>
+</tr>
+<tr>
+<td>Compliance</td>
+<td>Validation status <code>PASS</code> or <code>WARNING</code></td>
+<td>Validation status <code>ERROR</code></td>
+</tr>
+</tbody>
+</table>
+<p>Missing or unrecognized endpoint status produces an unknown outcome. A positive
+status accompanied by validation errors also produces an unknown outcome.
+Warnings alone do not prevent acceptance. Only the status for the operation
+actually invoked determines its outcome.</p>
+<table>
+<thead>
+<tr>
+<th>Returned field</th>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP status</td>
+<td>Optional integer</td>
+<td>Actual response status, when attached by the client.</td>
+</tr>
+<tr>
+<td>Outcome</td>
+<td>Accepted, rejected, or unknown</td>
+<td>Classification for the invoked operation.</td>
+</tr>
+<tr>
+<td>Validation results</td>
+<td>Result object</td>
+<td>Contains message collections and optional overall status.</td>
+</tr>
+<tr>
+<td>Reporting / clearance status</td>
+<td>Optional text</td>
+<td>Raw gateway status for each operation.</td>
+</tr>
+<tr>
+<td>Seller / buyer QR status</td>
+<td>Optional text</td>
+<td>Raw QR status returned by the gateway.</td>
+</tr>
+<tr>
+<td>Cleared invoice Base64</td>
+<td>Optional text</td>
+<td>Exact encoded invoice returned by clearance.</td>
+</tr>
+<tr>
+<td>Cleared invoice XML</td>
+<td>Optional decoded text</td>
+<td>Preserves returned text; does not parse XML or verify its signature.</td>
+</tr>
+</tbody>
+</table>
+<p>Missing cleared XML is independent of acceptance. A present empty Base64 value,
+invalid Base64, NUL bytes, or invalid UTF-8 fails decoding.</p>
+<p>Validation results contain information, warning, and error message collections,
+which can be empty, plus an optional status. Each message has optional type, code,
+category, message text, and status fields. Handle missing fields instead of
+assuming that every response contains a complete diagnostic.</p>
+<h2 id="http-failures-and-custom-transport">HTTP failures and custom transport<a class="headerlink" href="#http-failures-and-custom-transport" title="Permanent link">&para;</a></h2>
+<p>Invoice operations treat every non-2xx response as an error, including 400 and
+409. A duplicate-reporting 409 does not establish that an earlier submission was
+rejected. A 208 clearance response follows the successful-response path and still
+requires an acceptance check. Redirects are not followed; a 303 does not trigger
+automatic reporting. A malformed successful body is a decoding error, and a failed
+body read is a transport error.</p>
+<p>Credential issuance requires a successful response. Renewal additionally supports
+the gateway's 428 renewal response when it contains a decodable credential body.</p>
+<p>Where exposed, prepared requests let you use your own HTTP transport. Preparing
+performs input checks and builds an owned request without sending it. Send its
+method, URL, headers, and body, then pass the actual HTTP status and response bytes
+to its decoder. Headers contain credentials. The decoder preserves the operation
+context needed for acceptance checks. Keep redirects disabled in custom transports.</p>
+<p><span id="zatcaclient"></span>
+<span id="new"></span>
+<span id="post_csr_for_ccsid"></span>
+<span id="post_ccsid_for_pcsid"></span>
+<span id="renew_csid"></span>
+<span id="check_invoice_compliance"></span>
+<span id="report_simplified_invoice"></span>
+<span id="clear_standard_invoice"></span>
+<span id="csidcredentials-csidcompliance-csidproduction"></span>
+<span id="env"></span>
+<span id="request_id"></span>
+<span id="binary_security_token"></span>
+<span id="secret"></span>
+<span id="invoice-response-contract"></span>
+<span id="duplicate-submissions-and-redirects"></span>
+<span id="response-types"></span>
+<span id="errors"></span></p>
+<p><span id="new_1"></span></p>
+<h2 id="language-reference">Language reference<a class="headerlink" href="#language-reference" title="Permanent link">&para;</a></h2>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:7"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><input id="__tabbed_1_4" name="__tabbed_1" type="radio" /><input id="__tabbed_1_5" name="__tabbed_1" type="radio" /><input id="__tabbed_1_6" name="__tabbed_1" type="radio" /><input id="__tabbed_1_7" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Rust</label><label for="__tabbed_1_2">Python</label><label for="__tabbed_1_3">JavaScript</label><label for="__tabbed_1_4">C#</label><label for="__tabbed_1_5">Kotlin</label><label for="__tabbed_1_6">Java</label><label for="__tabbed_1_7">C</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>Import client, credential, and response types from <code>fatoora_core::api</code>.
+<code>ZatcaClient::new(config: Config)</code> returns <code>Result&lt;ZatcaClient, ZatcaError&gt;</code>.
+HTTP methods are async; call them with <code>.await</code>. Inputs below are borrowed.</p>
+<p><strong>HTTP operations</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method on <code>client</code></th>
+<th>Returns after <code>.await</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>post_csr_for_ccsid(csr: &amp;Csr, otp: &amp;str)</code></td>
+<td><code>Result&lt;CsidCredentials&lt;Compliance&gt;, ZatcaError&gt;</code></td>
+</tr>
+<tr>
+<td><code>post_ccsid_for_pcsid(ccsid: &amp;CsidCredentials&lt;Compliance&gt;)</code></td>
+<td><code>Result&lt;CsidCredentials&lt;Production&gt;, ZatcaError&gt;</code></td>
+</tr>
+<tr>
+<td><code>renew_csid(pcsid: &amp;CsidCredentials&lt;Production&gt;, csr: &amp;Csr, otp: &amp;str, accept_language: Option&lt;&amp;str&gt;)</code></td>
+<td><code>Result&lt;CsidCredentials&lt;Production&gt;, ZatcaError&gt;</code></td>
+</tr>
+<tr>
+<td><code>check_invoice_compliance(invoice: &amp;SignedInvoice, credentials: &amp;CsidCredentials&lt;Compliance&gt;)</code></td>
+<td><code>Result&lt;ValidationResponse, ZatcaError&gt;</code></td>
+</tr>
+<tr>
+<td><code>report_simplified_invoice(invoice: &amp;SignedInvoice, credentials: &amp;CsidCredentials&lt;Production&gt;, clearance_status: bool, accept_language: Option&lt;&amp;str&gt;)</code></td>
+<td><code>Result&lt;ValidationResponse, ZatcaError&gt;</code></td>
+</tr>
+<tr>
+<td><code>clear_standard_invoice(invoice: &amp;SignedInvoice, credentials: &amp;CsidCredentials&lt;Production&gt;, clearance_status: bool, accept_language: Option&lt;&amp;str&gt;)</code></td>
+<td><code>Result&lt;ValidationResponse, ZatcaError&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Credentials</strong></p>
+<p><code>CsidCredentials::&lt;Compliance&gt;::new(env, request_id, token, secret)</code> creates compliance
+credentials; use <code>Production</code> for production scope. Arguments are <code>EnvironmentType</code>,
+<code>Option&lt;String&gt;</code>, and two <code>impl Into&lt;String&gt;</code> values. Construction returns the
+credential object directly.</p>
+<table>
+<thead>
+<tr>
+<th>Accessor</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>credentials.env()</code></td>
+<td><code>EnvironmentType</code></td>
+</tr>
+<tr>
+<td><code>credentials.request_id()</code></td>
+<td><code>Option&lt;&amp;str&gt;</code></td>
+</tr>
+<tr>
+<td><code>credentials.binary_security_token()</code> / <code>credentials.secret()</code></td>
+<td><code>&amp;str</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Responses</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>response.http_status()</code></td>
+<td><code>Option&lt;u16&gt;</code></td>
+</tr>
+<tr>
+<td><code>response.outcome()</code></td>
+<td><code>InvoiceOutcome::{Accepted, Rejected, Unknown}</code></td>
+</tr>
+<tr>
+<td><code>response.ensure_accepted()</code></td>
+<td><code>Result&lt;(), ZatcaError&gt;</code></td>
+</tr>
+<tr>
+<td><code>response.validation_results()</code></td>
+<td><code>&amp;ValidationResults</code></td>
+</tr>
+<tr>
+<td><code>response.reporting_status()</code> / <code>clearance_status()</code> / <code>qr_seller_status()</code> / <code>qr_buyer_status()</code></td>
+<td><code>Option&lt;&amp;str&gt;</code></td>
+</tr>
+<tr>
+<td><code>response.cleared_invoice_base64()</code></td>
+<td><code>Option&lt;&amp;str&gt;</code></td>
+</tr>
+<tr>
+<td><code>response.cleared_invoice_xml()</code></td>
+<td><code>Result&lt;Option&lt;String&gt;, ZatcaError&gt;</code></td>
+</tr>
+<tr>
+<td><code>results.status()</code></td>
+<td><code>Option&lt;&amp;str&gt;</code></td>
+</tr>
+<tr>
+<td><code>results.info_messages()</code></td>
+<td><code>&amp;MessageList</code>: <code>One</code>, <code>Many</code>, or <code>Empty</code></td>
+</tr>
+<tr>
+<td><code>results.warning_messages()</code> / <code>results.error_messages()</code></td>
+<td><code>&amp;[ValidationMessage]</code></td>
+</tr>
+<tr>
+<td><code>message.message_type()</code> / <code>code()</code> / <code>category()</code> / <code>message()</code> / <code>status()</code></td>
+<td><code>Option&lt;&amp;str&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<p>These getters borrow the response. Serializing and deserializing the response body
+does not preserve HTTP status or operation context; the deserialized outcome is
+<code>Unknown</code>. <code>ZatcaError::NotAccepted</code> retains the response. For HTTP failures,
+<code>ZatcaError::http_status()</code> provides the status when available;
+<code>HttpResponseError::body()</code> and <code>validation_response()</code> expose the retained body
+and optional parsed response. See <a href="../errors/">error reference</a>.</p>
+<p><strong>Prepared requests</strong></p>
+<p>Prefix each HTTP method above with <code>prepare_</code> and use the same arguments. These
+synchronous methods return <code>Result&lt;ComplianceRequest, ZatcaError&gt;</code> for CSR issuance,
+<code>Result&lt;ProductionRequest, ZatcaError&gt;</code> for production issuance/renewal, and
+<code>Result&lt;InvoiceRequest, ZatcaError&gt;</code> for invoice operations.</p>
+<p><code>prepared.request()</code> borrows an <code>HttpRequest</code>. Its <code>method()</code> and <code>url()</code> return
+<code>&amp;str</code>, <code>headers()</code> returns <code>&amp;[(String, String)]</code>, and <code>body()</code> returns <code>&amp;[u8]</code>.
+<code>prepared.decode(status: u16, body: &amp;[u8])</code> returns the corresponding response or
+credentials in <code>Result&lt;_, ZatcaError&gt;</code>. Preparing and decoding do not consume inputs.
+The request owns its data and can outlive the client, invoice, and credentials.</p>
+</div>
+<div class="tabbed-block">
+<p>Import <code>ZatcaClient</code>, <code>CsidCompliance</code>, <code>CsidProduction</code>, and <code>InvoiceOutcome</code>
+from <code>fatoora</code>. Construct <code>ZatcaClient(config: Config)</code>. HTTP calls block until they
+finish and raise classified exceptions on failure; see <a href="../errors/">errors</a>.</p>
+<p><strong>HTTP operations</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method on <code>client</code></th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>post_csr_for_ccsid(csr: Csr, otp: str)</code></td>
+<td><code>CsidCompliance</code></td>
+</tr>
+<tr>
+<td><code>post_ccsid_for_pcsid(ccsid: CsidCompliance)</code></td>
+<td><code>CsidProduction</code></td>
+</tr>
+<tr>
+<td><code>renew_csid(pcsid: CsidProduction, csr: Csr, otp: str, accept_language: Optional[str] = None)</code></td>
+<td><code>CsidProduction</code></td>
+</tr>
+<tr>
+<td><code>check_invoice_compliance(invoice: SignedInvoice, ccsid: CsidCompliance)</code></td>
+<td><code>ValidationResponse</code></td>
+</tr>
+<tr>
+<td><code>report_simplified_invoice(invoice: SignedInvoice, pcsid: CsidProduction, clearance_status: bool, accept_language: Optional[str] = None)</code></td>
+<td><code>ValidationResponse</code></td>
+</tr>
+<tr>
+<td><code>clear_standard_invoice(invoice: SignedInvoice, pcsid: CsidProduction, clearance_status: bool, accept_language: Optional[str] = None)</code></td>
+<td><code>ValidationResponse</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Credentials</strong></p>
+<p><code>CsidCompliance.new(env: Environment, token: str, secret: str, request_id: Optional[str] = None)</code>
+returns <code>CsidCompliance</code>. <code>CsidProduction.new</code> accepts the same arguments and returns
+<code>CsidProduction</code>. <code>env()</code> returns <code>Environment</code>; <code>binary_security_token()</code> and
+<code>secret()</code> return <code>str</code>. <code>request_id()</code> returns <code>str</code>, using <code>""</code> when absent.</p>
+<p><strong>Responses</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>response.http_status()</code></td>
+<td><code>Optional[int]</code></td>
+</tr>
+<tr>
+<td><code>response.outcome()</code></td>
+<td><code>InvoiceOutcome.ACCEPTED</code>, <code>.REJECTED</code>, or <code>.UNKNOWN</code></td>
+</tr>
+<tr>
+<td><code>response.ensure_accepted()</code></td>
+<td><code>None</code>; raises <code>ApiError</code> if not accepted.</td>
+</tr>
+<tr>
+<td><code>response.validation_results()</code></td>
+<td><code>ValidationResults</code></td>
+</tr>
+<tr>
+<td><code>response.reporting_status()</code> / <code>clearance_status()</code> / <code>qr_seller_status()</code> / <code>qr_buyer_status()</code></td>
+<td><code>Optional[str]</code></td>
+</tr>
+<tr>
+<td><code>response.cleared_invoice_base64()</code></td>
+<td><code>Optional[str]</code></td>
+</tr>
+<tr>
+<td><code>response.cleared_invoice_xml()</code></td>
+<td><code>Optional[str]</code>; raises <code>ParseError</code> for invalid content.</td>
+</tr>
+<tr>
+<td><code>results.status()</code></td>
+<td><code>Optional[str]</code></td>
+</tr>
+<tr>
+<td><code>results.info_messages()</code> / <code>warning_messages()</code> / <code>error_messages()</code></td>
+<td><code>list[ValidationMessage]</code></td>
+</tr>
+<tr>
+<td><code>message.message_type()</code> / <code>code()</code> / <code>category()</code> / <code>message()</code> / <code>status()</code></td>
+<td><code>Optional[str]</code></td>
+</tr>
+</tbody>
+</table>
+<p>Client, credential, response, result, and message objects support <code>with</code> and
+<code>close()</code>. Child results are independently owned. Calls do not consume their
+inputs. The public Python facade provides the blocking HTTP methods above;
+prepared-request methods are not exposed by this facade.</p>
+</div>
+<div class="tabbed-block">
+<p>Import <code>ZatcaClient</code>, <code>CsidCompliance</code>, <code>CsidProduction</code>, and <code>InvoiceOutcome</code>
+from <code>fatoority</code>. Create <code>new ZatcaClient(config, { fetch })</code>; the second argument
+is optional and defaults to <code>globalThis.fetch</code>. Calls return promises; use <code>await</code>.</p>
+<p><strong>HTTP operations</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method on <code>client</code></th>
+<th>Promise resolves to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>postCsrForCcsid(csr, otp, options = {})</code></td>
+<td><code>CsidCompliance</code></td>
+</tr>
+<tr>
+<td><code>postCcsidForPcsid(credentials, options = {})</code></td>
+<td><code>CsidProduction</code></td>
+</tr>
+<tr>
+<td><code>renewCsid(credentials, csr, otp, acceptLanguage = null, options = {})</code></td>
+<td><code>CsidProduction</code></td>
+</tr>
+<tr>
+<td><code>checkInvoiceCompliance(invoice, credentials, options = {})</code></td>
+<td><code>ValidationResponse</code></td>
+</tr>
+<tr>
+<td><code>reportSimplifiedInvoice(invoice, credentials, clearanceStatus = false, acceptLanguage = null, options = {})</code></td>
+<td><code>ValidationResponse</code></td>
+</tr>
+<tr>
+<td><code>clearStandardInvoice(invoice, credentials, clearanceStatus = true, acceptLanguage = null, options = {})</code></td>
+<td><code>ValidationResponse</code></td>
+</tr>
+</tbody>
+</table>
+<p>Pass <code>Csr</code> for <code>csr</code>, <code>SignedInvoice</code> for <code>invoice</code>, strings for OTP/language, and
+boolean clearance flags. Compliance issuance uses no credential; compliance checks
+and production issuance take <code>CsidCompliance</code>; reporting, clearance, and renewal
+take <code>CsidProduction</code>. Each <code>options</code> accepts <code>{ signal: AbortSignal }</code> for cancellation.
+Transport failures reject with <code>TransportError</code>; response/acceptance failures reject with an <code>Error</code> whose cause is
+<code>BindingError</code>. See <a href="../bindings/javascript/#api-requests">JavaScript HTTP setup</a>
+for browser CORS and custom fetch behavior.</p>
+<p><strong>Credentials</strong></p>
+<p><code>CsidCompliance.create(environment, requestId, token, secret)</code> returns compliance
+credentials; <code>CsidProduction.create</code> returns production credentials. Pass environment
+number <code>0</code>, <code>1</code>, or <code>2</code>, a string or <code>null</code> request ID, and string token/secret.
+<code>env()</code> returns the number; <code>binarySecurityToken()</code> and <code>secret()</code> return strings;
+<code>requestId()</code> returns <code>Text</code> or <code>null</code>. Read optional text with <code>text?.value()</code>.</p>
+<p><strong>Responses</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>response.httpStatus()</code></td>
+<td>Number or <code>null</code></td>
+</tr>
+<tr>
+<td><code>response.outcome()</code></td>
+<td><code>InvoiceOutcome.Accepted</code>, <code>.Rejected</code>, or <code>.Unknown</code></td>
+</tr>
+<tr>
+<td><code>response.ensureAccepted()</code></td>
+<td><code>undefined</code>; throws unless accepted.</td>
+</tr>
+<tr>
+<td><code>response.validationResults()</code></td>
+<td><code>ValidationResults</code></td>
+</tr>
+<tr>
+<td><code>response.reportingStatus()</code> / <code>clearanceStatus()</code> / <code>qrSellerStatus()</code> / <code>qrBuyerStatus()</code></td>
+<td><code>Text</code> or <code>null</code></td>
+</tr>
+<tr>
+<td><code>response.clearedInvoiceBase64()</code> / <code>clearedInvoiceXml()</code></td>
+<td><code>Text</code> or <code>null</code>; XML decoding can throw.</td>
+</tr>
+<tr>
+<td><code>results.status()</code></td>
+<td><code>Text</code> or <code>null</code></td>
+</tr>
+<tr>
+<td><code>results.infoLen()</code> / <code>warningLen()</code> / <code>errorLen()</code></td>
+<td>Number of messages</td>
+</tr>
+<tr>
+<td><code>results.infoMessage(index)</code> / <code>warningMessage(index)</code> / <code>errorMessage(index)</code></td>
+<td><code>ValidationMessage</code></td>
+</tr>
+<tr>
+<td><code>message.messageType()</code> / <code>code()</code> / <code>category()</code> / <code>message()</code> / <code>status()</code></td>
+<td><code>Text</code> or <code>null</code></td>
+</tr>
+</tbody>
+</table>
+<p>Message indexes are zero-based and must be less than the corresponding length.
+Child handles are independently owned. Calls do not consume inputs. See
+<a href="../bindings/javascript/">JavaScript resource handling</a> for binary data lifetimes.</p>
+<p><strong>Prepared requests</strong></p>
+<p>For custom transport, import <code>ZatcaClient as RequestClient</code> from <code>fatoority/raw</code> and
+create it with <code>RequestClient.create(config)</code>. Its synchronous methods are
+<code>preparePostCsrForCcsid</code>, <code>preparePostCcsidForPcsid</code>, <code>prepareRenewCsid</code>,
+<code>prepareCheckInvoiceCompliance</code>, <code>prepareReportSimplifiedInvoice</code>, and
+<code>prepareClearStandardInvoice</code>. They take the same operation arguments as above,
+without <code>options</code>; supply the clearance boolean and nullable language explicitly.
+They return <code>ComplianceRequest</code>, <code>ProductionRequest</code>, or <code>InvoiceRequest</code> according
+to the operation.</p>
+<p><code>request.method()</code>, <code>url()</code>, and <code>headersJson()</code> return strings; <code>body()</code> returns
+<code>Bytes</code>. <code>request.decode(status, body)</code> takes an HTTP status number and an array of
+byte numbers and returns the corresponding credentials or validation response.
+Alternatively, <code>await sendPrepared(request, { fetch, signal })</code> from <code>fatoority</code>
+sends and decodes the request. Preparation owns its data; it does not send HTTP.</p>
+</div>
+<div class="tabbed-block">
+<p>Use the <code>Fatoora</code> namespace. <code>ZatcaClient.Create(config: Config)</code> returns a client.
+HTTP methods block; errors throw <code>BindingErrorException</code>. Use <code>using</code> for owned
+objects, including child responses and optional <code>Text</code> values.</p>
+<p><strong>HTTP operations</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method on <code>client</code></th>
+<th>Inputs in order</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PostCsrForCcsid</code></td>
+<td><code>Csr csr</code>, <code>string otp</code></td>
+<td><code>CsidCompliance</code></td>
+</tr>
+<tr>
+<td><code>PostCcsidForPcsid</code></td>
+<td><code>CsidCompliance credentials</code></td>
+<td><code>CsidProduction</code></td>
+</tr>
+<tr>
+<td><code>RenewCsid</code></td>
+<td><code>CsidProduction credentials</code>, <code>Csr csr</code>, <code>string otp</code>, <code>string? acceptLanguage</code></td>
+<td><code>CsidProduction</code></td>
+</tr>
+<tr>
+<td><code>CheckInvoiceCompliance</code></td>
+<td><code>SignedInvoice invoice</code>, <code>CsidCompliance credentials</code></td>
+<td><code>ValidationResponse</code></td>
+</tr>
+<tr>
+<td><code>ReportSimplifiedInvoice</code></td>
+<td><code>SignedInvoice invoice</code>, <code>CsidProduction credentials</code>, <code>bool clearanceStatus</code>, <code>string? acceptLanguage</code></td>
+<td><code>ValidationResponse</code></td>
+</tr>
+<tr>
+<td><code>ClearStandardInvoice</code></td>
+<td><code>SignedInvoice invoice</code>, <code>CsidProduction credentials</code>, <code>bool clearanceStatus</code>, <code>string? acceptLanguage</code></td>
+<td><code>ValidationResponse</code></td>
+</tr>
+</tbody>
+</table>
+<p>Pass <code>null</code> explicitly when omitting response language.</p>
+<p><strong>Credentials</strong></p>
+<p><code>CsidCompliance.Create(environment, requestId, token, secret)</code> returns
+compliance credentials; <code>CsidProduction.Create</code> returns production credentials.
+Pass <code>byte</code> environment <code>0</code>, <code>1</code>, or <code>2</code>, a nullable <code>string</code> request ID,
+and <code>string</code> token/secret. <code>Env()</code> returns <code>byte</code>;
+<code>BinarySecurityToken()</code> and <code>Secret()</code> return <code>string</code>;
+<code>RequestId()</code> returns nullable <code>Text</code>.
+Read text with <code>Value()</code> and dispose the <code>Text</code> object when finished.</p>
+<p><strong>Responses</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>response.HttpStatus()</code></td>
+<td><code>ushort?</code></td>
+</tr>
+<tr>
+<td><code>response.Outcome()</code></td>
+<td><code>InvoiceOutcome</code> (<code>Accepted</code>, <code>Rejected</code>, <code>Unknown</code>)</td>
+</tr>
+<tr>
+<td><code>response.EnsureAccepted()</code></td>
+<td>No value; throws unless accepted.</td>
+</tr>
+<tr>
+<td><code>response.ValidationResults()</code></td>
+<td><code>ValidationResults</code></td>
+</tr>
+<tr>
+<td><code>response.ReportingStatus()</code> / <code>ClearanceStatus()</code> / <code>QrSellerStatus()</code> / <code>QrBuyerStatus()</code></td>
+<td>Nullable <code>Text</code></td>
+</tr>
+<tr>
+<td><code>response.ClearedInvoiceBase64()</code> / <code>ClearedInvoiceXml()</code></td>
+<td>Nullable <code>Text</code>; XML decoding can throw.</td>
+</tr>
+<tr>
+<td><code>results.Status()</code></td>
+<td>Nullable <code>Text</code></td>
+</tr>
+<tr>
+<td><code>results.InfoLen()</code> / <code>WarningLen()</code> / <code>ErrorLen()</code></td>
+<td><code>nuint</code> message count</td>
+</tr>
+<tr>
+<td><code>results.InfoMessage(index)</code> / <code>WarningMessage(index)</code> / <code>ErrorMessage(index)</code></td>
+<td><code>ValidationMessage</code></td>
+</tr>
+<tr>
+<td><code>message.MessageType()</code> / <code>Code()</code> / <code>Category()</code> / <code>Message()</code> / <code>Status()</code></td>
+<td>Nullable <code>Text</code></td>
+</tr>
+</tbody>
+</table>
+<p>Use zero-based <code>nuint</code> indexes below the corresponding message count. Child
+objects are independently owned. Methods do not consume their inputs.</p>
+<p><strong>Prepared requests</strong></p>
+<p>Use the six methods <code>PreparePostCsrForCcsid</code>,
+<code>PreparePostCcsidForPcsid</code>, <code>PrepareRenewCsid</code>,
+<code>PrepareCheckInvoiceCompliance</code>, <code>PrepareReportSimplifiedInvoice</code>,
+and <code>PrepareClearStandardInvoice</code> with the same inputs as their HTTP
+counterparts. They return <code>ComplianceRequest</code> for compliance credentials,
+<code>ProductionRequest</code> for production credentials/renewal, and <code>InvoiceRequest</code> for
+invoice operations, without sending HTTP.</p>
+<p><code>request.Method()</code>, <code>Url()</code>, and <code>HeadersJson()</code>
+return <code>string</code>; <code>Body()</code> returns owned <code>Bytes</code>.
+<code>request.Decode(status, body)</code> accepts <code>ushort</code> HTTP status and
+<code>byte[]</code> response body, and returns the matching credential or response type.
+Prepared requests own their input data and may outlive the original client and inputs.</p>
+</div>
+<div class="tabbed-block">
+<p>Import types from <code>com.fatoora</code>. <code>ZatcaClient.create(config)</code> takes <code>Config</code> and
+returns a client. HTTP methods block and errors raise exceptions. Use <code>.use { ... }</code> or <code>close()</code> for owned objects,
+including child responses and optional <code>Text</code> values.</p>
+<p><strong>HTTP operations</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method on <code>client</code></th>
+<th>Inputs in order</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>postCsrForCcsid</code></td>
+<td><code>Csr csr</code>, <code>String otp</code></td>
+<td><code>CsidCompliance</code></td>
+</tr>
+<tr>
+<td><code>postCcsidForPcsid</code></td>
+<td><code>CsidCompliance credentials</code></td>
+<td><code>CsidProduction</code></td>
+</tr>
+<tr>
+<td><code>renewCsid</code></td>
+<td><code>CsidProduction credentials</code>, <code>Csr csr</code>, <code>String otp</code>, <code>String? acceptLanguage</code></td>
+<td><code>CsidProduction</code></td>
+</tr>
+<tr>
+<td><code>checkInvoiceCompliance</code></td>
+<td><code>SignedInvoice invoice</code>, <code>CsidCompliance credentials</code></td>
+<td><code>ValidationResponse</code></td>
+</tr>
+<tr>
+<td><code>reportSimplifiedInvoice</code></td>
+<td><code>SignedInvoice invoice</code>, <code>CsidProduction credentials</code>, <code>Boolean clearanceStatus</code>, <code>String? acceptLanguage</code></td>
+<td><code>ValidationResponse</code></td>
+</tr>
+<tr>
+<td><code>clearStandardInvoice</code></td>
+<td><code>SignedInvoice invoice</code>, <code>CsidProduction credentials</code>, <code>Boolean clearanceStatus</code>, <code>String? acceptLanguage</code></td>
+<td><code>ValidationResponse</code></td>
+</tr>
+</tbody>
+</table>
+<p>Response language defaults to <code>null</code>; an overload allows it to be omitted.</p>
+<p><strong>Credentials</strong></p>
+<p><code>CsidCompliance.create(environment, requestId, token, secret)</code> returns
+compliance credentials; <code>CsidProduction.create</code> returns production credentials.
+Pass <code>Int</code> environment <code>0</code>, <code>1</code>, or <code>2</code>, a nullable <code>String</code> request ID,
+and <code>String</code> token/secret. <code>env()</code> returns <code>Int</code>;
+<code>binarySecurityToken()</code> and <code>secret()</code> return <code>String</code>;
+<code>requestId()</code> returns nullable <code>Text</code>.
+Read text with <code>value()</code> and dispose the <code>Text</code> object when finished.</p>
+<p><strong>Responses</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>response.httpStatus()</code></td>
+<td><code>Int?</code></td>
+</tr>
+<tr>
+<td><code>response.outcome()</code></td>
+<td><code>InvoiceOutcome</code> (<code>Accepted</code>, <code>Rejected</code>, <code>Unknown</code>)</td>
+</tr>
+<tr>
+<td><code>response.ensureAccepted()</code></td>
+<td>No value; throws unless accepted.</td>
+</tr>
+<tr>
+<td><code>response.validationResults()</code></td>
+<td><code>ValidationResults</code></td>
+</tr>
+<tr>
+<td><code>response.reportingStatus()</code> / <code>clearanceStatus()</code> / <code>qrSellerStatus()</code> / <code>qrBuyerStatus()</code></td>
+<td>Nullable <code>Text</code></td>
+</tr>
+<tr>
+<td><code>response.clearedInvoiceBase64()</code> / <code>clearedInvoiceXml()</code></td>
+<td>Nullable <code>Text</code>; XML decoding can throw.</td>
+</tr>
+<tr>
+<td><code>results.status()</code></td>
+<td>Nullable <code>Text</code></td>
+</tr>
+<tr>
+<td><code>results.infoLen()</code> / <code>warningLen()</code> / <code>errorLen()</code></td>
+<td><code>java.math.BigInteger</code> message count</td>
+</tr>
+<tr>
+<td><code>results.infoMessage(index)</code> / <code>warningMessage(index)</code> / <code>errorMessage(index)</code></td>
+<td><code>ValidationMessage</code></td>
+</tr>
+<tr>
+<td><code>message.messageType()</code> / <code>code()</code> / <code>category()</code> / <code>message()</code> / <code>status()</code></td>
+<td>Nullable <code>Text</code></td>
+</tr>
+</tbody>
+</table>
+<p>Use zero-based <code>java.math.BigInteger</code> indexes below the corresponding message count. Child
+objects are independently owned. Methods do not consume their inputs.</p>
+<p><strong>Prepared requests</strong></p>
+<p>Use the six methods <code>preparePostCsrForCcsid</code>,
+<code>preparePostCcsidForPcsid</code>, <code>prepareRenewCsid</code>,
+<code>prepareCheckInvoiceCompliance</code>, <code>prepareReportSimplifiedInvoice</code>,
+and <code>prepareClearStandardInvoice</code> with the same inputs as their HTTP
+counterparts. They return <code>ComplianceRequest</code> for compliance credentials,
+<code>ProductionRequest</code> for production credentials/renewal, and <code>InvoiceRequest</code> for
+invoice operations, without sending HTTP.</p>
+<p><code>request.method()</code>, <code>url()</code>, and <code>headersJson()</code>
+return <code>String</code>; <code>body()</code> returns owned <code>Bytes</code>.
+<code>request.decode(status, body)</code> accepts <code>Int</code> HTTP status and
+<code>ByteArray</code> response body, and returns the matching credential or response type.
+Prepared requests own their input data and may outlive the original client and inputs.</p>
+</div>
+<div class="tabbed-block">
+<p>Import types from <code>com.fatoora</code>. <code>ZatcaClient.create(config)</code> takes <code>Config</code> and
+returns a client. HTTP methods block and errors raise exceptions. Use try-with-resources or <code>close()</code> for owned objects,
+including child responses and optional <code>Text</code> values.</p>
+<p><strong>HTTP operations</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method on <code>client</code></th>
+<th>Inputs in order</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>postCsrForCcsid</code></td>
+<td><code>Csr csr</code>, <code>String otp</code></td>
+<td><code>CsidCompliance</code></td>
+</tr>
+<tr>
+<td><code>postCcsidForPcsid</code></td>
+<td><code>CsidCompliance credentials</code></td>
+<td><code>CsidProduction</code></td>
+</tr>
+<tr>
+<td><code>renewCsid</code></td>
+<td><code>CsidProduction credentials</code>, <code>Csr csr</code>, <code>String otp</code>, <code>String (nullable) acceptLanguage</code></td>
+<td><code>CsidProduction</code></td>
+</tr>
+<tr>
+<td><code>checkInvoiceCompliance</code></td>
+<td><code>SignedInvoice invoice</code>, <code>CsidCompliance credentials</code></td>
+<td><code>ValidationResponse</code></td>
+</tr>
+<tr>
+<td><code>reportSimplifiedInvoice</code></td>
+<td><code>SignedInvoice invoice</code>, <code>CsidProduction credentials</code>, <code>boolean clearanceStatus</code>, <code>String (nullable) acceptLanguage</code></td>
+<td><code>ValidationResponse</code></td>
+</tr>
+<tr>
+<td><code>clearStandardInvoice</code></td>
+<td><code>SignedInvoice invoice</code>, <code>CsidProduction credentials</code>, <code>boolean clearanceStatus</code>, <code>String (nullable) acceptLanguage</code></td>
+<td><code>ValidationResponse</code></td>
+</tr>
+</tbody>
+</table>
+<p>Response language defaults to <code>null</code>; an overload allows it to be omitted.</p>
+<p><strong>Credentials</strong></p>
+<p><code>CsidCompliance.create(environment, requestId, token, secret)</code> returns
+compliance credentials; <code>CsidProduction.create</code> returns production credentials.
+Pass <code>int</code> environment <code>0</code>, <code>1</code>, or <code>2</code>, a nullable <code>String</code> request ID,
+and <code>String</code> token/secret. <code>env()</code> returns <code>int</code>;
+<code>binarySecurityToken()</code> and <code>secret()</code> return <code>String</code>;
+<code>requestId()</code> returns nullable <code>Text</code>.
+Read text with <code>value()</code> and dispose the <code>Text</code> object when finished.</p>
+<p><strong>Responses</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>response.httpStatus()</code></td>
+<td><code>Integer (nullable)</code></td>
+</tr>
+<tr>
+<td><code>response.outcome()</code></td>
+<td><code>InvoiceOutcome</code> (<code>Accepted</code>, <code>Rejected</code>, <code>Unknown</code>)</td>
+</tr>
+<tr>
+<td><code>response.ensureAccepted()</code></td>
+<td>No value; throws unless accepted.</td>
+</tr>
+<tr>
+<td><code>response.validationResults()</code></td>
+<td><code>ValidationResults</code></td>
+</tr>
+<tr>
+<td><code>response.reportingStatus()</code> / <code>clearanceStatus()</code> / <code>qrSellerStatus()</code> / <code>qrBuyerStatus()</code></td>
+<td>Nullable <code>Text</code></td>
+</tr>
+<tr>
+<td><code>response.clearedInvoiceBase64()</code> / <code>clearedInvoiceXml()</code></td>
+<td>Nullable <code>Text</code>; XML decoding can throw.</td>
+</tr>
+<tr>
+<td><code>results.status()</code></td>
+<td>Nullable <code>Text</code></td>
+</tr>
+<tr>
+<td><code>results.infoLen()</code> / <code>warningLen()</code> / <code>errorLen()</code></td>
+<td><code>java.math.BigInteger</code> message count</td>
+</tr>
+<tr>
+<td><code>results.infoMessage(index)</code> / <code>warningMessage(index)</code> / <code>errorMessage(index)</code></td>
+<td><code>ValidationMessage</code></td>
+</tr>
+<tr>
+<td><code>message.messageType()</code> / <code>code()</code> / <code>category()</code> / <code>message()</code> / <code>status()</code></td>
+<td>Nullable <code>Text</code></td>
+</tr>
+</tbody>
+</table>
+<p>Use zero-based <code>java.math.BigInteger</code> indexes below the corresponding message count. Child
+objects are independently owned. Methods do not consume their inputs.</p>
+<p><strong>Prepared requests</strong></p>
+<p>Use the six methods <code>preparePostCsrForCcsid</code>,
+<code>preparePostCcsidForPcsid</code>, <code>prepareRenewCsid</code>,
+<code>prepareCheckInvoiceCompliance</code>, <code>prepareReportSimplifiedInvoice</code>,
+and <code>prepareClearStandardInvoice</code> with the same inputs as their HTTP
+counterparts. They return <code>ComplianceRequest</code> for compliance credentials,
+<code>ProductionRequest</code> for production credentials/renewal, and <code>InvoiceRequest</code> for
+invoice operations, without sending HTTP.</p>
+<p><code>request.method()</code>, <code>url()</code>, and <code>headersJson()</code>
+return <code>String</code>; <code>body()</code> returns owned <code>Bytes</code>.
+<code>request.decode(status, body)</code> accepts <code>int</code> HTTP status and
+<code>byte[]</code> response body, and returns the matching credential or response type.
+Prepared requests own their input data and may outlive the original client and inputs.</p>
+</div>
+<div class="tabbed-block">
+<p>Include <code>fatoora.h</code>. Every operation returns <code>FatooraStatus</code>; <code>FATOORA_OK</code> means
+its output was written. Other statuses indicate failure; inspect the optional
+<code>FatooraError</code>. Calls borrow inputs and block while sending HTTP.</p>
+<p><strong>Client and credentials</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">FatooraStatus</span><span class="w"> </span><span class="nf">fatoora_zatca_client_create</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FatooraConfig</span><span class="w"> </span><span class="o">*</span><span class="n">config</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraZatcaClient</span><span class="w"> </span><span class="o">**</span><span class="n">out</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraError</span><span class="w"> </span><span class="o">**</span><span class="n">error</span><span class="p">);</span>
+<span class="n">FatooraStatus</span><span class="w"> </span><span class="nf">fatoora_zatca_client_post_csr_for_ccsid</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FatooraZatcaClient</span><span class="w"> </span><span class="o">*</span><span class="n">self</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">FatooraCsr</span><span class="w"> </span><span class="o">*</span><span class="n">csr</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">otp</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraCsidCompliance</span><span class="w"> </span><span class="o">**</span><span class="n">out</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraError</span><span class="w"> </span><span class="o">**</span><span class="n">error</span><span class="p">);</span>
+<span class="n">FatooraStatus</span><span class="w"> </span><span class="nf">fatoora_zatca_client_post_ccsid_for_pcsid</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FatooraZatcaClient</span><span class="w"> </span><span class="o">*</span><span class="n">self</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">FatooraCsidCompliance</span><span class="w"> </span><span class="o">*</span><span class="n">credentials</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraCsidProduction</span><span class="w"> </span><span class="o">**</span><span class="n">out</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraError</span><span class="w"> </span><span class="o">**</span><span class="n">error</span><span class="p">);</span>
+<span class="n">FatooraStatus</span><span class="w"> </span><span class="nf">fatoora_zatca_client_renew_csid</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FatooraZatcaClient</span><span class="w"> </span><span class="o">*</span><span class="n">self</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">FatooraCsidProduction</span><span class="w"> </span><span class="o">*</span><span class="n">credentials</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">FatooraCsr</span><span class="w"> </span><span class="o">*</span><span class="n">csr</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">otp</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">accept_language</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraCsidProduction</span><span class="w"> </span><span class="o">**</span><span class="n">out</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraError</span><span class="w"> </span><span class="o">**</span><span class="n">error</span><span class="p">);</span>
+<span class="n">FatooraStatus</span><span class="w"> </span><span class="nf">fatoora_zatca_client_check_invoice_compliance</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FatooraZatcaClient</span><span class="w"> </span><span class="o">*</span><span class="n">self</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">FatooraSignedInvoice</span><span class="w"> </span><span class="o">*</span><span class="n">invoice</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">FatooraCsidCompliance</span><span class="w"> </span><span class="o">*</span><span class="n">credentials</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraValidationResponse</span><span class="w"> </span><span class="o">**</span><span class="n">out</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraError</span><span class="w"> </span><span class="o">**</span><span class="n">error</span><span class="p">);</span>
+<span class="n">FatooraStatus</span><span class="w"> </span><span class="nf">fatoora_zatca_client_report_simplified_invoice</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FatooraZatcaClient</span><span class="w"> </span><span class="o">*</span><span class="n">self</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">FatooraSignedInvoice</span><span class="w"> </span><span class="o">*</span><span class="n">invoice</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">FatooraCsidProduction</span><span class="w"> </span><span class="o">*</span><span class="n">credentials</span><span class="p">,</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">clearance_status</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">accept_language</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraValidationResponse</span><span class="w"> </span><span class="o">**</span><span class="n">out</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraError</span><span class="w"> </span><span class="o">**</span><span class="n">error</span><span class="p">);</span>
+<span class="n">FatooraStatus</span><span class="w"> </span><span class="nf">fatoora_zatca_client_clear_standard_invoice</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FatooraZatcaClient</span><span class="w"> </span><span class="o">*</span><span class="n">self</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">FatooraSignedInvoice</span><span class="w"> </span><span class="o">*</span><span class="n">invoice</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">FatooraCsidProduction</span><span class="w"> </span><span class="o">*</span><span class="n">credentials</span><span class="p">,</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">clearance_status</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">accept_language</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraValidationResponse</span><span class="w"> </span><span class="o">**</span><span class="n">out</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraError</span><span class="w"> </span><span class="o">**</span><span class="n">error</span><span class="p">);</span>
+<span class="n">FatooraStatus</span><span class="w"> </span><span class="nf">fatoora_csid_compliance_create</span><span class="p">(</span><span class="kt">int32_t</span><span class="w"> </span><span class="n">environment</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">request_id</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">token</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">secret</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraCsidCompliance</span><span class="w"> </span><span class="o">**</span><span class="n">out</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraError</span><span class="w"> </span><span class="o">**</span><span class="n">error</span><span class="p">);</span>
+<span class="n">FatooraStatus</span><span class="w"> </span><span class="nf">fatoora_csid_production_create</span><span class="p">(</span><span class="kt">int32_t</span><span class="w"> </span><span class="n">environment</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">request_id</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">token</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">secret</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraCsidProduction</span><span class="w"> </span><span class="o">**</span><span class="n">out</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FatooraError</span><span class="w"> </span><span class="o">**</span><span class="n">error</span><span class="p">);</span>
+</code></pre></div>
+<p>Environment values are <code>0</code> non-production, <code>1</code> simulation, and <code>2</code> production.
+Use <code>NULL</code> for absent request ID or language. Text inputs are UTF-8 strings.
+Credential getters start with <code>fatoora_csid_compliance_</code> or
+<code>fatoora_csid_production_</code>, take <code>const</code> credential pointer, output pointer, and
+<code>FatooraError **error</code>. <code>env</code> writes <code>uint8_t</code>; <code>request_id</code>, <code>binary_security_token</code>,
+and <code>secret</code> write owned <code>char *</code>, with <code>NULL</code> for absent request ID.</p>
+<p><strong>Responses</strong></p>
+<p>Each getter takes <code>const FatooraValidationResponse *self</code>, the output argument
+below, then <code>FatooraError **error</code>. <code>ensure_accepted</code> takes only <code>self</code> and <code>error</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fatoora_validation_response_http_status</code></td>
+<td><code>uint16_t *out</code>, <code>bool *has_value</code></td>
+</tr>
+<tr>
+<td><code>fatoora_validation_response_outcome</code></td>
+<td><code>FatooraInvoiceOutcome *out</code></td>
+</tr>
+<tr>
+<td><code>fatoora_validation_response_ensure_accepted</code></td>
+<td>No output; <code>FATOORA_OK</code> only if accepted.</td>
+</tr>
+<tr>
+<td><code>fatoora_validation_response_validation_results</code></td>
+<td><code>FatooraValidationResults **out</code></td>
+</tr>
+<tr>
+<td><code>fatoora_validation_response_reporting_status</code></td>
+<td><code>char **out</code></td>
+</tr>
+<tr>
+<td><code>fatoora_validation_response_clearance_status</code></td>
+<td><code>char **out</code></td>
+</tr>
+<tr>
+<td><code>fatoora_validation_response_qr_seller_status</code></td>
+<td><code>char **out</code></td>
+</tr>
+<tr>
+<td><code>fatoora_validation_response_qr_buyer_status</code></td>
+<td><code>char **out</code></td>
+</tr>
+<tr>
+<td><code>fatoora_validation_response_cleared_invoice_base64</code></td>
+<td><code>char **out</code></td>
+</tr>
+<tr>
+<td><code>fatoora_validation_response_cleared_invoice_xml</code></td>
+<td><code>char **out</code>; decoding can fail.</td>
+</tr>
+</tbody>
+</table>
+<p>Optional text returns <code>NULL</code> for absence, distinct from a present empty string.
+Result getters use the <code>fatoora_validation_results_</code> prefix:
+<code>status(self, char **out, error)</code> returns optional text;
+<code>info_len</code>, <code>warning_len</code>, and <code>error_len</code> use <code>size_t *out</code>;
+<code>info_message</code>, <code>warning_message</code>, and <code>error_message</code> take <code>self</code>, zero-based
+<code>size_t index</code>, <code>FatooraValidationMessage **out</code>, and <code>error</code>. Indexes must be below
+the corresponding length.</p>
+<p>Message getters use <code>fatoora_validation_message_</code> with suffixes <code>message_type</code>,
+<code>code</code>, <code>category</code>, <code>message</code>, and <code>status</code>. Each takes <code>self</code>, <code>char **out</code>, and
+<code>error</code>, returning optional owned text.</p>
+<p><strong>Prepared requests</strong></p>
+<p>Add <code>prepare_</code> after <code>fatoora_zatca_client_</code> in the six HTTP function names above.
+Inputs are identical; the output changes to <code>FatooraComplianceRequest **</code> for CSR
+issuance, <code>FatooraProductionRequest **</code> for production issuance/renewal, or
+<code>FatooraInvoiceRequest **</code> for invoice operations.</p>
+<p>Request accessors use <code>fatoora_compliance_request_</code>, <code>fatoora_production_request_</code>,
+or <code>fatoora_invoice_request_</code>. <code>method</code>, <code>url</code>, and <code>headers_json</code> take <code>self</code>,
+<code>char **out</code>, and <code>error</code>; <code>body</code> uses <code>FatooraBytes **out</code>.
+<code>decode</code> takes <code>self</code>, <code>uint16_t status</code>, <code>const uint8_t *body</code>, <code>size_t body_len</code>,
+the matching credential/response output pointer, and <code>error</code>.
+The request owns its data and does not send HTTP until your transport does so.</p>
+<p><strong>Ownership</strong></p>
+<p>Outputs and response children are independent owned copies. Release text with
+<code>fatoora_string_free</code>; release handles with their matching <code>_free</code> function, such
+as <code>fatoora_zatca_client_free</code>, <code>fatoora_csid_compliance_free</code>,
+<code>fatoora_csid_production_free</code>, <code>fatoora_validation_response_free</code>,
+<code>fatoora_validation_results_free</code>, <code>fatoora_validation_message_free</code>, or
+<code>fatoora_invoice_request_free</code>. See <a href="../bindings/c/">C ownership and errors</a>.</p>
+</div>
+</div>
+</div>
+<h2 id="related-reference">Related reference<a class="headerlink" href="#related-reference" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../configuration/">Environment configuration</a></li>
+<li><a href="../csr/">CSR and private keys</a></li>
+<li><a href="../invoice-signing/">Invoice signing</a></li>
+<li><a href="../errors/">Error handling</a></li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.tabs.link", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
