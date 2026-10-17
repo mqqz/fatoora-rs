@@ -1,6 +1,6 @@
 {
   "name": "fatoority",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "ZATCA invoice SDK with Diplomat WebAssembly bindings",
   "type": "module",
   "license": "SEE LICENSE IN THIRD_PARTY_NOTICES.md",

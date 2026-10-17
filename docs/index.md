@@ -123,7 +123,7 @@ and most packages are named `fatoority`; existing API names such as Python's
     ```kotlin
     repositories { mavenCentral() }
     dependencies {
-        implementation("com.fatoority:fatoority:0.4.3")
+        implementation("com.fatoority:fatoority:0.4.4")
     }
     ```
 
@@ -133,14 +133,14 @@ and most packages are named `fatoority`; existing API names such as Python's
     <dependency>
       <groupId>com.fatoority</groupId>
       <artifactId>fatoority</artifactId>
-      <version>0.4.3</version>
+      <version>0.4.4</version>
     </dependency>
     ```
 
     Import `com.fatoora` in your code.
     [Follow the Kotlin/Java examples](reference/bindings/kotlin.md) for
     supported platforms and Android setup. For Android, use
-    `com.fatoority:fatoority-android:0.4.3` instead of the desktop artifact.
+    `com.fatoority:fatoority-android:0.4.4` instead of the desktop artifact.
 
 === "C / C++"
     Download the `fatoora-ffi-*` archive with the native library and C/C++ headers from

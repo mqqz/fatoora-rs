@@ -4,7 +4,7 @@ plugins {
 }
 repositories { mavenCentral() }
 dependencies {
-    implementation("com.fatoority:fatoority:0.4.3")
+    implementation("com.fatoority:fatoority:0.4.4")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
 }
 application { mainClass.set("MainKt") }

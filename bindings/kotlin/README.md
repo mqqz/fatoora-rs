@@ -15,7 +15,7 @@ For desktop Gradle projects, add this to `build.gradle.kts`:
 ```kotlin
 repositories { mavenCentral() }
 dependencies {
-    implementation("com.fatoority:fatoority:0.4.3")
+    implementation("com.fatoority:fatoority:0.4.4")
 }
 ```
 
@@ -25,7 +25,7 @@ For Maven, add this dependency to `pom.xml` (Maven Central is used by default):
 <dependency>
   <groupId>com.fatoority</groupId>
   <artifactId>fatoority</artifactId>
-  <version>0.4.3</version>
+  <version>0.4.4</version>
 </dependency>
 ```
 
@@ -35,7 +35,7 @@ artifact to your app's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.fatoority:fatoority-android:0.4.3")
+    implementation("com.fatoority:fatoority-android:0.4.4")
 }
 ```
 
@@ -109,7 +109,7 @@ repositories {
     maven { url = uri("/absolute/path/to/fatoority/bindings/kotlin/build/repository") }
     mavenCentral()
 }
-dependencies { implementation("com.fatoority:fatoority:0.4.3") }
+dependencies { implementation("com.fatoority:fatoority:0.4.4") }
 ```
 
 For Android, install SDK 35, build-tools 35.0.0 and NDK 28.2.13676358:
@@ -120,7 +120,7 @@ python3 scripts/build_kotlin.py --android --ndk "$ANDROID_HOME/ndk/28.2.13676358
 bindings/kotlin/gradlew -p bindings/kotlin -Pandroid=true :android:connectedDebugAndroidTest
 ```
 
-Use `com.fatoority:fatoority-android:0.4.3` from that repository in Android apps.
+Use `com.fatoority:fatoority-android:0.4.4` from that repository in Android apps.
 Do not add the desktop artifact alongside it. The AAR bundles both Android native
 libraries and consumer shrinker rules; its Maven metadata supplies JNA's AAR and
 coroutines. Native ELF segments support 16 KiB pages. Android TLS uses bundled

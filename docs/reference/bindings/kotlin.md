@@ -19,7 +19,7 @@ For desktop Gradle projects, add this to `build.gradle.kts`:
 ```kotlin
 repositories { mavenCentral() }
 dependencies {
-    implementation("com.fatoority:fatoority:0.4.3")
+    implementation("com.fatoority:fatoority:0.4.4")
 }
 ```
 
@@ -29,7 +29,7 @@ artifact to your app's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.fatoority:fatoority-android:0.4.3")
+    implementation("com.fatoority:fatoority-android:0.4.4")
 }
 ```
 
@@ -39,8 +39,8 @@ Consumers do not need Rust or a separate native-library build.
 
 | Artifact | Runtime | Bundled native platforms |
 | --- | --- | --- |
-| `com.fatoority:fatoority:0.4.3` | Java 8+ | Linux x86-64, Windows x86-64, macOS arm64 |
-| `com.fatoority:fatoority-android:0.4.3` | Android API 26+ | arm64-v8a, x86_64 |
+| `com.fatoority:fatoority:0.4.4` | Java 8+ | Linux x86-64, Windows x86-64, macOS arm64 |
+| `com.fatoority:fatoority-android:0.4.4` | Android API 26+ | arm64-v8a, x86_64 |
 
 Linux requires glibc 2.28+; musl/Alpine is not included. Desktop binaries cannot
 be used on Android; use the Android artifact for Android applications.

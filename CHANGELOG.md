@@ -1,6 +1,15 @@
 # Changelog
 
-## [0.4.3] - Unreleased
+## [0.4.4] - Unreleased
+
+- Use `PayableAmount` (BT-115) for QR tag 4 in the library and CLI, including
+  prepayment and payable rounding adjustments. Signing and SDK-profile validation
+  now check the same amount.
+- Add regression coverage for the public QR accessor and signed and unsigned CLI
+  inputs. Preserve the recorded SDK corpus and document the corrected behavior.
+- Synchronize package versions at 0.4.4.
+
+## [0.4.3] - 2026-10-15
 
 - Add Kotlin/JVM bindings with a Java-friendly API, deterministic ownership,
   coroutine helpers, and Android AAR packaging for arm64 and x86-64.

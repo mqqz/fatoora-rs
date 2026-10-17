@@ -69,7 +69,7 @@ the package are supported. CI uploads a `nuget` artifact. Version tags publish t
 NuGet.org through trusted publishing after all platform consumers pass. For a locally built package:
 
 ```sh
-dotnet add package Fatoority --version 0.4.3 --source /absolute/path/to/dist/dotnet
+dotnet add package Fatoority --version 0.4.4 --source /absolute/path/to/dist/dotnet
 ```
 
 Release `linux-x64` assets are built and tested on glibc 2.28 (AlmaLinux 8).
