@@ -485,10 +485,19 @@ fn generated_qr_uses_payable_for_rounding_and_prepayments() {
                 &format!(">{payable}</cbc:PayableAmount>"),
             );
         let invoice = parse_finalized_invoice_xml(&input).unwrap();
-        for signed in [
-            signer.sign_xml(&input).unwrap(),
-            invoice.sign(&signer).unwrap().xml().to_owned(),
-        ] {
+        let typed = invoice.sign(&signer).unwrap();
+        let accessor_tags =
+            independent::tlv(&Base64::decode_vec(typed.qr_code()).unwrap()).unwrap();
+        assert_eq!(accessor_tags[&4], payable.as_bytes(), "public QR accessor");
+        assert_eq!(
+            typed.qr_code(),
+            text(
+                typed.xml(),
+                "/ubl:Invoice/cac:AdditionalDocumentReference[cbc:ID='QR']/cac:Attachment/cbc:EmbeddedDocumentBinaryObject",
+            ),
+            "public QR accessor must match the embedded QR"
+        );
+        for signed in [signer.sign_xml(&input).unwrap(), typed.xml().to_owned()] {
             let doc = independent::document(&signed).unwrap();
             assert_eq!(
                 independent::qr(independent::context(&doc)).unwrap()[&4],
