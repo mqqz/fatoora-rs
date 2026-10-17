@@ -453,3 +453,62 @@ fn oversized_qr_timestamp_is_rejected_without_truncation() {
     let verified = signature(&xml, &input).unwrap();
     violation(qr(&xml, &verified), "QR_TIMESTAMP");
 }
+
+#[test]
+fn generated_qr_uses_payable_for_rounding_and_prepayments() {
+    use crate::invoice::{sign::InvoiceSigner, xml::parse::parse_finalized_invoice_xml};
+    let root = fixtures().join("sdk-parity");
+    let signer = InvoiceSigner::from_der(
+        &fs::read(root.join("credentials/certificate.der")).unwrap(),
+        &fs::read(root.join("credentials/private-key.der")).unwrap(),
+    )
+    .unwrap();
+    let original = fs::read_to_string(root.join("cases/payable-rounding/input.xml")).unwrap();
+    for (prepaid, rounding, payable) in [
+        ("0", "0.00", "1000.01"),
+        ("0", "-0.01", "1000.00"),
+        ("0", "0.01", "1000.02"),
+        ("100.00", "0.00", "900.01"),
+        ("100.00", "-0.01", "900.00"),
+    ] {
+        let input = original
+            .replace(
+                ">0</cbc:PrepaidAmount>",
+                &format!(">{prepaid}</cbc:PrepaidAmount>"),
+            )
+            .replace(
+                ">-0.01</cbc:PayableRoundingAmount>",
+                &format!(">{rounding}</cbc:PayableRoundingAmount>"),
+            )
+            .replace(
+                ">1000.00</cbc:PayableAmount>",
+                &format!(">{payable}</cbc:PayableAmount>"),
+            );
+        let invoice = parse_finalized_invoice_xml(&input).unwrap();
+        for signed in [
+            signer.sign_xml(&input).unwrap(),
+            invoice.sign(&signer).unwrap().xml().to_owned(),
+        ] {
+            let doc = independent::document(&signed).unwrap();
+            assert_eq!(
+                independent::qr(independent::context(&doc)).unwrap()[&4],
+                payable.as_bytes()
+            );
+            let xml = Xml::parse(&signed).unwrap();
+            let verified = signature(&xml, &signed).unwrap();
+            qr(&xml, &verified).unwrap();
+            if payable != "1000.01" {
+                let altered = qr_with_tag(&signed, 4, b"1000.01");
+                violation(qr(&Xml::parse(&altered).unwrap(), &verified), "QR_VALUE");
+                violation(
+                    qr_for_profile(
+                        &Xml::parse(&altered).unwrap(),
+                        &verified,
+                        QrProfile::Signing,
+                    ),
+                    "QR_VALUE",
+                );
+            }
+        }
+    }
+}

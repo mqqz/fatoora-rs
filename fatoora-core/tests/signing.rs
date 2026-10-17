@@ -475,7 +475,7 @@ fn signing_normalizes_qr_scalars_and_preserves_free_text() {
             "CompanyID",
             "IssueDate",
             "IssueTime",
-            "TaxInclusiveAmount",
+            "PayableAmount",
             "TaxAmount",
             "RegistrationName",
         ];
@@ -507,7 +507,7 @@ fn signing_normalizes_qr_scalars_and_preserves_free_text() {
         let signed = signer.sign_xml(&padded).unwrap();
         assert_eq!(signer.sign_xml(&signed).unwrap(), signed);
         let source = roxmltree::Document::parse(&padded).unwrap();
-        for field in ["RegistrationName", "TaxInclusiveAmount"] {
+        for field in ["RegistrationName", "PayableAmount"] {
             let node = source
                 .descendants()
                 .find(|n| {

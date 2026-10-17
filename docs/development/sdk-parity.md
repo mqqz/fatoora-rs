@@ -25,7 +25,7 @@ Compatibility tests are evidence for the cases they cover. They do not establish
 
 | Policy | Behavior |
 | --- | --- |
-| `SDK-QR-001` | This validator follows the SDK's tag 4 comparison against `PayableAmount` (BT-115). The library's QR generator uses `TaxInclusiveAmount`; payable rounding can make its generated QR fail this SDK profile. |
+| `SDK-QR-001` | QR generation, signing integrity and SDK-profile validation use `PayableAmount` (BT-115) for tag 4, including prepayment and payable rounding adjustments. This matches the recorded SDK behavior and the [Fatoora Developer Community clarification for SDK 3.3.1 and later](https://zatca1.discourse.group/t/how-to-show-advance-deductions-in-qr-code/890/2). |
 | `SDK-QR-002` | Tag 3 must contain a complete RFC3339 timestamp; a missing offset is interpreted as UTC. Comparison uses instants. Native validation rejects inconsistent offsets, a different day and malformed suffixes accepted by the recorded SDK CLI runs. |
 | `SDK-QR-003` | Tag 5 uses exact XML-decimal equality. Native validation rejects `NaN`, exponent syntax and distinct values that collapse to the same binary float. Captures also show the SDK accepting `16.0` against invoice VAT `15.00`; native validation rejects that mismatch. |
 | `LOCAL-INTEGRITY-001` | Signature algorithms, references and structure are restricted to the supported profile. Duplicate IDs, unbound references and malformed TLV data are rejected. This is a constrained invoice verifier; arbitrary XMLDSig transforms are unsupported. |
@@ -51,6 +51,8 @@ The recorded foreign-currency builder case fails the SDK rule requiring SAR as V
 Exceeding a limit produces an execution error, potentially with a partial report. DTD declarations in invoice input are rejected. Pattern evaluation has additional bounded resource use. See [error details](../reference/errors.md#local-zatca-execution-failures).
 
 ## Evidence and maintenance
+
+The frozen manifest retains the historical `SDK-QR-001` mismatch from its capture; it does not describe current QR generation. Current regression tests require both SDK and Rust QR tag 4 to match `PayableAmount`.
 
 The [frozen corpus](https://github.com/mqqz/fatoority/tree/main/fatoora-core/tests/fixtures/sdk-parity) records SDK outputs and checksums. The [recorded verification report](sdk-parity-verification.json) identifies the source and artifacts checked in that run; it is not a verification of every subsequent commit.
 

@@ -144,7 +144,14 @@ fn corpus_integrity_and_required_inventory() {
     assert_eq!(m["known_differences"].as_array().unwrap().len(), 1);
     assert_eq!(m["known_differences"][0]["id"], "SDK-QR-001");
     assert_eq!(m["known_differences"][0]["sdk"], "1000.00");
-    assert_eq!(m["known_differences"][0]["rust"], "1000.01");
+    // The frozen capture records historical behavior; fresh captures mark the fix resolved.
+    let difference = &m["known_differences"][0];
+    let expected = if difference["status"] == "resolved" {
+        "1000.00"
+    } else {
+        "1000.01"
+    };
+    assert_eq!(difference["rust"], expected);
     for id in [
         "simplified-invoice",
         "standard-invoice",
@@ -238,8 +245,7 @@ fn sdk_and_fresh_rust_signatures_and_qr_are_verified() {
             serde_json::from_slice(&fs::read(dir.join("expected.json")).unwrap()).unwrap();
         let hash = expected["hash"].as_str().unwrap();
         let sdk = fs::read_to_string(dir.join("sdk-signed.xml")).unwrap();
-        checks::verify_signed(&sdk, hash, &certificate, id == "payable-rounding")
-            .unwrap_or_else(|e| panic!("SDK {id}: {e}"));
+        checks::verify_signed(&sdk, hash, &certificate).unwrap_or_else(|e| panic!("SDK {id}: {e}"));
         let doc = checks::document(&sdk).unwrap();
         assert_eq!(
             checks::qr(checks::context(&doc)).unwrap(),
@@ -255,7 +261,7 @@ fn sdk_and_fresh_rust_signatures_and_qr_are_verified() {
         checks::verify_references(&sdk).unwrap_or_else(|e| panic!("SDK references {id}: {e}"));
         let signed = signer.sign_xml(&input).unwrap();
         checks::verify_references(&signed).unwrap_or_else(|e| panic!("Rust references {id}: {e}"));
-        checks::verify_signed(&signed, hash, &certificate, false)
+        checks::verify_signed(&signed, hash, &certificate)
             .unwrap_or_else(|e| panic!("Rust {id}: {e}"));
         let rust_doc = checks::document(&signed).unwrap();
         let rust_ctx = checks::context(&rust_doc);
@@ -369,7 +375,6 @@ fn typed_serialization_and_signing_match_frozen_inputs() {
             signed.xml(),
             expected["hash"].as_str().unwrap(),
             &certificate,
-            false,
         )
         .expect(id);
         checks::verify_references(signed.xml()).expect(id);
@@ -395,8 +400,7 @@ fn independent_verifier_rejects_signature_reference_and_qr_tampering() {
     let certificate = fs::read(root().join("credentials/certificate.der")).unwrap();
     let hash = expected["hash"].as_str().unwrap();
     let verify = |xml: &str| {
-        checks::verify_signed(xml, hash, &certificate, false)
-            .and_then(|()| checks::verify_references(xml))
+        checks::verify_signed(xml, hash, &certificate).and_then(|()| checks::verify_references(xml))
     };
     verify(&xml).unwrap();
     for (xpath, value) in [
@@ -465,7 +469,7 @@ fn independent_verifier_rejects_signature_reference_and_qr_tampering() {
     );
     checks::verify_references(&altered)
         .expect("certificate change is excluded from invoice digest");
-    let error = checks::verify_signed(&altered, hash, &changed_der, false).unwrap_err();
+    let error = checks::verify_signed(&altered, hash, &changed_der).unwrap_err();
     assert_eq!(error, "certificate digest");
     let raw = Base64::decode_vec(expected["qr"].as_str().unwrap()).unwrap();
     let qr_path = "//cac:AdditionalDocumentReference[cbc:ID='QR']/cac:Attachment/cbc:EmbeddedDocumentBinaryObject";

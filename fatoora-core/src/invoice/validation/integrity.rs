@@ -533,10 +533,6 @@ enum QrProfile {
 }
 
 fn qr_for_profile(xml: &Xml<'_>, verified: &Verified, profile: QrProfile) -> Checked<()> {
-    let amount = match profile {
-        QrProfile::Sdk => "PayableAmount",
-        QrProfile::Signing => "TaxInclusiveAmount",
-    };
     // Signing uses XML scalar normalization from QR construction. Free-text
     // seller names and the public SDK comparison retain their original bytes.
     let scalar = |field: crate::invoice::qr::QrField, value: String| match profile {
@@ -571,9 +567,7 @@ fn qr_for_profile(xml: &Xml<'_>, verified: &Verified, profile: QrProfile) -> Che
             )
             .into_bytes(),
         ),
-        // Pinned SDK compares tag4 to BT-115 (PayableAmount). The library's QR
-        // generator follows the published TaxInclusiveAmount mapping instead;
-        // SDK-QR-001 records that difference for payable rounding.
+        // QR tag 4 includes prepayment and payable rounding adjustments (BT-115).
         (
             4,
             scalar(
@@ -581,7 +575,7 @@ fn qr_for_profile(xml: &Xml<'_>, verified: &Verified, profile: QrProfile) -> Che
                 xml.text(
                     &xml.root()
                         .children(CAC, "LegalMonetaryTotal")
-                        .children(CBC, amount),
+                        .children(CBC, "PayableAmount"),
                 )?,
             )
             .into_bytes(),

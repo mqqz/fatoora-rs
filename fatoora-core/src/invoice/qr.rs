@@ -102,7 +102,7 @@ impl QrPayload {
             invoice.issue_date_string(),
             invoice.issue_time_string()
         );
-        let total_with_vat = InvoiceData::format_amount(totals.tax_inclusive_amount());
+        let total_with_vat = InvoiceData::format_amount(totals.payable_amount());
         let total_vat = InvoiceData::format_amount(totals.tax_amount());
 
         Ok(Self {
@@ -151,7 +151,7 @@ impl QrPayload {
         let total_with_vat = required_value(
             invoice
                 .aggregate("LegalMonetaryTotal")
-                .basic("TaxInclusiveAmount")
+                .basic("PayableAmount")
                 .content(),
             "total with VAT",
             QrField::TotalWithVat,
