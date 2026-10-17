@@ -716,10 +716,11 @@ def capture(root, output, inputs):
             "case": "payable-rounding",
             "field": "qr.tag4",
             "sdk": "1000.00",
-            "rust": "1000.01",
-            "reason": "SDK output differs from XML TaxInclusiveAmount; preserve guideline mapping in Rust",
+            "rust": "1000.00",
+            "status": "resolved",
+            "reason": "QR generation and validation use PayableAmount, including rounding and prepayments",
             "tracking": "https://github.com/mqqz/fatoority/issues/2",
-            "source": "https://www.zatca.gov.sa/en/E-Invoicing/Introduction/Guidelines/Documents/E-invoicing-Detailed-Technical-Guideline.pdf#page=61",
+            "source": "https://zatca1.discourse.group/t/how-to-show-advance-deductions-in-qr-code/890/2",
         }
     ]
     manifest["capture"]["signed_properties_adapter_sha256"] = digest(

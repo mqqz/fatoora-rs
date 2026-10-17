@@ -68,7 +68,6 @@ pub fn verify_signed(
     xml: &str,
     expected_hash: &str,
     expected_certificate: &[u8],
-    sdk_rounding_difference: bool,
 ) -> Result<(), String> {
     let doc = document(xml)?;
     let ctx = context(&doc);
@@ -134,11 +133,7 @@ pub fn verify_signed(
         ),
         (
             4,
-            if sdk_rounding_difference {
-                b"1000.00".to_vec()
-            } else {
-                text(ctx, "//cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount")?.into_bytes()
-            },
+            text(ctx, "//cac:LegalMonetaryTotal/cbc:PayableAmount")?.into_bytes(),
         ),
         (
             5,
