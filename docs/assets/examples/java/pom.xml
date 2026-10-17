@@ -10,7 +10,7 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>com.fatoority</groupId><artifactId>fatoority</artifactId><version>0.4.3</version>
+      <groupId>com.fatoority</groupId><artifactId>fatoority</artifactId><version>0.4.4</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId><artifactId>gson</artifactId><version>2.11.0</version>

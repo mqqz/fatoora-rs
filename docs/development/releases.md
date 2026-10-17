@@ -27,7 +27,7 @@ Avoid unrelated dependency upgrades. Add a curated changelog entry, including mi
 Run the [workspace checks](../contributing.md#make-and-check-a-change), [affected binding checks](diplomat.md) and the following commands. Substitute the intended release tag:
 
 ```sh
-python3 scripts/check_release.py --tag v0.4.3
+python3 scripts/check_release.py --tag v0.4.4
 python3 -m unittest discover -s scripts/tests -v
 cargo doc --workspace --no-deps --locked
 cargo package --workspace --list
@@ -57,8 +57,8 @@ The publication workflows in `.github/workflows/` define the registry configurat
 After the release PR is reviewed and merged, tag the exact tested commit. Replace the version and commit below:
 
 ```sh
-git tag -a v0.4.3 TESTED_COMMIT_SHA -m "Release v0.4.3"
-git push origin v0.4.3
+git tag -a v0.4.4 TESTED_COMMIT_SHA -m "Release v0.4.4"
+git push origin v0.4.4
 ```
 
 Check each registry and native release asset independently. Verify installation in fresh consumers and the docs.rs build, then publish the curated release notes and date. An uploaded artifact or one green workflow is not proof that every package was published.
