@@ -257,6 +257,67 @@ fn qr_command_generates_payload_for_finalized_invoice() {
 }
 
 #[test]
+fn qr_command_uses_payable_amount_for_signed_and_unsigned_invoices() {
+    use fatoora_core::invoice::{sign::InvoiceSigner, xml::parse::parse_finalized_invoice_xml};
+    let root =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../fatoora-core/tests/fixtures/sdk-parity");
+    let signer = InvoiceSigner::from_der(
+        &std::fs::read(root.join("credentials/certificate.der")).unwrap(),
+        &std::fs::read(root.join("credentials/private-key.der")).unwrap(),
+    )
+    .unwrap();
+    let original = std::fs::read_to_string(root.join("cases/payable-rounding/input.xml")).unwrap();
+    for (prepaid, rounding, payable) in [
+        ("0", "0.00", "1000.01"),
+        ("0", "-0.01", "1000.00"),
+        ("0", "0.01", "1000.02"),
+        ("100.00", "0.00", "900.01"),
+        ("100.00", "-0.01", "900.00"),
+    ] {
+        let input = original
+            .replace(
+                ">0</cbc:PrepaidAmount>",
+                &format!(">{prepaid}</cbc:PrepaidAmount>"),
+            )
+            .replace(
+                ">-0.01</cbc:PayableRoundingAmount>",
+                &format!(">{rounding}</cbc:PayableRoundingAmount>"),
+            )
+            .replace(
+                ">1000.00</cbc:PayableAmount>",
+                &format!(">{payable}</cbc:PayableAmount>"),
+            );
+        let invoice = parse_finalized_invoice_xml(&input).unwrap();
+        let unsigned = invoice.to_xml().unwrap();
+        assert!(parse_signed_invoice_xml(&unsigned).is_err());
+        let signed = invoice.sign(&signer).unwrap();
+        assert!(parse_signed_invoice_xml(signed.xml()).is_ok());
+        for (xml, expected_tags) in [(unsigned.as_str(), 5), (signed.xml(), 9)] {
+            let path = unique_temp_path("qr-payable");
+            std::fs::write(&path, xml).unwrap();
+            let output = Command::new(cli_exe())
+                .args(["qr", "--invoice"])
+                .arg(&path)
+                .output()
+                .expect("run qr command");
+            std::fs::remove_file(&path).unwrap();
+            assert!(
+                output.status.success(),
+                "{}",
+                String::from_utf8_lossy(&output.stderr)
+            );
+            let tags = decode_tlv(&String::from_utf8(output.stdout).unwrap());
+            assert_eq!(tags.len(), expected_tags);
+            assert_eq!(
+                tags.iter().find(|(tag, _)| *tag == 4).unwrap().1,
+                payable.as_bytes(),
+                "tag 4 with prepaid={prepaid}, rounding={rounding}, tags={expected_tags}"
+            );
+        }
+    }
+}
+
+#[test]
 fn qr_command_can_fail_on_signed_invoice() {
     let fixture = signed_invoice_fixture();
     let output = Command::new(cli_exe())

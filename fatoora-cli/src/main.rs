@@ -542,7 +542,7 @@ fn build_qr_payload(
         .as_str()
         .trim_end_matches('Z')
         .to_string();
-    let total_with_vat = format!("{:.2}", totals.tax_inclusive_amount());
+    let total_with_vat = format!("{:.2}", totals.payable_amount());
     let total_vat = format!("{:.2}", totals.tax_amount());
 
     let mut tlv = Vec::new();
